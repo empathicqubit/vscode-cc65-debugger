@@ -1,0 +1,309 @@
+import * as path from 'path';
+
+export interface Version {
+	major: number;
+	minor: number;
+}
+
+export interface Sym {
+	id: number;
+	name: string;
+	addrsize: Addrsize;
+	size: number;
+	def: string;
+	ref: number;
+	val: number;
+	type: string;
+}
+
+export enum Addrsize {
+	relative = 0,
+	absolute = 1
+}
+
+export enum Segtype {
+	ro = 0,
+	rw = 1,
+}
+
+export interface CodeSeg {
+	name: string;
+	oname: string;
+	id: number;
+	start: number;
+	size: number;
+	ooffs: number;
+	addrsize: Addrsize;
+	type: Segtype;
+}
+
+export interface DebugSpan {
+	seg: CodeSeg | null;
+	id: number;
+	segId: number;
+	start: number;
+	absoluteAddress: number;
+	size: number;
+	type: number;
+	lines: SourceLine[];
+}
+
+export interface SourceLine {
+	file: SourceFile | null;
+	span: DebugSpan | null;
+	id: number;
+	line: number;
+	fileId: number;
+	spanId: number;
+	type: number;
+	count: number;
+}
+
+export interface SourceFile {
+	mtime: Date;
+	mod: string;
+	name: string;
+	id: number;
+	size: number;
+	lines: SourceLine[];
+}
+
+export interface Dbgfile {
+	files: SourceFile[]
+	lines: SourceLine[]
+	segs: CodeSeg[]
+	syms: Sym[]
+	spans: DebugSpan[]
+	version: Version
+}
+
+export function parse(text: string, filename : string) : Dbgfile {
+	const dbgFile : Dbgfile = {
+		syms: [],
+		segs: [],
+		spans: [],
+		lines: [],
+		files: [],
+		version: {
+			major: -1,
+			minor: -1
+		},
+	};
+
+	const props = "([a-zA-Z]+)\\s*=\\s*\"?([^\n\r,\"]+)\"?\\s*,?";
+	let rex = new RegExp("^\\s*(csym|file|info|lib|line|mod|scope|seg|span|sym|type|version)\\s+((" + props + ")+)$", "gim");
+
+	let match = rex.exec(text);
+
+	do {
+		if(!match || match.length < 3) {
+			throw new Error("Debug file doesn't contain any object definitions");
+		}
+
+		const propVals = match[2];
+		const propsRex = new RegExp(props, "gim");
+		let propMatch = propsRex.exec(propVals);
+		if(!propMatch) {
+			throw new Error("File does not have any properties")
+		}
+
+		const ots = match[1];
+		if (ots == "sym") {
+			const sym : Sym = {
+				addrsize: Addrsize.absolute,
+				size: 0,
+				name: "",
+				id: 0,
+				def: "",
+				ref: 0,
+				val: 0,
+				type: "",
+			}
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == 'addrsize') {
+					sym[key] = Addrsize[key];
+				}
+				else if(key == 'id' || key == 'val' || key == 'ref' || key == 'size') {
+					sym[key] = parseInt(val);
+				}
+				else if(key == 'name' || key == 'type') {
+					sym[key] = val
+				}
+			} while (propMatch = propsRex.exec(propVals));
+
+			dbgFile.syms.push(sym);
+		}
+		else if (ots == "file") {
+			const fil : SourceFile = {
+				mtime: new Date(),
+				name: "",
+				mod: "",
+				lines: [],
+				id: 0,
+				size: 0,
+			};
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "size" || key == "id") {
+					fil[key] = parseInt(val);
+				}
+				else if (key == "mtime") {
+					fil[key] = new Date(val);
+				}
+				else if (key == "name") {
+					if(!path.isAbsolute(val)) {
+						fil[key] = path.normalize(path.dirname(filename) + "/../" + val);
+					}
+					else {
+						fil[key] = val;
+					}
+				}
+				else if (key == "mod") {
+					fil[key] = val;
+				}
+			} while (propMatch = propsRex.exec(propVals));
+
+			dbgFile.files.push(fil);
+		}
+		else if (ots == "seg") {
+			const seg : CodeSeg = {
+				addrsize: Addrsize.relative,
+				id: 0,
+				name: "",
+				oname: "",
+				ooffs: 0,
+				size: 0,
+				start: 0,
+				type: 0,
+			};
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "id" || key == "ooffs" || key == "start" || key == "size") {
+					seg[key] = parseInt(val);
+				}
+				else if (key == "addrsize") {
+					seg.addrsize = Addrsize[val];
+				}
+				else if (key == "name" || key == "oname") {
+					seg[key] = val;
+				}
+				else if (key == "type") {
+					seg.type = Segtype[key];
+				}
+			} while(propMatch = propsRex.exec(propVals));
+
+			dbgFile.segs.push(seg);
+		}
+		else if(ots == "span") {
+			const span : DebugSpan = {
+				id: 0,
+				start: 0,
+				size: 0,
+				seg: null,
+				type: 0,
+				segId: 0,
+				lines: [],
+				absoluteAddress: 0x80D,
+			};
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "id" || key == "size" || key == "start" || key == "type") {
+					span[key] = parseInt(val);
+				}
+				else if(key == "seg") {
+					span.segId = parseInt(val);
+				}
+			} while(propMatch = propsRex.exec(propVals));
+
+			dbgFile.spans.push(span);
+		}
+		else if(ots == "line") {
+			const line : SourceLine = {
+				count: 0,
+				id: 0,
+				line: 0,
+				span: null,
+				spanId: 0,
+				file: null,
+				fileId: 0,
+				type: 0,
+			};
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "id" || key == "count") {
+					line[key] = parseInt(val);
+				}
+				else if (key == "line") {
+					// VSCode wants zero indexed lines so might as well fix it now.
+					line[key] = parseInt(val) - 1;
+				}
+				else if (key == "span") {
+					line.spanId = parseInt(val);
+				}
+				else if (key == "file") {
+					line.fileId = parseInt(val);
+				}
+			} while(propMatch = propsRex.exec(propVals));
+
+			dbgFile.lines.push(line);
+		}
+		else {
+			continue;
+		}
+	} while(match = rex.exec(text))
+
+	for(const span of dbgFile.spans) {
+		for(const seg of dbgFile.segs) {
+			if(seg.id == span.segId) {
+				span.seg = seg
+				break
+			}
+		}
+
+		if(span.seg) {
+			span.absoluteAddress = span.seg.start + span.start
+		}
+	}
+
+	for(const line of dbgFile.lines) {
+		for(const file of dbgFile.files) {
+			if(line.fileId == file.id) {
+				line.file = file;
+				file.lines.push(line)
+				break
+			}
+		}
+
+		for(const span of dbgFile.spans) {
+			if (span.id == line.spanId) {
+				line.span = span
+				span.lines.push(line)
+				break
+			}
+		}
+	}
+
+	for(const file of dbgFile.files) {
+		file.lines.sort((a, b) => a.line - b.line);
+	}
+
+	dbgFile.spans.sort((a, b) => b.absoluteAddress - a.absoluteAddress)
+
+	return dbgFile;
+}
