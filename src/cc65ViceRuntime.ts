@@ -261,7 +261,7 @@ export class CC65ViceRuntime extends EventEmitter {
 			const nextCsym = scope.csyms[i+1];
 			if(csym.sc == dbgfile.sc.auto) {
 				const seek = -mostOffset+csym.offs;
-				let seekNext = mostOffset;
+				let seekNext = -mostOffset+csym.offs+2;
 				if(nextCsym) {
 					seekNext = -mostOffset+nextCsym.offs
 				}
