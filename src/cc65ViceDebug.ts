@@ -181,8 +181,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 		const path = <string>args.source.path;
 		const clientLines = args.lines || [];
 
-		// clear all breakpoints for this file
-		this._runtime.clearBreakpoints();
+		await this._runtime.clearBreakpoints(path);
 
 		// set and verify breakpoint locations
 		const actualBreakpoints = <any>(await Promise.all(clientLines.map(async l => {
@@ -259,9 +258,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		response.body = {
 			scopes: [
-				new Scope("Parameter Stack", this._variableHandles.create("stack"), true),
-				new Scope("Global", this._variableHandles.create("global"), true),
 				new Scope("Local", this._variableHandles.create("local"), false),
+				new Scope("Global", this._variableHandles.create("global"), true),
+				new Scope("Parameter Stack", this._variableHandles.create("stack"), false),
 			]
 		};
 		this.sendResponse(response);
@@ -274,12 +273,11 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 		const id = this._variableHandles.get(args.variablesReference);
 
 		if (id == "local") {
-			const vars = await this._runtime.getGlobalVariables();
+			const vars = await this._runtime.getScopeVariables();
 			for(const v of vars) {
 				variables.push({
 					name: v.name,
 					value: v.value,
-					memoryReference: v.addr.toString(16),
 					variablesReference: 0,
 				});
 			}
@@ -342,12 +340,14 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		let reply: string | undefined = undefined;
 		if (args.context == "hover") {
-			reply = ``
+			const vars = await this._runtime.getScopeVariables();
+			const v = vars.find(x => x.name == args.expression);
+			if(v) {
+				reply = v.value;
+			}
 		}
 
 		if (args.context === 'repl') {
-			await this._runtime.pause();
-
 			const blacklisted = [
 				'break','bk','command', 'condition', 'cond', 'delete', 'del',
 				'disable', 'dis', 'enable', 'en', 'ignore', 'until', 'un',
@@ -374,6 +374,7 @@ If you think you know what you're doing, prefix it with an ! :
 
 			if(cmd) {
 				reply = <string>await this._runtime.viceExec(cmd);
+				await this._runtime.pause();
 			}
 		}
 
@@ -452,6 +453,7 @@ If you think you know what you're doing, prefix it with an ! :
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request) : Promise<void> {
 		await this._runtime.terminate();
+		this._variableHandles.reset();
 		this.sendResponse(response)
 	}
 

@@ -5,6 +5,31 @@ export interface Version {
 	minor: number;
 }
 
+export interface Scope {
+	id: number;
+	name: string;
+	csyms: CSym[];
+	size: number;
+	spanId: number;
+	span: DebugSpan | null;
+}
+
+export enum sc {
+	auto = 0,
+	ext = 1,
+}
+
+export interface CSym {
+	id: number;
+	name: string;
+	offs: number;
+	scopeId: number;
+	scope: Scope | null;
+	sym: Sym | null;
+	symId : number;
+	sc: sc;
+}
+
 export interface Sym {
 	id: number;
 	name: string;
@@ -69,16 +94,20 @@ export interface SourceFile {
 }
 
 export interface Dbgfile {
-	files: SourceFile[]
-	lines: SourceLine[]
-	segs: CodeSeg[]
-	syms: Sym[]
-	spans: DebugSpan[]
-	version: Version
+	csyms: CSym[];
+	scopes: Scope[];
+	files: SourceFile[];
+	lines: SourceLine[];
+	segs: CodeSeg[];
+	syms: Sym[];
+	spans: DebugSpan[];
+	version: Version;
 }
 
 export function parse(text: string, filename : string) : Dbgfile {
 	const dbgFile : Dbgfile = {
+		scopes: [],
+		csyms: [],
 		syms: [],
 		segs: [],
 		spans: [],
@@ -108,7 +137,63 @@ export function parse(text: string, filename : string) : Dbgfile {
 		}
 
 		const ots = match[1];
-		if (ots == "sym") {
+		if(ots == "scope") {
+			const scope : Scope = {
+				id: 0,
+				span: null,
+				csyms: [],
+				spanId: 0,
+				size: 0,
+				name: "",
+			};
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "id" || key == "size") {
+					scope[key] = parseInt(val);
+				}
+				else if(key == "span") {
+					scope.spanId = parseInt(val);
+				}
+				else if(key == 'name') {
+					scope[key] = val;
+				}
+			} while (propMatch = propsRex.exec(propVals));
+
+			dbgFile.scopes.push(scope);
+		}
+		else if(ots == "csym") {
+			const csym : CSym = {
+				id: 0,
+				scopeId: 0,
+				sc: sc.auto,
+				scope: null,
+				sym: null,
+				symId: 0,
+				offs: 0,
+				name: "",
+			};
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "id" || key == "size" || key == "offs") {
+					csym[key] = parseInt(val);
+				}
+				else if(key == "scope") {
+					csym.scopeId = parseInt(val);
+				}
+				else if(key == 'name') {
+					csym[key] = val;
+				}
+			} while (propMatch = propsRex.exec(propVals));
+
+			dbgFile.csyms.push(csym);
+		}
+		else if (ots == "sym") {
 			const sym : Sym = {
 				addrsize: Addrsize.absolute,
 				size: 0,
@@ -280,6 +365,27 @@ export function parse(text: string, filename : string) : Dbgfile {
 			span.absoluteAddress = span.seg.start + span.start
 		}
 	}
+
+	for(const csym of dbgFile.csyms) {
+		for(const scope of dbgFile.scopes) {
+			if(scope.id == csym.scopeId) {
+				csym.scope = scope;
+				scope.csyms.push(csym);
+				break;
+			}
+		}
+	}
+
+	for(const scope of dbgFile.scopes) {
+		scope.csyms.sort((a, b) => a.offs - b.offs);
+		for(const span of dbgFile.spans) {
+			if(span.id == scope.spanId) {
+				scope.span = span;
+				break;
+			}
+		}
+	}
+
 
 	for(const line of dbgFile.lines) {
 		for(const file of dbgFile.files) {

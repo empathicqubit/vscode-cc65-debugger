@@ -13,6 +13,7 @@ import * as getPort from 'get-port';
 import * as net from 'net';
 import * as dbgfile from './debugFile'
 import watch from 'node-watch';
+import { stringify } from 'querystring';
 
 const queue = require('queue');
 
@@ -38,11 +39,10 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _paramStackTop: number = -1;
 	private _paramStackPointer: number = -1;
 
-	private _paramStackData: Buffer = Buffer.from(new Uint8Array(0));
-
 	private _cpuStackBottom: number = 0x1ff;
 	private _cpuStackTop: number = 0x1ff;
-	private _cpuStackData: Buffer = Buffer.from(new Uint8Array(0));
+
+	private _memoryData : Buffer = Buffer.alloc(0xffff);
 
 	private _codeSegAddress: number = -1;
 	private _codeSegLength: number = -1;
@@ -54,8 +54,6 @@ export class CC65ViceRuntime extends EventEmitter {
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
 	private _breakpointId = 1;
-
-	private _breakAddresses = new Set<string>();
 
 	private _viceProc : child_process.ChildProcess;
 
@@ -168,7 +166,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		await this.continue();
 		await this.waitForVice();
-		await this.setParamStackBottom();
+		await this._setParamStackBottom();
 
 		this.sendEvent('output', 'console', 'Console is VICE monitor enabled!\n\n')
 	}
@@ -176,7 +174,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _setupViceDataHandler() {
 		let breakpointHit = false;
 
-		this._viceConnection.on('data', (d) => {
+		this._viceConnection.on('data', async (d) => {
 			const data = d.toString();
 
 			// Address changes always produce this line.
@@ -197,27 +195,102 @@ export class CC65ViceRuntime extends EventEmitter {
 				}
 			}
 
-			const breakpoint = /^#([0-9]+)\s+\(Stop\s+on\s+exec\s+([0-9a-f]+)\)\s+/im.exec(data);
-			if(breakpoint) {
-				const addr = parseInt(breakpoint[2], 16);
+			// Also handle the register data format
+			const regs = /\s*ADDR\s+A\s+X\s+Y\s+SP\s+00\s+01\s+NV-BDIZC\s+LIN\s+CYC\s+STOPWATCH\s+\.;([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)/im.exec(data);
+			if(regs) {
+				const addr = parseInt(regs[1], 16);
 				this._currentAddress = addr
 				this._currentPosition = this._getLineFromAddress(addr);
 
-				this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.line, 0);
+				this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.line, 0);
+			}
+
+			const memrex =/^\>C:([0-9a-f]+)((\s+[0-9a-f]{2}){1,9})/gim;
+			let memmatch = memrex.exec(data);
+			if(memmatch) {
+				do {
+					const addr = parseInt(memmatch[1]|| "0", 16);
+					let i = 0;
+					const md = this._memoryData;
+					for(const byt of memmatch[2].split(/\s+/g)) {
+						if(!byt) {
+							continue;
+						}
+
+						md.writeUInt8(parseInt(byt, 16), addr + i);
+						i++;
+					}
+				} while(memmatch = memrex.exec(data))
+			}
+
+			const breakrex = /^#([0-9]+)\s+\(Stop\s+on\s+exec\s+([0-9a-f]+)\)\s+/gim;
+			let breakmatch = breakrex.exec(data)
+
+			if(breakmatch) {
+				// Set the current position only once
+				const addr = parseInt(breakmatch[2], 16);
+				this._currentAddress = addr
+				this._currentPosition = this._getLineFromAddress(addr);
+
+				let idx = parseInt(breakmatch[1]);
+
+				const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
+				if(userBreak) {
+					this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.line, 0);
+				}
+
 			}
 		})
 	}
 
-	public async setParamStack() {
-		this._paramStackData = await this.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
+	public async getScopeVariables() : Promise<any[]> {
+		const stack = await this.getParamStack();
+		const scope = this._dbgFile.scopes
+			.find(x => x.span
+				&& x.span.absoluteAddress <= this._currentPosition.span!.absoluteAddress
+				&& this._currentPosition.span!.absoluteAddress <= x.span.absoluteAddress + x.span.size);
+
+		if(!scope) {
+			return [];
+		}
+
+		const vars : {name : string, value: string, addr: number}[] = [];
+		const mostOffset = scope.csyms[0].offs;
+		for(let i = 0; i < scope.csyms.length; i++) {
+			const csym = scope.csyms[i];
+			const nextCsym = scope.csyms[i+1];
+			if(csym.sc == dbgfile.sc.auto) {
+				const seek = -mostOffset+csym.offs;
+				let seekNext = mostOffset;
+				if(nextCsym) {
+					seekNext = -mostOffset+nextCsym.offs
+				}
+
+				let val;
+				if(seekNext - seek == 2) {
+					val = stack.readUInt16LE(seek);
+				}
+				else {
+					val = stack.readUInt8(seek);
+				}
+
+				vars.push({
+					name: csym.name,
+					value: "0x" + val.toString(16),
+					addr: this._paramStackTop + seek,
+				});
+			}
+		}
+		for(const csym of scope.csyms) {
+		}
+
+		return vars;
 	}
 
 	public async getParamStack() : Promise<Buffer> {
 		await this.setParamStackTop();
 
-		this._paramStackData = await this.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
-
-		return this._paramStackData;
+		return await this.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
 	}
 
 	public async getGlobalVariables() : Promise<any[]> {
@@ -235,21 +308,21 @@ export class CC65ViceRuntime extends EventEmitter {
 		return vars;
 	}
 
-	public async getParamStackPos() : Promise<number> {
-		if(this._paramStackPointer == -1) {
-			const zp = this._dbgFile.segs.find(x => x.name == 'ZEROPAGE');
-			if(!zp) {
-				return -1;
-			}
-
-			this._paramStackPointer = zp.start;
+	private _setParamStackPointer() {
+		const zp = this._dbgFile.segs.find(x => x.name == 'ZEROPAGE');
+		if(!zp) {
+			return -1;
 		}
 
-		const binres = await this.getMemory(this._paramStackPointer, 2);
-		return binres.readUInt16LE(0);
+		this._paramStackPointer = zp.start;
 	}
 
-	public async setParamStackBottom() {
+	public async getParamStackPos() : Promise<number> {
+		const res = await this.getMemory(this._paramStackPointer, 2);
+		return res.readUInt16LE(0);
+	}
+
+	private async _setParamStackBottom() {
 		this._paramStackBottom = await this.getParamStackPos();
 	}
 
@@ -259,7 +332,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
 	public async getMemory(addr: number, length: number) : Promise<Buffer> {
 		if(length <= 0) {
-			return Buffer.from(new Uint8Array(0));
+			return Buffer.alloc(0);
 		}
 
 		const end = addr + (length - 1);
@@ -268,9 +341,9 @@ export class CC65ViceRuntime extends EventEmitter {
 		cmd[1] = cmd.length - 3; // Length
 		cmd[2] = 0x01; // memdump, the only binary command
 		cmd[3] = addr & 0x00FF // Low byte
-		cmd[4] = addr & 0xFF00; // High byte
+		cmd[4] = addr>>8; // High byte
 		cmd[5] = end & 0x00FF // Low byte
-		cmd[6] = end & 0xFF00; // High byte
+		cmd[6] = end>>8; // High byte
 		cmd[7] = 0x00; // Memory context (Computer)
 		cmd[8] = '\n'.charCodeAt(0); // Memory context (Computer)
 
@@ -278,11 +351,21 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		const resLength = buf.readUInt32LE(1);
 
-		return buf.slice(6, 6 + resLength)
+		let i = 0;
+		const res = buf.slice(6, 6 + resLength);
+		for(const byt of res) {
+			this._memoryData.writeUInt8(byt, addr + i);
+			i++;
+		}
+
+		return res;
 	}
 
 	public async setCpuStack() {
-		this._cpuStackData = await this.getMemory(this._cpuStackTop, this._cpuStackBottom - this._cpuStackTop)
+		let i = 0;
+		for(const byt of await this.getMemory(this._cpuStackTop, this._cpuStackBottom - this._cpuStackTop)){
+			this._memoryData.writeUInt8(byt, this._cpuStackTop + i)
+		}
 	}
 
 	private _getLineFromAddress(addr: number) : dbgfile.SourceLine {
@@ -337,12 +420,12 @@ export class CC65ViceRuntime extends EventEmitter {
 	}
 
 	private _getBreakpointMatches(breakpointText: string) : number[][] {
-		const rex = /^BREAK:\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
+		const rex = /^(BREAK|TRACE):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
 
 		const matches : number[][] = [];
 		let match;
 		while (match = rex.exec(breakpointText)) {
-			matches.push([parseInt(match[1]), parseInt(match[2], 16)]);
+			matches.push([parseInt(match[2]), parseInt(match[3], 16)]);
 		}
 
 		return matches;
@@ -485,6 +568,8 @@ export class CC65ViceRuntime extends EventEmitter {
 			this._entryAddress = startSym.val
 		}
 
+		this._setParamStackPointer();
+
 		await this.startVice(program, this._entryAddress, vicePath);
 
 		await this.verifyBreakpoints();
@@ -543,7 +628,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	}
 
 	public async pause() {
-		await this.viceExec('\n');
+		await this.viceExec('r');
 		this.sendEvent('stopOnStep', 'console')
 	}
 
@@ -560,7 +645,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		});
 		i++;
 
-		for(const byt of this._cpuStackData) {
+		for(const byt of this._memoryData.slice(this._cpuStackTop, this._cpuStackBottom + 1)) {
 			frames.push({
 				index: i,
 				name: byt.toString(16),
@@ -621,17 +706,8 @@ export class CC65ViceRuntime extends EventEmitter {
 		return bp;
 	}
 
-	/*
-	 * Clear breakpoint in file with given line.
-	 */
-	public async clearBreakPoint(path: string, line: number) : Promise<CC65ViceBreakpoint | undefined> {
-		let index = this._breakPoints.findIndex(x => x.line.line == line && x.line.file && path.includes(x.line.file.name));
-
-		if (index < 0) {
-			return undefined;
-		}
-
-		const bp = this._breakPoints[index];
+	private async _clearBreakPoint(bp: CC65ViceBreakpoint) : Promise<CC65ViceBreakpoint | undefined> {
+		const index = this._breakPoints.indexOf(bp);
 		this._breakPoints.splice(index, 1);
 
 		await this.viceExec(`del ${bp.viceIndex}`);
@@ -652,22 +728,20 @@ export class CC65ViceRuntime extends EventEmitter {
 	/*
 	 * Clear all breakpoints.
 	 */
-	public async clearBreakpoints(): Promise<void> {
-		for(const bp of this._breakPoints) {
-			await this.viceExec(`del ${bp.viceIndex}`);
-		}
+	public async clearBreakpoints(p : string): Promise<void> {
+		for(const bp of [...this._breakPoints]) {
+			if(!bp.line.file!.name.includes(p)) {
+				continue;
+			}
 
-		this._breakPoints = [];
+			await this._clearBreakPoint(bp);
+		}
 	}
 
 	/*
 	 * Set data breakpoint.
 	 */
 	public setDataBreakpoint(address: string): boolean {
-		if (address) {
-			this._breakAddresses.add(address);
-			return true;
-		}
 		return false;
 	}
 
@@ -675,7 +749,6 @@ export class CC65ViceRuntime extends EventEmitter {
 	 * Clear all data breakpoints.
 	 */
 	public clearAllDataBreakpoints(): void {
-		this._breakAddresses.clear();
 	}
 
 	private loadSource(file: string) {

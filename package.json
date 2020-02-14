@@ -29,7 +29,7 @@
 		"url": "https://github.com/empathicqubit/vscode-cc65-vice-debug"
 	},
 	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-cc65-vice-debug/issues"
+		"url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
 	},
 	"scripts": {
 		"prepublish": "tsc -p ./src",
