@@ -20,11 +20,13 @@ function timeout(ms: number) {
 enum VariablesReferenceFlag {
 	FOLLOW_POINTER = 0x10000,
 	EXPAND_DATA =    0x20000,
-	LOCAL =          0x40000,
-	GLOBAL =         0x80000,
-	PARAM =         0x100000,
+	EXPAND_BYTES =   0x40000,
+	LOCAL =          0x80000,
+	GLOBAL =        0x100000,
+	PARAM =         0x200000,
 	ADDR_MASK =     0x00FFFF,
 }
+// MAX = 0x8000000000000
 
 /**
  * Settings for launch.json
@@ -205,7 +207,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			}
 
 			let { verified, line, id } = brk;
-			const bp = <DebugProtocol.Breakpoint> new Breakpoint(verified, this.convertDebuggerLineToClient(line.line));
+			const bp = <DebugProtocol.Breakpoint> new Breakpoint(verified, this.convertDebuggerLineToClient(line.num));
 			bp.id= id;
 			return bp;
 		}))).filter(x => x);
@@ -274,61 +276,63 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			scopes: [
 				new Scope("Local", VariablesReferenceFlag.LOCAL, false),
 				new Scope("Global", VariablesReferenceFlag.GLOBAL, true),
-				new Scope("Parameter Stack", VariablesReferenceFlag.PARAM, false),
+				// FIXME new Scope("Parameter Stack", VariablesReferenceFlag.PARAM, false),
 			]
 		};
 		this.sendResponse(response);
 	}
 
-	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
+	private _pointerMenu(pointerVal: number, idx?: number) : DebugProtocol.Variable {
+		let name : string;
+		let val : string;
+		const helpText = `Mem @ 0x${(<any>pointerVal.toString(16)).padStart(4, '0')} (Pointer Dest)`;
+		if(typeof idx === 'undefined') {
+			name = helpText;
+			val = "";
+		}
+		else {
+			name = idx.toString();
+			val = helpText;
+		}
 
+		return {
+			name: name,
+			value: val,
+			variablesReference: VariablesReferenceFlag.FOLLOW_POINTER | pointerVal,
+			presentationHint: {
+				kind: 'virtual'
+			},
+		};
+	}
+
+	private _formatHex(hexString: string) : string {
+		return hexString.replace(/([0-9a-f]{8})/gi, '$1 ').replace(/([0-9a-f]{2})/gi, '$1 ');
+	}
+
+	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
 		const variables: DebugProtocol.Variable[] = [];
 
-		const ref = args.variablesReference;
+		try {
+			const ref = args.variablesReference;
 
-	if (ref & VariablesReferenceFlag.LOCAL) {
-			const vars = await this._runtime.getScopeVariables();
-			for(const v of vars) {
-				variables.push({
-					name: v.name,
-					value: v.value,
-					memoryReference: v.addr.toString(16),
-					variablesReference: v.addr,
-				});
+			if (ref & VariablesReferenceFlag.LOCAL) {
+				const vars = await this._runtime.getScopeVariables();
+				for(const v of vars) {
+					variables.push({
+						name: v.name,
+						value: v.value,
+						memoryReference: v.addr.toString(16),
+						variablesReference: v.addr,
+					});
+				}
 			}
-		}
-		else if(ref & VariablesReferenceFlag.PARAM) {
-			const byts = await this._runtime.getParamStack();
-			let i = byts.length - 1;
-			for(const byt of byts.reverse()) {
-				variables.push({
-					name: i.toString(),
-					value: byt.toString(16),
-					variablesReference: 0,
-				});
-				i--;
-			}
-		}
-		else if(ref & VariablesReferenceFlag.GLOBAL) {
-			const vars = await this._runtime.getGlobalVariables();
-			for(const v of vars) {
-				variables.push({
-					name: v.name,
-					value: v.value,
-					memoryReference: v.addr.toString(16),
-					variablesReference: v.addr,
-				});
-			}
-		}
-		else if(ref > 0) {
-			if(ref & (VariablesReferenceFlag.EXPAND_DATA | VariablesReferenceFlag.FOLLOW_POINTER)) {
-				const addr = ref & VariablesReferenceFlag.ADDR_MASK
-				const buf = await this._runtime.getMemory(addr, 128); // FIXME Make this number configurable.
+			else if(ref & VariablesReferenceFlag.PARAM) {
+				const buf = await this._runtime.getParamStack(); // FIXME Make this number configurable.
 				for(let i = 0 ; i < buf.length ; i+=8) {
 					const val = buf.slice(i, i + 8);
 					variables.push({
-						name: (addr + i).toString(16),
-						value: val.toString('hex').replace(/([0-9a-f]{8})/gi, '$1 ').replace(/([0-9a-f]{2})/gi, '$1 '),
+						name: i.toString(16),
+						value: this._formatHex(val.toString('hex')),
 						variablesReference: 0,
 						presentationHint: {
 							kind: "data",
@@ -336,26 +340,65 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 					})
 				}
 			}
-			else {
-				variables.push({
-					name: `Memory at 0x${(args.variablesReference).toString(16)} (Direct)`,
-					value: "",
-					variablesReference: VariablesReferenceFlag.EXPAND_DATA | args.variablesReference,
-					presentationHint: {
-						kind: 'virtual'
-					}
-				})
-				const val = await this._runtime.getMemory(args.variablesReference & VariablesReferenceFlag.ADDR_MASK, 2);
-				const pointerVal = val.readUInt16LE(0);
-				variables.push({
-					name: `Memory at 0x${pointerVal.toString(16)} (Pointer Dest)`,
-					value: "",
-					variablesReference: VariablesReferenceFlag.FOLLOW_POINTER | pointerVal,
-					presentationHint: {
-						kind: 'virtual'
-					},
-				})
+			else if(ref & VariablesReferenceFlag.GLOBAL) {
+				const vars = await this._runtime.getGlobalVariables();
+				for(const v of vars) {
+					variables.push({
+						name: v.name,
+						value: v.value,
+						memoryReference: v.addr.toString(16),
+						variablesReference: v.addr,
+					});
+				}
 			}
+			else if(ref > 0) {
+				if(ref & (VariablesReferenceFlag.EXPAND_BYTES)) {
+					// 9B are retrieved in case there is a pointer straddling the boundary
+					// There is probably a better way to do this since we technically
+					// have this data already from the parent.
+					const val = await this._runtime.getMemory(args.variablesReference & VariablesReferenceFlag.ADDR_MASK, 9);
+					for(let i = 0; i < val.length - 1; i++) {
+						const pointerVal = val.readUInt16LE(i);
+						variables.push(this._pointerMenu(pointerVal, i))
+					}
+				}
+				else if(ref & (VariablesReferenceFlag.EXPAND_DATA | VariablesReferenceFlag.FOLLOW_POINTER)) {
+					const addr = ref & VariablesReferenceFlag.ADDR_MASK
+					const buf = await this._runtime.getMemory(addr, 128); // FIXME Make this number configurable.
+					for(let i = 0 ; i < buf.length ; i+=8) {
+						const val = buf.slice(i, i + 8);
+						variables.push({
+							name: (addr + i).toString(16),
+							value: this._formatHex(val.toString('hex')),
+							variablesReference: VariablesReferenceFlag.EXPAND_BYTES | (addr + i),
+							presentationHint: {
+								kind: "data",
+							}
+						})
+					}
+				}
+				else {
+					const val = await this._runtime.getMemory(args.variablesReference & VariablesReferenceFlag.ADDR_MASK, 2);
+					const pointerVal = val.readUInt16LE(0);
+					variables.push(this._pointerMenu(pointerVal))
+
+					variables.push({
+						name: `Mem @ 0x${(<any>args.variablesReference.toString(16)).padStart(4, '0')} (Direct)`,
+						value: "",
+						variablesReference: VariablesReferenceFlag.EXPAND_DATA | args.variablesReference,
+						presentationHint: {
+							kind: 'virtual'
+						}
+					})
+				}
+			}
+		}
+		catch (e) {
+			variables.push({
+				name: `Error`,
+				value: e.toString(),
+				variablesReference: 0,
+			});
 		}
 
 		response.body = {
@@ -402,7 +445,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		let reply: string | undefined = undefined;
 		if (args.context == "hover") {
-			const vars = await this._runtime.getScopeVariables();
+			const vars = [...await this._runtime.getScopeVariables(), this._runtime.getGlobalVariables()];
 			const v = vars.find(x => x.name == args.expression);
 			if(v) {
 				reply = v.value;

@@ -79,7 +79,7 @@ export interface SourceLine {
 	file: SourceFile | null;
 	span: DebugSpan | null;
 	id: number;
-	line: number;
+	num: number;
 	fileId: number;
 	spanId: number;
 	type: number;
@@ -331,7 +331,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 			const line : SourceLine = {
 				count: 0,
 				id: 0,
-				line: 0,
+				num: 0,
 				span: null,
 				spanId: -1,
 				file: null,
@@ -348,7 +348,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 				}
 				else if (key == "line") {
 					// VSCode wants zero indexed lines so might as well fix it now.
-					line[key] = parseInt(val) - 1;
+					line.num = parseInt(val) - 1;
 				}
 				else if (key == "span") {
 					line.spanId = parseInt(val);
@@ -418,7 +418,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 	}
 
 	for(const file of dbgFile.files) {
-		file.lines.sort((a, b) => a.line - b.line);
+		file.lines.sort((a, b) => a.num - b.num);
 	}
 
 	for(const sym of dbgFile.syms) {

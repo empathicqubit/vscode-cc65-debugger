@@ -54,7 +54,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _stackFrameStarts : { [address: string]: dbgfile.Scope } = {};
 	private _stackFrameEnds : { [address: string]: dbgfile.Scope } = {};
 
-	private _stackFrames : dbgfile.SourceLine[];
+	private _stackFrames : {line: dbgfile.SourceLine, scope: dbgfile.Scope}[];
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
@@ -185,7 +185,8 @@ export class CC65ViceRuntime extends EventEmitter {
 		await this.continue();
 		await this._vice.wait();
 		await this._setParamStackBottom();
-		this._resetStackFrames();
+		await this._resetStackFrames();
+		await this._setLabels();
 
 		this.sendEvent('output', 'console', 'Console is VICE monitor enabled!\n\n')
 
@@ -266,16 +267,16 @@ export class CC65ViceRuntime extends EventEmitter {
 			index: i,
 			name: this._currentAddress.toString(16),
 			file: this._currentPosition.file!.name,
-			line: this._currentPosition.line
+			line: this._currentPosition.num
 		});
 		i++;
 
-		for(const line of this._stackFrames) {
+		for(const frame of this._stackFrames) {
 			frames.push({
 				index: i,
-				name: line.line, // FIXME
-				file: line.file!.name,
-				line: line.line,
+				name: frame.scope.name, // FIXME
+				file: frame.line.file!.name,
+				line: frame.line.num,
 			});
 			i++;
 		}
@@ -351,9 +352,9 @@ export class CC65ViceRuntime extends EventEmitter {
 		const wasRunning = this._viceRunning;
 
 		for(const bp of this._breakPoints) {
-			const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.line == bp.line.line) && x.name == bp.line.file!.name);
-			if (sourceFile && !bp.verified && bp.line.line <= sourceFile.lines[sourceFile.lines.length - 1].line) {
-				const srcLine = sourceFile.lines.find(x => x.line >= bp.line.line) || sourceFile.lines[sourceFile.lines.length / 2];
+			const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.num == bp.line.num) && x.name == bp.line.file!.name);
+			if (sourceFile && !bp.verified && bp.line.num <= sourceFile.lines[sourceFile.lines.length - 1].num) {
+				const srcLine = sourceFile.lines.find(x => x.num >= bp.line.num) || sourceFile.lines[sourceFile.lines.length / 2];
 
 				bp.line = srcLine;
 
@@ -398,7 +399,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	public async setBreakPoint(path: string, line: number) : Promise<CC65ViceBreakpoint | null> {
 		let lineSym : dbgfile.SourceLine | undefined;
 		if(this._dbgFile) {
-			lineSym = this._dbgFile.lines.find(x => x.line == line && path.includes(x.file!.name))
+			lineSym = this._dbgFile.lines.find(x => x.num == line && path.includes(x.file!.name))
 			if(!lineSym){
 				return null;
 			}
@@ -416,7 +417,7 @@ export class CC65ViceRuntime extends EventEmitter {
 			lineSym = {
 				count: 0,
 				id: 0,
-				line: line,
+				num: line,
 				span: null,
 				spanId: 0,
 				file: fil,
@@ -512,15 +513,15 @@ export class CC65ViceRuntime extends EventEmitter {
 
 				let val;
 				if(seekNext - seek == 2) {
-					val = stack.readUInt16LE(seek);
+					val = (<any>stack.readUInt16LE(seek).toString(16)).padStart(4, '0');
 				}
 				else {
-					val = stack.readUInt8(seek);
+					val = (<any>stack.readUInt8(seek).toString(16)).padStart(2, '0');
 				}
 
 				vars.push({
 					name: csym.name,
-					value: "0x" + val.toString(16),
+					value: "0x" + val,
 					addr: this._paramStackTop + seek,
 				});
 			}
@@ -579,7 +580,7 @@ export class CC65ViceRuntime extends EventEmitter {
 				this._currentAddress = addr
 				this._currentPosition = this._getLineFromAddress(addr);
 
-				this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.line, 0);
+				this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 
 				if(addrexe[3]) {
 					this._cpuStackTop = 0x100 + parseInt(addrexe[3], 16)
@@ -593,7 +594,7 @@ export class CC65ViceRuntime extends EventEmitter {
 				this._currentAddress = addr
 				this._currentPosition = this._getLineFromAddress(addr);
 
-				this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.line, 0);
+				this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 			}
 
 			const memrex =/^\>C:([0-9a-f]+)((\s+[0-9a-f]{2}){1,9})/gim;
@@ -627,7 +628,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
 				const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
 				if(userBreak) {
-					this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.line, 0);
+					this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 				}
 			}
 
@@ -635,18 +636,18 @@ export class CC65ViceRuntime extends EventEmitter {
 			let tracematch = tracerex.exec(data);
 			if(tracematch) {
 				do {
-					const index = parseInt(tracematch[0]);
-					if(tracematch[1] != 'exec' || this._stacktraceIndexes.indexOf(index) === -1) {
+					const index = parseInt(tracematch[1]);
+					if(tracematch[2] != 'exec' || this._stacktraceIndexes.indexOf(index) === -1) {
 						continue;
 					}
 
-					const addr = tracematch[2].toLowerCase();
-					let frame: dbgfile.Scope;
-					if(frame = this._stackFrameStarts[addr]) {
+					const addr = tracematch[3].toLowerCase();
+					let scope: dbgfile.Scope;
+					if(scope = this._stackFrameStarts[addr]) {
 						const line = this._getLineFromAddress(parseInt(addr, 16));
-						this._stackFrames.push(line);
+						this._stackFrames.push({line: line, scope: scope });
 					}
-					else if(frame = this._stackFrameEnds[addr]) {
+					else if(scope = this._stackFrameEnds[addr]) {
 						this._stackFrames.pop();
 					}
 				} while(tracematch = tracerex.exec(data));
