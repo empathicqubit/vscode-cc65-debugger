@@ -12,7 +12,7 @@ import * as util from 'util';
 import * as net from 'net';
 import * as dbgfile from './debugFile'
 import watch from 'node-watch';
-import { stringify } from 'querystring';
+import { stringify, parse } from 'querystring';
 import { ViceGrip } from './viceGrip';
 
 export interface CC65ViceBreakpoint {
@@ -20,6 +20,16 @@ export interface CC65ViceBreakpoint {
 	line: dbgfile.SourceLine;
 	viceIndex: number;
 	verified: boolean;
+}
+
+export interface Registers {
+	a: number;
+	x: number;
+	y: number;
+	sp: number;
+	"00": number;
+	"01": number;
+	nvbdizc: number;
 }
 
 /**
@@ -55,6 +65,8 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _stackFrameEnds : { [address: string]: dbgfile.Scope } = {};
 
 	private _stackFrames : {line: dbgfile.SourceLine, scope: dbgfile.Scope}[];
+
+	private _registers : Registers;
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
@@ -161,7 +173,7 @@ export class CC65ViceRuntime extends EventEmitter {
 			throw new Error("File must be a Commodore Disk image or PRoGram.");
 		}
 
-		this._loadSource(program.replace(filetypes, ".dbg"));
+		await this._loadSource(program.replace(filetypes, ".dbg"));
 
 		const codeSeg = this._dbgFile.segs.find(x => x.name == "CODE");
 
@@ -176,6 +188,7 @@ export class CC65ViceRuntime extends EventEmitter {
 			this._entryAddress = startSym.val
 		}
 
+		this._resetRegisters();
 		this._setParamStackPointer();
 
 		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName), vicePath);
@@ -183,10 +196,12 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		this._setupViceDataHandler();
 		await this.continue();
+		this._viceRunning = false;
+
 		await this._vice.wait();
 		await this._setParamStackBottom();
 		await this._resetStackFrames();
-		await this._setLabels();
+		this._setLabels();
 
 		this.sendEvent('output', 'console', 'Console is VICE monitor enabled!\n\n')
 
@@ -265,16 +280,16 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		frames.push({
 			index: i,
-			name: this._currentAddress.toString(16),
+			name: '0x' + this._currentAddress.toString(16),
 			file: this._currentPosition.file!.name,
 			line: this._currentPosition.num
 		});
 		i++;
 
-		for(const frame of this._stackFrames) {
+		for(const frame of [...this._stackFrames].reverse()) {
 			frames.push({
 				index: i,
-				name: frame.scope.name, // FIXME
+				name: frame.scope.name.replace(/^_/g, ''),
 				file: frame.line.file!.name,
 				line: frame.line.num,
 			});
@@ -285,53 +300,6 @@ export class CC65ViceRuntime extends EventEmitter {
 			frames: frames,
 			count: frames.length,
 		};
-
-		/*
-		const res = <string>await this._vice.exec(`bt`);
-		const rex = /\(([0-9a-f]+)\) ([0-9a-f]+)/gi;
-		let match;
-		while(match = rex.exec(res)) {
-			let addr = parseInt(match[2], 16);
-			const line = this._getLineFromAddress(addr);
-			addr = line.span!.absoluteAddress;
-			const scope = this._dbgFile.scopes.find(x => x.span && x.span.lines.length && x.span.absoluteAddress <= addr && addr <= x.span.absoluteAddress + x.span.size);
-			if(!scope || !scope.span || !scope.span.lines[0] || !scope.span.lines[0].file) {
-				continue;
-			}
-
-			const file = scope.span.lines[0].file;
-			frames.push({
-				index: i,
-				name: scope.name,
-				file: file.name,
-				line: scope.span.lines[0].line,
-			});
-			i++;
-		}
-
-		frames.push({
-			index: i,
-			name: this._currentAddress.toString(16),
-			file: this._currentPosition.file!.name,
-			line: this._currentPosition.line
-		});
-		i++;
-
-		for(const byt of this._memoryData.slice(this._cpuStackTop, this._cpuStackBottom + 1)) {
-			frames.push({
-				index: i,
-				name: byt.toString(16),
-				file: this._currentPosition.file!.name,
-				line: this._currentPosition.line
-			});
-			i++;
-		}
-
-		return {
-			frames: frames,
-			count: frames.length,
-		};
-		*/
 	}
 
 	// Clean up all the things
@@ -555,8 +523,15 @@ export class CC65ViceRuntime extends EventEmitter {
 		return vars;
 	}
 
+	public getRegisters() : Registers {
+		return this._registers;
+	}
+
 	// We set labels here so the user doesn't have to generate Yet Another File
-	private async _setLabels() {
+	// This intentionally doesn't return A promise because we don't need these
+	// to be able to start. However, since commands are serial it probably
+	// doesn't help that much.
+	private _setLabels() {
 		for(const lab of this._dbgFile.labs) {
 			this._vice.exec(`al \$${lab.val.toString(16)} .${lab.name}`);
 		}
@@ -572,13 +547,22 @@ export class CC65ViceRuntime extends EventEmitter {
 			// Address changes always produce this line.
 			// The command line prefix may not match as it
 			// changes for others that get executed.
-			const addrexe = /^\.C:([0-9a-f]+)([^\r\n]+\s+SP:([0-9a-f]+)\s+)?/im.exec(data);
+			const addrexe = /^\.C:([0-9a-f]+)([^\r\n]+\s+A:([0-9a-f]+)\s+X:([0-9a-f]+)\s+Y:([0-9a-f]+)\s+SP:([0-9a-f]+)\s+)?/im.exec(data);
 			if(addrexe) {
-				this._viceRunning = false;
+				const r = this._registers;
+				const [full, addr] = addrexe;
 
-				const addr = parseInt(addrexe[1], 16);
-				this._currentAddress = addr
-				this._currentPosition = this._getLineFromAddress(addr);
+				if(addrexe.length > 2) {
+					const [,, a, x, y, sp] = addrexe;
+					r.a = parseInt(a, 16);
+					r.x = parseInt(x, 16);
+					r.y = parseInt(y, 16);
+					r.sp = parseInt(sp, 16);
+				}
+
+				const addrParse = parseInt(addr, 16);
+				this._currentAddress = addrParse
+				this._currentPosition = this._getLineFromAddress(addrParse);
 
 				this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 
@@ -590,9 +574,20 @@ export class CC65ViceRuntime extends EventEmitter {
 			// Also handle the register data format
 			const regs = /\s*ADDR\s+A\s+X\s+Y\s+SP\s+00\s+01\s+NV-BDIZC\s+LIN\s+CYC\s+STOPWATCH\s+\.;([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)/im.exec(data);
 			if(regs) {
-				const addr = parseInt(regs[1], 16);
-				this._currentAddress = addr
-				this._currentPosition = this._getLineFromAddress(addr);
+				const r = this._registers;
+				const [full, addr, a, x, y, sp, zero, one, nvbdizc] = regs;
+				r.a = parseInt(a, 16);
+				r.x = parseInt(x, 16);
+				r.y = parseInt(y, 16);
+				r.sp = parseInt(sp, 16);
+				r["00"] = parseInt(zero, 16);
+				r["01"] = parseInt(one, 16);
+				r.nvbdizc = parseInt(nvbdizc, 16);
+
+				const addrParse = parseInt(regs[1], 16);
+				this._currentAddress = addrParse
+				this._currentPosition = this._getLineFromAddress(addrParse);
+
 
 				this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 			}
@@ -628,6 +623,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
 				const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
 				if(userBreak) {
+					this._viceRunning = false;
 					this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 				}
 			}
@@ -655,12 +651,11 @@ export class CC65ViceRuntime extends EventEmitter {
 		})
 	}
 
-
-	private _loadSource(file: string) {
+	private async _loadSource(file: string) {
 		this._dbgFileName = file;
 		let dbgFileData : string;
 		try {
-			dbgFileData = fs.readFileSync(this._dbgFileName).toString();
+			dbgFileData = await util.promisify(fs.readFile)(this._dbgFileName).toString();
 		}
 		catch {
 			throw new Error(
@@ -731,6 +726,18 @@ export class CC65ViceRuntime extends EventEmitter {
 		return this._getBreakpointMatches(breakpointText)[0][0];
 	}
 
+	private _resetRegisters() {
+		this._registers = {
+			a: 0xff,
+			x: 0xff,
+			y: 0xff,
+			["00"]: 0xff,
+			["01"]: 0xff,
+			nvbdizc: 0xff,
+			sp: 0xff,
+		};
+	}
+
 	private async _resetStackFrames() {
 		this._stackFrameStarts = {};
 		this._stackFrameEnds = {};
@@ -762,7 +769,7 @@ export class CC65ViceRuntime extends EventEmitter {
 					break;
 				}
 
-				if(!finish && line.span.absoluteAddress <= end) {
+				if(!finish && line.span.absoluteAddress < end) {
 					this._stackFrameEnds[line.span.absoluteAddress.toString(16)] = scope;
 					finish = true;
 				}
@@ -781,7 +788,7 @@ export class CC65ViceRuntime extends EventEmitter {
 			const idx = this._getBreakpointNum(res);
 			// Marker to make it easier to identify user created breakpoints
 			// on the console.
-			await this._vice.exec(`cond ${idx} $574c == $574c`);
+			await this._vice.exec(`cond ${idx} if $574c == $574c`);
 
 			// We're not actually doing anything with this yet,
 			// but it's helpful to track it.

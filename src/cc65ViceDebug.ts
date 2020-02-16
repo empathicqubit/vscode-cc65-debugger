@@ -21,9 +21,12 @@ enum VariablesReferenceFlag {
 	FOLLOW_POINTER = 0x10000,
 	EXPAND_DATA =    0x20000,
 	EXPAND_BYTES =   0x40000,
+
 	LOCAL =          0x80000,
 	GLOBAL =        0x100000,
 	PARAM =         0x200000,
+	REGISTERS =     0x400000,
+
 	ADDR_MASK =     0x00FFFF,
 }
 // MAX = 0x8000000000000
@@ -274,6 +277,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		response.body = {
 			scopes: [
+				new Scope("Registers", VariablesReferenceFlag.REGISTERS, false),
 				new Scope("Local", VariablesReferenceFlag.LOCAL, false),
 				new Scope("Global", VariablesReferenceFlag.GLOBAL, true),
 				// FIXME new Scope("Parameter Stack", VariablesReferenceFlag.PARAM, false),
@@ -315,7 +319,17 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 		try {
 			const ref = args.variablesReference;
 
-			if (ref & VariablesReferenceFlag.LOCAL) {
+			if (ref & VariablesReferenceFlag.REGISTERS) {
+				const regs = this._runtime.getRegisters();
+				for(const k in regs) {
+					variables.push({
+						name: k.toUpperCase(),
+						value: '0x' + regs[k].toString(16).padStart(2, '0'),
+						variablesReference: 0,
+					});
+				}
+			}
+			else if (ref & VariablesReferenceFlag.LOCAL) {
 				const vars = await this._runtime.getScopeVariables();
 				for(const v of vars) {
 					variables.push({
@@ -394,6 +408,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			}
 		}
 		catch (e) {
+			console.error(e);
 			variables.push({
 				name: `Error`,
 				value: e.toString(),
