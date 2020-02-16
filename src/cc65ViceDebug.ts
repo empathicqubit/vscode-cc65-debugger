@@ -17,6 +17,15 @@ function timeout(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+enum VariablesReferenceFlag {
+	FOLLOW_POINTER = 0x10000,
+	EXPAND_DATA =    0x20000,
+	LOCAL =          0x40000,
+	GLOBAL =         0x80000,
+	PARAM =         0x100000,
+	ADDR_MASK =     0x00FFFF,
+}
+
 /**
  * Settings for launch.json
  */
@@ -41,8 +50,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 	private static THREAD_ID = 1;
 
 	private _runtime: CC65ViceRuntime;
-
-	private _variableHandles = new Handles<string>();
 
 	private _configurationDone = new Subject();
 
@@ -114,16 +121,15 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 		response.body.supportsConfigurationDoneRequest = true;
 
 		// make VS Code to use 'evaluate' when hovering over source
-		response.body.supportsEvaluateForHovers = true;
+		response.body.supportsEvaluateForHovers = false;
 
-		// make VS Code to show a 'step back' button
-		response.body.supportsStepBack = true;
+		response.body.supportsStepBack = false;
 
 		// make VS Code to support data breakpoints
-		response.body.supportsDataBreakpoints = true;
+		response.body.supportsDataBreakpoints = false;
 
 		// make VS Code to support completion in REPL
-		response.body.supportsCompletionsRequest = true;
+		response.body.supportsCompletionsRequest = false;
 		response.body.completionTriggerCharacters = [ ".", "[" ];
 
 		// make VS Code to send cancelRequests
@@ -158,7 +164,15 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		try {
 			// build the program.
-			const possibles = await this._runtime.build(args.buildCwd || ".", args.buildCommand || "make");
+			let possibles = <any>[];
+			try {
+				possibles = await this._runtime.build(args.buildCwd || ".", args.buildCommand || "make");
+			}
+			catch {
+				this.sendEvent(new OutputEvent("Couldn't finish the build successfully.", 'error'))
+				this.sendResponse(response);
+				return;
+			}
 
 			const program = args.program || possibles[0];
 			if(!program) {
@@ -258,9 +272,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		response.body = {
 			scopes: [
-				new Scope("Local", this._variableHandles.create("local"), false),
-				new Scope("Global", this._variableHandles.create("global"), true),
-				new Scope("Parameter Stack", this._variableHandles.create("stack"), false),
+				new Scope("Local", VariablesReferenceFlag.LOCAL, false),
+				new Scope("Global", VariablesReferenceFlag.GLOBAL, true),
+				new Scope("Parameter Stack", VariablesReferenceFlag.PARAM, false),
 			]
 		};
 		this.sendResponse(response);
@@ -270,19 +284,20 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		const variables: DebugProtocol.Variable[] = [];
 
-		const id = this._variableHandles.get(args.variablesReference);
+		const ref = args.variablesReference;
 
-		if (id == "local") {
+	if (ref & VariablesReferenceFlag.LOCAL) {
 			const vars = await this._runtime.getScopeVariables();
 			for(const v of vars) {
 				variables.push({
 					name: v.name,
 					value: v.value,
-					variablesReference: 0,
+					memoryReference: v.addr.toString(16),
+					variablesReference: v.addr,
 				});
 			}
 		}
-		else if(id == "stack") {
+		else if(ref & VariablesReferenceFlag.PARAM) {
 			const byts = await this._runtime.getParamStack();
 			let i = byts.length - 1;
 			for(const byt of byts.reverse()) {
@@ -292,6 +307,54 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 					variablesReference: 0,
 				});
 				i--;
+			}
+		}
+		else if(ref & VariablesReferenceFlag.GLOBAL) {
+			const vars = await this._runtime.getGlobalVariables();
+			for(const v of vars) {
+				variables.push({
+					name: v.name,
+					value: v.value,
+					memoryReference: v.addr.toString(16),
+					variablesReference: v.addr,
+				});
+			}
+		}
+		else if(ref > 0) {
+			if(ref & (VariablesReferenceFlag.EXPAND_DATA | VariablesReferenceFlag.FOLLOW_POINTER)) {
+				const addr = ref & VariablesReferenceFlag.ADDR_MASK
+				const buf = await this._runtime.getMemory(addr, 128); // FIXME Make this number configurable.
+				for(let i = 0 ; i < buf.length ; i+=8) {
+					const val = buf.slice(i, i + 8);
+					variables.push({
+						name: (addr + i).toString(16),
+						value: val.toString('hex').replace(/([0-9a-f]{8})/gi, '$1 ').replace(/([0-9a-f]{2})/gi, '$1 '),
+						variablesReference: 0,
+						presentationHint: {
+							kind: "data",
+						}
+					})
+				}
+			}
+			else {
+				variables.push({
+					name: `Memory at 0x${(args.variablesReference).toString(16)} (Direct)`,
+					value: "",
+					variablesReference: VariablesReferenceFlag.EXPAND_DATA | args.variablesReference,
+					presentationHint: {
+						kind: 'virtual'
+					}
+				})
+				const val = await this._runtime.getMemory(args.variablesReference & VariablesReferenceFlag.ADDR_MASK, 2);
+				const pointerVal = val.readUInt16LE(0);
+				variables.push({
+					name: `Memory at 0x${pointerVal.toString(16)} (Pointer Dest)`,
+					value: "",
+					variablesReference: VariablesReferenceFlag.FOLLOW_POINTER | pointerVal,
+					presentationHint: {
+						kind: 'virtual'
+					},
+				})
 			}
 		}
 
@@ -327,8 +390,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 	}
 
 	protected stepBackRequest(response: DebugProtocol.StepBackResponse, args: DebugProtocol.StepBackArguments): void {
-		this._runtime.step(true);
-		this.sendResponse(response);
+		throw new Error('Not supported');
 	}
 
 	protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments, request?: DebugProtocol.Request): void {
@@ -354,7 +416,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 				'watch', 'w', 'trace', 'tr',
 			];
 
-			const rex = new RegExp("^(\\!)?((" + blacklisted.join('|') + ")(\\s+.*)?)$", "i");
+			const rex = new RegExp("^\\s*(\\!)?\\s*((" + blacklisted.join('|') + ")(\\s+.*)?)$", "i");
 
 			let cmd = args.expression;
 			let match;
@@ -372,8 +434,12 @@ If you think you know what you're doing, prefix it with an ! :
 				}
 			}
 
-			if(cmd) {
-				reply = <string>await this._runtime.viceExec(cmd);
+			if(cmd == "iwantitall") {
+				reply = "and I want it now!"
+				await this._runtime.monitorToConsole();
+			}
+			else if(cmd) {
+				reply = <string>await this._runtime.exec(cmd);
 				await this._runtime.pause();
 			}
 		}
@@ -382,28 +448,6 @@ If you think you know what you're doing, prefix it with an ! :
 			result: reply || "No command entered.",
 			variablesReference: 0
 		};
-		this.sendResponse(response);
-	}
-
-	protected dataBreakpointInfoRequest(response: DebugProtocol.DataBreakpointInfoResponse, args: DebugProtocol.DataBreakpointInfoArguments): void {
-
-		response.body = {
-            dataId: null,
-            description: "cannot break on data access",
-            accessTypes: undefined,
-            canPersist: false
-        };
-
-		if (args.variablesReference && args.name) {
-			const id = this._variableHandles.get(args.variablesReference);
-			if (id.startsWith("global_")) {
-				response.body.dataId = args.name;
-				response.body.description = args.name;
-				response.body.accessTypes = [ "read" ];
-				response.body.canPersist = true;
-			}
-		}
-
 		this.sendResponse(response);
 	}
 
@@ -453,7 +497,6 @@ If you think you know what you're doing, prefix it with an ! :
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request) : Promise<void> {
 		await this._runtime.terminate();
-		this._variableHandles.reset();
 		this.sendResponse(response)
 	}
 

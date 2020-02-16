@@ -34,6 +34,8 @@ export interface Sym {
 	id: number;
 	name: string;
 	addrsize: Addrsize;
+	seg: CodeSeg | null;
+	segId: number;
 	size: number;
 	def: string;
 	ref: number;
@@ -100,6 +102,7 @@ export interface Dbgfile {
 	lines: SourceLine[];
 	segs: CodeSeg[];
 	syms: Sym[];
+	labs: Sym[];
 	spans: DebugSpan[];
 	version: Version;
 }
@@ -109,6 +112,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 		scopes: [],
 		csyms: [],
 		syms: [],
+		labs: [],
 		segs: [],
 		spans: [],
 		lines: [],
@@ -142,7 +146,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 				id: 0,
 				span: null,
 				csyms: [],
-				spanId: 0,
+				spanId: -1,
 				size: 0,
 				name: "",
 			};
@@ -167,11 +171,11 @@ export function parse(text: string, filename : string) : Dbgfile {
 		else if(ots == "csym") {
 			const csym : CSym = {
 				id: 0,
-				scopeId: 0,
+				scopeId: -1,
 				sc: sc.auto,
 				scope: null,
 				sym: null,
-				symId: 0,
+				symId: -1,
 				offs: 0,
 				name: "",
 			};
@@ -198,6 +202,8 @@ export function parse(text: string, filename : string) : Dbgfile {
 				addrsize: Addrsize.absolute,
 				size: 0,
 				name: "",
+				seg: null,
+				segId: -1,
 				id: 0,
 				def: "",
 				ref: 0,
@@ -218,9 +224,15 @@ export function parse(text: string, filename : string) : Dbgfile {
 				else if(key == 'name' || key == 'type') {
 					sym[key] = val
 				}
+				else if(key == 'seg') {
+					sym.segId = parseInt(val);
+				}
 			} while (propMatch = propsRex.exec(propVals));
 
 			dbgFile.syms.push(sym);
+			if(sym.type == "lab") {
+				dbgFile.labs.push(sym);
+			}
 		}
 		else if (ots == "file") {
 			const fil : SourceFile = {
@@ -296,7 +308,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 				size: 0,
 				seg: null,
 				type: 0,
-				segId: 0,
+				segId: -1,
 				lines: [],
 				absoluteAddress: 0x80D,
 			};
@@ -321,9 +333,9 @@ export function parse(text: string, filename : string) : Dbgfile {
 				id: 0,
 				line: 0,
 				span: null,
-				spanId: 0,
+				spanId: -1,
 				file: null,
-				fileId: 0,
+				fileId: -1,
 				type: 0,
 			};
 
@@ -409,7 +421,24 @@ export function parse(text: string, filename : string) : Dbgfile {
 		file.lines.sort((a, b) => a.line - b.line);
 	}
 
+	for(const sym of dbgFile.syms) {
+		for(const seg of dbgFile.segs) {
+			if(seg.id == sym.segId) {
+				sym.seg = seg;
+				break;
+			}
+		}
+	}
+
+	const spanSort = (a : {span}, b : {span} ) => (b.span && b.span.absoluteAddress)! - (a.span && a.span.absoluteAddress)!;
+	dbgFile.scopes.sort(spanSort);
+	dbgFile.lines.sort(spanSort)
+
 	dbgFile.spans.sort((a, b) => b.absoluteAddress - a.absoluteAddress)
+
+	const segSort = (a, b) => b.segId - a.segId;
+	dbgFile.syms.sort(segSort)
+	dbgFile.labs.sort(segSort);
 
 	return dbgFile;
 }
