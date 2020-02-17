@@ -9,11 +9,11 @@ import * as child_process from 'child_process'
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as util from 'util';
-import * as net from 'net';
 import * as dbgfile from './debugFile'
 import watch from 'node-watch';
-import { stringify, parse } from 'querystring';
 import { ViceGrip } from './viceGrip';
+import { CC65ViceDebugSession } from './cc65ViceDebug';
+import { VicesWonderfulWorldOfColor } from './vicesWonderfulWorldOfColor';
 
 export interface CC65ViceBreakpoint {
 	id: number;
@@ -59,8 +59,6 @@ export class CC65ViceRuntime extends EventEmitter {
 
 	private _breakPoints : CC65ViceBreakpoint[] = [];
 
-	private _stacktraceIndexes : number[] = [];
-
 	private _stackFrameStarts : { [address: string]: dbgfile.Scope } = {};
 	private _stackFrameEnds : { [address: string]: dbgfile.Scope } = {};
 
@@ -76,9 +74,12 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _vice : ViceGrip;
 
 	private _currentPosition: dbgfile.SourceLine;
+	private _session: CC65ViceDebugSession;
+	private _consoleType?: string;
 
-	constructor() {
+	constructor(sesh: CC65ViceDebugSession) {
 		super();
+		this._session = sesh;
 	}
 
 	/**
@@ -167,13 +168,20 @@ export class CC65ViceRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-	public async start(program: string, stopOnEntry: boolean, vicePath?: string) {
+	public async start(program: string, stopOnEntry: boolean, vicePath?: string, consoleType?: string) {
+		this._consoleType = consoleType;
+		console.time('loadSource')
+
 		const filetypes = /\.(d[0-9]{2}|prg)$/gi
 		if(!filetypes.test(program)) {
 			throw new Error("File must be a Commodore Disk image or PRoGram.");
 		}
 
 		await this._loadSource(program.replace(filetypes, ".dbg"));
+
+		console.timeEnd('loadSource')
+
+		console.time('preVice');
 
 		const codeSeg = this._dbgFile.segs.find(x => x.name == "CODE");
 
@@ -191,8 +199,23 @@ export class CC65ViceRuntime extends EventEmitter {
 		this._resetRegisters();
 		this._setParamStackPointer();
 
-		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName), vicePath);
+		console.timeEnd('preVice');
+
+		console.time('vice');
+
+		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName),(file : string, args : string[], opts: child_process.ExecFileOptions) => this._processExecHandler(file, args, opts), vicePath);
+		await this._vice.openBuffer();
+
+		await this._setLabels();
+		await this._resetStackFrames();
+
 		await this._vice.start();
+
+		await new VicesWonderfulWorldOfColor(this._vice._conn, (f, a, o) => this._processExecHandler(f, a, o)).main();
+
+		console.timeEnd('vice')
+
+		console.time('postVice')
 
 		this._setupViceDataHandler();
 		await this.continue();
@@ -200,10 +223,6 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		await this._vice.wait();
 		await this._setParamStackBottom();
-		await this._resetStackFrames();
-		this._setLabels();
-
-		this.sendEvent('output', 'console', 'Console is VICE monitor enabled!\n\n')
 
 		await this._verifyBreakpoints();
 
@@ -215,6 +234,8 @@ export class CC65ViceRuntime extends EventEmitter {
 			// we just start to run until we hit a breakpoint or an exception
 			await this.continue();
 		}
+
+		console.timeEnd('postVice')
 	}
 
 	public async monitorToConsole() {
@@ -328,6 +349,10 @@ export class CC65ViceRuntime extends EventEmitter {
 
 				const res = <string>await this._vice.exec(`bk ${srcLine.span!.absoluteAddress.toString(16)}`);
 				const idx = this._getBreakpointNum(res);
+
+				// Marker to make it easier to identify user created breakpoints
+				// on the console.
+				await this._vice.exec(`cond ${idx} if $574c == $574c`);
 
 				bp.viceIndex = idx;
 				bp.verified = true;
@@ -527,14 +552,29 @@ export class CC65ViceRuntime extends EventEmitter {
 		return this._registers;
 	}
 
+	private async _processExecHandler(file: string, args: string[], opts: child_process.ExecFileOptions) : Promise<number | undefined> {
+		const promise = new Promise<number | undefined>((res, rej) => {
+			this._session.runInTerminalRequest({
+				args: [file, ...args],
+				cwd: opts.cwd || path.dirname(this._dbgFileName),
+				env: <any>opts.env,
+				kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'
+			}, 5000, (response) => {
+				if(!response.success) {
+					rej(response);
+				}
+				else {
+					res(response.body.processId);
+				}
+			})
+		});
+
+		return promise;
+	}
+
 	// We set labels here so the user doesn't have to generate Yet Another File
-	// This intentionally doesn't return A promise because we don't need these
-	// to be able to start. However, since commands are serial it probably
-	// doesn't help that much.
-	private _setLabels() {
-		for(const lab of this._dbgFile.labs) {
-			this._vice.exec(`al \$${lab.val.toString(16)} .${lab.name}`);
-		}
+	private async _setLabels(): Promise<void> {
+		await Promise.all(this._dbgFile.labs.map(lab => this._vice.exec(`al \$${lab.val.toString(16)} .${lab.name}`)));
 	}
 
 	// FIXME These regexes could be pushed out and you could emit your own events.
@@ -547,7 +587,7 @@ export class CC65ViceRuntime extends EventEmitter {
 			// Address changes always produce this line.
 			// The command line prefix may not match as it
 			// changes for others that get executed.
-			const addrexe = /^\.C:([0-9a-f]+)([^\r\n]+\s+A:([0-9a-f]+)\s+X:([0-9a-f]+)\s+Y:([0-9a-f]+)\s+SP:([0-9a-f]+)\s+)?/im.exec(data);
+			const addrexe = /^\.C:([0-9a-f]+)([^\r\n]+\s+A:([0-9a-f]+)\s+X:([0-9a-f]+)\s+Y:([0-9a-f]+)\s+SP:([0-9a-f]+)\s+)/im.exec(data);
 			if(addrexe) {
 				const r = this._registers;
 				const [full, addr] = addrexe;
@@ -633,7 +673,7 @@ export class CC65ViceRuntime extends EventEmitter {
 			if(tracematch) {
 				do {
 					const index = parseInt(tracematch[1]);
-					if(tracematch[2] != 'exec' || this._stacktraceIndexes.indexOf(index) === -1) {
+					if(tracematch[2] != 'exec') {
 						continue;
 					}
 
@@ -643,7 +683,8 @@ export class CC65ViceRuntime extends EventEmitter {
 						const line = this._getLineFromAddress(parseInt(addr, 16));
 						this._stackFrames.push({line: line, scope: scope });
 					}
-					else if(scope = this._stackFrameEnds[addr]) {
+
+					if(scope = this._stackFrameEnds[addr]) {
 						this._stackFrames.pop();
 					}
 				} while(tracematch = tracerex.exec(data));
@@ -655,7 +696,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		this._dbgFileName = file;
 		let dbgFileData : string;
 		try {
-			dbgFileData = await util.promisify(fs.readFile)(this._dbgFileName).toString();
+			dbgFileData = await util.promisify(fs.readFile)(this._dbgFileName, 'ascii');
 		}
 		catch {
 			throw new Error(
@@ -742,7 +783,6 @@ export class CC65ViceRuntime extends EventEmitter {
 		this._stackFrameStarts = {};
 		this._stackFrameEnds = {};
 		this._stackFrames = [];
-		this._stacktraceIndexes = [];
 
 		for(const scope of this._dbgFile.scopes) {
 			if(!scope.name.startsWith("_")) {
@@ -769,7 +809,7 @@ export class CC65ViceRuntime extends EventEmitter {
 					break;
 				}
 
-				if(!finish && line.span.absoluteAddress < end) {
+				if(!finish && (line.span.absoluteAddress + line.span.size) <= end) {
 					this._stackFrameEnds[line.span.absoluteAddress.toString(16)] = scope;
 					finish = true;
 				}
@@ -783,17 +823,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		await Promise.all([
 			...Object.keys(this._stackFrameEnds),
 			...Object.keys(this._stackFrameStarts)
-		].map(async addr => {
-			const res = <string>await this._vice.exec(`tr exec \$${addr}`);
-			const idx = this._getBreakpointNum(res);
-			// Marker to make it easier to identify user created breakpoints
-			// on the console.
-			await this._vice.exec(`cond ${idx} if $574c == $574c`);
-
-			// We're not actually doing anything with this yet,
-			// but it's helpful to track it.
-			this._stacktraceIndexes.push(idx);
-		}));
+		].map(addr => this._vice.exec(`tr exec \$${addr}`)));
 	}
 
 	// Comm

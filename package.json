@@ -43,12 +43,16 @@
 	},
 	"dependencies": {
 		"await-notify": "1.0.1",
+		"colors": "^1.4.0",
+		"debounce": "^1.2.0",
 		"event-stream": "^4.0.1",
 		"get-port": "^5.1.1",
 		"lodash": "^4.17.15",
 		"node-watch": "^0.6.3",
+		"performance-now": "^2.1.0",
 		"queue": "^6.0.1",
 		"recursive-readdir": "^2.2.2",
+		"tmp": "^0.1.0",
 		"vscode-debugadapter": "1.38.0"
 	},
 	"devDependencies": {

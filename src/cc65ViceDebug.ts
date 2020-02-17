@@ -12,6 +12,7 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { CC65ViceRuntime, CC65ViceBreakpoint } from './cc65ViceRuntime';
 const { Subject } = require('await-notify');
+import * as colors from 'colors/safe';
 
 function timeout(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -47,6 +48,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	stopOnEntry?: boolean;
 	/** enable logging the Debug Adapter Protocol */
 	trace?: boolean;
+	console?: 'integratedTerminal' | 'integratedConsole' | 'externalTerminal';
 }
 
 export class CC65ViceDebugSession extends LoggingDebugSession {
@@ -69,7 +71,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
 
-		this._runtime = new CC65ViceRuntime();
+		this._runtime = new CC65ViceRuntime(this);
 
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
@@ -124,6 +126,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 		// the adapter implements the configurationDoneRequest.
 		response.body.supportsConfigurationDoneRequest = true;
+
 
 		// make VS Code to use 'evaluate' when hovering over source
 		response.body.supportsEvaluateForHovers = false;
@@ -185,7 +188,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			}
 
 			// start the program in the runtime
-			await this._runtime.start(program, !!args.stopOnEntry, args.viceCommand);
+			await this._runtime.start(program, !!args.stopOnEntry, args.viceCommand, args.console);
 		}
 		catch (e) {
 			response.success = false;
@@ -502,8 +505,12 @@ If you think you know what you're doing, prefix it with an ! :
 			}
 		}
 
+		reply = reply || "No command entered."
+
+		reply = reply.replace(/(\s+LDA\s+)/g, colors.green("$1"));
+
 		response.body = {
-			result: reply || "No command entered.",
+			result: reply,
 			variablesReference: 0
 		};
 		this.sendResponse(response);

@@ -6,8 +6,10 @@
 
 import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
+import { DebugProtocol } from 'vscode-debugprotocol'
 import { CC65ViceDebugSession } from './cc65ViceDebug';
 import * as Net from 'net';
+import * as util from 'util';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -112,7 +114,6 @@ class CC65ViceDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescri
 	private server?: Net.Server;
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
-
 		if (!this.server) {
 			// start listening on a random port
 			this.server = Net.createServer(socket => {

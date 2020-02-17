@@ -1,19 +1,31 @@
 import * as child_process from 'child_process'
 import * as net from 'net'
 import * as getPort from 'get-port';
-import * as path from 'path';
-import * as eventStream from 'event-stream';
+import * as tmp from 'tmp';
+import { Readable, Writable, EventEmitter } from 'stream';
+import * as fs from 'fs';
+import * as util from 'util';
+import { DebugProtocol } from 'vscode-debugprotocol'
 
 const queue = require('queue');
 
-export class ViceGrip {
-	private _proc : child_process.ChildProcess;
+async function * fakeStream() {
+	while(true) {
+		yield new Promise((res, rej) => setTimeout(() => res('\n(C:$0000) '), 1));
+	}
+}
+
+export class ViceGrip extends EventEmitter {
 	private _port : number = -1;
-	private _conn: net.Socket;
+	public _conn: Readable & Writable;
 	private _program: string;
 	private _initBreak: number = -1;
 	private _cwd: string;
 	private _vicePath: string | undefined;
+
+	private _bufferFile: Writable;
+	private _bufferFileName: string;
+	private _fakeStream: Readable;
 
 	private _cmdQueue = queue({
 		concurrency: 1,
@@ -21,14 +33,38 @@ export class ViceGrip {
 		autostart: true,
 	});
 
-	constructor(program: string, initBreak: number, cwd: string, vicePath?: string) {
+	private _handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>;
+	private _pid: number | undefined;
+
+	constructor(program: string, initBreak: number, cwd: string, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>, vicePath?: string) {
+		super();
+
+		this._handler = handler;
 		this._program = program;
 		this._initBreak = initBreak;
 		this._cwd = cwd;
 		this._vicePath = vicePath;
 	}
 
+	public async openBuffer() {
+		this._bufferFileName = await util.promisify(tmp.tmpName)();
+		const write =  fs.createWriteStream(this._bufferFileName);
+		this._bufferFile = write;
+		this._fakeStream = (<any>Readable).from(fakeStream());
+	}
+
 	public async start() {
+		if(this._fakeStream || this._bufferFile) {
+			const fake = this._fakeStream;
+			const buf = this._bufferFile;
+
+			this._fakeStream = <any>null;
+			this._bufferFile = <any>null;
+
+			fake.destroy();
+			buf.end();
+		}
+
 		this._port = await getPort({port: getPort.makeRange(29170, 29970)})
 
 		// FIXME Configurable? Many of these settings are for me
@@ -72,7 +108,7 @@ export class ViceGrip {
 
 		if(this._vicePath) {
 			try {
-				this._proc = child_process.spawn(this._vicePath, args, opts);
+				const pids = await this._handler(this._vicePath, args, opts)
 			}
 			catch {
 				throw new Error('Could not start VICE using your custom path in launch.json->viceCommand property');
@@ -80,14 +116,14 @@ export class ViceGrip {
 		}
 		else {
 			try {
-				this._proc = child_process.spawn('x64', args, opts);
+				this._pid = await this._handler('x64sc', args, opts);
 			}
 			catch {
 				try {
-					this._proc = child_process.spawn('x64sc', args, opts);
+					this._pid = await this._handler('x64', args, opts);
 				}
 				catch {
-					throw new Error('Could not start either x64 or x64sc. Define your VICE path in your launch.json \"viceCommand\" property');
+					throw new Error('Could not start either x64 or x64sc. Define your VICE path in your launch.json->viceCommand property');
 				}
 			}
 		}
@@ -99,17 +135,19 @@ export class ViceGrip {
 		let tries = 0;
 		do {
 			tries++;
-			await new Promise(resolve => setTimeout(resolve, 1000));
 			try {
 				connection.connect({
 					host: '127.0.0.1',
 					port: this._port,
 				})
-				await new Promise((res, rej) => (connection.on('connect', res), connection.on('error', rej)))
+
+				await new Promise((res, rej) => (connection.on('connect', res), connection.on('error', rej)));
 			} catch(e) {
-				if(tries > 5) {
+				if(tries > 20) {
 					throw e;
 				}
+
+				await new Promise(resolve => setTimeout(resolve, 250));
 
 				continue;
 			}
@@ -117,9 +155,23 @@ export class ViceGrip {
 			this._conn = connection;
 			break;
 		} while(true);
+
+		if(this._bufferFileName) {
+			await this.exec(`pb "${this._bufferFileName}"`);
+			await util.promisify(fs.unlink)(this._bufferFileName);
+			this._bufferFileName = <any>null;
+		}
 	}
 
 	public async wait(binary: boolean = false) : Promise<string | Buffer> {
+		let conn: Readable;
+		if(this._fakeStream) {
+			conn = this._fakeStream;
+		}
+		else {
+			conn = this._conn;
+		}
+
 		return await new Promise<string | Buffer>((res, rej) => {
 			let gather : string[] = [];
 
@@ -134,9 +186,9 @@ export class ViceGrip {
 					binaryGather.push(d);
 					binaryCount += d.length;
 					if(binaryCount >= binaryLength) {
+						conn.removeListener('data', waitForViceData);
+						conn.removeListener('error', rej);
 						res(Buffer.concat(binaryGather));
-						this._conn.removeListener('data', waitForViceData);
-						this._conn.removeListener('error', rej);
 						return;
 					}
 				}
@@ -145,35 +197,55 @@ export class ViceGrip {
 				gather.push(data);
 				const match = /^\(C:\$([0-9a-f]+)\)/m.test(data);
 				if(match) {
+					conn.off('data', waitForViceData);
+					conn.off('error', rej);
 					res(gather.join(''));
-					this._conn.removeListener('data', waitForViceData);
-					this._conn.removeListener('error', rej);
 				}
 			};
 
-			this._conn.on('data', waitForViceData);
-			this._conn.on('error', rej);
+			conn.on('data', waitForViceData);
+			conn.on('error', rej);
 		});
 	}
 
 	public async exec(command: string | Uint8Array) : Promise<string | Buffer> {
+		let conn : Writable;
+		if(this._bufferFile) {
+			conn = this._bufferFile;
+		}
+		else {
+			conn = this._conn;
+		}
+
 		if(command instanceof Uint8Array) {
 			return await new Promise<string | Buffer>((res, rej) => {
 				this._cmdQueue.push(async () => {
-					this._conn.write(Buffer.from(command));
-					const finish = this.wait(true);
-					finish.then(res, rej);
-					return await finish;
+					try {
+						conn.write(Buffer.from(command));
+						const finish = this.wait(true);
+						const done = await finish;
+						res(done);
+					}
+					catch(e) {
+						rej(e);
+						throw e;
+					}
 				});
 			});
 		}
 		else {
 			return await new Promise<string | Buffer>((res, rej) => {
 				this._cmdQueue.push(async () => {
-					this._conn.write(command + "\n");
-					const finish = this.wait();
-					finish.then(res, rej);
-					return await finish;
+					try {
+						conn.write(command + "\n");
+						const finish = this.wait();
+						const done = await finish;
+						res(done);
+					}
+					catch(e) {
+						rej(e);
+						throw e;
+					}
 				});
 			});
 		}
@@ -183,8 +255,12 @@ export class ViceGrip {
 		this._conn && this._conn.end();
 		this._conn = <any>null;
 		this._cmdQueue.end();
-		this._proc && this._proc.kill();
-		this._proc = <any>null;
+		this._pid && process.kill(this._pid);
+		this._pid = undefined;
+	}
+
+	pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean; }): T {
+		return this._conn.pipe(destination, options);
 	}
 
 	on(event: "data", listener: (data: Buffer) => void): this
@@ -199,7 +275,9 @@ export class ViceGrip {
 		return this;
 	}
 
-	public removeListener(event: string, handler: () => void) {
-		this._conn.removeListener(event, handler);
+	public removeListener(event: string | symbol, listener: (...args: any[]) => void) : this {
+		this._conn.removeListener(event, listener);
+
+		return this;
 	}
 }
