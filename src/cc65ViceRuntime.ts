@@ -76,6 +76,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _currentPosition: dbgfile.SourceLine;
 	private _session: CC65ViceDebugSession;
 	private _consoleType?: string;
+	private _colorTerm: VicesWonderfulWorldOfColor;
 
 	constructor(sesh: CC65ViceDebugSession) {
 		super();
@@ -203,7 +204,9 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		console.time('vice');
 
-		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName),(file : string, args : string[], opts: child_process.ExecFileOptions) => this._processExecHandler(file, args, opts), vicePath);
+		this._otherHandlers = new EventEmitter();
+
+		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName),(file : string, args : string[], opts: child_process.ExecFileOptions) => this._processExecHandler(file, args, opts), vicePath, this._otherHandlers);
 		await this._vice.openBuffer();
 
 		await this._setLabels();
@@ -211,13 +214,14 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		await this._vice.start();
 
-		await new VicesWonderfulWorldOfColor(this._vice._conn, (f, a, o) => this._processExecHandler(f, a, o)).main();
-
 		console.timeEnd('vice')
 
 		console.time('postVice')
 
 		this._setupViceDataHandler();
+
+		const handle = (data: string) => data;
+
 		await this.continue();
 		this._viceRunning = false;
 
@@ -234,6 +238,9 @@ export class CC65ViceRuntime extends EventEmitter {
 			// we just start to run until we hit a breakpoint or an exception
 			await this.continue();
 		}
+
+		this._colorTerm = new VicesWonderfulWorldOfColor(this._vice._conn, this._otherHandlers, (f, a, o) => this._processExecHandler(f, a, o))
+		this._colorTerm.main();
 
 		console.timeEnd('postVice')
 	}
@@ -253,14 +260,32 @@ export class CC65ViceRuntime extends EventEmitter {
 		// Find the next source line and continue to it.
 		const currentFile = this._currentPosition.file;
 		const currentIdx = currentFile!.lines.indexOf(this._currentPosition);
+		const span = this._currentPosition.span;
+		let currentFunction : dbgfile.Sym | undefined;
+		if(span) {
+			currentFunction = this._dbgFile.labs.find(x => x.val <= span.absoluteAddress && span.absoluteAddress < x.val + x.size )
+		}
+
 		let nextLine = currentFile!.lines[currentIdx + 1];
 		if(!nextLine) {
 			await this._vice.exec('z');
 		}
 		else {
 			const nextAddress = nextLine.span!.absoluteAddress;
-			this._viceRunning = true;
-			await this._vice.exec(`un ${nextAddress.toString(16)}`);
+			if(currentFunction) {
+				const endOfFunction = currentFunction.val + currentFunction.size - 1;
+				this._viceRunning = true;
+				const res = <string>await this._vice.exec(`bk \$${nextAddress.toString(16)} \$${endOfFunction.toString(16)}`);
+				const brknum = this._getBreakpointNum(res);
+
+				await this._vice.exec(`x`);
+
+				await this._vice.exec(`del ${brknum}`);
+			}
+			else {
+				this._viceRunning = true;
+				await this._vice.exec(`un \$${nextAddress.toString(16)}`);
+			}
 		}
 		this.sendEvent(event, 'console')
 	}
@@ -329,6 +354,8 @@ export class CC65ViceRuntime extends EventEmitter {
 		this._vice = <any>null;
 		this._viceRunning = false;
 		this._dbgFile = <any>null;
+		this._colorTerm && this._colorTerm.end();
+		this._colorTerm = <any>null;
 	}
 
 	// Breakpoints
@@ -577,12 +604,16 @@ export class CC65ViceRuntime extends EventEmitter {
 		await Promise.all(this._dbgFile.labs.map(lab => this._vice.exec(`al \$${lab.val.toString(16)} .${lab.name}`)));
 	}
 
+	private _otherHandlers : EventEmitter;
+
 	// FIXME These regexes could be pushed out and you could emit your own events.
 	private _setupViceDataHandler() {
 		let breakpointHit = false;
 
 		this._vice.on('data', async (d) => {
 			const data = d.toString();
+
+			this._otherHandlers.emit('data', data);
 
 			// Address changes always produce this line.
 			// The command line prefix may not match as it
@@ -752,7 +783,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	}
 
 	private _getBreakpointMatches(breakpointText: string) : number[][] {
-		const rex = /^(BREAK|TRACE):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
+		const rex = /^(BREAK|TRACE|UNTIL):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
 
 		const matches : number[][] = [];
 		let match;

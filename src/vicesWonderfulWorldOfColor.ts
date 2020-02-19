@@ -2,11 +2,7 @@ import * as net from 'net';
 import { Readable, Writable, EventEmitter } from 'stream';
 import * as child_process from 'child_process'
 import * as colors from 'colors';
-import * as eventStream from 'event-stream'
-import * as util from 'util';
-import * as fs from 'fs';
-import charcodes from './charcodes';
-
+import * as getPort from 'get-port';
 
 export class VicesWonderfulWorldOfColor {
 	private _outputServer: net.Server;
@@ -14,10 +10,12 @@ export class VicesWonderfulWorldOfColor {
 	// Connection to VICE. Obtained however
 	private _conn : Readable & Writable;
 
+	_output: EventEmitter;
 	private _handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>;
 
-	constructor(conn: Readable & Writable, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>) {
+	constructor(conn: Readable & Writable, output: EventEmitter, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>) {
 		this._conn = conn;
+		this._output = output;
 		this._handler = handler;
 	}
 
@@ -25,16 +23,43 @@ export class VicesWonderfulWorldOfColor {
 		const server = new net.Server((sock) => {
 			sock.pipe(this._conn);
 
-			const onData = (d : Buffer) => {
-				if(d[0] == 0x02) {
-					return;
+			sock.write(colors.green("I'm the VICE monitor!\n"));
+
+			let gather : string[] = [];
+			const onData = (data : string) => {
+				gather.push(data);
+			};
+
+			const concat = () => {
+				handler(gather.join(''))
+				gather = [];
+				setTimeout(concat, 100);
+			}
+
+			setTimeout(concat, 100);
+
+			const handler = (data : string) => {
+				data = data.replace(/[^ -~\s]+/g, '');
+
+				const asmrex = /^\.([C])(:)([0-9a-f]){4}\s{2}(([0-9a-f]+\s){1,4})\s*(\w{3})\s.*$/gim
+				let replacements : any = {};
+				let asmmatch : RegExpExecArray | null;
+				while(asmmatch = asmrex.exec(data)) {
+					const cmd = asmmatch[6];
+					if(cmd.startsWith('LD')) {
+						replacements[asmmatch[0]] = colors.green(asmmatch[0]);
+					}
+					else if(cmd.startsWith('ST')) {
+						replacements[asmmatch[0]] = colors.red(asmmatch[0]);
+					}
+					else if(cmd.startsWith('J') || cmd.startsWith('B')) {
+						replacements[asmmatch[0]] = colors.yellow(asmmatch[0]);
+					}
 				}
 
-				let data = d.toString();
 				// FIXME DRY error. Should push all regexes into common location.
 				const memrex = /^(\s*>)([C])(:)([0-9a-f]{4})(\s{2}(([0-9a-f]{2}\s){4}\s){4}\s)(.{16})/gim;
 				let memmatch : RegExpExecArray | null;
-				let replacements : any = {};
 				while(memmatch = memrex.exec(data)) {
 					const newString : string[] = [];
 					newString.push(memmatch[1], memmatch[2], memmatch[3], memmatch[4]);
@@ -43,27 +68,14 @@ export class VicesWonderfulWorldOfColor {
 					const hex = memmatch[5].replace(/[0-9a-f]+\s/g, match => {
 						const val = parseInt(match, 16);
 						let col;
-						// "standard characters"
 						if(!val) {
 							col = colors.gray;
 						}
-						else if(val >= 0x01 && val <= 0x3f) {
-							col = colors.cyan;
-						}
-						// "graphics characters"
-						else if(val >= 0x40 && val <= 0x7f) {
-							col = colors.yellow;
-						}
-						// "inverted standard"
-						else if(val >= 0x80 && val <= 0xbf) {
-							col = c => colors.bgCyan(colors.black(c));
-						}
-						// "inverted graphics"
 						else {
-							col = c => colors.bgYellow(colors.black(c));
+							col = colors.reset;
 						}
 
-						byteColors.push(col(charcodes[val] || memmatch![8][i]))
+						byteColors.push(col(memmatch![8][i]))
 						i++;
 						return col(match);
 					});
@@ -81,28 +93,21 @@ export class VicesWonderfulWorldOfColor {
 				sock.write(data);
 			};
 
-			this._conn.pipe(eventStream.split(/(\r?\n)/)).on('data', onData);
-
-			const bail = () => {
-				sock.unpipe(this._conn);
-				this._conn.off('data', onData);
-
-				sock.off('close', bail);
-				sock.off('end', bail);
-				sock.off('destroy', bail);
-				sock.off('error', bail);
-			};
-
-			sock.on('close', bail);
-			sock.on('end', bail);
-			sock.on('destroy', bail);
-			sock.on('error', bail);
+			this._output.on('data', onData);
 		});
 
-		server.listen(5995, '127.0.0.1');
+		const port = await getPort({ port: getPort.makeRange(29170, 30000) });
+		server.listen(port, '127.0.0.1');
 
 		this._outputServer = server;
 
-		this._outputTerminalPid = await this._handler('ncat', ['127.0.0.1', '5995'], {});
+		this._outputTerminalPid = await this._handler(process.argv[0], [__dirname + '/../node_modules/nc/bin/nc.js', '127.0.0.1', port.toString()], {});
+	}
+
+	public async end() {
+		this._outputServer && this._outputServer.close();
+		this._outputTerminalPid && process.kill(this._outputTerminalPid);
+		this._outputServer = <any>null;
+		this._outputTerminalPid = <any>null;
 	}
 }

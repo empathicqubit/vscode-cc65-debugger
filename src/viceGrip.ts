@@ -26,6 +26,7 @@ export class ViceGrip extends EventEmitter {
 	private _bufferFile: Writable;
 	private _bufferFileName: string;
 	private _fakeStream: Readable;
+	private _consoleHandler: EventEmitter;
 
 	private _cmdQueue = queue({
 		concurrency: 1,
@@ -36,10 +37,11 @@ export class ViceGrip extends EventEmitter {
 	private _handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>;
 	private _pid: number | undefined;
 
-	constructor(program: string, initBreak: number, cwd: string, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>, vicePath?: string) {
+	constructor(program: string, initBreak: number, cwd: string, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>, vicePath: string | undefined, consoleHandler: EventEmitter) {
 		super();
 
 		this._handler = handler;
+		this._consoleHandler = consoleHandler;
 		this._program = program;
 		this._initBreak = initBreak;
 		this._cwd = cwd;
@@ -194,6 +196,7 @@ export class ViceGrip extends EventEmitter {
 				}
 
 				const data = d.toString();
+
 				gather.push(data);
 				const match = /^\(C:\$([0-9a-f]+)\)/m.test(data);
 				if(match) {
