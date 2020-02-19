@@ -275,14 +275,18 @@ export class CC65ViceRuntime extends EventEmitter {
 		else {
 			const nextAddress = nextLine.span!.absoluteAddress;
 			if(currentFunction) {
-				const endOfFunction = currentFunction.span!.absoluteAddress + currentFunction.size - 1;
-				this._viceRunning = true;
-				const res = <string>await this._vice.exec(`bk \$${nextAddress.toString(16)} \$${endOfFunction.toString(16)}`);
-				const brknum = this._getBreakpointNum(res);
+				const functionLines = currentFunction.span!.lines.filter(x => x.file == currentFile);
+				const currentIdx = functionLines.findIndex(x => x.num == nextLine.num);
+				const remainingLines = functionLines.slice(currentIdx);
+				const setBrks = remainingLines.map(x => `bk \$${x.span!.absoluteAddress.toString(16)}`).join(' ; ');
+				const brks = <string>await this._vice.exec(setBrks);
+				const brknums = this._getBreakpointMatches(brks);
 
 				await this._vice.exec(`x`);
 
-				await this._vice.exec(`del ${brknum}`);
+				const delBrks = brknums.map(x => `del ${x[0]}`).join(' ; ');
+
+				await this._vice.exec(delBrks);
 			}
 			else {
 				this._viceRunning = true;

@@ -415,10 +415,22 @@ export function parse(text: string, filename : string) : Dbgfile {
 				break
 			}
 		}
+
+		if(line.span) {
+			for(const span of dbgFile.spans) {
+				if(span.absoluteAddress <= line.span.absoluteAddress && line.span.absoluteAddress < span.absoluteAddress + span.size) {
+					span.lines.push(line);
+				}
+			}
+		}
 	}
 
 	for(const file of dbgFile.files) {
 		file.lines.sort((a, b) => a.num - b.num);
+	}
+
+	for(const span of dbgFile.spans) {
+		span.lines.sort((a, b) => a.num - b.num);
 	}
 
 	for(const sym of dbgFile.syms) {

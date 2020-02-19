@@ -111,7 +111,7 @@ export class ViceGrip extends EventEmitter {
 		if(this._vicePath) {
 			try {
 				await util.promisify(fs.stat)(this._vicePath)
-				const pids = await this._handler(this._vicePath, args, opts)
+				this._pid = await this._handler(this._vicePath, args, opts)
 			}
 			catch {
 				throw new Error(`Could not start VICE using launch.json->viceCommand = "${this._vicePath}". Make sure it's an absolute path.`);
