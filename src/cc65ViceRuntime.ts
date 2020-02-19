@@ -261,9 +261,11 @@ export class CC65ViceRuntime extends EventEmitter {
 		const currentFile = this._currentPosition.file;
 		const currentIdx = currentFile!.lines.indexOf(this._currentPosition);
 		const span = this._currentPosition.span;
-		let currentFunction : dbgfile.Sym | undefined;
+		let currentFunction : dbgfile.Scope | undefined;
 		if(span) {
-			currentFunction = this._dbgFile.labs.find(x => x.val <= span.absoluteAddress && span.absoluteAddress < x.val + x.size )
+			currentFunction = this._dbgFile.scopes
+				.find(x => x.span && x.span.absoluteAddress <= span.absoluteAddress
+					&& span.absoluteAddress < x.span.absoluteAddress + x.span.size)
 		}
 
 		let nextLine = currentFile!.lines[currentIdx + 1];
@@ -273,7 +275,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		else {
 			const nextAddress = nextLine.span!.absoluteAddress;
 			if(currentFunction) {
-				const endOfFunction = currentFunction.val + currentFunction.size - 1;
+				const endOfFunction = currentFunction.span!.absoluteAddress + currentFunction.size - 1;
 				this._viceRunning = true;
 				const res = <string>await this._vice.exec(`bk \$${nextAddress.toString(16)} \$${endOfFunction.toString(16)}`);
 				const brknum = this._getBreakpointNum(res);
