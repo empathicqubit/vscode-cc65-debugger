@@ -268,7 +268,7 @@ export class ViceGrip extends EventEmitter {
 		this._conn && this._conn.end();
 		this._conn = <any>null;
 		this._cmdQueue.end();
-		this._pid && process.kill(this._pid);
+		this._pid && process.kill(this._pid, "SIGKILL");
 		this._pid = undefined;
 	}
 

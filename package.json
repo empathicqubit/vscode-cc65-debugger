@@ -108,8 +108,8 @@
 							},
 							"buildCwd": {
 								"type": "string",
-								"description": "The folder to run the build command in. Default is '${workspaceDir}'",
-								"default": "${workspaceDir}"
+								"description": "The folder to run the build command in. Default is '${workspaceFolder}'",
+								"default": "${workspaceFolder}"
 							},
 							"program": {
 								"type": "string",
@@ -145,7 +145,7 @@
 							"type": "cc65-vice",
 							"request": "launch",
 							"name": "CC65 Vice Launch",
-							"buildCwd": "\\${workspaceFolder}",
+							"buildCwd": "^\"\\${workspaceFolder}\"",
 							"buildCommand": "make",
 							"stopOnEntry": true
 						}

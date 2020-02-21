@@ -106,7 +106,7 @@ export class VicesWonderfulWorldOfColor {
 
 	public async end() {
 		this._outputServer && this._outputServer.close();
-		this._outputTerminalPid && process.kill(this._outputTerminalPid);
+		this._outputTerminalPid && process.kill(this._outputTerminalPid, "SIGKILL");
 		this._outputServer = <any>null;
 		this._outputTerminalPid = <any>null;
 	}
