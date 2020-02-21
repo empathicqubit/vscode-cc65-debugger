@@ -171,7 +171,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-	public async start(program: string, stopOnEntry: boolean, vicePath?: string, consoleType?: string) {
+	public async start(program: string, stopOnEntry: boolean, vicePath?: string, viceArgs?: string[], consoleType?: string) {
 		this._consoleType = consoleType;
 		console.time('loadSource')
 
@@ -209,8 +209,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		this._otherHandlers = new EventEmitter();
 
-		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName),(file : string, args : string[], opts: child_process.ExecFileOptions) => this._processExecHandler(file, args, opts), vicePath, this._otherHandlers);
-		//await this._vice.openBuffer(); FIXME Remove?
+		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName),(file : string, args : string[], opts: child_process.ExecFileOptions) => this._processExecHandler(file, args, opts), vicePath, viceArgs, this._otherHandlers);
 
 		await this._vice.start();
 

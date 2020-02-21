@@ -25,6 +25,7 @@ export class ViceGrip extends EventEmitter {
 	private _initBreak: number = -1;
 	private _cwd: string;
 	private _vicePath: string | undefined;
+	private _viceArgs: string[] | undefined;
 
 	private _bufferFile: Writable;
 	private _bufferFileName: string;
@@ -40,7 +41,7 @@ export class ViceGrip extends EventEmitter {
 	private _handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>;
 	private _pid: number | undefined;
 
-	constructor(program: string, initBreak: number, cwd: string, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>, vicePath: string | undefined, consoleHandler: EventEmitter) {
+	constructor(program: string, initBreak: number, cwd: string, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>, vicePath: string | undefined, viceArgs: string[] | undefined, consoleHandler: EventEmitter) {
 		super();
 
 		this._handler = handler;
@@ -49,8 +50,15 @@ export class ViceGrip extends EventEmitter {
 		this._initBreak = initBreak;
 		this._cwd = cwd;
 		this._vicePath = vicePath;
+		this._viceArgs = viceArgs;
 	}
 
+	/**
+	 * This isn't currently used but it is meant to allow commands to be written
+	 * to a playback file which will be executed when VICE is started for real
+	 * with start. I was originally doing this because TCP performance was lacking.
+	 * my new workaround is to jam a bunch of commands together with ; separators.
+	 */
 	public async openBuffer() {
 		this._bufferFileName = await util.promisify(tmp.tmpName)();
 		const write =  fs.createWriteStream(this._bufferFileName);
@@ -72,39 +80,26 @@ export class ViceGrip extends EventEmitter {
 
 		this._port = await getPort({port: getPort.makeRange(29170, 29970)})
 
-		// FIXME Configurable? Many of these settings are for me
-		// due to performance constraints of my Chromebook, but
-		// most people probably won't need them. VICE can save
-		// its own settings so most probably don't matter, except
-		// for NTSC/PAL/etc. That should probably be tied to the
-		// debug configuration, and *required*, with no default.
-
-		// If you allowed the entire command to be configurable,
-		// then you can stick the model arg and stuff on the end
-		// of the array...
-		const args = [
+		let args = [
 			// Monitor
 			"-nativemonitor",
 			"-remotemonitor", "-remotemonitoraddress", "127.0.0.1:" + this._port,
 
 			// Hardware
-			"-model", "ntsc", // FIXME This is bad.
 			"-iecdevice8", "-autostart-warp", "-autostart-handle-tde",
 
-			// Serial
-			"-rsuser", "-rsuserdev", "2", "-rsuserbaud", "2400",
-			"-rsdev3baud", "2400", "-rsdev3ip232",
 			...(
 				this._initBreak > -1
 				? ['-initbreak', this._initBreak.toString()]
 				: []
 			),
 
-			// Multimedia
-			"-sound", "-sidenginemodel", "256", "-residsamp", "0",
-			"-VICIIfilter", "0", "+VICIIdsize",
 			this._program,
 		];
+
+		if(this._viceArgs) {
+			args = [...this._viceArgs, ...args];
+		}
 
 		const opts = {
 			shell: false,

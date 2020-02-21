@@ -1,7 +1,7 @@
 {
 	"name": "cc65-vice",
 	"displayName": "C64 CC65/VICE Debugger",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"publisher": "entan-gl",
 	"description": "An extension to unify VSCode, CC65, and VICE monitor.",
 	"author": {
@@ -39,7 +39,7 @@
                 "nc": "webpack --config webpack.nc.config.js --mode production",
 		"compile": "npm-run-all nc webpack",
 		"tslint": "tslint ./src/**/*.ts",
-		"watch": "npm-run-all nc webpack",
+		"watch": "npm-run-all nc adapter production",
 		"test": "mocha -u tdd ./out/tests/",
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"package": "vsce package",
@@ -119,6 +119,10 @@
 								"type": "string",
 								"description": "The path to VICE executable, either x64 or x64sc. You'll probably need this on Windows."
 							},
+							"viceArgs": {
+								"type": "array",
+								"description": "The arguments to pass to the VICE command line. You should at the very least set your model type here, since that is specific to the project."
+							},
 							"trace": {
 								"type": "boolean",
 								"description": "Enable logging of the Debug Adapter Protocol.",
@@ -133,8 +137,11 @@
 						"request": "launch",
 						"name": "CC65 Vice Launch",
 						"buildCwd": "${workspaceFolder}",
-                                                "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
-						"stopOnEntry": true
+						"buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+						"stopOnEntry": true,
+						"viceArgs": [
+							"-model", "ntsc"
+						]
 					}
 				],
 				"configurationSnippets": [
@@ -147,7 +154,10 @@
 							"name": "CC65 Vice Launch",
 							"buildCwd": "^\"\\${workspaceFolder}\"",
 							"buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
-							"stopOnEntry": true
+							"stopOnEntry": true,
+							"viceArgs": [
+								"-model", "ntsc"
+							]
 						}
 					}
 				],
