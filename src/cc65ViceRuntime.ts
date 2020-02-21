@@ -14,6 +14,7 @@ import watch from 'node-watch';
 import { ViceGrip } from './viceGrip';
 import { CC65ViceDebugSession } from './cc65ViceDebug';
 import { VicesWonderfulWorldOfColor } from './vicesWonderfulWorldOfColor';
+import * as mapFile from './mapFile';
 
 export interface CC65ViceBreakpoint {
 	id: number;
@@ -77,6 +78,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _session: CC65ViceDebugSession;
 	private _consoleType?: string;
 	private _colorTerm: VicesWonderfulWorldOfColor;
+	private _mapFile: mapFile.MapRef[];
 
 	constructor(sesh: CC65ViceDebugSession) {
 		super();
@@ -179,6 +181,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		}
 
 		await this._loadSource(program.replace(filetypes, ".dbg"));
+		await this._loadMapFile(program.replace(filetypes, ".map"));
 
 		console.timeEnd('loadSource')
 
@@ -207,10 +210,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		this._otherHandlers = new EventEmitter();
 
 		this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName),(file : string, args : string[], opts: child_process.ExecFileOptions) => this._processExecHandler(file, args, opts), vicePath, this._otherHandlers);
-		await this._vice.openBuffer();
-
-		await this._setLabels();
-		await this._resetStackFrames();
+		//await this._vice.openBuffer(); FIXME Remove?
 
 		await this._vice.start();
 
@@ -220,12 +220,12 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		this._setupViceDataHandler();
 
-		const handle = (data: string) => data;
-
 		await this.continue();
 		this._viceRunning = false;
 
 		await this._vice.wait();
+		await this._setLabels();
+		await this._resetStackFrames();
 		await this._setParamStackBottom();
 
 		await this._verifyBreakpoints();
@@ -243,6 +243,11 @@ export class CC65ViceRuntime extends EventEmitter {
 		this._colorTerm.main();
 
 		console.timeEnd('postVice')
+	}
+
+	private async _loadMapFile(filename: string) {
+		const text = await util.promisify(fs.readFile)(filename, 'utf8');
+		this._mapFile = mapFile.parse(text);
 	}
 
 	public async monitorToConsole() {
@@ -315,7 +320,22 @@ export class CC65ViceRuntime extends EventEmitter {
 	}
 
 	public async stepOut(event = 'stopOnStep') {
-		await this._vice.exec('ret');
+		const span = this._currentPosition.span!;
+		const currentFunction = this._dbgFile.scopes
+			.find(x => x.span && x.span.absoluteAddress <= span.absoluteAddress
+				&& span.absoluteAddress < x.span.absoluteAddress + x.span.size)
+		const functionSpan = currentFunction!.span!
+		const endCodeSeg = (this._codeSegAddress + this._codeSegLength).toString(16);
+		const brk = <string>await this._vice.exec(`watch exec \$${this._codeSegAddress.toString(16)} \$${functionSpan.absoluteAddress.toString(16)}`);
+		const brk2 = <string>await this._vice.exec(`watch exec \$${(functionSpan.absoluteAddress + functionSpan.size).toString(16)} \$${endCodeSeg}`);
+
+		const brknum = this._getBreakpointNum(brk);
+		const brknum2 = this._getBreakpointNum(brk2);
+
+		await this._vice.exec(`x`);
+
+		await this._vice.exec(`del ${brknum}`);
+		await this._vice.exec(`del ${brknum2}`);
 		this.sendEvent(event, 'console')
 	}
 
@@ -360,6 +380,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		this._vice = <any>null;
 		this._viceRunning = false;
 		this._dbgFile = <any>null;
+		this._mapFile = <any>null;
 		this._colorTerm && this._colorTerm.end();
 		this._colorTerm = <any>null;
 	}
@@ -607,7 +628,13 @@ export class CC65ViceRuntime extends EventEmitter {
 
 	// We set labels here so the user doesn't have to generate Yet Another File
 	private async _setLabels(): Promise<void> {
-		await Promise.all(this._dbgFile.labs.map(lab => this._vice.exec(`al \$${lab.val.toString(16)} .${lab.name}`)));
+		await Promise.all(
+			_(this._dbgFile.labs)
+			.map(lab => `al \$${lab.val.toString(16)} .${lab.name}`)
+			.chunk(10)
+			.map(grp => this._vice.exec(grp.join(' ; ')))
+			.value()
+		);
 	}
 
 	private _otherHandlers : EventEmitter;
@@ -722,7 +749,10 @@ export class CC65ViceRuntime extends EventEmitter {
 					}
 
 					if(scope = this._stackFrameEnds[addr]) {
-						this._stackFrames.pop();
+						const idx = [...this._stackFrames].reverse().findIndex(x => x.scope.id == scope.id);
+						if(idx > -1) {
+							this._stackFrames.splice(this._stackFrames.length - 1 - idx, 1);
+						}
 					}
 				} while(tracematch = tracerex.exec(data));
 			}
@@ -834,6 +864,22 @@ export class CC65ViceRuntime extends EventEmitter {
 			const begin = span.absoluteAddress;
 			const end = begin + span.size;
 
+			const dasm = <string>await this._vice.exec(`d \$${begin.toString(16)} \$${(end - 1).toString(16)}`);
+			const jmprex = /^\.([C]):([0-9a-f]{4})\s{2}4c\s(([0-9a-f]+\s){2})\s*JMP\s.*$/gim
+			let jmpmatch : RegExpExecArray | null;
+			while(jmpmatch = jmprex.exec(dasm)) {
+				const addr = parseInt(jmpmatch[2], 16);
+				const targetBytes = jmpmatch[3].split(/\s+/g).filter(x => x);
+				const targetAddr = parseInt(targetBytes[1] + targetBytes[0], 16);
+
+				const builtin = this._mapFile.find(x => x.functionName.startsWith('incsp') && x.functionAddress == targetAddr);
+				if(!builtin) {
+					continue;
+				}
+
+				this._stackFrameEnds[addr.toString(16)] = scope;
+			}
+
 			// FIXME May need to rethink the object structure.
 			let finish = false;
 			let start : dbgfile.SourceLine = this._dbgFile.lines[0];
@@ -857,10 +903,14 @@ export class CC65ViceRuntime extends EventEmitter {
 			this._stackFrameStarts[start.span!.absoluteAddress.toString(16)] = scope;
 		}
 
-		await Promise.all([
-			...Object.keys(this._stackFrameEnds),
-			...Object.keys(this._stackFrameStarts)
-		].map(addr => this._vice.exec(`tr exec \$${addr}`)));
+		await Promise.all(
+			_([
+				...Object.keys(this._stackFrameEnds),
+				...Object.keys(this._stackFrameStarts)
+			]).chunk(10).map(chunk => this._vice.exec(
+				chunk.map(addr => `tr exec \$${addr}`).join(' ; ')
+			))
+		)
 	}
 
 	// Comm

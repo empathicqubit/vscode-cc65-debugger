@@ -75,6 +75,20 @@ export interface DebugSpan {
 	lines: SourceLine[];
 }
 
+export interface Mod {
+	id: number;
+	name: string;
+	file: File | null;
+	fileId: number;
+	libId: number;
+	lib: Lib | null;
+}
+
+export interface Lib {
+	id: number;
+	name: string;
+}
+
 export interface SourceLine {
 	file: SourceFile | null;
 	span: DebugSpan | null;
@@ -96,6 +110,8 @@ export interface SourceFile {
 }
 
 export interface Dbgfile {
+	libs: Lib[];
+	mods: Mod[];
 	csyms: CSym[];
 	scopes: Scope[];
 	files: SourceFile[];
@@ -109,6 +125,8 @@ export interface Dbgfile {
 
 export function parse(text: string, filename : string) : Dbgfile {
 	const dbgFile : Dbgfile = {
+		libs: [],
+		mods: [],
 		scopes: [],
 		csyms: [],
 		syms: [],
@@ -141,7 +159,57 @@ export function parse(text: string, filename : string) : Dbgfile {
 		}
 
 		const ots = match[1];
-		if(ots == "scope") {
+		if(ots == "lib") {
+			const lib : Lib = {
+				id: 0,
+				name: "",
+			}
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "id") {
+					lib.id = parseInt(val);
+				}
+				else if(key == "name") {
+					lib.name = val;
+				}
+			} while (propMatch = propsRex.exec(propVals));
+
+			dbgFile.libs.push(lib);
+		}
+		else if(ots == "mod") {
+			const mod : Mod = {
+				id: 0,
+				file: null,
+				fileId: -1,
+				lib: null,
+				libId: -1,
+				name: "",
+			}
+
+			do {
+				const key = propMatch[1];
+				const val = propMatch[2];
+
+				if(key == "id") {
+					mod.id = parseInt(val);
+				}
+				else if(key == "name") {
+					mod.name = val;
+				}
+				else if(key == "file") {
+					mod.fileId = parseInt(val);
+				}
+				else if(key == "lib") {
+					mod.libId = parseInt(val);
+				}
+			} while (propMatch = propsRex.exec(propVals));
+
+			dbgFile.mods.push(mod);
+		}
+		else if(ots == "scope") {
 			const scope : Scope = {
 				id: 0,
 				span: null,
@@ -365,7 +433,23 @@ export function parse(text: string, filename : string) : Dbgfile {
 		}
 	} while(match = rex.exec(text))
 
+	for(const mod of dbgFile.mods) {
+		if(mod.libId == -1) {
+			continue;
+		}
+		for(const lib of dbgFile.libs) {
+			if(lib.id == mod.libId) {
+				mod.lib = lib;
+				break;
+			}
+		}
+	}
+
 	for(const span of dbgFile.spans) {
+		if(span.segId == -1) {
+			continue;
+		}
+
 		for(const seg of dbgFile.segs) {
 			if(seg.id == span.segId) {
 				span.seg = seg
@@ -379,6 +463,10 @@ export function parse(text: string, filename : string) : Dbgfile {
 	}
 
 	for(const csym of dbgFile.csyms) {
+		if(csym.scopeId == -1) {
+			continue;
+		}
+
 		for(const scope of dbgFile.scopes) {
 			if(scope.id == csym.scopeId) {
 				csym.scope = scope;
@@ -390,6 +478,10 @@ export function parse(text: string, filename : string) : Dbgfile {
 
 	for(const scope of dbgFile.scopes) {
 		scope.csyms.sort((a, b) => a.offs - b.offs);
+		if(scope.spanId == -1) {
+			continue;
+		}
+
 		for(const span of dbgFile.spans) {
 			if(span.id == scope.spanId) {
 				scope.span = span;
@@ -400,19 +492,23 @@ export function parse(text: string, filename : string) : Dbgfile {
 
 
 	for(const line of dbgFile.lines) {
-		for(const file of dbgFile.files) {
-			if(line.fileId == file.id) {
-				line.file = file;
-				file.lines.push(line)
-				break
+		if(line.fileId != -1) {
+			for(const file of dbgFile.files) {
+				if(line.fileId == file.id) {
+					line.file = file;
+					file.lines.push(line)
+					break
+				}
 			}
 		}
 
-		for(const span of dbgFile.spans) {
-			if (span.id == line.spanId) {
-				line.span = span
-				span.lines.push(line)
-				break
+		if(line.spanId != -1) {
+			for(const span of dbgFile.spans) {
+				if (span.id == line.spanId) {
+					line.span = span
+					span.lines.push(line)
+					break
+				}
 			}
 		}
 
@@ -434,6 +530,10 @@ export function parse(text: string, filename : string) : Dbgfile {
 	}
 
 	for(const sym of dbgFile.syms) {
+		if(sym.segId == -1) {
+			continue;
+		}
+
 		for(const seg of dbgFile.segs) {
 			if(seg.id == sym.segId) {
 				sym.seg = seg;
