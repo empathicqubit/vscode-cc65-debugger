@@ -72,7 +72,7 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.type = 'cc65-vice';
 				config.name = 'Build and launch VICE';
 				config.request = 'launch';
-				config.buildCommand = 'make';
+				config.buildCommand = 'make OPTIONS=debugfile,mapfile,labelfile';
 				config.buildCwd = '${worspaceFolder}';
 				config.stopOnEntry = true;
 			}

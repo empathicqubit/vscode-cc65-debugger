@@ -99,7 +99,7 @@
 							"buildCommand": {
 								"type": "string",
 								"description": "The command to use to build before execution. Default is 'make'",
-								"default": "make"
+								"default": "make OPTIONS=debugfile,makefile,labelfile"
 							},
 							"stopOnEntry": {
 								"type": "boolean",
@@ -133,7 +133,7 @@
 						"request": "launch",
 						"name": "CC65 Vice Launch",
 						"buildCwd": "${workspaceFolder}",
-						"buildCommand": "make",
+                                                "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
 						"stopOnEntry": true
 					}
 				],
@@ -146,7 +146,7 @@
 							"request": "launch",
 							"name": "CC65 Vice Launch",
 							"buildCwd": "^\"\\${workspaceFolder}\"",
-							"buildCommand": "make",
+							"buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
 							"stopOnEntry": true
 						}
 					}

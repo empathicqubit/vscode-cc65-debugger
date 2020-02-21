@@ -173,7 +173,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			// build the program.
 			let possibles = <any>[];
 			try {
-				possibles = await this._runtime.build(args.buildCwd || ".", args.buildCommand || "make");
+                            possibles = await this._runtime.build(args.buildCwd || ".", args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile");
 			}
 			catch {
 				this.sendEvent(new OutputEvent("Couldn't finish the build successfully.", 'error'))
