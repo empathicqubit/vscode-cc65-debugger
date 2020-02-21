@@ -11,7 +11,7 @@ After installing go to your launch.json and create a new section using the snipp
 There are a few settings in this configuration to note:
 
 - **viceCommand**: You'll most likely need this if you're working on Windows. This is the full path to either x64sc (recommended) or x64 (not recommended, but possible). If this is not included, the debugger will try to start x64sc, and then x64 at the default PATH. If it can't find either it will complain.
-- **buildCommand**: Your actual build command. Defaults to make if unspecified. You will need to change your Makefile to support being debugged with this (see below), unless you've used the CC65 example one documented at [https://github.com/cc65/wiki/wiki/Bigger-Projects](the CC65 project wiki)
+- **buildCommand**: Your actual build command. Defaults to make if unspecified. You will need to change your Makefile to support being debugged with this (see below), unless you've used the CC65 example one documented at [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects)
 - **program**: Specify this if the debugger can't find your binary file. By default it will look for a d81/d64 and if it can't find any a PRG. If you have multiple of those types of files, it will try some fanciness to determine which one is the "real" one, such as looking at the modification date and how many files are in your disk image, but those may fail.
 - **type**: Always `cc65-vice` for this debugger.
 - **request**: Always launch. Attachment is not possible yet.
@@ -21,7 +21,7 @@ There are a few settings in this configuration to note:
 
 ## Changes needed to your Makefile
 
-If you've used the default Makefile at [https://github.com/cc65/wiki/wiki/Bigger-Projects](the CC65 project wiki) then you shouldn't need to change anything. Otherwise, you will need to tell the linker that you want a debug file and a map file. you would add the following options to your linker:
+If you've used the default Makefile at [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects) then you shouldn't need to change anything. Otherwise, you will need to tell the linker that you want a debug file and a map file. you would add the following options to your linker:
 
 ```sh
 -Wl "--mapfile,build/PROGRAMNAME.map" -Wl "--dbgfile,build/PROGRAMNAME.dbg"
