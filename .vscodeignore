@@ -2,6 +2,7 @@
 .gitignore
 .travis.yml
 appveyor.yml
+node_modules/**/*
 src/**/*
-out/tests/**/*
+out/**/*
 **/*.js.map

@@ -137,6 +137,7 @@ class CC65ViceDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescri
 class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
 
 	createDebugAdapterDescriptor(_session: vscode.DebugSession): ProviderResult<vscode.DebugAdapterDescriptor> {
-		return new (<any>vscode).DebugAdapterInlineImplementation(new CC65ViceDebugSession());
+		const sesh = new CC65ViceDebugSession();
+		return new (<any>vscode).DebugAdapterInlineImplementation();
 	}
 }

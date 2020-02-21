@@ -614,10 +614,14 @@ export class CC65ViceRuntime extends EventEmitter {
 
 	private async _processExecHandler(file: string, args: string[], opts: child_process.ExecFileOptions) : Promise<number | undefined> {
 		const promise = new Promise<number | undefined>((res, rej) => {
+			if(!path.isAbsolute(file)) {
+				file = path.join(__dirname, file);
+			}
+
 			this._session.runInTerminalRequest({
 				args: [file, ...args],
-				cwd: opts.cwd || path.dirname(this._dbgFileName),
-				env: <any>opts.env,
+				cwd: opts.cwd || __dirname,
+                                env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
 				kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'
 			}, 5000, (response) => {
 				if(!response.success) {

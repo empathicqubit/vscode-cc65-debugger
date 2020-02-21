@@ -166,11 +166,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 	}
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
-
-		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
-		await this._configurationDone.wait(1000);
-
 		try {
+                    logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
+                    await this._configurationDone.wait(3000);
+
 			// build the program.
 			let possibles = <any>[];
 			try {

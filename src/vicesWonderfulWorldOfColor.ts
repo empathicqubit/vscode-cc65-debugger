@@ -101,7 +101,7 @@ export class VicesWonderfulWorldOfColor {
 
 		this._outputServer = server;
 
-		this._outputTerminalPid = await this._handler(process.argv[0], [__dirname + '/../node_modules/nc/bin/nc.js', '127.0.0.1', port.toString()], {});
+            this._outputTerminalPid = await this._handler(process.execPath, [__dirname + '/../dist/nc.js', '127.0.0.1', port.toString()], {});
 	}
 
 	public async end() {

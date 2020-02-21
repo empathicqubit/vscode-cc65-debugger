@@ -4,3 +4,5 @@ out/
 *.s??
 *.log
 *.vsix
+*.zip
+dist/
