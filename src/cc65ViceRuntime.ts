@@ -614,7 +614,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
 	private async _processExecHandler(file: string, args: string[], opts: child_process.ExecFileOptions) : Promise<number | undefined> {
 		const promise = new Promise<number | undefined>((res, rej) => {
-			if(!path.isAbsolute(file)) {
+			if(!path.isAbsolute(file) && path.dirname(file) != '.') {
 				file = path.join(__dirname, file);
 			}
 
