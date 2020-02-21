@@ -1,7 +1,7 @@
 {
 	"name": "cc65-vice",
 	"displayName": "C64 CC65/VICE Debugger",
-	"version": "0.36.2",
+	"version": "1.0.0",
 	"publisher": "empathicqubit",
 	"description": "An extension to unify VSCode, CC65, and VICE monitor.",
 	"author": {
