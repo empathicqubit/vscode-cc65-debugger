@@ -1,5 +1,6 @@
 import * as child_process from 'child_process'
 import * as net from 'net'
+import * as _ from 'lodash'
 import * as getPort from 'get-port';
 import * as tmp from 'tmp';
 import { Readable, Writable, EventEmitter } from 'stream';
@@ -8,6 +9,8 @@ import * as util from 'util';
 import { DebugProtocol } from 'vscode-debugprotocol'
 
 const queue = require('queue');
+
+const MAX_CHUNK = 10;
 
 async function * fakeStream() {
 	while(true) {
@@ -210,6 +213,12 @@ export class ViceGrip extends EventEmitter {
 			conn.on('data', waitForViceData);
 			conn.on('error', rej);
 		});
+	}
+
+	public async multiExec(cmds: string[]) : Promise<string[]> {
+		return await Promise.all(_(cmds).chunk(MAX_CHUNK).map(chunk => this.exec(
+			chunk.join(' ; ')
+		)).value())
 	}
 
 	public async exec(command: string | Uint8Array) : Promise<string | Buffer> {

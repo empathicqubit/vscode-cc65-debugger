@@ -320,22 +320,28 @@ export class CC65ViceRuntime extends EventEmitter {
 	}
 
 	public async stepOut(event = 'stopOnStep') {
-		const span = this._currentPosition.span!;
-		const currentFunction = this._dbgFile.scopes
-			.find(x => x.span && x.span.absoluteAddress <= span.absoluteAddress
-				&& span.absoluteAddress < x.span.absoluteAddress + x.span.size)
-		const functionSpan = currentFunction!.span!
-		const endCodeSeg = (this._codeSegAddress + this._codeSegLength).toString(16);
-		const brk = <string>await this._vice.exec(`watch exec \$${this._codeSegAddress.toString(16)} \$${functionSpan.absoluteAddress.toString(16)}`);
-		const brk2 = <string>await this._vice.exec(`watch exec \$${(functionSpan.absoluteAddress + functionSpan.size).toString(16)} \$${endCodeSeg}`);
+		const lastFrame = this._stackFrames[this._stackFrames.length - 2];
+		if(!lastFrame) {
+			this.sendEvent('output', 'console', 'Can\'t step out here!')
+			return;
+		}
 
+		const begin = lastFrame.scope.span!.absoluteAddress;
+		const end = lastFrame.scope.span!.absoluteAddress + lastFrame.scope.span!.size - 1;
+
+		const allbrk = <string>await this._vice.exec(`bk`);
+		const allbrkmatch = this._getBreakpointMatches(allbrk);
+		await this._vice.multiExec(allbrkmatch.map(x => `dis ${x[0]}`));
+
+		const brk = <string>await this._vice.exec(`watch exec \$${begin.toString(16)} \$${end.toString(16)}`);
 		const brknum = this._getBreakpointNum(brk);
-		const brknum2 = this._getBreakpointNum(brk2);
 
 		await this._vice.exec(`x`);
 
 		await this._vice.exec(`del ${brknum}`);
-		await this._vice.exec(`del ${brknum2}`);
+
+		await this._vice.multiExec(allbrkmatch.map(x => `en ${x[0]}`));
+
 		this.sendEvent(event, 'console')
 	}
 
@@ -628,13 +634,9 @@ export class CC65ViceRuntime extends EventEmitter {
 
 	// We set labels here so the user doesn't have to generate Yet Another File
 	private async _setLabels(): Promise<void> {
-		await Promise.all(
-			_(this._dbgFile.labs)
-			.map(lab => `al \$${lab.val.toString(16)} .${lab.name}`)
-			.chunk(10)
-			.map(grp => this._vice.exec(grp.join(' ; ')))
-			.value()
-		);
+		await this._vice.multiExec(this._dbgFile.labs.map(lab =>
+			`al \$${lab.val.toString(16)} .${lab.name}`
+		));
 	}
 
 	private _otherHandlers : EventEmitter;
@@ -903,14 +905,12 @@ export class CC65ViceRuntime extends EventEmitter {
 			this._stackFrameStarts[start.span!.absoluteAddress.toString(16)] = scope;
 		}
 
-		await Promise.all(
-			_([
+		await this._vice.multiExec(
+			[
 				...Object.keys(this._stackFrameEnds),
 				...Object.keys(this._stackFrameStarts)
-			]).chunk(10).map(chunk => this._vice.exec(
-				chunk.map(addr => `tr exec \$${addr}`).join(' ; ')
-			))
-		)
+			].map(addr => `tr exec \$${addr}`)
+		);
 	}
 
 	// Comm
