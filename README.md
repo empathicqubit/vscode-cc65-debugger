@@ -44,6 +44,27 @@ sudo apt install clang-tools-7
 
 You might need to poke around with the version until you find one that exists with your distribution.
 
+## Changes needed to your code
+
+You can use the debugger to browse structs, but only if the bare struct definition exists somewhere in your code. So this will work:
+
+```c
+struct blah {
+    unsigned char field;
+}
+typedef struct blah blah;
+```
+
+This will **not** work:
+
+```
+typedef struct {
+    unsigned char field;
+} blah;
+```
+
+Also, do not name your typedefs differently than your struct. I have not tested it but I assume it will break.
+
 ## What works
 
 - Starting the program and stopping at the beginning of main()

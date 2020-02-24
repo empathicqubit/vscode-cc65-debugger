@@ -52,8 +52,8 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
 
 		const scope = sym.scope!;
 
-		const type = varmatch[8];
-		const aliasOf = varmatch[10];
+		const type = varmatch[8].replace('struct ', '');
+		const aliasOf = (varmatch[10] || '').replace('struct ', '');
 
 		const varObj : ClangTypeInfo = {
 			name,
@@ -84,8 +84,8 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
 		let fieldmatch : RegExpExecArray | null;
 		while(fieldmatch = fieldrex.exec(fieldres)) {
 			const name = fieldmatch[7];
-			const type = fieldmatch[8];
-			const aliasOf = fieldmatch[10];
+			const type = fieldmatch[8].replace('struct ', '');
+			const aliasOf = fieldmatch[10].replace('struct ', '');
 
 			fields.push({
 				name,
