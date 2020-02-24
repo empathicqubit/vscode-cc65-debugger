@@ -60,3 +60,4 @@ You might need to poke around with the version until you find one that exists wi
 ## What's weird
 
 - **Step in** works some of the time. Sometimes you'll get flown off to nowwhereville
+- Array types
