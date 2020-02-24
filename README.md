@@ -2,9 +2,9 @@
 
 In progress debugger extension to allow vscode to interact with VICE and CC65.
 
-<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.png?raw=true" />
-
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
+
+<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.png?raw=true" />
 
 ## Setup
 
