@@ -99,7 +99,7 @@ export class ViceGrip extends EventEmitter {
 		];
 
 		if(this._viceArgs) {
-			args = [...this._viceArgs, ...args];
+			args = [...args, ...this._viceArgs];
 		}
 
 		const opts = {
