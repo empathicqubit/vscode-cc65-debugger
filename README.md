@@ -24,6 +24,19 @@ There are a few settings in this configuration to note:
 - **buildCwd**: The working directory for your build command.
 - **stopOnEntry**: This will break at the beginning of the program. Otherwise it will continue automatically after the debugger connects.
 
+You may have some problems with `autostart-warp` working correctly. I think the way VICE detects this is to blame. To turn it off, just add `+warp` and `+autostart-warp` to your `viceArgs`:
+
+```json
+{
+    ...
+    "viceArgs": [
+        "+autostart-warp", "+warp",
+        "-model", "ntsc"
+    ]
+    ...
+}
+```
+
 ## Changes needed to your Makefile
 
 If you've used the default Makefile at [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects) then you shouldn't need to change anything. Otherwise, you will need to tell the linker that you want a debug file and a map file. you would add the following options to your linker:
