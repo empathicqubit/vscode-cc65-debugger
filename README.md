@@ -32,12 +32,23 @@ If you've used the default Makefile at [the CC65 project wiki](https://github.co
 
 Make sure that the paths on the files are in the same folder and have the same name (minus the extension, of course) as your main program!
 
+## Changes needed to your system
+
+It's not required, but if you install Clang tools you can get details on data fields. To do that on Debian (stretch):
+
+```sh
+sudo apt install clang-tools-7
+```
+
+You might need to poke around with the version until you find one that exists with your distribution.
+
 ## What works
 
 - Starting the program and stopping at the beginning of main()
 - Setting and consistently hitting breakpoints
 - Stepping over lines.
 - Stepping out of functions.
+- Viewing structs (**You have to install clang tools on your PATH**)
 - Local variables (except for the one on the bottom of the stack, since the size can't be determined)
 - Global variables (2B size is assumed since the size can't be easily discovered AFAIK)
 - Registers
@@ -46,11 +57,4 @@ Make sure that the paths on the files are in the same folder and have the same n
 
 ## What's weird
 
-- The **variable drilldown** is nice but isn't as useful as for example, being able to **understand structs in memory**. Unfortunately it doesn't seem that the debug symbols contain any information about the shape of the structs, so I'll probably need to hand parse the code, but that seems like a PITA. I found a few libraries for doing this in Node, but they either a) suck, or b) use clang, which will **cause native dependency headaches I don't want to deal with**. I'm on Debian Stretch and I can't even install clangd easily.
 - **Step in** works some of the time. Sometimes you'll get flown off to nowwhereville
-
-## TODO
-
-- [ ] Fix the initial break
-- [ ] Speed up the startup time. Not bad but could be better.
-- [ ] Make structs easily navigable.

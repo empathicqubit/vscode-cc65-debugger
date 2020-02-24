@@ -6,6 +6,7 @@ import * as tmp from 'tmp';
 import { Readable, Writable, EventEmitter } from 'stream';
 import * as fs from 'fs';
 import * as util from 'util';
+import * as hasbin from 'hasbin';
 import { DebugProtocol } from 'vscode-debugprotocol'
 
 const queue = require('queue');
@@ -117,15 +118,11 @@ export class ViceGrip extends EventEmitter {
 		}
 		else {
 			try {
-				this._pid = await this._handler('x64sc', args, opts);
+				const x64Exec : string = <any>await util.promisify((i, cb) => hasbin.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['x64sc', 'x64'])
+				this._pid = await this._handler(x64Exec, args, opts);
 			}
-			catch {
-				try {
-					this._pid = await this._handler('x64', args, opts);
-				}
-				catch {
-					throw new Error('Could not start either x64 or x64sc. Define your VICE path in your launch.json->viceCommand property');
-				}
+			catch(e) {
+				throw new Error('Could not start either x64 or x64sc. Define your VICE path in your launch.json->viceCommand property');
 			}
 		}
 

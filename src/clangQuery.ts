@@ -3,6 +3,7 @@ import * as util from 'util';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as _ from 'lodash';
+import * as hotel from 'hasbin';
 
 export interface ClangTypeInfo {
 	name: string;
@@ -11,10 +12,10 @@ export interface ClangTypeInfo {
 }
 
 export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typename: string]:ClangTypeInfo[]}> {
-	// !/^((\/usr)?(\/local)?\/(share|lib|)|Program\s+Files(\(x86\))?)\//gi.test(x.name) FIXME Hopefully don't need this
+	const clangExec : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
 	const codeFiles = dbgFile.files.filter(x => /\.(c|h)$/gi.test(x.name)).map(x => x.name);
 
-	const varres = await util.promisify(child_process.execFile)('clang-query', ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasAncestor(functionDecl()))', ...codeFiles])
+	const varres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasAncestor(functionDecl()))', ...codeFiles])
 
 	const varrex = /VarDecl\s+(0x[0-9a-f]+)\s+\<([^\n\r]+):([0-9]+):([0-9]+),\s+col:([0-9]+)\>\s+col:([0-9]+)\s+used\s+(\w+)\s+'([^']+)'(\s+cinit|:'([\w\s]+)')?$/gim;
 	let varmatch;
@@ -65,7 +66,7 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
 		structs[scope.name + '()'] = vars;
 	}
 
-	const recordres = await util.promisify(child_process.execFile)('clang-query', ['-c=set output dump', '-c=match recordDecl(isExpansionInMainFile())', ...codeFiles]);
+	const recordres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match recordDecl(isExpansionInMainFile())', ...codeFiles]);
 	const recordrex = /(RecordDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<([^\n\r]+):([0-9]+):([0-9]+),\s+line:([0-9]+):([0-9]+)\>\s+line:([0-9]+):([0-9+])\s+struct\s+(\w+\s+)?definition$)/gim;
 
 	const recordsplit = recordres.stdout.split(recordrex);
