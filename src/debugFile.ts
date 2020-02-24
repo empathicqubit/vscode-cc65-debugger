@@ -123,7 +123,7 @@ export interface Dbgfile {
 	version: Version;
 }
 
-export function parse(text: string, filename : string) : Dbgfile {
+export function parse(text: string, buildDir : string) : Dbgfile {
 	const dbgFile : Dbgfile = {
 		libs: [],
 		mods: [],
@@ -230,7 +230,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 					scope.spanId = parseInt(val);
 				}
 				else if(key == 'name') {
-					scope[key] = val;
+					scope.name = val;
 				}
 			} while (propMatch = propsRex.exec(propVals));
 
@@ -259,7 +259,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 					csym.scopeId = parseInt(val);
 				}
 				else if(key == 'name') {
-					csym[key] = val;
+					csym.name = val;
 				}
 			} while (propMatch = propsRex.exec(propVals));
 
@@ -284,7 +284,7 @@ export function parse(text: string, filename : string) : Dbgfile {
 				const val = propMatch[2];
 
 				if(key == 'addrsize') {
-					sym[key] = Addrsize[key];
+					sym.addrsize = Addrsize[key];
 				}
 				else if(key == 'id' || key == 'val' || key == 'ref' || key == 'size') {
 					sym[key] = parseInt(val);
@@ -320,18 +320,18 @@ export function parse(text: string, filename : string) : Dbgfile {
 					fil[key] = parseInt(val);
 				}
 				else if (key == "mtime") {
-					fil[key] = new Date(val);
+					fil.mtime = new Date(val);
 				}
 				else if (key == "name") {
 					if(!path.isAbsolute(val)) {
-						fil[key] = path.normalize(path.dirname(filename) + "/../" + val);
+						fil.name = path.normalize(path.join(buildDir, val));
 					}
 					else {
-						fil[key] = val;
+						fil.name = val;
 					}
 				}
 				else if (key == "mod") {
-					fil[key] = val;
+					fil.mod = val;
 				}
 			} while (propMatch = propsRex.exec(propVals));
 

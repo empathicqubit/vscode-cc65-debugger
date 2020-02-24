@@ -1,7 +1,7 @@
 {
 	"name": "cc65-vice",
 	"displayName": "C64 CC65/VICE Debugger",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"publisher": "entan-gl",
 	"description": "An extension to unify VSCode, CC65, and VICE monitor.",
 	"author": {
@@ -17,7 +17,7 @@
 		"debug"
 	],
 	"engines": {
-		"vscode": "^1.41.0"
+		"vscode": "^1.42.0"
 	},
 	"icon": "images/icon.png",
 	"categories": [
@@ -32,20 +32,18 @@
 		"url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
 	},
 	"scripts": {
-		"vscode:prepublish": "npm-run-all -p nc adapter production",
-                "adapter": "webpack --config webpack.adapter.config.js --mode production",
-                "production": "webpack --mode production",
-                "typescript": "tsc -p ./src",
-                "nc": "webpack --config webpack.nc.config.js --mode production",
-		"compile": "npm-run-all nc webpack",
-		"tslint": "tslint ./src/**/*.ts",
-		"watch": "npm-run-all nc adapter production",
+		"adapter": "webpack --config webpack.adapter.config.js --mode production",
+		"extension": "webpack --mode production",
+		"nc": "webpack --config webpack.nc.config.js --mode production",
+		"adapter:debug": "webpack --config webpack.adapter.config.js --mode development",
+		"extension:debug": "webpack --mode development",
+		"nc:debug": "webpack --config webpack.nc.config.js --mode development",
+		"vscode:prepublish": "npm-run-all -p nc adapter extension",
+		"vscode:debug": "npm-run-all adapter:debug extension:debug nc:debug",
 		"test": "mocha -u tdd ./out/tests/",
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"package": "vsce package",
-		"publish": "vsce publish",
-		"webpack": "webpack --mode development",
-		"webpack-dev": "webpack --mode development --watch"
+		"publish": "vsce publish"
 	},
 	"dependencies": {
 		"await-notify": "1.0.1",
@@ -58,15 +56,18 @@
 		"queue": "^6.0.1",
 		"recursive-readdir": "^2.2.2",
 		"tmp": "^0.1.0",
-		"vscode-debugadapter": "1.38.0"
+		"vscode-debugadapter": "1.38.0",
+		"vscode-languageclient": "^6.1.1"
 	},
 	"devDependencies": {
+		"@types/lodash": "^4.14.149",
 		"@types/mocha": "5.2.7",
 		"@types/node": "10.12.12",
 		"mocha": "6.2.0",
 		"npm-run-all": "^4.1.5",
 		"shebang-loader": "^0.0.1",
 		"ts-loader": "^6.2.1",
+		"ts-node": "^8.6.2",
 		"tslint": "5.18.0",
 		"typescript": "3.5.3",
 		"vsce": "1.66.0",
@@ -78,6 +79,8 @@
 	"main": "./dist/extension",
 	"activationEvents": [
 		"onDebug",
+		"onLanguage:c",
+		"onLanguage:cpp",
 		"onCommand:extension.cc65-vice.getProgramName"
 	],
 	"contributes": {
@@ -140,7 +143,8 @@
 						"buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
 						"stopOnEntry": true,
 						"viceArgs": [
-							"-model", "ntsc"
+							"-model",
+							"ntsc"
 						]
 					}
 				],
@@ -156,7 +160,8 @@
 							"buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
 							"stopOnEntry": true,
 							"viceArgs": [
-								"-model", "ntsc"
+								"-model",
+								"ntsc"
 							]
 						}
 					}

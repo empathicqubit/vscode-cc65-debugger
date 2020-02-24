@@ -211,7 +211,7 @@ export class ViceGrip extends EventEmitter {
 	}
 
 	public async multiExec(cmds: string[]) : Promise<string[]> {
-		return await Promise.all(_(cmds).chunk(MAX_CHUNK).map(chunk => this.exec(
+		return await Promise.all(_(cmds).chunk(MAX_CHUNK).map(async chunk => <string>await this.exec(
 			chunk.join(' ; ')
 		)).value())
 	}

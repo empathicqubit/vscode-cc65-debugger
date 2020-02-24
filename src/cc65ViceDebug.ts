@@ -19,14 +19,16 @@ function timeout(ms: number) {
 }
 
 enum VariablesReferenceFlag {
-	FOLLOW_POINTER = 0x10000,
-	EXPAND_DATA =    0x20000,
-	EXPAND_BYTES =   0x40000,
+	HAS_TYPE    =    0x10000,
+	FOLLOW_TYPE =    0x20000,
+	FOLLOW_POINTER = 0x40000,
+	EXPAND_DATA =    0x80000,
+	EXPAND_BYTES =  0x100000,
 
-	LOCAL =          0x80000,
-	GLOBAL =        0x100000,
-	PARAM =         0x200000,
-	REGISTERS =     0x400000,
+	LOCAL =         0x200000,
+	GLOBAL =        0x400000,
+	PARAM =         0x800000,
+	REGISTERS =    0x1000000,
 
 	ADDR_MASK =     0x00FFFF,
 }
@@ -61,6 +63,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 	private _runtime: CC65ViceRuntime;
 
 	private _configurationDone = new Subject();
+	private _addressTypes: {[address:string]: string} = {};
 
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
@@ -169,13 +172,15 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
 		try {
-                    logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
-                    await this._configurationDone.wait(3000);
+			logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
+			await this._configurationDone.wait(3000);
+
+			const buildCwd = args.buildCwd || ".";
 
 			// build the program.
 			let possibles = <any>[];
 			try {
-                            possibles = await this._runtime.build(args.buildCwd || ".", args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile");
+                            possibles = await this._runtime.build(buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile");
 			}
 			catch {
 				this.sendEvent(new OutputEvent("Couldn't finish the build successfully.", 'error'))
@@ -189,7 +194,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			}
 
 			// start the program in the runtime
-			await this._runtime.start(program, !!args.stopOnEntry, args.viceCommand, args.viceArgs, args.console);
+			await this._runtime.start(program, buildCwd, !!args.stopOnEntry, args.viceCommand, args.viceArgs, args.console);
 		}
 		catch (e) {
 			response.success = false;
@@ -336,11 +341,14 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			else if (ref & VariablesReferenceFlag.LOCAL) {
 				const vars = await this._runtime.getScopeVariables();
 				for(const v of vars) {
+					this._addressTypes[v.addr.toString(16)] = v.type || '';
+
 					variables.push({
 						name: v.name,
 						value: v.value,
+						type: v.type,
 						memoryReference: v.addr.toString(16),
-						variablesReference: v.addr,
+						variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
 					});
 				}
 			}
@@ -395,15 +403,40 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 						})
 					}
 				}
+				else if(ref & VariablesReferenceFlag.FOLLOW_TYPE) {
+					const fields = await this._runtime.getTypeFields(ref & VariablesReferenceFlag.ADDR_MASK, this._addressTypes[(ref & VariablesReferenceFlag.ADDR_MASK).toString(16)]);
+					for(const field of fields) {
+						this._addressTypes[field.addr.toString(16)] = field.type || '';
+						variables.push({
+							type: field.type,
+							name: field.name,
+							value: field.value,
+							memoryReference: field.addr.toString(16),
+							variablesReference: field.addr | (field.type ? VariablesReferenceFlag.HAS_TYPE : 0),
+						})
+					}
+				}
 				else {
-					const val = await this._runtime.getMemory(args.variablesReference & VariablesReferenceFlag.ADDR_MASK, 2);
+					const val = await this._runtime.getMemory(ref & VariablesReferenceFlag.ADDR_MASK, 2);
 					const pointerVal = val.readUInt16LE(0);
+
+					if(ref & VariablesReferenceFlag.HAS_TYPE) {
+						variables.push({
+							name: `Type at this address`,
+							value: "",
+							variablesReference: VariablesReferenceFlag.FOLLOW_TYPE | ref,
+							presentationHint: {
+								kind: 'virtual'
+							}
+						})
+					}
+
 					variables.push(this._pointerMenu(pointerVal))
 
 					variables.push({
-						name: `Mem @ 0x${(<any>args.variablesReference.toString(16)).padStart(4, '0')} (Direct)`,
+						name: `Mem @ 0x${(<any>ref.toString(16)).padStart(4, '0')} (Direct)`,
 						value: "",
-						variablesReference: VariablesReferenceFlag.EXPAND_DATA | args.variablesReference,
+						variablesReference: VariablesReferenceFlag.EXPAND_DATA | ref,
 						presentationHint: {
 							kind: 'virtual'
 						}
@@ -563,6 +596,7 @@ If you think you know what you're doing, prefix it with an ! :
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request) : Promise<void> {
 		await this._runtime.terminate();
+		this._addressTypes = {};
 		this.sendResponse(response)
 	}
 

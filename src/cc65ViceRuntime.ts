@@ -8,6 +8,7 @@ import * as readdir from 'recursive-readdir';
 import * as child_process from 'child_process'
 import { EventEmitter } from 'events';
 import * as path from 'path';
+import * as clangQuery from './clangQuery';
 import * as util from 'util';
 import * as dbgfile from './debugFile'
 import watch from 'node-watch';
@@ -21,6 +22,13 @@ export interface CC65ViceBreakpoint {
 	line: dbgfile.SourceLine;
 	viceIndex: number;
 	verified: boolean;
+}
+
+export interface VariableData {
+	name : string;
+	value: string;
+	addr: number;
+	type: string;
 }
 
 export interface Registers {
@@ -37,7 +45,6 @@ export interface Registers {
  * A CC65Vice runtime with minimal debugger functionality.
  */
 export class CC65ViceRuntime extends EventEmitter {
-
 	private _dbgFileName: string;
 
 	private _dbgFile: dbgfile.Dbgfile;
@@ -79,6 +86,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	private _consoleType?: string;
 	private _colorTerm: VicesWonderfulWorldOfColor;
 	private _mapFile: mapFile.MapRef[];
+	private _localTypes: { [typename: string]: clangQuery.ClangTypeInfo[]; } | undefined;
 
 	constructor(sesh: CC65ViceDebugSession) {
 		super();
@@ -161,7 +169,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		}));
 
 		filenames = _(files)
-			.orderBy([x => x.fileStats.mTime, x => x.listingLength], ['desc', 'desc'])
+			.orderBy([x => x.fileStats.mtime, x => x.listingLength], ['desc', 'desc'])
 			.map(x => x.filename)
 			.value();
 
@@ -171,7 +179,7 @@ export class CC65ViceRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-	public async start(program: string, stopOnEntry: boolean, vicePath?: string, viceArgs?: string[], consoleType?: string) {
+	public async start(program: string, buildCwd: string, stopOnEntry: boolean, vicePath?: string, viceArgs?: string[], consoleType?: string) {
 		this._consoleType = consoleType;
 		console.time('loadSource')
 
@@ -180,8 +188,9 @@ export class CC65ViceRuntime extends EventEmitter {
 			throw new Error("File must be a Commodore Disk image or PRoGram.");
 		}
 
-		await this._loadSource(program.replace(filetypes, ".dbg"));
+		await this._loadSource(program.replace(filetypes, ".dbg"), buildCwd);
 		await this._loadMapFile(program.replace(filetypes, ".map"));
+		await this._getLocalTypes();
 
 		console.timeEnd('loadSource')
 
@@ -247,6 +256,73 @@ export class CC65ViceRuntime extends EventEmitter {
 	private async _loadMapFile(filename: string) {
 		const text = await util.promisify(fs.readFile)(filename, 'utf8');
 		this._mapFile = mapFile.parse(text);
+	}
+
+	public async getTypeFields(addr: number, typename: string) : Promise<VariableData[]> {
+		const typeParts = typename.split(/\s+/g);
+
+		let isPointer = typeParts.length > 1 && _.last(typeParts) == '*';
+
+		if(isPointer) {
+			const pointerVal = await this.getMemory(addr, 2);
+			addr = pointerVal.readUInt16LE(0);
+		}
+
+		if(!this._localTypes) {
+			return [];
+		}
+
+		const fields = this._localTypes[typeParts[0]];
+		const vars : VariableData[] = [];
+
+		const fieldSizes = clangQuery.recurseFieldSize(fields, this._localTypes);
+
+		const totalSize = _.sum(fieldSizes);
+
+		const mem = await this.getMemory(addr, totalSize);
+
+		let currentPosition = 0;
+		for(const f in fieldSizes) {
+			const fieldSize = fieldSizes[f];
+			const field = fields[f];
+
+			let typename = field.type;
+			if(!this._localTypes[typename.split(/\s+/g)[0]]) {
+				typename = '';
+			}
+
+			let value = '';
+			if(fieldSize == 1) {
+				if(field.type.startsWith('signed')) {0
+					value = (<any>mem.readInt8(currentPosition).toString(16)).padStart(2, '0');
+				}
+				else {
+					value = (<any>mem.readUInt8(currentPosition).toString(16)).padStart(2, '0');
+				}
+			}
+			else if(fieldSize == 2) {
+				if(field.type.startsWith('signed')) {
+					value = (<any>mem.readInt16LE(currentPosition).toString(16)).padStart(4, '0');
+				}
+				else {
+					value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
+				}
+			}
+			else {
+				value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
+			}
+
+			vars.push({
+				type: typename,
+				name: field.name,
+				value: "0x" + value,
+				addr: addr + currentPosition,
+			});
+
+			currentPosition += fieldSize;
+		}
+
+		return vars;
 	}
 
 	public async monitorToConsole() {
@@ -536,47 +612,65 @@ export class CC65ViceRuntime extends EventEmitter {
 		return res;
 	}
 
+	private _getLocalVariableSyms(scope: dbgfile.Scope) : dbgfile.CSym[] {
+		return scope.csyms.filter(x => x.sc == dbgfile.sc.auto)
+	}
+
+	private _getCurrentScope() : dbgfile.Scope | undefined {
+		return this._dbgFile.scopes
+			.find(x => x.span
+				&& x.span.absoluteAddress <= this._currentPosition.span!.absoluteAddress
+				&& this._currentPosition.span!.absoluteAddress <= x.span.absoluteAddress + x.span.size);
+	}
+
 	public async getScopeVariables() : Promise<any[]> {
 		const stack = await this.getParamStack();
 		if(!stack.length) {
 			return [];
 		}
 
-		const scope = this._dbgFile.scopes
-			.find(x => x.span
-				&& x.span.absoluteAddress <= this._currentPosition.span!.absoluteAddress
-				&& this._currentPosition.span!.absoluteAddress <= x.span.absoluteAddress + x.span.size);
+		const scope = this._getCurrentScope();
 
 		if(!scope) {
 			return [];
 		}
 
-		const vars : {name : string, value: string, addr: number}[] = [];
-		const mostOffset = scope.csyms[0].offs;
-		for(let i = 0; i < scope.csyms.length; i++) {
-			const csym = scope.csyms[i];
-			const nextCsym = scope.csyms[i+1];
-			if(csym.sc == dbgfile.sc.auto) {
-				const seek = -mostOffset+csym.offs;
-				let seekNext = -mostOffset+csym.offs+2;
-				if(nextCsym) {
-					seekNext = -mostOffset+nextCsym.offs
-				}
+		const vars : VariableData[] = [];
+		const locals = this._getLocalVariableSyms(scope)
+		const mostOffset = locals[0].offs;
+		for(let i = 0; i < locals.length; i++) {
+			const csym = locals[i];
+			const nextCsym = locals[i+1];
 
-				let val;
-				if(seekNext - seek == 2) {
-					val = (<any>stack.readUInt16LE(seek).toString(16)).padStart(4, '0');
-				}
-				else {
-					val = (<any>stack.readUInt8(seek).toString(16)).padStart(2, '0');
-				}
-
-				vars.push({
-					name: csym.name,
-					value: "0x" + val,
-					addr: this._paramStackTop + seek,
-				});
+			const seek = -mostOffset+csym.offs;
+			let seekNext = -mostOffset+csym.offs+2;
+			if(nextCsym) {
+				seekNext = -mostOffset+nextCsym.offs
 			}
+
+			let val;
+			if(seekNext - seek == 2) {
+				val = (<any>stack.readUInt16LE(seek).toString(16)).padStart(4, '0');
+			}
+			else {
+				val = (<any>stack.readUInt8(seek).toString(16)).padStart(2, '0');
+			}
+
+			let typename: string = '';
+			if(this._localTypes) {
+				typename = (<any>(this._localTypes[scope.name + '()'].find(x => x.name == csym.name) || {})).type || '';
+
+				if(!this._localTypes[typename.split(/\s+/g)[0]]) {
+					typename = '';
+				}
+			}
+
+			vars.push({
+				name: csym.name,
+				value: "0x" + val,
+				addr: this._paramStackTop + seek,
+				type: typename,
+			});
 		}
 
 		return vars;
@@ -764,7 +858,7 @@ export class CC65ViceRuntime extends EventEmitter {
 		})
 	}
 
-	private async _loadSource(file: string) {
+	private async _loadSource(file: string, buildDir: string) {
 		this._dbgFileName = file;
 		let dbgFileData : string;
 		try {
@@ -772,12 +866,12 @@ export class CC65ViceRuntime extends EventEmitter {
 		}
 		catch {
 			throw new Error(
-	`Could not load debug symbols file from cc65. It must nave
-	the same name as your d84/d64/prg file with an .dbg extension.`
+`Could not load debug symbols file from cc65. It must nave
+the same name as your d84/d64/prg file with an .dbg extension.`
 			);
 		}
 
-		this._dbgFile = dbgfile.parse(dbgFileData, file);
+		this._dbgFile = dbgfile.parse(dbgFileData, buildDir);
 	}
 
 	private async _getParamStackPos() : Promise<number> {
@@ -849,6 +943,15 @@ export class CC65ViceRuntime extends EventEmitter {
 			nvbdizc: 0xff,
 			sp: 0xff,
 		};
+	}
+
+	private async _getLocalTypes() {
+		try {
+			this._localTypes = await clangQuery.getLocalTypes(this._dbgFile);
+		}
+		catch(e) {
+			this.sendEvent('output', 'stderr', 'Not using Clang tools. Are they installed?');
+		}
 	}
 
 	private async _resetStackFrames() {

@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol'
 import { CC65ViceDebugSession } from './cc65ViceDebug';
+import * as languageClient from 'vscode-languageclient';
 import * as Net from 'net';
 import * as util from 'util';
 
@@ -18,7 +19,6 @@ import * as util from 'util';
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
 export function activate(context: vscode.ExtensionContext) {
-
 	context.subscriptions.push(vscode.commands.registerCommand('extension.cc65-vice.getProgramName', config => {
 		return vscode.window.showInputBox({
 			placeHolder: "Please enter the name of a markdown file in the workspace folder",
