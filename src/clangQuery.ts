@@ -85,7 +85,7 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
 		while(fieldmatch = fieldrex.exec(fieldres)) {
 			const name = fieldmatch[7];
 			const type = fieldmatch[8].replace('struct ', '');
-			const aliasOf = fieldmatch[10].replace('struct ', '');
+			const aliasOf = (fieldmatch[10] || '').replace('struct ', '');
 
 			fields.push({
 				name,
