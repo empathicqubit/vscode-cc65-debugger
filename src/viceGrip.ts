@@ -9,6 +9,7 @@ import * as util from 'util';
 import * as hasbin from 'hasbin';
 import { DebugProtocol } from 'vscode-debugprotocol'
 
+const waitPort = require('wait-port');
 const queue = require('queue');
 
 const MAX_CHUNK = 10;
@@ -135,19 +136,22 @@ export class ViceGrip extends EventEmitter {
 		do {
 			tries++;
 			try {
+				await waitPort({
+					host: '127.0.0.1',
+					port: this._port,
+					timeout: 10000,
+					interval: 500,
+				});
+
 				connection.connect({
 					host: '127.0.0.1',
 					port: this._port,
-				})
+				});
 
-				await new Promise((res, rej) => (connection.on('connect', res), connection.on('error', rej)));
 			} catch(e) {
-				if(tries > 20) {
+				if(tries > 3) {
 					throw e;
 				}
-
-				await new Promise(resolve => setTimeout(resolve, 250));
-
 				continue;
 			}
 

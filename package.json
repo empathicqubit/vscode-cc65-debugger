@@ -1,7 +1,7 @@
 {
 	"name": "cc65-vice",
 	"displayName": "C64 CC65/VICE Debugger",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"publisher": "entan-gl",
 	"description": "An extension to unify VSCode, CC65, and VICE monitor.",
 	"author": {
@@ -58,7 +58,8 @@
 		"recursive-readdir": "^2.2.2",
 		"tmp": "^0.1.0",
 		"vscode-debugadapter": "1.38.0",
-		"vscode-languageclient": "^6.1.1"
+		"vscode-languageclient": "^6.1.1",
+		"wait-port": "^0.2.7"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.149",
