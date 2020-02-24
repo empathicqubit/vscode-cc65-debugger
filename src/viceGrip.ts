@@ -94,13 +94,14 @@ export class ViceGrip extends EventEmitter {
 				? ['-initbreak', this._initBreak.toString()]
 				: []
 			),
-
-			this._program,
 		];
 
 		if(this._viceArgs) {
-			args = [...args, ...this._viceArgs];
+			args = [...args, ...this._viceArgs, this._program];
 		}
+                else {
+			args = [...args, this._program];
+                }
 
 		const opts = {
 			shell: false,
