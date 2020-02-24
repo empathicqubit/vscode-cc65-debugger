@@ -3,6 +3,7 @@ import { Readable, Writable, EventEmitter } from 'stream';
 import * as child_process from 'child_process'
 import * as colors from 'colors';
 import * as getPort from 'get-port';
+import * as util from 'util';
 
 export class VicesWonderfulWorldOfColor {
 	private _outputServer: net.Server;
@@ -101,12 +102,12 @@ export class VicesWonderfulWorldOfColor {
 
 		this._outputServer = server;
 
-            this._outputTerminalPid = await this._handler(process.execPath, [__dirname + '/../dist/nc.js', '127.0.0.1', port.toString()], {});
+		this._outputTerminalPid = await this._handler(process.execPath, [__dirname + '/../dist/nc.js', '127.0.0.1', port.toString()], {});
 	}
 
 	public async end() {
-		this._outputServer && this._outputServer.close();
 		this._outputTerminalPid && process.kill(this._outputTerminalPid, "SIGKILL");
+		this._outputServer && await util.promisify(cb => this._outputServer.close(cb))();
 		this._outputServer = <any>null;
 		this._outputTerminalPid = <any>null;
 	}

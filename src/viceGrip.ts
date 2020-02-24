@@ -261,12 +261,13 @@ export class ViceGrip extends EventEmitter {
 		}
 	}
 
-	public end() {
-		this._conn && this._conn.end();
-		this._conn = <any>null;
-		this._cmdQueue.end();
+	public async end() {
+		await this.exec(`quit`);
+		this._conn && await util.promisify((cb) => this._conn.end(cb))();
 		this._pid && process.kill(this._pid, "SIGKILL");
 		this._pid = undefined;
+		this._conn = <any>null;
+		this._cmdQueue.end();
 	}
 
 	pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean; }): T {

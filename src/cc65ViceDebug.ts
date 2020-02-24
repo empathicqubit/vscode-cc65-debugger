@@ -233,6 +233,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): Promise<void> {
 		await this._runtime.terminate();
+		this._addressTypes = {};
 		this.sendResponse(response);
 	}
 
