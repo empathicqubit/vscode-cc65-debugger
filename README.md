@@ -10,6 +10,8 @@ In progress debugger extension to allow vscode to interact with VICE and CC65.
 
 <img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.png?raw=true" />
 
+<a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
+
 ## Setup
 
 After installing go to your launch.json and create a new section using the snippet. If you don't have a launch.json, the "create a launch.json file" link in the debug section should create a simple one.
