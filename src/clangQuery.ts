@@ -15,16 +15,33 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
 	const clangExec : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
 	const codeFiles = dbgFile.files.filter(x => /\.(c|h)$/gi.test(x.name)).map(x => x.name);
 
-	const varres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasAncestor(functionDecl()))', ...codeFiles])
-
-	const varrex = /VarDecl\s+(0x[0-9a-f]+)\s+\<([^\n\r]+):([0-9]+):([0-9]+),\s+col:([0-9]+)\>\s+col:([0-9]+)\s+used\s+(\w+)\s+'([^']+)'(\s+cinit|:'([\w\s]+)')?$/gim;
-	let varmatch;
+	const varrex = /VarDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<([^\n\r]+):([0-9]+):([0-9]+),\s+col:([0-9]+)\>\s+col:([0-9]+)\s+used\s+(\w+)\s+'([^']+)'(\s+cinit|:'([\w\s]+)')?$/gim;
+	const globres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasGlobalStorage())', ...codeFiles])
 	const structs : {[typename:string]:ClangTypeInfo[]} = {};
+	const globs : ClangTypeInfo[] = [];
+	let globvarmatch : RegExpExecArray | null;
+	while(globvarmatch = varrex.exec(globres.stdout)) {
+		const name = globvarmatch[9];
+		const type = globvarmatch[10].replace('struct ', '');
+		const aliasOf = (globvarmatch[12] || '').replace('struct ', '');
+
+		globs.push({
+			name,
+			aliasOf,
+			type
+		});
+	}
+
+	structs['__GLOBAL__()'] = globs;
+
+	const varres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasAncestor(functionDecl()))', ...codeFiles])
+	varrex.lastIndex = 0;
+	let varmatch;
 	const vars : ClangTypeInfo[] = [];
 	while(varmatch = varrex.exec(varres.stdout)) {
-		const lineNo = parseInt(varmatch[3]); // Numbered from 1, not 0
-		const filename = path.normalize(varmatch[2]);
-		const name = varmatch[7];
+		const lineNo = parseInt(varmatch[5]); // Numbered from 1, not 0
+		const filename = path.normalize(varmatch[4]);
+		const name = varmatch[9];
 		const dist : number[] = [];
 		const possibleSyms = dbgFile.csyms.filter(x => x.sc == dbgfile.sc.auto && x.name == name);
 
@@ -52,8 +69,8 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
 
 		const scope = sym.scope!;
 
-		const type = varmatch[8].replace('struct ', '');
-		const aliasOf = (varmatch[10] || '').replace('struct ', '');
+		const type = varmatch[10].replace('struct ', '');
+		const aliasOf = (varmatch[12] || '').replace('struct ', '');
 
 		const varObj : ClangTypeInfo = {
 			name,

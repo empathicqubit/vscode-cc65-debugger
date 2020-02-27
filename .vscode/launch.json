@@ -19,15 +19,11 @@
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceFolder}",
-			"env": {
-				"ELECTRON_RUN_AS_NODE": "1"
-			},
-                        "runtimeExecutable": "${execPath}",
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
 			],
 			"sourceMaps": true,
-                        "program": "${workspaceFolder}/dist/debugAdapter.js",
+			"program": "${workspaceFolder}/dist/debugAdapter.js",
 			"preLaunchTask": "npm: vscode:debug",
 			"args": [
 				"--server=4711"

@@ -682,19 +682,32 @@ export class CC65ViceRuntime extends EventEmitter {
 		return await this.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
 	}
 
-	public async getGlobalVariables() : Promise<any[]> {
-		const vars: {name: string, value: string, addr: number}[] = [];
+	public async getGlobalVariables() : Promise<VariableData[]> {
+		const vars: VariableData[] = [];
 		for(const sym of this._dbgFile.labs) {
 			if(!sym.name.startsWith("_") || (sym.seg && sym.seg.name == "CODE")) {
 				continue;
 			}
 
+			const symName = sym.name.replace(/^_/g, '')
+
 			const mem = await this.getMemory(sym.val, 2);
 
+			let typename: string = '';
+			if(this._localTypes) {
+				typename = (<any>(this._localTypes['__GLOBAL__()'].find(x => x.name == symName) || {})).type || '';
+				console.log(this._localTypes);
+
+				if(!this._localTypes[typename.split(/\s+/g)[0]]) {
+					typename = '';
+				}
+			}
+
 			vars.push({
-				name: sym.name.replace(/^_/g, ''),
+				name: symName,
 				value: mem.toString('hex').replace(/(.{2})/g, "$1 "),
-				addr: sym.val
+				addr: sym.val,
+				type: typename
 			});
 		}
 

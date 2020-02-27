@@ -370,11 +370,14 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 			else if(ref & VariablesReferenceFlag.GLOBAL) {
 				const vars = await this._runtime.getGlobalVariables();
 				for(const v of vars) {
+					this._addressTypes[v.addr.toString(16)] = v.type || '';
+
 					variables.push({
 						name: v.name,
 						value: v.value,
+						type: v.type,
 						memoryReference: v.addr.toString(16),
-						variablesReference: v.addr,
+						variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
 					});
 				}
 			}
