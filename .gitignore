@@ -6,3 +6,5 @@ out/
 *.vsix
 *.zip
 dist/
+*.orig
+*.rej

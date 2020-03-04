@@ -275,9 +275,15 @@ export class ViceGrip extends EventEmitter {
 	}
 
 	on(event: "data", listener: (data: Buffer) => void): this
+	on(event: "end", listener: () => void): this
 	on(event: string, listener: (...args: any[]) => void): this {
 		if(event == 'data') {
 			this._conn.on(event, listener);
+		}
+		else if(event == 'end') {
+			this._conn.on('close', listener);
+			this._conn.on('finish', listener);
+			this._conn.on('end', listener);
 		}
 		else {
 			this._conn.on(event, listener);

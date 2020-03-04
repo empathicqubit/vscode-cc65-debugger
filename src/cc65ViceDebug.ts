@@ -183,9 +183,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                             possibles = await this._runtime.build(buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile");
 			}
 			catch {
-				this.sendEvent(new OutputEvent("Couldn't finish the build successfully.", 'error'))
-				this.sendResponse(response);
-				return;
+                            throw new Error("Couldn't finish the build successfully. Check the console for details.");
 			}
 
 			const program = args.program || possibles[0];

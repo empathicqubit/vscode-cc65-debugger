@@ -222,6 +222,8 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		await this._vice.start();
 
+		this._vice.on('end', () => this.terminate());
+
 		console.timeEnd('vice')
 
 		console.time('postVice')
@@ -457,13 +459,13 @@ export class CC65ViceRuntime extends EventEmitter {
 
 	// Clean up all the things
 	public async terminate() : Promise<void> {
+		this._colorTerm && await this._colorTerm.end();
+		this._colorTerm = <any>null;
 		this._vice && await this._vice.end();
 		this._vice = <any>null;
 		this._viceRunning = false;
 		this._dbgFile = <any>null;
 		this._mapFile = <any>null;
-		this._colorTerm && await this._colorTerm.end();
-		this._colorTerm = <any>null;
 	}
 
 	// Breakpoints
