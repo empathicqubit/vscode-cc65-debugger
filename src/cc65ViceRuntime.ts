@@ -477,6 +477,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
 		const wasRunning = this._viceRunning;
 
+		let cmds : string[] = [];
 		for(const bp of this._breakPoints) {
 			const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.num == bp.line.num) && x.name == bp.line.file!.name);
 			if (sourceFile && !bp.verified && bp.line.num <= sourceFile.lines[sourceFile.lines.length - 1].num) {
@@ -484,18 +485,31 @@ export class CC65ViceRuntime extends EventEmitter {
 
 				bp.line = srcLine;
 
-				const res = <string>await this._vice.exec(`bk ${srcLine.span!.absoluteAddress.toString(16)}`);
-				const idx = this._getBreakpointNum(res);
-
-				// Marker to make it easier to identify user created breakpoints
-				// on the console.
-				await this._vice.exec(`cond ${idx} if $574c == $574c`);
-
-				bp.viceIndex = idx;
-				bp.verified = true;
-				this.sendEvent('breakpointValidated', bp);
+				cmds.push(`bk ${srcLine.span!.absoluteAddress.toString(16)}`);
 			}
 		}
+
+		const res = await this._vice.multiExec(cmds);
+
+		const bpMatches = this._getBreakpointMatches(res);
+		cmds = [];
+		for(const bpMatch of bpMatches) {
+			const idx = bpMatch[0];
+			const addr = bpMatch[1];
+
+			const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == addr)
+			if(!bp) {
+				continue;
+			}
+
+			bp.viceIndex = idx;
+			bp.verified = true;
+			this.sendEvent('breakpointValidated', bp);
+
+			cmds.push(`cond ${idx} if $574c == $574c`);
+		}
+
+		await this._vice.multiExec(cmds);
 
 		if(wasRunning) {
 			await this.continue();

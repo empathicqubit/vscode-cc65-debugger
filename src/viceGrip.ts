@@ -212,10 +212,10 @@ export class ViceGrip extends EventEmitter {
 		});
 	}
 
-	public async multiExec(cmds: string[]) : Promise<string[]> {
-		return await Promise.all(_(cmds).chunk(MAX_CHUNK).map(async chunk => <string>await this.exec(
+	public async multiExec(cmds: string[]) : Promise<string> {
+		return (await Promise.all(_(cmds).chunk(MAX_CHUNK).map(async chunk => <string>await this.exec(
 			chunk.join(' ; ')
-		)).value())
+		)).value())).join('\n');
 	}
 
 	public async exec(command: string | Uint8Array) : Promise<string | Buffer> {
