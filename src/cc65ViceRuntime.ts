@@ -198,8 +198,6 @@ export class CC65ViceRuntime extends EventEmitter {
 
         console.time('preVice');
 
-        await this._initCodeSeg();
-
         const startSym = this._dbgFile.labs.find(x => x.name == "_main");
 
         if(startSym != null) {
@@ -221,16 +219,16 @@ export class CC65ViceRuntime extends EventEmitter {
 
         this._vice.on('end', () => this.terminate());
 
+        this._setupViceDataHandler();
+        await this.continue();
+        this._viceRunning = false;
+        await this._vice.wait();
+
         console.timeEnd('vice')
 
         console.time('postVice')
 
-        this._setupViceDataHandler();
-
-        await this.continue();
-        this._viceRunning = false;
-
-        await this._vice.wait();
+        await this._initCodeSeg();
         await this._setLabels();
         await this._resetStackFrames();
         await this._setParamStackBottom();
@@ -262,7 +260,7 @@ export class CC65ViceRuntime extends EventEmitter {
         this._codeSegAddress = codeSeg.start;
         this._codeSegLength = codeSeg.size;
 
-        const res = <string>await this._vice.exec(`tr store \$${this._codeSegAddress.toString(16)} \$${(this._codeSegAddress + this._codeSegLength).toString(16)}`);
+        const res = <string>await this._vice.exec(`bk store \$${this._codeSegAddress.toString(16)} \$${(this._codeSegAddress + this._codeSegLength - 1).toString(16)}`);
         this._codeSegGuardIndex = this._getBreakpointNum(res);
     }
 
@@ -853,21 +851,30 @@ export class CC65ViceRuntime extends EventEmitter {
                 } while(memmatch = memrex.exec(data))
             }
 
-            const breakrex = /^#([0-9]+)\s+\(Stop\s+on\s+exec\s+([0-9a-f]+)\)\s+/gim;
+            const breakrex = /^#([0-9]+)\s+\(Stop\s+on\s+(exec|store)\s+([0-9a-f]+)\)\s+/gim;
             let breakmatch = breakrex.exec(data)
 
             if(breakmatch) {
                 // Set the current position only once
-                const addr = parseInt(breakmatch[2], 16);
+                const addr = parseInt(breakmatch[3], 16);
                 this._currentAddress = addr
                 this._currentPosition = this._getLineFromAddress(addr);
 
-                let idx = parseInt(breakmatch[1]);
+                let index = parseInt(breakmatch[1]);
 
-                const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
-                if(userBreak) {
-                    this._viceRunning = false;
+                if(this._codeSegGuardIndex == index) {
+                    const guard = this._codeSegGuardIndex;
+                    this._codeSegGuardIndex = -1;
+                    await this._vice.exec(`del ${guard}`);
                     this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+                    this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
+                }
+                else {
+                    const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
+                    if(userBreak) {
+                        this._viceRunning = false;
+                        this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+                    }
                 }
             }
 
@@ -876,11 +883,7 @@ export class CC65ViceRuntime extends EventEmitter {
             if(tracematch) {
                 do {
                     const index = parseInt(tracematch[1]);
-                    if(this._codeSegGuardIndex == index) {
-                        this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
-                                            continue;
-                    }
-                    else if(tracematch[2] != 'exec') {
+                    if(tracematch[2] != 'exec') {
                         continue;
                     }
 
@@ -962,7 +965,7 @@ the same name as your d84/d64/prg file with an .dbg extension.`
     }
 
     private _getBreakpointMatches(breakpointText: string) : number[][] {
-        const rex = /^(BREAK|TRACE|UNTIL):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
+        const rex = /^(BREAK|WATCH|TRACE|UNTIL):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
 
         const matches : number[][] = [];
         let match;
