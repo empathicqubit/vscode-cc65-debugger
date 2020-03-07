@@ -1,0 +1,15 @@
+#editorconfig.org
+#I used eclint to clean up this project, but don't install it into the project!
+#It's very easy to do it wrong and accidentally lint your git index!
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_trailing_newline = true
+
+[*.md]
+trim_trailing_whitespace = false

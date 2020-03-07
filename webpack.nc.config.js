@@ -11,7 +11,7 @@ const config = {
     __dirname: false,
   },
   entry: {
-      nc: './node_modules/nc/bin/nc.js', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+    nc: './node_modules/nc/bin/nc.js', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
   },
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
@@ -33,14 +33,14 @@ const config = {
   },
   module: {
     rules: [
-      {
+    {
         test: /node_modules\/nc\/bin\/nc.js$/,
         use: [
-          {
+        {
             loader: 'shebang-loader'
-          }
+        }
         ]
-      }
+    }
     ]
   }
 };

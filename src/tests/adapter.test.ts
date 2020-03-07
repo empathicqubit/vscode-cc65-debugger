@@ -10,130 +10,130 @@ import {DebugProtocol} from 'vscode-debugprotocol';
 
 suite('Node Debug Adapter', () => {
 
-	const DEBUG_ADAPTER = './out/debugAdapter.js';
+    const DEBUG_ADAPTER = './out/debugAdapter.js';
 
-	const PROJECT_ROOT = Path.join(__dirname, '../../');
-	const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/tests/data/');
-
-
-	let dc: DebugClient;
-
-	setup( () => {
-		dc = new DebugClient('node', DEBUG_ADAPTER, 'mock');
-		return dc.start();
-	});
-
-	teardown( () => dc.stop() );
+    const PROJECT_ROOT = Path.join(__dirname, '../../');
+    const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/tests/data/');
 
 
-	suite('basic', () => {
+    let dc: DebugClient;
 
-		test('unknown request should produce error', done => {
-			dc.send('illegal_request').then(() => {
-				done(new Error("does not report error on unknown request"));
-			}).catch(() => {
-				done();
-			});
-		});
-	});
+    setup( () => {
+        dc = new DebugClient('node', DEBUG_ADAPTER, 'mock');
+        return dc.start();
+    });
 
-	suite('initialize', () => {
+    teardown( () => dc.stop() );
 
-		test('should return supported features', () => {
-			return dc.initializeRequest().then(response => {
-				response.body = response.body || {};
-				assert.equal(response.body.supportsConfigurationDoneRequest, true);
-			});
-		});
 
-		test('should produce error for invalid \'pathFormat\'', done => {
-			dc.initializeRequest({
-				adapterID: 'mock',
-				linesStartAt1: true,
-				columnsStartAt1: true,
-				pathFormat: 'url'
-			}).then(response => {
-				done(new Error("does not report error on invalid 'pathFormat' attribute"));
-			}).catch(err => {
-				// error expected
-				done();
-			});
-		});
-	});
+    suite('basic', () => {
 
-	suite('launch', () => {
+        test('unknown request should produce error', done => {
+            dc.send('illegal_request').then(() => {
+                done(new Error("does not report error on unknown request"));
+            }).catch(() => {
+                done();
+            });
+        });
+    });
 
-		test('should run program to the end', () => {
+    suite('initialize', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+        test('should return supported features', () => {
+            return dc.initializeRequest().then(response => {
+                response.body = response.body || {};
+                assert.equal(response.body.supportsConfigurationDoneRequest, true);
+            });
+        });
 
-			return Promise.all([
-				dc.configurationSequence(),
-				dc.launch({ program: PROGRAM }),
-				dc.waitForEvent('terminated')
-			]);
-		});
+        test('should produce error for invalid \'pathFormat\'', done => {
+            dc.initializeRequest({
+                adapterID: 'mock',
+                linesStartAt1: true,
+                columnsStartAt1: true,
+                pathFormat: 'url'
+            }).then(response => {
+                done(new Error("does not report error on invalid 'pathFormat' attribute"));
+            }).catch(err => {
+                // error expected
+                done();
+            });
+        });
+    });
 
-		test('should stop on entry', () => {
+    suite('launch', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
-			const ENTRY_LINE = 1;
+        test('should run program to the end', () => {
 
-			return Promise.all([
-				dc.configurationSequence(),
-				dc.launch({ program: PROGRAM, stopOnEntry: true }),
-				dc.assertStoppedLocation('entry', { line: ENTRY_LINE } )
-			]);
-		});
-	});
+            const PROGRAM = Path.join(DATA_ROOT, 'test.md');
 
-	suite('setBreakpoints', () => {
+            return Promise.all([
+                dc.configurationSequence(),
+                dc.launch({ program: PROGRAM }),
+                dc.waitForEvent('terminated')
+            ]);
+        });
 
-		test('should stop on a breakpoint', () => {
+        test('should stop on entry', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
-			const BREAKPOINT_LINE = 2;
+            const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+            const ENTRY_LINE = 1;
 
-			return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );
-		});
+            return Promise.all([
+                dc.configurationSequence(),
+                dc.launch({ program: PROGRAM, stopOnEntry: true }),
+                dc.assertStoppedLocation('entry', { line: ENTRY_LINE } )
+            ]);
+        });
+    });
 
-		test('hitting a lazy breakpoint should send a breakpoint event', () => {
+    suite('setBreakpoints', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'testLazyBreakpoint.md');
-			const BREAKPOINT_LINE = 3;
+        test('should stop on a breakpoint', () => {
 
-			return Promise.all([
+            const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+            const BREAKPOINT_LINE = 2;
 
-				dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE, verified: false } ),
+            return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );
+        });
 
-				dc.waitForEvent('breakpoint').then((event : DebugProtocol.BreakpointEvent ) => {
-					assert.equal(event.body.breakpoint.verified, true, "event mismatch: verified");
-				})
-			]);
-		});
-	});
+        test('hitting a lazy breakpoint should send a breakpoint event', () => {
 
-	suite('setExceptionBreakpoints', () => {
+            const PROGRAM = Path.join(DATA_ROOT, 'testLazyBreakpoint.md');
+            const BREAKPOINT_LINE = 3;
 
-		test('should stop on an exception', () => {
+            return Promise.all([
 
-			const PROGRAM_WITH_EXCEPTION = Path.join(DATA_ROOT, 'testWithException.md');
-			const EXCEPTION_LINE = 4;
+                dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE, verified: false } ),
 
-			return Promise.all([
+                dc.waitForEvent('breakpoint').then((event : DebugProtocol.BreakpointEvent ) => {
+                    assert.equal(event.body.breakpoint.verified, true, "event mismatch: verified");
+                })
+            ]);
+        });
+    });
 
-				dc.waitForEvent('initialized').then(event => {
-					return dc.setExceptionBreakpointsRequest({
-						filters: [ 'all' ]
-					});
-				}).then(response => {
-					return dc.configurationDoneRequest();
-				}),
+    suite('setExceptionBreakpoints', () => {
 
-				dc.launch({ program: PROGRAM_WITH_EXCEPTION }),
+        test('should stop on an exception', () => {
 
-				dc.assertStoppedLocation('exception', { line: EXCEPTION_LINE } )
-			]);
-		});
-	});
+            const PROGRAM_WITH_EXCEPTION = Path.join(DATA_ROOT, 'testWithException.md');
+            const EXCEPTION_LINE = 4;
+
+            return Promise.all([
+
+                dc.waitForEvent('initialized').then(event => {
+                    return dc.setExceptionBreakpointsRequest({
+                        filters: [ 'all' ]
+                    });
+                }).then(response => {
+                    return dc.configurationDoneRequest();
+                }),
+
+                dc.launch({ program: PROGRAM_WITH_EXCEPTION }),
+
+                dc.assertStoppedLocation('exception', { line: EXCEPTION_LINE } )
+            ]);
+        });
+    });
 });

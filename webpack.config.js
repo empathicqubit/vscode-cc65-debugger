@@ -11,7 +11,7 @@ const config = {
     __dirname: false,
   },
   entry: {
-      extension: './src/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+    extension: './src/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
   },
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
@@ -30,15 +30,15 @@ const config = {
   },
   module: {
     rules: [
-      {
+    {
         test: /\.ts$/,
         exclude: /node_modules/,
         use: [
-          {
+        {
             loader: 'ts-loader'
-          }
+        }
         ]
-      },
+    },
     ]
   }
 };
