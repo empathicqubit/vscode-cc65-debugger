@@ -1,7 +1,7 @@
 {
     "name": "cc65-vice",
     "displayName": "C64 CC65/VICE Debugger",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "publisher": "entan-gl",
     "description": "An extension to unify VSCode, CC65, and VICE monitor.",
     "author": {
@@ -35,10 +35,12 @@
         "adapter": "webpack --config webpack.adapter.config.js --mode production",
         "extension": "webpack --mode production",
         "nc": "webpack --config webpack.nc.config.js --mode production",
+        "webviews": "webpack --config webpack.webviews.config.js --mode production",
         "extension:debug": "webpack --mode development",
         "nc:debug": "webpack --config webpack.nc.config.js --mode development",
-        "vscode:prepublish": "npm-run-all -p nc adapter extension",
-        "vscode:debug": "npm-run-all extension:debug nc:debug",
+        "webviews:debug": "webpack --config webpack.webviews.config.js --mode development",
+        "vscode:prepublish": "npm-run-all -p webviews nc adapter extension",
+        "vscode:debug": "npm-run-all extension:debug nc:debug webviews:debug",
         "test": "mocha -u tdd ./out/tests/",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "package": "vsce package",
@@ -82,9 +84,11 @@
         "onDebug",
         "onLanguage:c",
         "onLanguage:cpp",
-        "onCommand:extension.cc65-vice.getProgramName"
+        "onCommand:cc65-vice.stats"
     ],
     "contributes": {
+        "commands": [
+        ],
         "breakpoints": [
             {
                 "language": "c"

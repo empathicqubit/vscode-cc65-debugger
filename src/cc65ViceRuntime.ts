@@ -1,7 +1,3 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
-
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as readdir from 'recursive-readdir';
@@ -10,6 +6,7 @@ import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as clangQuery from './clangQuery';
 import * as util from 'util';
+import * as debugUtils from './debugUtils';
 import * as dbgfile from './debugFile'
 import watch from 'node-watch';
 import { ViceGrip } from './viceGrip';
@@ -45,8 +42,6 @@ export interface Registers {
  * A CC65Vice runtime with minimal debugger functionality.
  */
 export class CC65ViceRuntime extends EventEmitter {
-    private _dbgFileName: string;
-
     private _dbgFile: dbgfile.Dbgfile;
 
     private _currentAddress: number;
@@ -131,11 +126,10 @@ export class CC65ViceRuntime extends EventEmitter {
             })
         });
 
-        const filetypes = /\.(d[0-9]{2}|prg)$/i
         let filenames : string[] = [];
         const watcher = watch(workspaceDir, {
             recursive: true,
-            filter: f => filetypes.test(f),
+            filter: f => debugUtils.programFiletypes.test(f),
         }, (evt, filename) => {
             filenames.push(filename);
         });
@@ -149,7 +143,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         filenames = await readdir(workspaceDir)
 
-        filenames = filenames.filter(x => filetypes.test(x))
+        filenames = filenames.filter(x => debugUtils.programFiletypes.test(x))
 
         const files = await Promise.all(filenames.map(async filename => {
             const fileStats = await util.promisify(fs.stat)(filename);
@@ -185,13 +179,12 @@ export class CC65ViceRuntime extends EventEmitter {
         this._consoleType = consoleType;
         console.time('loadSource')
 
-        const filetypes = /\.(d[0-9]{2}|prg)$/gi
-        if(!filetypes.test(program)) {
+        if(!debugUtils.programFiletypes.test(program)) {
             throw new Error("File must be a Commodore Disk image or PRoGram.");
         }
 
-        await this._loadSource(program.replace(filetypes, ".dbg"), buildCwd);
-        await this._loadMapFile(program.replace(filetypes, ".map"));
+        await this._loadSource(program, buildCwd);
+        await this._loadMapFile(program);
         await this._getLocalTypes();
 
         console.timeEnd('loadSource')
@@ -213,7 +206,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         this._otherHandlers = new EventEmitter();
 
-        this._vice = new ViceGrip(program, this._entryAddress, path.dirname(this._dbgFileName),(file : string, args : string[], opts: child_process.ExecFileOptions) => this._processExecHandler(file, args, opts), vicePath, viceArgs, this._otherHandlers);
+        this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), vicePath, viceArgs, this._otherHandlers);
 
         await this._vice.start();
 
@@ -264,8 +257,8 @@ export class CC65ViceRuntime extends EventEmitter {
         this._codeSegGuardIndex = this._getBreakpointNum(res);
     }
 
-    private async _loadMapFile(filename: string) : Promise<void> {
-        const text = await util.promisify(fs.readFile)(filename, 'utf8');
+    private async _loadMapFile(program: string) : Promise<void> {
+        const text = await util.promisify(fs.readFile)(program.replace(debugUtils.programFiletypes, '.map'), 'utf8');
         this._mapFile = mapFile.parse(text);
     }
 
@@ -743,8 +736,8 @@ export class CC65ViceRuntime extends EventEmitter {
         return this._registers;
     }
 
-    private async _processExecHandler(file: string, args: string[], opts: child_process.ExecFileOptions) : Promise<number | undefined> {
-        const promise = new Promise<number | undefined>((res, rej) => {
+    private _processExecHandler = <debugUtils.ExecHandler>((file, args, opts) => {
+        const promise = new Promise<[number, number]>((res, rej) => {
             if(!path.isAbsolute(file) && path.dirname(file) != '.') {
                 file = path.join(__dirname, file);
             }
@@ -752,20 +745,20 @@ export class CC65ViceRuntime extends EventEmitter {
             this._session.runInTerminalRequest({
                 args: [file, ...args],
                 cwd: opts.cwd || __dirname,
-                                env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
+                env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
                 kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'
             }, 5000, (response) => {
                 if(!response.success) {
                     rej(response);
                 }
                 else {
-                    res(response.body.processId);
+                    res([response.body.shellProcessId || -1, response.body.processId || -1]);
                 }
             })
         });
 
         return promise;
-    }
+    });
 
     // We set labels here so the user doesn't have to generate Yet Another File
     private async _setLabels(): Promise<void> {
@@ -905,11 +898,9 @@ export class CC65ViceRuntime extends EventEmitter {
         })
     }
 
-    private async _loadSource(file: string, buildDir: string) {
-        this._dbgFileName = file;
-        let dbgFileData : string;
+    private async _loadSource(file: string, buildDir: string) : Promise<dbgfile.Dbgfile> {
         try {
-            dbgFileData = await util.promisify(fs.readFile)(this._dbgFileName, 'ascii');
+            return this._dbgFile = await debugUtils.loadDebugFile(file, buildDir);
         }
         catch {
             throw new Error(
@@ -917,8 +908,6 @@ export class CC65ViceRuntime extends EventEmitter {
 the same name as your d84/d64/prg file with an .dbg extension.`
             );
         }
-
-        this._dbgFile = dbgfile.parse(dbgFileData, buildDir);
     }
 
     private async _getParamStackPos() : Promise<number> {

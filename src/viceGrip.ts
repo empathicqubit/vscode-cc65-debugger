@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as hasbin from 'hasbin';
 import { DebugProtocol } from 'vscode-debugprotocol'
+import * as debugUtils from './debugUtils';
 
 const waitPort = require('wait-port');
 const queue = require('queue');
@@ -40,10 +41,18 @@ export class ViceGrip extends EventEmitter {
         autostart: true,
     });
 
-    private _handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>;
-    private _pid: number | undefined;
+    private _handler: debugUtils.ExecHandler;
+    private _pids: [number, number];
 
-    constructor(program: string, initBreak: number, cwd: string, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>, vicePath: string | undefined, viceArgs: string[] | undefined, consoleHandler: EventEmitter) {
+    constructor(
+        program: string,
+        initBreak: number,
+        cwd: string,
+        handler: debugUtils.ExecHandler,
+        vicePath: string | undefined,
+        viceArgs: string[] | undefined,
+        consoleHandler: EventEmitter
+    ) {
         super();
 
         this._handler = handler;
@@ -100,9 +109,9 @@ export class ViceGrip extends EventEmitter {
         if(this._viceArgs) {
             args = [...args, ...this._viceArgs, this._program];
         }
-                else {
+        else {
             args = [...args, this._program];
-                }
+        }
 
         const opts = {
             shell: false,
@@ -112,7 +121,7 @@ export class ViceGrip extends EventEmitter {
         if(this._vicePath) {
             try {
                 await util.promisify(fs.stat)(this._vicePath)
-                this._pid = await this._handler(this._vicePath, args, opts)
+                this._pids = await this._handler(this._vicePath, args, opts)
             }
             catch {
                 throw new Error(`Could not start VICE using launch.json->viceCommand = "${this._vicePath}". Make sure it's an absolute path.`);
@@ -121,7 +130,7 @@ export class ViceGrip extends EventEmitter {
         else {
             try {
                 const x64Exec : string = <any>await util.promisify((i, cb) => hasbin.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['x64sc', 'x64'])
-                this._pid = await this._handler(x64Exec, args, opts);
+                this._pids = await this._handler(x64Exec, args, opts);
             }
             catch(e) {
                 throw new Error('Could not start either x64 or x64sc. Define your VICE path in your launch.json->viceCommand property');
@@ -262,10 +271,11 @@ export class ViceGrip extends EventEmitter {
     }
 
     public async end() {
-        await this.exec(`quit`);
+        this._pids[1] > -1 && process.kill(this._pids[1], "SIGKILL");
+        this._pids[0] > -1 && process.kill(this._pids[0], "SIGKILL");
+        this.exec(`quit`);
         this._conn && await util.promisify((cb) => this._conn.end(cb))();
-        this._pid && process.kill(this._pid, "SIGKILL");
-        this._pid = undefined;
+        this._pids = [-1, -1];
         this._conn = <any>null;
         this._cmdQueue.end();
     }

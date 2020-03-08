@@ -4,17 +4,22 @@ import * as child_process from 'child_process'
 import * as colors from 'colors';
 import * as getPort from 'get-port';
 import * as util from 'util';
+import * as debugUtils from './debugUtils';
 
 export class VicesWonderfulWorldOfColor {
     private _outputServer: net.Server;
-    private _outputTerminalPid: number | undefined;
+    private _outputTerminalPids: [number, number];
     // Connection to VICE. Obtained however
     private _conn : Readable & Writable;
 
     _output: EventEmitter;
-    private _handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>;
+    private _handler: debugUtils.ExecHandler;
 
-    constructor(conn: Readable & Writable, output: EventEmitter, handler: (file: string, args: string[], opts: child_process.ExecFileOptions) => Promise<number | undefined>) {
+    constructor(
+        conn: Readable & Writable,
+        output: EventEmitter,
+        handler: debugUtils.ExecHandler,
+    ) {
         this._conn = conn;
         this._output = output;
         this._handler = handler;
@@ -102,13 +107,14 @@ export class VicesWonderfulWorldOfColor {
 
         this._outputServer = server;
 
-        this._outputTerminalPid = await this._handler(process.execPath, [__dirname + '/../dist/nc.js', '127.0.0.1', port.toString()], {});
+        this._outputTerminalPids = await this._handler(process.execPath, [__dirname + '/../dist/nc.js', '127.0.0.1', port.toString()], {});
     }
 
     public async end() {
-        this._outputTerminalPid && process.kill(this._outputTerminalPid, "SIGKILL");
+        this._outputTerminalPids[1] > -1 && process.kill(this._outputTerminalPids[1], "SIGKILL");
+        this._outputTerminalPids[0] > -1 && process.kill(this._outputTerminalPids[0], "SIGKILL");
         this._outputServer && await util.promisify(cb => this._outputServer.close(cb))();
         this._outputServer = <any>null;
-        this._outputTerminalPid = <any>null;
+        this._outputTerminalPids = [-1, -1];
     }
 }

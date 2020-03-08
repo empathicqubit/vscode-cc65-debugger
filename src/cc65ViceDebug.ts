@@ -1,7 +1,3 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
-
 import {
     Logger, logger,
     LoggingDebugSession,
@@ -196,7 +192,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         }
         catch (e) {
             response.success = false;
-            response.message = e.toString();
+            response.message = (<any>e).stack.toString();
         }
 
         this.sendResponse(response);

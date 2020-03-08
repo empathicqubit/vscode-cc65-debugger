@@ -1,7 +1,3 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
-
 'use strict';
 
 import * as vscode from 'vscode';
@@ -11,6 +7,8 @@ import { CC65ViceDebugSession } from './cc65ViceDebug';
 import * as languageClient from 'vscode-languageclient';
 import * as Net from 'net';
 import * as util from 'util';
+import * as debugUtils from './debugUtils';
+import { StatsWebview } from './statsWebview';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -19,12 +17,13 @@ import * as util from 'util';
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
 export function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand('extension.cc65-vice.getProgramName', config => {
-        return vscode.window.showInputBox({
-            placeHolder: "Please enter the name of a markdown file in the workspace folder",
-            value: "readme.md"
-        });
-    }));
+    context.subscriptions.push(
+		vscode.commands.registerCommand('cc65-vice.stats', async () => {
+            StatsWebview.createOrShow(context.extensionPath);
+            const dbgfile = await debugUtils.loadDebugFile("boop", "boop");
+            StatsWebview.update(dbgfile);
+		})
+	);
 
     const provider = new CC65ViceConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('cc65-vice', provider));
