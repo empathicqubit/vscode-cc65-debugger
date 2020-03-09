@@ -6,6 +6,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
+import * as debugUtils from './debugUtils';
 import { CC65ViceRuntime, CC65ViceBreakpoint } from './cc65ViceRuntime';
 const { Subject } = require('await-notify');
 import * as colors from 'colors/safe';
@@ -313,10 +314,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         };
     }
 
-    private _formatHex(hexString: string) : string {
-        return hexString.replace(/([0-9a-f]{8})/gi, '$1 ').replace(/([0-9a-f]{2})/gi, '$1 ');
-    }
-
     protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
         const variables: DebugProtocol.Variable[] = [];
 
@@ -353,7 +350,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                     const val = buf.slice(i, i + 8);
                     variables.push({
                         name: i.toString(16),
-                        value: this._formatHex(val.toString('hex')),
+                        value: debugUtils.rawBufferHex(val),
                         variablesReference: 0,
                         presentationHint: {
                             kind: "data",
@@ -393,7 +390,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                         const val = buf.slice(i, i + 8);
                         variables.push({
                             name: (addr + i).toString(16),
-                            value: this._formatHex(val.toString('hex')),
+                            value: debugUtils.rawBufferHex(val),
                             variablesReference: VariablesReferenceFlag.EXPAND_BYTES | (addr + i),
                             presentationHint: {
                                 kind: "data",

@@ -666,17 +666,30 @@ export class CC65ViceRuntime extends EventEmitter {
                 seekNext = -mostOffset+nextCsym.offs
             }
 
+            const addr = this._paramStackTop + seek
+
+            let ptr : number | undefined;
+
             let val;
             if(seekNext - seek == 2) {
-                val = (<any>stack.readUInt16LE(seek).toString(16)).padStart(4, '0');
+                ptr = <any>stack.readUInt16LE(seek);
+                val = "0x" + (<any>ptr!.toString(16)).padStart(4, '0');
             }
             else {
-                val = (<any>stack.readUInt8(seek).toString(16)).padStart(2, '0');
+                val = "0x" + (<any>stack.readUInt8(seek).toString(16)).padStart(2, '0');
             }
 
+            // FIXME Duplication with globals
             let typename: string = '';
             if(this._localTypes) {
                 typename = (<any>(this._localTypes[scope.name + '()'].find(x => x.name == csym.name) || {})).type || '';
+
+                if(ptr && /\bchar\s+\*/g.test(typename)) {
+                    const mem = await this.getMemory(ptr, 24);
+                    const nullIndex = mem.indexOf(0x00);
+                    const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
+                    val = `${str} (${debugUtils.rawBufferHex(mem)})`;
+                }
 
                 if(!this._localTypes[typename.split(/\s+/g)[0]]) {
                     typename = '';
@@ -685,8 +698,8 @@ export class CC65ViceRuntime extends EventEmitter {
 
             vars.push({
                 name: csym.name,
-                value: "0x" + val,
-                addr: this._paramStackTop + seek,
+                value: val,
+                addr: addr,
                 type: typename,
             });
         }
@@ -709,12 +722,23 @@ export class CC65ViceRuntime extends EventEmitter {
 
             const symName = sym.name.replace(/^_/g, '')
 
-            const mem = await this.getMemory(sym.val, 2);
+            const buf = await this.getMemory(sym.val, 2);
+            const ptr = buf.readUInt16LE(0);
+
+            let val = debugUtils.rawBufferHex(buf);
 
             let typename: string = '';
             if(this._localTypes) {
                 typename = (<any>(this._localTypes['__GLOBAL__()'].find(x => x.name == symName) || {})).type || '';
                 console.log(this._localTypes);
+
+                if(/\bchar\s+\*/g.test(typename)) {
+                    const mem = await this.getMemory(ptr, 24);
+                    const nullIndex = mem.indexOf(0x00);
+                    // FIXME PETSCII conversion
+                    const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
+                    val = `${str} (${debugUtils.rawBufferHex(mem)})`;
+                }
 
                 if(!this._localTypes[typename.split(/\s+/g)[0]]) {
                     typename = '';
@@ -723,7 +747,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
             vars.push({
                 name: symName,
-                value: mem.toString('hex').replace(/(.{2})/g, "$1 "),
+                value: val,
                 addr: sym.val,
                 type: typename
             });
