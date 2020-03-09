@@ -492,7 +492,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
         let reply: string | undefined = undefined;
         if (args.context == "hover") {
-            const vars = [...await this._runtime.getScopeVariables(), this._runtime.getGlobalVariables()];
+            const vars = [...await this._runtime.getScopeVariables(), ...await this._runtime.getGlobalVariables()];
             const v = vars.find(x => x.name == args.expression);
             if(v) {
                 reply = v.value;
@@ -500,38 +500,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         }
 
         if (args.context === 'repl') {
-            const blacklisted = [
-                'break','bk','command', 'condition', 'cond', 'delete', 'del',
-                'disable', 'dis', 'enable', 'en', 'ignore', 'until', 'un',
-                'watch', 'w', 'trace', 'tr',
-            ];
-
-            const rex = new RegExp("^\\s*(\\!)?\\s*((" + blacklisted.join('|') + ")(\\s+.*)?)$", "i");
-
-            let cmd = args.expression;
-            let match;
-            if(match = rex.exec(cmd)) {
-                if(match[1]) {
-                    cmd = match[2];
-                }
-                else {
-                    reply = `
-The command ${match[3]} is blacklisted because it could confuse VSCode.
-If you think you know what you're doing, prefix it with an ! :
-!${match[2]}
-`
-                    cmd = "";
-                }
-            }
-
-            if(cmd == "iwantitall") {
-                reply = "and I want it now!"
-                await this._runtime.monitorToConsole();
-            }
-            else if(cmd) {
-                reply = <string>await this._runtime.exec(cmd);
-                await this._runtime.pause();
-            }
+            reply = `Please use the monitor from the terminal tab. It can do colors and stuff.`;
         }
 
         reply = reply || "No command entered."

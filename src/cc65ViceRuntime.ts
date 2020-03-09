@@ -237,7 +237,7 @@ export class CC65ViceRuntime extends EventEmitter {
             await this.continue();
         }
 
-        this._colorTerm = new VicesWonderfulWorldOfColor(this._vice._conn, this._otherHandlers, (f, a, o) => this._processExecHandler(f, a, o))
+        this._colorTerm = new VicesWonderfulWorldOfColor(this._vice, this._otherHandlers, (f, a, o) => this._processExecHandler(f, a, o))
         this._colorTerm.main();
 
         console.timeEnd('postVice')

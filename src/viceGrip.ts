@@ -23,7 +23,7 @@ async function * fakeStream() {
 
 export class ViceGrip extends EventEmitter {
     private _port : number = -1;
-    public _conn: Readable & Writable;
+    private _conn: Readable & Writable;
     private _program: string;
     private _initBreak: number = -1;
     private _cwd: string;
