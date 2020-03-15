@@ -9,9 +9,7 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ],
+            "outFiles": [ "${workspaceFolder}/out/**/*.js" ],
             "preLaunchTask": "npm: vscode:debug",
         },
         {
@@ -19,11 +17,9 @@
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ],
             "sourceMaps": true,
-            "program": "${workspaceFolder}/dist/debugAdapter.js",
+            "program": "${workspaceFolder}/src/debugAdapter.ts",
+            "outFiles": ["${workspaceFolder}/out/**/*.js"],
             "preLaunchTask": "npm: vscode:debug",
             "args": [
                 "--server=4711"

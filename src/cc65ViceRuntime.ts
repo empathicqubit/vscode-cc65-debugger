@@ -482,13 +482,19 @@ export class CC65ViceRuntime extends EventEmitter {
         let cmds : string[] = [];
         for(const bp of this._breakPoints) {
             const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.num == bp.line.num) && x.name == bp.line.file!.name);
-            if (sourceFile && !bp.verified && bp.line.num <= sourceFile.lines[sourceFile.lines.length - 1].num) {
-                const srcLine = sourceFile.lines.find(x => x.num >= bp.line.num) || sourceFile.lines[sourceFile.lines.length / 2];
-
-                bp.line = srcLine;
-
-                cmds.push(`bk ${srcLine.span!.absoluteAddress.toString(16)}`);
+            if (!(sourceFile && !bp.verified && bp.line.num <= sourceFile.lines[sourceFile.lines.length - 1].num)) {
+                continue;
             }
+
+            const srcLine = sourceFile.lines.find(x => x.num >= bp.line.num);
+
+            if(!srcLine) {
+                continue;
+            }
+
+            bp.line = srcLine;
+
+            cmds.push(`bk ${srcLine.span!.absoluteAddress.toString(16)}`);
         }
 
         const res = await this._vice.multiExec(cmds);
@@ -964,17 +970,24 @@ the same name as your d84/d64/prg file with an .dbg extension.`
     }
 
     private _getLineFromAddress(addr: number) : dbgfile.SourceLine {
-        const curSpan = this._dbgFile.spans
-            .find(x =>
-                x.absoluteAddress <= addr
-                && x.lines.length
-                && x.lines.find(l => l.file && /\.c$/gi.test(l.file.name))
-            )
-            || this._dbgFile.spans[0];
+        let maybeBreakpoint = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == addr);
+        let curSpan : dbgfile.DebugSpan;
+        if(maybeBreakpoint) {
+            curSpan = maybeBreakpoint.line.span!;
+        }
+        else {
+            curSpan = this._dbgFile.spans
+                .find(x =>
+                    x.absoluteAddress <= addr
+                    && x.lines.length
+                    && x.lines.find(l => l.file && /\.c$/gi.test(l.file.name))
+                )
+                || this._dbgFile.spans[0];
+        }
 
         return curSpan.lines
             .find(x => x.file && /\.c$/gi.test(x.file.name))
-            || this._dbgFile.lines[0];
+            || curSpan.lines[0];
     }
 
     private _getBreakpointMatches(breakpointText: string) : number[][] {

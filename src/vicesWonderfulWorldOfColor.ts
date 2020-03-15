@@ -132,7 +132,7 @@ to see everything going on behind the scenes, type the command "!iwantitall"
     public async end() {
         this._outputTerminalPids[1] > -1 && process.kill(this._outputTerminalPids[1], "SIGKILL");
         this._outputTerminalPids[0] > -1 && process.kill(this._outputTerminalPids[0], "SIGKILL");
-        this._outputServer && await util.promisify(cb => this._outputServer.close(cb))();
+        this._outputServer && await util.promisify((cb: (err?: Error | undefined) => void) => this._outputServer.close(cb))();
         this._outputServer = <any>null;
         this._outputTerminalPids = [-1, -1];
     }
