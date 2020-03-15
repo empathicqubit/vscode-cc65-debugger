@@ -6,7 +6,7 @@
     "blockComment": ["/*", "*/"]
   },
   // symbols used as brackets
-  "brackets": [[".if", ".endif"], [".macro", ".endmacro"], [".proc", ".endproc"], [".repeat", ".endrepeat"], [".scope", ".endscope"], [".struct", ".endstruct"], [".enum", ".endenum"], ["(", ")"]],
+  "brackets": [[".ifndef", ".endif"], [".ifdef", ".endif"], [".if", ".endif"], [".macro", ".endmacro"], [".proc", ".endproc"], [".repeat", ".endrepeat"], [".scope", ".endscope"], [".struct", ".endstruct"], [".enum", ".endenum"], ["(", ")"]],
   // symbols that are auto closed when typing
   "autoClosingPairs": [["(", ")"], ["\"", "\""], ["'", "'"]],
   // symbols that that can be used to surround a selection

@@ -101,3 +101,7 @@ Also, do not name your typedefs differently than your struct. I have not tested 
 
 - **Step in** works some of the time. Sometimes you'll get flown off to nowwhereville
 - Array types
+
+## Additional Credits (see also LICENSE.md)
+
+* **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)

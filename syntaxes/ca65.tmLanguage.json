@@ -1,0 +1,169 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "6502/65816 Assembly",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#punctuation"
+		},
+		{
+			"include": "#literals"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#chars"
+		},
+		{
+			"include": "#operators"
+		},
+		{
+			"include": "#opcodes"
+		},
+		{
+			"include": "#pseudovars"
+		},
+		{
+			"include": "#pseudofunctions"
+		},
+		{
+			"include": "#controlcommands"
+		},
+		{
+			"include": "#blockstarts"
+		},
+		{
+			"include": "#blockends"
+		},
+		{
+			"include": "#labels"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [{
+				"name": "comment.line.ca65",
+				"match": ";.*$"
+			}]
+		},
+		"punctuation": {
+			"patterns": [{
+				"name": "punctuation.parenthesis.ca65",
+				"match": "\\(|\\)"
+			}, {
+				"name": "punctuation.separator.ca65",
+				"match": ","
+			}]
+		},
+		"literals": {
+			"patterns": [{
+				"name": "constant.numeric.binary.ca65",
+				"match": "%[01]+\\b"
+			}, {
+				"name": "constant.numeric.hex.ca65",
+				"match": "(\\$[0-9A-Fa-f]+\\b)|\\b([0-9A-Fa-f]+h\\b)"
+			}, {
+				"name": "constant.numeric.decimal.ca65",
+				"match": "\\b[0-9]+\\b"
+			}, {
+				"name": "constant.language.unnamed-label.ca65",
+				"match": ":-+|:\\++"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.ca65",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [{
+				"name": "constant.character.escape.ca65",
+				"match": "\\\\."
+			}]
+		},
+		"chars": {
+			"name": "string.quoted.single.ca65",
+			"begin": "'",
+			"end": "'",
+			"patterns": [{
+				"name": "constant.character.escape.ca65",
+				"match": "\\\\."
+			}]
+		},
+		"operators": {
+			"patterns": [{
+				"name": "keyword.operators.immediate.ca65",
+				"match": "#"
+			}, {
+				"name": "keyword.operators.word.ca65",
+				"match": "\\.(?i:mod|bitnot|bitand|bitor|shl|shr|and|or|not|xor)\\b"
+			}, {
+				"name": "keyword.operators.misc.ca65",
+				"match": "=|<>|:=|\\+|-|\\*|/|\\&|~|\\||<<|>>|\\&\\&|\\|\\||!|<|>|<=|>="
+			}]
+		},
+		"opcodes": {
+			"patterns": [{
+				"comment": "6502 Opcodes",
+				"name": "keyword.other.opcode.ca65.6502",
+				"match": "\\b(?i:adc|and|asl|bcc|bcs|beq|bit|bmi|bne|bpl|brk|bvc|bvs|clc|cld|cli|clv|cmp|cpx|cpy|dec|dex|dey|eor|inc|inx|iny|jmp|jsr|lda|ldx|ldy|lsr|nop|ora|pha|php|pla|plp|rol|ror|rti|rts|sbc|sec|sed|sei|sta|stx|sty|tax|tay|tsx|txa|txs|tya)\\b"
+			}, {
+				"comment": "65C02 Opcodes",
+				"name": "keyword.other.opcode.ca65.65c02",
+				"match": "\\b(?i:bra|phx|phy|plx|ply|stz|trb|tsb|bbr0|bbr1|bbr2|bbr3|bbr4|bbr5|bbr6|bbr7|bbs0|bbs1|bbs2|bbs3|bbs4|bbs5|bbs6|bbs7|rmb0|rmb1|rmb2|rmb3|rmb4|rmb5|rmb6|rmb7|smb0|smb1|smb2|smb3|smb4|smb5|smb6|smb7)\\b"
+			}, {
+				"comment": "6502X Opcodes",
+				"name": "keyword.other.opcode.ca65.6502x",
+				"match": "\\b(?i:alr|anc|arr|axs|dcp|isc|las|lax|rla|rra|sax|slo|sre)\\b"
+			}, {
+				"comment": "65816 Opcodes",
+				"name": "keyword.other.opcode.ca65.65816",
+				"match": "\\b(?i:brl|cop|jml|jsl|mvn|mvp|pea|pei|per|phb|phd|phk|plb|pld|rep|rtl|sep|stp|tcd|tcs|tdc|tsc|txy|tyx|wai|wdm|xba|xce)\\b"
+			}, {
+				"comment": "65816 Opcode Aliases",
+				"name": "keyword.other.opcode.ca65.65816",
+				"match": "\\b(?i:bge|blt|cpa|dea|ina|swa|tad|tas|tda|tsa)\\b"
+			}]
+		},
+		"pseudovars": {
+			"patterns": [{
+				"name": "keyword.control.pseudovar.ca65",
+				"match": "\\.(?i:cpu|paramcount|time|version)\\b"
+			}]
+		},
+		"pseudofunctions": {
+			"patterns": [{
+				"name": "keyword.control.pseudofunction.ca65",
+				"match": "\\.(?i:bankbyte|blank|concat|const|hibyte|hiword|ident|left|lobyte|loword|match|mid|ref|referenced|right|sizeof|strat|sprintf|string|strlen|tcount|xmatch)\\b"
+			}]
+		},
+		"controlcommands": {
+			"patterns": [{
+				"name": "keyword.control.controlcommand.ca65",
+				"match": "\\.(?i:a16|a8|addr|align|asciiz|assert|autoimport|bankbytes|bss|byt|byte|case|charmap|code|condes|constructor|data|dbyt|debuginfo|define|def|defined|destructor|dword|else|elseif|end|endif|endrep|error|exitmac|exitmacro|export|exportzp|faraddr|feature|fileopt|fopt|forceimport|global|globalzp|hibytes|i16|i8|if|ifblank|ifconst|ifdef|ifnblank|ifndef|ifnref|ifp02|ifp816|ifpc02|ifpsc02|ifref|import|importzp|incbin|include|interruptor|linecont|list|listbytes|lobytes|local|localchar|macpack|org|out|p02|p816|pagelen|pagelength|pc02|popseg|psc02|pushseg|reloc|repeat|res|rodata|segment|setcpu|smart|sunplus|tag|warning|word|zeropage)\\b"
+			}]
+		},
+		"blockstarts": {
+			"patterns": [{
+				"name": "keyword.control.block.ca65",
+				"contentName": "entity.name.function.ca65",
+				"begin": "\\.(?i:enum|macro|mac|proc|scope|struct)\\s*",
+				"end": "\\s"
+			}]
+		},
+		"blockends": {
+			"patterns": [{
+				"name": "keyword.control.block.ca65",
+				"match": "\\.(?i:endenum|endmacro|endmac|endproc|endscope|endstruct)\\b"
+			}]
+		},
+		"labels": {
+			"patterns": [{
+				"name": "entity.name.label.ca65",
+				"match": "^\\s*\\S*:"
+			}]
+		}
+	},
+	"scopeName": "source.ca65"
+}
