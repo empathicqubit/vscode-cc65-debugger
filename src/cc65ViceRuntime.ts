@@ -817,7 +817,7 @@ export class CC65ViceRuntime extends EventEmitter {
                 const [full, addr] = addrexe;
 
                 if(addrexe.length > 2) {
-                    const [,, a, x, y, sp] = addrexe;
+                    const [,,, a, x, y, sp] = addrexe;
                     r.a = parseInt(a, 16);
                     r.x = parseInt(x, 16);
                     r.y = parseInt(y, 16);
