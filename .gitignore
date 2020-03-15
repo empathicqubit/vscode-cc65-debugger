@@ -8,3 +8,4 @@ out/
 dist/
 *.orig
 *.rej
+*.js
