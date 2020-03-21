@@ -222,7 +222,7 @@ export class CC65ViceRuntime extends EventEmitter {
         console.time('postVice')
 
         await this._initCodeSeg();
-        await this._setLabels();
+        await this._loadLabels(program);
         await this._resetStackFrames();
         await this._setParamStackBottom();
 
@@ -791,10 +791,19 @@ export class CC65ViceRuntime extends EventEmitter {
     });
 
     // We set labels here so the user doesn't have to generate Yet Another File
-    private async _setLabels(): Promise<void> {
+    private async _loadLabels(program: string): Promise<void> {
+        // Labels in the absence of a label file are nice, but incomplete, especially
+        // if there's assembly code.
+        const filename = program.replace(debugUtils.programFiletypes, '.lbl');
         await this._vice.multiExec(this._dbgFile.labs.map(lab =>
             `al \$${lab.val.toString(16)} .${lab.name}`
         ));
+
+        try {
+            const fileStats = await util.promisify(fs.stat)(filename);
+            await this._vice.exec(`ll "${filename}"`);
+        }
+        catch {}
     }
 
     private _otherHandlers : EventEmitter;
