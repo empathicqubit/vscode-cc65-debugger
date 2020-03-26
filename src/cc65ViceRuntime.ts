@@ -186,6 +186,7 @@ export class CC65ViceRuntime extends EventEmitter {
         await this._loadSource(program, buildCwd);
         await this._loadMapFile(program);
         await this._getLocalTypes();
+        this._initCodeSeg();
 
         console.timeEnd('loadSource')
 
@@ -193,8 +194,11 @@ export class CC65ViceRuntime extends EventEmitter {
 
         const startSym = this._dbgFile.labs.find(x => x.name == "_main");
 
-        if(startSym != null) {
+        if(startSym) {
             this._entryAddress = startSym.val
+        }
+        else if(this._codeSegAddress != -1) {
+            this._entryAddress = this._codeSegAddress;
         }
 
         this._resetRegisters();
@@ -221,7 +225,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         console.time('postVice')
 
-        await this._initCodeSeg();
+        await this._guardCodeSeg();
         await this._loadLabels(program);
         await this._resetStackFrames();
         await this._setParamStackBottom();
@@ -243,7 +247,7 @@ export class CC65ViceRuntime extends EventEmitter {
         console.timeEnd('postVice')
     }
 
-    private async _initCodeSeg() : Promise<void> {
+    private _initCodeSeg() : void {
         const codeSeg = this._dbgFile.segs.find(x => x.name == "CODE");
 
         if(!codeSeg) {
@@ -252,6 +256,12 @@ export class CC65ViceRuntime extends EventEmitter {
 
         this._codeSegAddress = codeSeg.start;
         this._codeSegLength = codeSeg.size;
+    }
+
+    private async _guardCodeSeg() : Promise<void> {
+        if(this._codeSegAddress == -1) {
+            return;
+        }
 
         const res = <string>await this._vice.exec(`bk store \$${this._codeSegAddress.toString(16)} \$${(this._codeSegAddress + this._codeSegLength - 1).toString(16)}`);
         this._codeSegGuardIndex = this._getBreakpointNum(res);
@@ -488,7 +498,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
             const srcLine = sourceFile.lines.find(x => x.num >= bp.line.num);
 
-            if(!srcLine) {
+            if(!srcLine || !srcLine.span) {
                 continue;
             }
 
