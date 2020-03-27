@@ -6,6 +6,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
+import * as child_process from 'child_process';
 import * as debugUtils from './debugUtils';
 import { CC65ViceRuntime, CC65ViceBreakpoint } from './cc65ViceRuntime';
 const { Subject } = require('await-notify');
@@ -34,7 +35,7 @@ enum VariablesReferenceFlag {
 /**
  * Settings for launch.json
  */
-interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
     /** The command of VICE emulator. */
     viceCommand?: string;
     /** The arguments to use for starting VICE. No environment variables are allowed. */
@@ -73,7 +74,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.setDebuggerLinesStartAt1(false);
         this.setDebuggerColumnsStartAt1(false);
 
-        this._runtime = new CC65ViceRuntime(this);
+        this._runtime = new CC65ViceRuntime((args, timeout, cb) => this.runInTerminalRequest(args, timeout, cb));
 
         // setup event handlers
         this._runtime.on('stopOnEntry', () => {
@@ -165,6 +166,43 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
         // notify the launchRequest that configuration has finished
         this._configurationDone.notify();
+    }
+
+    public runInTerminalRequest(args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void): void {
+        if(false) {
+            const proc = child_process.spawn(args.args[0], args.args.slice(1), <any>{
+                stdio: 'pipe',
+                shell: false,
+                cwd: args.cwd,
+                env: {
+                    ...process.env,
+                    ...args.env,
+                }
+            },);
+
+            proc.stdout.on('data', data => {
+                this._runtime.sendEvent('output', 'stdout', data.toString());
+            });
+
+            proc.stderr.on('data', data => {
+                this._runtime.sendEvent('output', 'stderr', data.toString());
+            });
+
+            cb({
+                request_seq: Math.random() * 10000000000,
+                success: true,
+                command: 'runInTerminal',
+                seq: Math.random() * 10000000000,
+                type: 'runInTerminal',
+                body: {
+                    processId: proc.pid,
+                    shellProcessId: proc.pid,
+                }
+            });
+        }
+        else {
+            super.runInTerminalRequest(args, timeout, cb);
+        }
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {

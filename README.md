@@ -45,7 +45,7 @@ You may have some problems with `autostart-warp` working correctly. I think the 
 
 ## Changes needed to your Makefile
 
-If you've used the default `Makefile` at [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects) then you only need to add the `-g` option to your `LDFLAGS` variable at the top of the file. Otherwise, if you made a custom Makefile, you will need to tell the linker that you want a debug file and a map file. you would add the following options to your linker:
+If you've used the default `Makefile` at [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects) then you only need to add the `-g` option to your `CFLAGS` **and** `LDFLAGS` variables at the top of the file. Otherwise, if you made a custom Makefile, you will need to tell the linker that you want a debug file and a map file. you would add the following options to your linker:
 
 ```sh
 -g -Wl "--mapfile,build/PROGRAMNAME.map" -Wl "--dbgfile,build/PROGRAMNAME.dbg"

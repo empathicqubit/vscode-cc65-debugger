@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.16
+
+* Increase stability of startup and use a custom Kernal to decrease load time.
+
 ## 1.1.15
 
 * Show contents of static variables when --static-locals is enabled

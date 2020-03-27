@@ -1,6 +1,7 @@
 .DS_Store
 node_modules/
 out/
+obj/
 *.s??
 *.log
 *.vsix
@@ -9,3 +10,10 @@ dist/
 *.orig
 *.rej
 *.js
+*.c64
+*.prg
+*.d81
+*.d64
+*.lbl
+*.dbg
+*.map

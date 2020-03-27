@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as readdir from 'recursive-readdir';
+import { DebugProtocol } from 'vscode-debugprotocol';
 import * as child_process from 'child_process'
 import { EventEmitter } from 'events';
 import * as path from 'path';
@@ -60,6 +61,7 @@ export class CC65ViceRuntime extends EventEmitter {
     private _codeSegGuardIndex: number = -1;
 
     private _entryAddress: number = -1;
+    private _exitAddresses: number[] = [];
 
     private _breakPoints : CC65ViceBreakpoint[] = [];
 
@@ -78,15 +80,15 @@ export class CC65ViceRuntime extends EventEmitter {
     private _vice : ViceGrip;
 
     private _currentPosition: dbgfile.SourceLine;
-    private _session: CC65ViceDebugSession;
     private _consoleType?: string;
     private _colorTerm: VicesWonderfulWorldOfColor;
     private _mapFile: mapFile.MapRef[];
     private _localTypes: { [typename: string]: clangQuery.ClangTypeInfo[]; } | undefined;
+    private _runInTerminalRequest: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void;
 
-    constructor(sesh: CC65ViceDebugSession) {
+    constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
-        this._session = sesh;
+        this._runInTerminalRequest = ritr;
     }
 
     /**
@@ -194,7 +196,7 @@ export class CC65ViceRuntime extends EventEmitter {
         const startSym = this._dbgFile.labs.find(x => x.name == "_main");
 
         if(startSym) {
-            this._entryAddress = startSym.val
+            this._entryAddress = startSym.val;
         }
         else if(this._codeSeg) {
             this._entryAddress = this._codeSeg.start;
@@ -218,7 +220,6 @@ export class CC65ViceRuntime extends EventEmitter {
         this._setupViceDataHandler();
         await this.continue();
         this._viceRunning = false;
-        await this._vice.wait();
 
         console.timeEnd('vice')
 
@@ -266,7 +267,16 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     private async _loadMapFile(program: string) : Promise<void> {
-        const text = await util.promisify(fs.readFile)(program.replace(debugUtils.programFiletypes, '.map'), 'utf8');
+        const match = debugUtils.programFiletypes.exec(program)!;
+        let filename : string;
+        if(match[1] == 'c64') {
+            filename = program + '.map';
+        }
+        else {
+            filename = program.replace(debugUtils.programFiletypes, '.map');
+        }
+
+        const text = await util.promisify(fs.readFile)(filename, 'utf8');
         this._mapFile = mapFile.parse(text);
     }
 
@@ -338,8 +348,8 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     public async monitorToConsole() {
-        this._vice.on('data', (d) => {
-            this.sendEvent('output', 'console', d.toString());
+        this.on('data', (d) => {
+            console.log(d);
         });
     }
 
@@ -480,6 +490,7 @@ export class CC65ViceRuntime extends EventEmitter {
         this._viceRunning = false;
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
+        this.sendEvent('end');
     }
 
     // Breakpoints
@@ -801,12 +812,12 @@ export class CC65ViceRuntime extends EventEmitter {
                 file = path.join(__dirname, file);
             }
 
-            this._session.runInTerminalRequest({
+            this._runInTerminalRequest({
                 args: [file, ...args],
                 cwd: opts.cwd || __dirname,
                 env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
                 kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'
-            }, 5000, (response) => {
+            }, 10000, (response) => {
                 if(!response.success) {
                     rej(response);
                 }
@@ -823,10 +834,18 @@ export class CC65ViceRuntime extends EventEmitter {
     private async _loadLabels(program: string): Promise<void> {
         // Labels in the absence of a label file are nice, but incomplete, especially
         // if there's assembly code.
-        const filename = program.replace(debugUtils.programFiletypes, '.lbl');
         await this._vice.multiExec(this._dbgFile.labs.map(lab =>
             `al \$${lab.val.toString(16)} .${lab.name}`
         ));
+
+        const match = debugUtils.programFiletypes.exec(program)!;
+        let filename : string;
+        if(match[1] == 'c64') {
+            filename = program + '.lbl';
+        }
+        else {
+            filename = program.replace(debugUtils.programFiletypes, '.lbl');
+        }
 
         try {
             const fileStats = await util.promisify(fs.stat)(filename);
@@ -930,6 +949,9 @@ export class CC65ViceRuntime extends EventEmitter {
                     this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
                     this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
                 }
+                else if (this._exitAddresses.includes(this._currentAddress)) {
+                    await this.terminate();
+                }
                 else {
                     const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
                     if(userBreak) {
@@ -1029,7 +1051,7 @@ the same name as your d84/d64/prg file with an .dbg extension.`
     }
 
     private _getBreakpointMatches(breakpointText: string) : number[][] {
-        const rex = /^(BREAK|WATCH|TRACE|UNTIL):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
+        const rex = /\b(BREAK|WATCH|TRACE|UNTIL):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
 
         const matches : number[][] = [];
         let match;
@@ -1096,6 +1118,11 @@ the same name as your d84/d64/prg file with an .dbg extension.`
                     continue;
                 }
 
+                if(scope.name == '_main') {
+                    this._exitAddresses.push(addr);
+                    break;
+                }
+
                 this._stackFrameEnds[addr.toString(16)] = scope;
             }
 
@@ -1112,14 +1139,24 @@ the same name as your d84/d64/prg file with an .dbg extension.`
                 }
 
                 if(!finish && (line.span.absoluteAddress + line.span.size) <= end) {
-                    this._stackFrameEnds[line.span.absoluteAddress.toString(16)] = scope;
+                    const addr = line.span.absoluteAddress;
+                    this._stackFrameEnds[addr.toString(16)] = scope;
                     finish = true;
+
+                    if(scope.name == '_main') {
+                        this._exitAddresses.push(addr);
+                        break;
+                    }
                 }
 
                 start = line;
             }
 
             this._stackFrameStarts[start.span!.absoluteAddress.toString(16)] = scope;
+        }
+
+        if(this._exitAddresses.length) {
+            await this._vice.multiExec(this._exitAddresses.map(x => `bk \$${x.toString(16)}`));
         }
 
         await this._vice.multiExec(
@@ -1132,7 +1169,7 @@ the same name as your d84/d64/prg file with an .dbg extension.`
 
     // Comm
 
-    private sendEvent(event: string, ... args: any[]) {
+    public sendEvent(event: string, ... args: any[]) {
         setImmediate(_ => {
             this.emit(event, ...args);
         });

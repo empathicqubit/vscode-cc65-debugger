@@ -2,20 +2,30 @@ import assert = require('assert');
 import * as Path from 'path';
 import {DebugClient} from 'vscode-debugadapter-testsupport';
 import {DebugProtocol} from 'vscode-debugprotocol';
+import { LaunchRequestArguments } from '../cc65ViceDebug';
 
-suite('Node Debug Adapter', () => {
-
-    const DEBUG_ADAPTER = './out/debugAdapter.js';
+suite('Node Debug Adapter', function() {
+    this.timeout(0);
 
     const PROJECT_ROOT = Path.join(__dirname, '../../');
-    const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/tests/data/');
 
+    const DEBUG_ADAPTER = PROJECT_ROOT + '/out/debugAdapter.js';
+
+    const WORKSPACE_FOLDER = PROJECT_ROOT + '/src/tests/simple-project';
+
+    const PORT = 4711;
 
     let dc: DebugClient;
 
     setup( () => {
-        dc = new DebugClient('node', DEBUG_ADAPTER, 'mock');
-        return dc.start();
+        console.log(DEBUG_ADAPTER);
+        dc = new DebugClient('node', DEBUG_ADAPTER, 'cc65-vice', {
+            stdio: 'inherit',
+        }, true);
+        dc.on('output', evt => {
+            console.log(evt.body.output);
+        });
+        return dc.start(PORT);
     });
 
     teardown( () => dc.stop() );
@@ -59,18 +69,20 @@ suite('Node Debug Adapter', () => {
     suite('launch', () => {
 
         test('should run program to the end', () => {
-
-            const PROGRAM = Path.join(DATA_ROOT, 'test.md');
-
             return Promise.all([
                 dc.configurationSequence(),
-                dc.launch({ program: PROGRAM }),
-                dc.waitForEvent('terminated')
+                dc.launch(<LaunchRequestArguments>{
+                    buildCwd: WORKSPACE_FOLDER,
+                    console: 'externalTerminal',
+                    stopOnEntry: false,
+                }),
+                dc.waitForEvent('terminated', 60000)
             ]);
         });
 
         test('should stop on entry', () => {
 
+            /*
             const PROGRAM = Path.join(DATA_ROOT, 'test.md');
             const ENTRY_LINE = 1;
 
@@ -79,6 +91,7 @@ suite('Node Debug Adapter', () => {
                 dc.launch({ program: PROGRAM, stopOnEntry: true }),
                 dc.assertStoppedLocation('entry', { line: ENTRY_LINE } )
             ]);
+            */
         });
     });
 
@@ -86,14 +99,17 @@ suite('Node Debug Adapter', () => {
 
         test('should stop on a breakpoint', () => {
 
+            /*
             const PROGRAM = Path.join(DATA_ROOT, 'test.md');
             const BREAKPOINT_LINE = 2;
 
             return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );
+            */
         });
 
         test('hitting a lazy breakpoint should send a breakpoint event', () => {
 
+            /*
             const PROGRAM = Path.join(DATA_ROOT, 'testLazyBreakpoint.md');
             const BREAKPOINT_LINE = 3;
 
@@ -105,6 +121,7 @@ suite('Node Debug Adapter', () => {
                     assert.equal(event.body.breakpoint.verified, true, "event mismatch: verified");
                 })
             ]);
+            */
         });
     });
 
@@ -112,6 +129,7 @@ suite('Node Debug Adapter', () => {
 
         test('should stop on an exception', () => {
 
+            /*
             const PROGRAM_WITH_EXCEPTION = Path.join(DATA_ROOT, 'testWithException.md');
             const EXCEPTION_LINE = 4;
 
@@ -129,6 +147,7 @@ suite('Node Debug Adapter', () => {
 
                 dc.assertStoppedLocation('exception', { line: EXCEPTION_LINE } )
             ]);
+            */
         });
     });
 });

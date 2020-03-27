@@ -40,6 +40,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
+            "preLaunchTask": "npm: vscode:debug",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
@@ -54,6 +55,10 @@
         {
             "name": "Extension + Server",
             "configurations": [ "Extension", "Server" ]
+        },
+        {
+            "name": "Test + Server",
+            "configurations": [ "Tests", "Server" ]
         }
     ]
 }

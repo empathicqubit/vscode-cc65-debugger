@@ -1,6 +1,7 @@
 import * as child_process from 'child_process'
 import * as net from 'net'
 import * as _ from 'lodash'
+import * as path from 'path'
 import * as getPort from 'get-port';
 import * as tmp from 'tmp';
 import { Readable, Writable, EventEmitter } from 'stream';
@@ -42,7 +43,7 @@ export class ViceGrip extends EventEmitter {
     });
 
     private _handler: debugUtils.ExecHandler;
-    private _pids: [number, number];
+    private _pids: [number, number] = [-1, -1];
 
     constructor(
         program: string,
@@ -89,15 +90,22 @@ export class ViceGrip extends EventEmitter {
             buf.end();
         }
 
-        this._port = await getPort({port: getPort.makeRange(29170, 29970)})
+        this._port = await getPort({port: getPort.makeRange(29170, 29970)});
+
+        let q = "'";
+        if(process.platform == "win32") {
+            q = '"';
+        }
 
         let args = [
+            "-directory", `${q}${path.normalize(__dirname + "/../system")}:\$\$${q}`,
+
             // Monitor
             "-nativemonitor",
-            "-remotemonitor", "-remotemonitoraddress", "127.0.0.1:" + this._port,
+            "-remotemonitor", "-remotemonitoraddress", `${q}127.0.0.1:${this._port}${q}`,
 
             // Hardware
-            "-iecdevice8", "-autostart-warp", "-autostart-handle-tde",
+            "-iecdevice8", "-autostart-delay", "1", "-autostart-warp", "-autostart-handle-tde",
 
             ...(
                 this._initBreak > -1
@@ -149,7 +157,7 @@ export class ViceGrip extends EventEmitter {
                     host: '127.0.0.1',
                     port: this._port,
                     timeout: 10000,
-                    interval: 500,
+                    interval: 100,
                 });
 
                 connection.connect({
@@ -173,6 +181,22 @@ export class ViceGrip extends EventEmitter {
             await util.promisify(fs.unlink)(this._bufferFileName);
             this._bufferFileName = <any>null;
         }
+
+        this._conn.read();
+        const writer = async () => {
+            try {
+                await util.promisify((d, cb) => this._conn.write(d, cb))('\n');
+            }
+            catch {
+            }
+
+            wid = setTimeout(writer, 100)
+        }
+        let wid = setTimeout(writer, 100);
+        await this.wait();
+        this._conn.read();
+
+        clearTimeout(wid);
     }
 
     public async wait(binary: boolean = false) : Promise<string | Buffer> {
