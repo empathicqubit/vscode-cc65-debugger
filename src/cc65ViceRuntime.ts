@@ -55,8 +55,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
     private _memoryData : Buffer = Buffer.alloc(0xffff);
 
-    private _codeSegAddress: number = -1;
-    private _codeSegLength: number = -1;
+    private _codeSeg: dbgfile.CodeSeg | undefined;
     // Monitors the code segment after initialization so that it doesn't accidentally get modified.
     private _codeSegGuardIndex: number = -1;
 
@@ -197,8 +196,8 @@ export class CC65ViceRuntime extends EventEmitter {
         if(startSym) {
             this._entryAddress = startSym.val
         }
-        else if(this._codeSegAddress != -1) {
-            this._entryAddress = this._codeSegAddress;
+        else if(this._codeSeg) {
+            this._entryAddress = this._codeSeg.start;
         }
 
         this._resetRegisters();
@@ -254,16 +253,15 @@ export class CC65ViceRuntime extends EventEmitter {
             return;
         }
 
-        this._codeSegAddress = codeSeg.start;
-        this._codeSegLength = codeSeg.size;
+        this._codeSeg = codeSeg;
     }
 
     private async _guardCodeSeg() : Promise<void> {
-        if(this._codeSegAddress == -1) {
+        if(!this._codeSeg) {
             return;
         }
 
-        const res = <string>await this._vice.exec(`bk store \$${this._codeSegAddress.toString(16)} \$${(this._codeSegAddress + this._codeSegLength - 1).toString(16)}`);
+        const res = <string>await this._vice.exec(`bk store \$${this._codeSeg.start.toString(16)} \$${(this._codeSeg.start + this._codeSeg.size - 1).toString(16)}`);
         this._codeSegGuardIndex = this._getBreakpointNum(res);
     }
 
@@ -358,8 +356,8 @@ export class CC65ViceRuntime extends EventEmitter {
         let currentFunction : dbgfile.Scope | undefined;
         if(span) {
             currentFunction = this._dbgFile.scopes
-                .find(x => x.span && x.span.absoluteAddress <= span.absoluteAddress
-                    && span.absoluteAddress < x.span.absoluteAddress + x.span.size)
+                .find(x => x.spans.find(scopeSpan => scopeSpan.absoluteAddress <= span.absoluteAddress
+                    && span.absoluteAddress < scopeSpan.absoluteAddress + scopeSpan.size))
         }
 
         let nextLine = currentFile!.lines[currentIdx + 1];
@@ -369,7 +367,7 @@ export class CC65ViceRuntime extends EventEmitter {
         else {
             const nextAddress = nextLine.span!.absoluteAddress;
             if(currentFunction) {
-                const functionLines = currentFunction.span!.lines.filter(x => x.file == currentFile);
+                const functionLines = currentFunction.spans.find(x => x.seg == this._codeSeg)!.lines.filter(x => x.file == currentFile);
                 const currentIdx = functionLines.findIndex(x => x.num == nextLine.num);
                 const remainingLines = functionLines.slice(currentIdx);
                 const setBrks = remainingLines.map(x => `bk \$${x.span!.absoluteAddress.toString(16)}`).join(' ; ');
@@ -390,12 +388,16 @@ export class CC65ViceRuntime extends EventEmitter {
         this.sendEvent(event, 'console')
     }
 
-    public async stepIn() {
+    public async stepIn() : Promise<void> {
+        if(!this._codeSeg) {
+            return;
+        }
+
         const thisSpan = this._currentPosition.span!;
         const thisSegAddress = thisSpan.absoluteAddress - 1;
-        const endCodeSeg = (this._codeSegAddress + this._codeSegLength).toString(16);
+        const endCodeSeg = (this._codeSeg.start + this._codeSeg.size).toString(16);
 
-        const brk = <string>await this._vice.exec(`watch exec \$${this._codeSegAddress.toString(16)} \$${thisSegAddress.toString(16)}`);
+        const brk = <string>await this._vice.exec(`watch exec \$${this._codeSeg.start.toString(16)} \$${thisSegAddress.toString(16)}`);
         const brk2 = <string>await this._vice.exec(`watch exec \$${(thisSegAddress + thisSpan.size).toString(16)} \$${endCodeSeg}`);
 
         const brknum = this._getBreakpointNum(brk);
@@ -415,8 +417,8 @@ export class CC65ViceRuntime extends EventEmitter {
             return;
         }
 
-        const begin = lastFrame.scope.span!.absoluteAddress;
-        const end = lastFrame.scope.span!.absoluteAddress + lastFrame.scope.span!.size - 1;
+        const begin = lastFrame.scope.spans.find(x => x.seg == this._codeSeg)!.absoluteAddress;
+        const end = lastFrame.scope.spans.find(x => x.seg == this._codeSeg)!.absoluteAddress + lastFrame.scope.spans[0].size - 1;
 
         const allbrk = <string>await this._vice.exec(`bk`);
         const allbrkmatch = this._getBreakpointMatches(allbrk);
@@ -652,9 +654,10 @@ export class CC65ViceRuntime extends EventEmitter {
 
     private _getCurrentScope() : dbgfile.Scope | undefined {
         return this._dbgFile.scopes
-            .find(x => x.span
-                && x.span.absoluteAddress <= this._currentPosition.span!.absoluteAddress
-                && this._currentPosition.span!.absoluteAddress <= x.span.absoluteAddress + x.span.size);
+            .find(x => x.spans.length && x.spans.find(scopeSpan =>
+                scopeSpan.absoluteAddress <= this._currentPosition.span!.absoluteAddress
+                && this._currentPosition.span!.absoluteAddress <= scopeSpan.absoluteAddress + scopeSpan.size
+                ));
     }
 
     public async getScopeVariables() : Promise<any[]> {
@@ -697,8 +700,9 @@ export class CC65ViceRuntime extends EventEmitter {
 
             // FIXME Duplication with globals
             let typename: string = '';
-            if(this._localTypes) {
-                typename = (<any>(this._localTypes[scope.name + '()'].find(x => x.name == csym.name) || {})).type || '';
+            let clangTypeInfo: clangQuery.ClangTypeInfo[];
+            if(this._localTypes && (clangTypeInfo = this._localTypes[scope.name + '()'])) {
+                typename = (<any>(clangTypeInfo.find(x => x.name == csym.name) || {})).type || '';
 
                 if(ptr && /\bchar\s+\*/g.test(typename)) {
                     const mem = await this.getMemory(ptr, 24);
@@ -720,6 +724,17 @@ export class CC65ViceRuntime extends EventEmitter {
             });
         }
 
+        if(vars.length <= 1) {
+            const labs = this._dbgFile.labs.filter(x => x.seg && x.seg.name == "BSS" && x.scope == scope)
+            this.sendEvent('output', 'console', 'Total labs: ' + labs.length.toString());
+            for(const lab of labs) {
+                vars.push(await this._varFromLab(lab));
+            }
+        }
+        else {
+            this.sendEvent('output', 'console', 'We had vars');
+        }
+
         return vars;
     }
 
@@ -729,44 +744,48 @@ export class CC65ViceRuntime extends EventEmitter {
         return await this.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
     }
 
+    private async _varFromLab(sym: dbgfile.Sym) : Promise<VariableData> {
+        const symName = sym.name.replace(/^_/g, '')
+
+        const buf = await this.getMemory(sym.val, 2);
+        const ptr = buf.readUInt16LE(0);
+
+        let val = debugUtils.rawBufferHex(buf);
+
+        let typename: string = '';
+        let clangTypeInfo: clangQuery.ClangTypeInfo[];
+        if(this._localTypes && (clangTypeInfo = this._localTypes['__GLOBAL__()'])) {
+            typename = (<any>(clangTypeInfo.find(x => x.name == symName) || {})).type || '';
+
+            if(/\bchar\s+\*/g.test(typename)) {
+                const mem = await this.getMemory(ptr, 24);
+                const nullIndex = mem.indexOf(0x00);
+                // FIXME PETSCII conversion
+                const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
+                val = `${str} (${debugUtils.rawBufferHex(mem)})`;
+            }
+
+            if(!this._localTypes[typename.split(/\s+/g)[0]]) {
+                typename = '';
+            }
+        }
+
+        return {
+            name: symName,
+            value: val,
+            addr: sym.val,
+            type: typename
+        };
+    }
+
     public async getGlobalVariables() : Promise<VariableData[]> {
         const vars: VariableData[] = [];
         for(const sym of this._dbgFile.labs) {
-            if(!sym.name.startsWith("_") || (sym.seg && sym.seg.name == "CODE")) {
+            if(!sym.name.startsWith("_") || (sym.seg == this._codeSeg)) {
                 continue;
             }
 
-            const symName = sym.name.replace(/^_/g, '')
-
-            const buf = await this.getMemory(sym.val, 2);
-            const ptr = buf.readUInt16LE(0);
-
-            let val = debugUtils.rawBufferHex(buf);
-
-            let typename: string = '';
-            if(this._localTypes) {
-                typename = (<any>(this._localTypes['__GLOBAL__()'].find(x => x.name == symName) || {})).type || '';
-                console.log(this._localTypes);
-
-                if(/\bchar\s+\*/g.test(typename)) {
-                    const mem = await this.getMemory(ptr, 24);
-                    const nullIndex = mem.indexOf(0x00);
-                    // FIXME PETSCII conversion
-                    const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
-                    val = `${str} (${debugUtils.rawBufferHex(mem)})`;
-                }
-
-                if(!this._localTypes[typename.split(/\s+/g)[0]]) {
-                    typename = '';
-                }
-            }
-
-            vars.push({
-                name: symName,
-                value: val,
-                addr: sym.val,
-                type: typename
-            });
+            vars.push(await this._varFromLab(sym));
         }
 
         return vars;
@@ -1056,7 +1075,7 @@ the same name as your d84/d64/prg file with an .dbg extension.`
                 continue;
             }
 
-            const span = scope.span;
+            const span = scope.spans.find(x => x.seg == this._codeSeg);
             if(!span) {
                 continue;
             }

@@ -10,8 +10,8 @@ export interface Scope {
     name: string;
     csyms: CSym[];
     size: number;
-    spanId: number;
-    span: DebugSpan | null;
+    spanIds: number[];
+    spans: DebugSpan[];
 }
 
 export enum sc {
@@ -36,6 +36,8 @@ export interface Sym {
     addrsize: Addrsize;
     seg: CodeSeg | null;
     segId: number;
+    scope: Scope | null;
+    scopeId: number;
     size: number;
     def: string;
     ref: number;
@@ -212,9 +214,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         else if(ots == "scope") {
             const scope : Scope = {
                 id: 0,
-                span: null,
+                spans: [],
                 csyms: [],
-                spanId: -1,
+                spanIds: [],
                 size: 0,
                 name: "",
             };
@@ -227,7 +229,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                     scope[key] = parseInt(val);
                 }
                 else if(key == "span") {
-                    scope.spanId = parseInt(val);
+                    scope.spanIds = val.split(/\+/g).map(x => parseInt(x));
                 }
                 else if(key == 'name') {
                     scope.name = val;
@@ -272,6 +274,8 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 name: "",
                 seg: null,
                 segId: -1,
+                scope: null,
+                scopeId: -1,
                 id: 0,
                 def: "",
                 ref: 0,
@@ -291,6 +295,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 }
                 else if(key == 'name' || key == 'type') {
                     sym[key] = val
+                }
+                else if(key == 'scope') {
+                    sym.scopeId = parseInt(val);
                 }
                 else if(key == 'seg') {
                     sym.segId = parseInt(val);
@@ -478,13 +485,13 @@ export function parse(text: string, buildDir : string) : Dbgfile {
 
     for(const scope of dbgFile.scopes) {
         scope.csyms.sort((a, b) => a.offs - b.offs);
-        if(scope.spanId == -1) {
+        if(!scope.spanIds.length) {
             continue;
         }
 
         for(const span of dbgFile.spans) {
-            if(span.id == scope.spanId) {
-                scope.span = span;
+            if(scope.spanIds.includes(span.id)) {
+                scope.spans.push(span);
                 break;
             }
         }
@@ -530,21 +537,28 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     }
 
     for(const sym of dbgFile.syms) {
-        if(sym.segId == -1) {
-            continue;
+        if(sym.segId != -1) {
+            for(const seg of dbgFile.segs) {
+                if(seg.id == sym.segId) {
+                    sym.seg = seg;
+                    break;
+                }
+            }
         }
 
-        for(const seg of dbgFile.segs) {
-            if(seg.id == sym.segId) {
-                sym.seg = seg;
-                break;
+        if(sym.scopeId != -1) {
+            for(const scope of dbgFile.scopes) {
+                if(scope.id == sym.scopeId) {
+                    sym.scope = scope;
+                    break;
+                }
             }
         }
     }
 
-    const spanSort = (a : {span}, b : {span} ) => (b.span && b.span.absoluteAddress)! - (a.span && a.span.absoluteAddress)!;
-    dbgFile.scopes.sort(spanSort);
-    dbgFile.lines.sort(spanSort)
+    const spanSort = (a : DebugSpan | null, b : DebugSpan | null) => (b && b.absoluteAddress)! - (a && a.absoluteAddress)!;
+    dbgFile.scopes.sort((a, b) => spanSort(a.spans[0], b.spans[0]));
+    dbgFile.lines.sort((a, b) => spanSort(a.span, b.span))
 
     dbgFile.spans.sort((a, b) => b.absoluteAddress - a.absoluteAddress)
 

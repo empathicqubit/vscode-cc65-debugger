@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.15
+
+* Show contents of static variables when --static-locals is enabled
+
 ## 1.1.14
 
 * Change the way the CODE segment is handled so assembly-only programs work better.

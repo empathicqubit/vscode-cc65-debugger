@@ -46,11 +46,11 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
         const possibleSyms = dbgFile.csyms.filter(x => x.sc == dbgfile.sc.auto && x.name == name);
 
         const sym = _.minBy(possibleSyms, sym => {
-            if(!sym.scope || !sym.scope.span || !sym.scope.span.lines.length) {
+            if(!sym.scope || !sym.scope.spans || !sym.scope.spans[0].lines.length) {
                 return Number.MAX_SAFE_INTEGER;
             }
 
-            const lines = sym.scope.span.lines.filter(x => x.file && x.file.name == filename)
+            const lines = sym.scope.spans[0].lines.filter(x => x.file && x.file.name == filename)
             if(!lines.length) {
                 return Number.MAX_SAFE_INTEGER;
             }
