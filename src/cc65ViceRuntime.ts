@@ -483,11 +483,19 @@ export class CC65ViceRuntime extends EventEmitter {
 
     // Clean up all the things
     public async terminate() : Promise<void> {
-        this._colorTerm && await this._colorTerm.end();
+        try {
+            this._colorTerm && await this._colorTerm.end();
+        }
+        catch {}
         this._colorTerm = <any>null;
-        this._vice && await this._vice.end();
+
+        try {
+            this._vice && await this._vice.end();
+        }
+        catch {}
         this._vice = <any>null;
         this._viceRunning = false;
+
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
         this.sendEvent('end');

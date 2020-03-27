@@ -168,11 +168,13 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._configurationDone.notify();
     }
 
+    private _procs: child_process.ChildProcessWithoutNullStreams[] = [];
+
     public runInTerminalRequest(args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void): void {
-        if(false) {
+        if(process.env.NODE_ENV == 'test') {
             const proc = child_process.spawn(args.args[0], args.args.slice(1), <any>{
                 stdio: 'pipe',
-                shell: false,
+                shell: true,
                 cwd: args.cwd,
                 env: {
                     ...process.env,
@@ -187,6 +189,8 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             proc.stderr.on('data', data => {
                 this._runtime.sendEvent('output', 'stderr', data.toString());
             });
+
+            this._procs.push(proc);
 
             cb({
                 request_seq: Math.random() * 10000000000,

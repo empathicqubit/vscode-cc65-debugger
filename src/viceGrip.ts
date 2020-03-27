@@ -102,7 +102,7 @@ export class ViceGrip extends EventEmitter {
 
             // Monitor
             "-nativemonitor",
-            "-remotemonitor", "-remotemonitoraddress", `${q}127.0.0.1:${this._port}${q}`,
+            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._port}`,
 
             // Hardware
             "-iecdevice8", "-autostart-delay", "1", "-autostart-warp", "-autostart-handle-tde",
@@ -147,7 +147,7 @@ export class ViceGrip extends EventEmitter {
 
         const connection = new net.Socket();
 
-        while(this._port == await getPort({port: getPort.makeRange(this._port, this._port + 1)}));
+        while(this._port == await getPort({port: getPort.makeRange(this._port, this._port + 256)}));
 
         let tries = 0;
         do {

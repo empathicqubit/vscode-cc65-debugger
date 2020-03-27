@@ -1,5 +1,5 @@
 import assert = require('assert');
-import * as Path from 'path';
+import * as path from 'path';
 import {DebugClient} from 'vscode-debugadapter-testsupport';
 import {DebugProtocol} from 'vscode-debugprotocol';
 import { LaunchRequestArguments } from '../cc65ViceDebug';
@@ -7,25 +7,27 @@ import { LaunchRequestArguments } from '../cc65ViceDebug';
 suite('Node Debug Adapter', function() {
     this.timeout(0);
 
-    const PROJECT_ROOT = Path.join(__dirname, '../../');
+    const PROJECT_ROOT = path.join(__dirname, '../../');
 
     const DEBUG_ADAPTER = PROJECT_ROOT + '/out/debugAdapter.js';
 
     const WORKSPACE_FOLDER = PROJECT_ROOT + '/src/tests/simple-project';
 
-    const PORT = 4711;
-
     let dc: DebugClient;
 
     setup( () => {
-        console.log(DEBUG_ADAPTER);
         dc = new DebugClient('node', DEBUG_ADAPTER, 'cc65-vice', {
-            stdio: 'inherit',
+            stdio: 'pipe',
+            shell: false,
+            env: {
+                ...process.env,
+                NODE_ENV: 'test',
+            },
         }, true);
         dc.on('output', evt => {
             console.log(evt.body.output);
         });
-        return dc.start(PORT);
+        return dc.start(process.env.PORT ? parseInt(process.env.PORT) : undefined);
     });
 
     teardown( () => dc.stop() );
@@ -98,13 +100,11 @@ suite('Node Debug Adapter', function() {
     suite('setBreakpoints', () => {
 
         test('should stop on a breakpoint', () => {
+            const BREAKPOINT_LINE = 1;
 
-            /*
-            const PROGRAM = Path.join(DATA_ROOT, 'test.md');
-            const BREAKPOINT_LINE = 2;
-
-            return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );
-            */
+            return dc.hitBreakpoint(<LaunchRequestArguments>{
+                buildCwd: WORKSPACE_FOLDER,
+            }, { path: path.normalize(WORKSPACE_FOLDER + "/src/main.c"), line: BREAKPOINT_LINE } );
         });
 
         test('hitting a lazy breakpoint should send a breakpoint event', () => {

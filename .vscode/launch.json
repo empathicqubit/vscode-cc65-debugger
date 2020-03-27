@@ -26,7 +26,23 @@
             ]
         },
         {
-            "name": "Tests",
+            "name": "Test Server",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "sourceMaps": true,
+            "program": "${workspaceFolder}/src/debugAdapter.ts",
+            "outFiles": ["${workspaceFolder}/out/**/*.js"],
+            "preLaunchTask": "npm: vscode:debug",
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "args": [
+                "--server=4711"
+            ]
+        },
+        {
+            "name": "Mocha",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}",
@@ -37,6 +53,27 @@
                 "--colors",
                 "./out/tests/"
             ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "preLaunchTask": "npm: vscode:debug",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": "Mocha Attach",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "-u", "tdd",
+                "--timeout", "999999",
+                "--colors",
+                "./out/tests/"
+            ],
+            "env": {
+                "PORT": "4711"
+            },
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
@@ -57,8 +94,8 @@
             "configurations": [ "Extension", "Server" ]
         },
         {
-            "name": "Test + Server",
-            "configurations": [ "Tests", "Server" ]
+            "name": "Mocha + Test Server",
+            "configurations": [ "Mocha Attach", "Test Server" ]
         }
     ]
 }
