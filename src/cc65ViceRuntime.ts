@@ -232,6 +232,8 @@ export class CC65ViceRuntime extends EventEmitter {
 
         await this._verifyBreakpoints();
 
+        await this.pause();
+
         if (stopOnEntry) {
             // We don't do anything here since VICE should already be in the
             // correct position after the startup routine.

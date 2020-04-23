@@ -215,9 +215,10 @@ export class ViceGrip extends EventEmitter {
         }
         let wid = setTimeout(writer, 100);
         await this.wait();
-        this._conn.read();
 
         clearTimeout(wid);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        this._conn.read();
     }
 
     public async wait(binary: boolean = false) : Promise<string | Buffer> {
@@ -274,6 +275,10 @@ export class ViceGrip extends EventEmitter {
 
     public async exec(command: string | Uint8Array) : Promise<string | Buffer> {
         let conn : Writable;
+        if(!command) {
+            return '';
+        }
+
         if(this._bufferFile) {
             conn = this._bufferFile;
         }
