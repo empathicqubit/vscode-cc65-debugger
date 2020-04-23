@@ -34,7 +34,7 @@ const config = {
   module: {
     rules: [
     {
-        test: /node_modules\/nc\/bin\/nc.js$/,
+        test: path.resolve(__dirname, "node_modules/nc/bin/nc.js"),
         use: [
         {
             loader: 'shebang-loader'

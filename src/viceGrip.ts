@@ -93,12 +93,22 @@ export class ViceGrip extends EventEmitter {
         this._port = await getPort({port: getPort.makeRange(29170, 29970)});
 
         let q = "'";
+        let sep = ':';
+        let logfile : string | undefined;
         if(process.platform == "win32") {
             q = '"';
+            sep = ';';
+            logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
+
+            const tempdir = path.dirname(logfile!);
+            const temps = await util.promisify(fs.readdir)(tempdir);
+            temps
+                .filter(x => /^cc65-vice-/.test(x))
+                .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
         }
 
         let args = [
-            "-directory", `${q}${path.normalize(__dirname + "/../system")}:\$\$${q}`,
+            "-directory", `${q}${path.normalize(__dirname + "/../system")}${sep}\$\$${q}`,
 
             // Monitor
             "-nativemonitor",
@@ -112,13 +122,19 @@ export class ViceGrip extends EventEmitter {
                 ? ['-initbreak', this._initBreak.toString()]
                 : []
             ),
+
+            ...(
+                logfile
+                ? ['-logfile', logfile]
+                : []
+            )
         ];
 
         if(this._viceArgs) {
-            args = [...args, ...this._viceArgs, this._program];
+            args = [...args, ...this._viceArgs, "-autostart", this._program];
         }
         else {
-            args = [...args, this._program];
+            args = [...args, "-autostart", this._program];
         }
 
         const opts = {
@@ -143,6 +159,11 @@ export class ViceGrip extends EventEmitter {
             catch(e) {
                 throw new Error('Could not start either x64 or x64sc. Define your VICE path in your launch.json->viceCommand property');
             }
+        }
+
+        // Windows only, for debugging
+        if(logfile) {
+            await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {})
         }
 
         const connection = new net.Socket();
