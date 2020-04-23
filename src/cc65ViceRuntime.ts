@@ -450,7 +450,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
     public async pause() {
         await this._vice.exec('r');
-        this.sendEvent('stopOnStep', 'console')
+        this.sendEvent('stopOnStep', 'console');
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<any> {
@@ -711,7 +711,7 @@ export class CC65ViceRuntime extends EventEmitter {
             let ptr : number | undefined;
 
             let val;
-            if(seekNext - seek == 2) {
+            if(seekNext - seek == 2 && stack.length > seek + 1) {
                 ptr = <any>stack.readUInt16LE(seek);
                 val = "0x" + (<any>ptr!.toString(16)).padStart(4, '0');
             }

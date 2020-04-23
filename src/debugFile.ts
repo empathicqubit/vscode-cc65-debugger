@@ -257,6 +257,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 if(key == "id" || key == "size" || key == "offs") {
                     csym[key] = parseInt(val);
                 }
+                else if(key == 'sc') {
+                    csym.sc = sc[val];
+                }
                 else if(key == "scope") {
                     csym.scopeId = parseInt(val);
                 }
@@ -288,7 +291,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 const val = propMatch[2];
 
                 if(key == 'addrsize') {
-                    sym.addrsize = Addrsize[key];
+                    sym.addrsize = Addrsize[val];
                 }
                 else if(key == 'id' || key == 'val' || key == 'ref' || key == 'size') {
                     sym[key] = parseInt(val);
