@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.20
+
+* Fix local variable size calculation.
+
 ## 1.1.19
 
 * Added a warning about adding the correct debug options if they're missing.
