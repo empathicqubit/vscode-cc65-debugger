@@ -7,3 +7,4 @@ src/**/*
 out/**/*
 **/*.js.map
 *.log
+webpack*.config*
