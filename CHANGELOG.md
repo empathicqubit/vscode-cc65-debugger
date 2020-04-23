@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.19
+
+* Added a warning about adding the correct debug options if they're missing.
+
+## 1.1.18
+
+* Better draining of the connection to fix some synchronization issues.
+
 ## 1.1.17
 
 * Fix some Windows-specific startup issues.

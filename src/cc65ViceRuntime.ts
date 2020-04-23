@@ -1000,7 +1000,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
     private async _loadSource(file: string, buildDir: string) : Promise<dbgfile.Dbgfile> {
         try {
-            return this._dbgFile = await debugUtils.loadDebugFile(file, buildDir);
+            this._dbgFile = await debugUtils.loadDebugFile(file, buildDir);
         }
         catch {
             throw new Error(
@@ -1008,6 +1008,15 @@ export class CC65ViceRuntime extends EventEmitter {
 the same name as your d84/d64/prg file with an .dbg extension.`
             );
         }
+
+        if(!this._dbgFile.csyms.length) {
+            this.sendEvent('output', 'stderr', `
+csyms are missing from your debug file. Did you add the -g switch to your linker
+and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
+`);
+        }
+
+        return this._dbgFile;
     }
 
     private async _getParamStackPos() : Promise<number> {
