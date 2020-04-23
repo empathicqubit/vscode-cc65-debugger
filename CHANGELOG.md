@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.21
+
+* Autostart using the monitor command, instead of passing at the command line.
+
 ## 1.1.20
 
 * Fix local variable size calculation.

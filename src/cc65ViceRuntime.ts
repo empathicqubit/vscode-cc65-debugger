@@ -218,6 +218,7 @@ export class CC65ViceRuntime extends EventEmitter {
         this._vice.on('end', () => this.terminate());
 
         this._setupViceDataHandler();
+        await this._vice.autostart();
         await this.continue();
         this._viceRunning = false;
 

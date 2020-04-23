@@ -115,7 +115,7 @@ export class ViceGrip extends EventEmitter {
             "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._port}`,
 
             // Hardware
-            "-iecdevice8", "-autostart-delay", "1", "-autostart-warp", "-autostart-handle-tde",
+            "-iecdevice8", "-autostart-warp", "-autostart-handle-tde",
 
             ...(
                 this._initBreak > -1
@@ -131,10 +131,10 @@ export class ViceGrip extends EventEmitter {
         ];
 
         if(this._viceArgs) {
-            args = [...args, ...this._viceArgs, "-autostart", this._program];
+            args = [...args, ...this._viceArgs];
         }
         else {
-            args = [...args, "-autostart", this._program];
+            args = [...args];
         }
 
         const opts = {
@@ -219,6 +219,10 @@ export class ViceGrip extends EventEmitter {
         clearTimeout(wid);
         await new Promise(resolve => setTimeout(resolve, 100));
         this._conn.read();
+    }
+
+    public async autostart() {
+        await this.exec(`autostart "${this._program}"`);
     }
 
     public async wait(binary: boolean = false) : Promise<string | Buffer> {
