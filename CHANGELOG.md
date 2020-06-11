@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.24
+
+* Prevent runaway step in when there's no function to step into.
+
 ## 1.1.23
 
 * Use stack frames for more accurate step in.
