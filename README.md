@@ -90,6 +90,7 @@ Also, do not name your typedefs differently than your struct. I have not tested 
 - Setting and consistently hitting breakpoints
 - Stepping over lines.
 - Stepping out of functions.
+- Stepping into functions.
 - Viewing structs (**You have to install clang tools on your PATH**)
 - Local variables (except for the one on the bottom of the stack, since the size can't be determined)
 - Global variables (2B size is assumed since the size can't be easily discovered AFAIK)
@@ -99,7 +100,6 @@ Also, do not name your typedefs differently than your struct. I have not tested 
 
 ## What's weird
 
-- **Step in** works some of the time. Sometimes you'll get flown off to nowwhereville
 - Array types
 
 ## Additional Credits (see also LICENSE.md)

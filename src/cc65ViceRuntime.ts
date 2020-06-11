@@ -68,6 +68,9 @@ export class CC65ViceRuntime extends EventEmitter {
     private _stackFrameStarts : { [address: string]: dbgfile.Scope } = {};
     private _stackFrameEnds : { [address: string]: dbgfile.Scope } = {};
 
+    private _stackFrameBreaks : { [address: string]: number } = {};
+    private _stackFrameBreakOnAdded : boolean = false;
+
     private _stackFrames : {line: dbgfile.SourceLine, scope: dbgfile.Scope}[];
 
     private _registers : Registers;
@@ -383,13 +386,13 @@ export class CC65ViceRuntime extends EventEmitter {
                 const functionLines = currentFunction.spans.find(x => x.seg == this._codeSeg)!.lines.filter(x => x.file == currentFile);
                 const currentIdx = functionLines.findIndex(x => x.num == nextLine.num);
                 const remainingLines = functionLines.slice(currentIdx);
-                const setBrks = remainingLines.map(x => `bk \$${x.span!.absoluteAddress.toString(16)}`).join(' ; ');
-                const brks = <string>await this._vice.exec(setBrks);
-                const brknums = this._getBreakpointMatches(brks);
+                const setBreaks = remainingLines.map(x => `bk \$${x.span!.absoluteAddress.toString(16)}`).join(' ; ');
+                const breaks = <string>await this._vice.exec(setBreaks);
+                const breakNums = this._getBreakpointMatches(breaks);
 
                 await this._vice.exec(`x`);
 
-                const delBrks = brknums.map(x => `del ${x[0]}`).join(' ; ');
+                const delBrks = breakNums.map(x => `del ${x[0]}`).join(' ; ');
 
                 await this._vice.exec(delBrks);
             }
@@ -406,21 +409,11 @@ export class CC65ViceRuntime extends EventEmitter {
             return;
         }
 
-        const thisSpan = this._currentPosition.span!;
-        const thisSegAddress = thisSpan.absoluteAddress - 1;
-        const endCodeSeg = (this._codeSeg.start + this._codeSeg.size).toString(16);
+        this._stackFrameBreakOnAdded = true
 
-        const brk = <string>await this._vice.exec(`watch exec \$${this._codeSeg.start.toString(16)} \$${thisSegAddress.toString(16)}`);
-        const brk2 = <string>await this._vice.exec(`watch exec \$${(thisSegAddress + thisSpan.size).toString(16)} \$${endCodeSeg}`);
+        await this._stackFrameBreakToggle(true);
 
-        const brknum = this._getBreakpointNum(brk);
-        const brknum2 = this._getBreakpointNum(brk2);
-
-        await this._vice.exec(`x`);
-
-        await this._vice.exec(`del ${brknum}`);
-        await this._vice.exec(`del ${brknum2}`);
-        this.sendEvent('stopOnStep', 'console')
+        await this.continue();
     }
 
     public async stepOut(event = 'stopOnStep') {
@@ -963,6 +956,13 @@ export class CC65ViceRuntime extends EventEmitter {
                 else if (this._exitAddresses.includes(this._currentAddress)) {
                     await this.terminate();
                 }
+                else if(this._stackFrameBreakOnAdded && this._stackFrameBreaks[addr]) {
+                    this._stackFrameBreakOnAdded = false;
+
+                    await this._stackFrameBreakToggle(false);
+
+                    await this.pause();
+                }
                 else {
                     const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
                     if(userBreak) {
@@ -1070,10 +1070,10 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             || curSpan.lines[0];
     }
 
-    private _getBreakpointMatches(breakpointText: string) : number[][] {
+    private _getBreakpointMatches(breakpointText: string) : [number, number][] {
         const rex = /\b(BREAK|WATCH|TRACE|UNTIL):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
 
-        const matches : number[][] = [];
+        const matches : [number, number][] = [];
         let match;
         while (match = rex.exec(breakpointText)) {
             matches.push([parseInt(match[2]), parseInt(match[3], 16)]);
@@ -1107,10 +1107,21 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         }
     }
 
+    private async _stackFrameBreakToggle(toggle: boolean) {
+        const word = toggle ? 'en' : 'dis';
+
+        await this._vice.multiExec(
+            Object.values(this._stackFrameBreaks)
+                .map(num => `${word} ${num}`)
+        );
+    }
+
     private async _resetStackFrames() {
         this._stackFrameStarts = {};
         this._stackFrameEnds = {};
+        this._stackFrameBreaks = {};
         this._stackFrames = [];
+        this._stackFrameBreakOnAdded = false;
 
         for(const scope of this._dbgFile.scopes) {
             if(!scope.name.startsWith("_")) {
@@ -1185,6 +1196,19 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
                 ...Object.keys(this._stackFrameStarts)
             ].map(addr => `tr exec \$${addr}`)
         );
+
+        const breakRes = await this._vice.multiExec(
+            Object.keys(this._stackFrameStarts)
+                .map(addr => `bk \$${addr}`)
+        );
+
+        const breakNums = this._getBreakpointMatches(breakRes);
+
+        for(const breakNum of breakNums) {
+            this._stackFrameBreaks[breakNum[1]] = breakNum[0];
+        }
+
+        await this._stackFrameBreakToggle(false);
     }
 
     // Comm

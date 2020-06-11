@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.23
+
+* Use stack frames for more accurate step in.
+
 ## 1.1.22
 
 * Work around VICE bug with getting single byte.
