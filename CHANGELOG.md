@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.22
+
+* Work around VICE bug with getting single byte.
+
 ## 1.1.21
 
 * Autostart using the monitor command, instead of passing at the command line.

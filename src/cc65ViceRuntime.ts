@@ -644,7 +644,7 @@ export class CC65ViceRuntime extends EventEmitter {
             return Buffer.alloc(0);
         }
 
-        const end = addr + (length - 1);
+        const end = addr + (length - 1) + (length == 1 ? 1 : 0);
         const cmd = new Uint8Array(9);
         cmd[0] = 0x02; // Binary marker
         cmd[1] = cmd.length - 3; // Length
