@@ -366,30 +366,14 @@ export class CC65ViceRuntime extends EventEmitter {
 
     public async step(reverse = false, event = 'stopOnStep') {
         // Find the next source line and continue to it.
-        const currentFile = this._currentPosition.file;
-        const currentIdx = currentFile!.lines.indexOf(this._currentPosition);
-        const span = this._currentPosition.span;
-        let currentFunction : dbgfile.Scope | undefined;
-        if(span) {
-            currentFunction = this._dbgFile.scopes
-                .find(x => x.spans.find(scopeSpan => scopeSpan.absoluteAddress <= span.absoluteAddress
-                    && span.absoluteAddress < scopeSpan.absoluteAddress + scopeSpan.size))
-        }
-
-        let nextLine = currentFile!.lines[currentIdx + 1];
+        const nextLine = this._getNextLine();
         if(!nextLine) {
             await this._vice.exec('z');
         }
         else {
             const nextAddress = nextLine.span!.absoluteAddress;
-            if(currentFunction) {
-                const functionLines = currentFunction.spans.find(x => x.seg == this._codeSeg)!.lines.filter(x => x.file == currentFile);
-                const currentIdx = functionLines.findIndex(x => x.num == nextLine.num);
-                const remainingLines = functionLines.slice(currentIdx);
-                const setBreaks = remainingLines.map(x => `bk \$${x.span!.absoluteAddress.toString(16)}`).join(' ; ');
-                const breaks = <string>await this._vice.exec(setBreaks);
-                const breakNums = this._getBreakpointMatches(breaks);
-
+            let breakNums : [number, number][] | null;
+            if(breakNums = await this._setLineGuard(this._currentPosition, nextLine)) {
                 await this._vice.exec(`x`);
 
                 const delBrks = breakNums.map(x => `del ${x[0]}`).join(' ; ');
@@ -404,6 +388,41 @@ export class CC65ViceRuntime extends EventEmitter {
         this.sendEvent(event, 'console')
     }
 
+    private _getNextLine() : dbgfile.SourceLine {
+        const currentFile = this._currentPosition.file;
+        const currentIdx = currentFile!.lines.indexOf(this._currentPosition);
+
+        return currentFile!.lines[currentIdx + 1];
+    }
+
+    private async _setLineGuard(line: dbgfile.SourceLine, nextLine: dbgfile.SourceLine) : Promise<[number, number][] | null> {
+        if(!nextLine) {
+            return null;
+        }
+
+        const span = line.span;
+        if(!span) {
+            return null;
+        }
+
+        const currentFunction = this._dbgFile.scopes
+            .find(x => x.spans.find(scopeSpan => scopeSpan.absoluteAddress <= span.absoluteAddress
+                && span.absoluteAddress < scopeSpan.absoluteAddress + scopeSpan.size));
+
+        if(!currentFunction) {
+            return null;
+        }
+
+        const functionLines = currentFunction.spans.find(x => x.seg == this._codeSeg)!.lines.filter(x => x.file == this._currentPosition.file);
+        const currentIdx = functionLines.findIndex(x => x.num == nextLine.num);
+        const remainingLines = functionLines.slice(currentIdx);
+        const setBreaks = remainingLines.map(x => `bk \$${x.span!.absoluteAddress.toString(16)}`).join(' ; ');
+        const breaks = <string>await this._vice.exec(setBreaks);
+        const breakNums = this._getBreakpointMatches(breaks);
+
+        return breakNums;
+    }
+
     public async stepIn() : Promise<void> {
         if(!this._codeSeg) {
             return;
@@ -413,7 +432,18 @@ export class CC65ViceRuntime extends EventEmitter {
 
         await this._stackFrameBreakToggle(true);
 
+        const nextLine = this._getNextLine();
+        const breakNums = await this._setLineGuard(this._currentPosition, nextLine);
+
         await this.continue();
+
+        if(breakNums) {
+            const delBrks = breakNums.map(x => `del ${x[0]}`).join(' ; ');
+
+            await this._vice.exec(delBrks);
+        }
+
+        this.sendEvent('stopOnStep', 'console');
     }
 
     public async stepOut(event = 'stopOnStep') {
