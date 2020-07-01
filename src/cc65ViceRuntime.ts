@@ -273,16 +273,18 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     private async _loadMapFile(program: string) : Promise<void> {
-        const match = debugUtils.programFiletypes.exec(program)!;
-        let filename : string;
-        if(match[1] == 'c64') {
-            filename = program + '.map';
-        }
-        else {
-            filename = program.replace(debugUtils.programFiletypes, '.map');
+        const progDir = path.dirname(program);
+        const progFile = path.basename(program, path.extname(program));
+
+        const possibles = await util.promisify(fs.readdir)(progDir);
+        const filename : string | undefined = possibles
+            .find(x => path.extname(x) == '.map' && path.basename(x).startsWith(progFile));
+
+        if(!filename) {
+            throw new Error("Could not find map file");
         }
 
-        const text = await util.promisify(fs.readFile)(filename, 'utf8');
+        const text = await util.promisify(fs.readFile)(path.join(progDir, filename), 'utf8');
         this._mapFile = mapFile.parse(text);
     }
 

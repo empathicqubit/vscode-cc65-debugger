@@ -2,6 +2,7 @@ import * as util from 'util';
 import * as fs from 'fs';
 import * as dbgfile from './debugFile';
 import * as child_process from 'child_process';
+import * as path from 'path';
 
 export const programFiletypes = /\.(d[0-9]{2}|prg|c64)$/i
 
@@ -14,15 +15,17 @@ export function rawBufferHex(buf: Buffer) {
 }
 
 export async function loadDebugFile(programName: string, buildDir: string) {
-    const match = programFiletypes.exec(programName)!;
-    let filename : string;
-    if(match[1] == 'c64') {
-        filename = programName + '.dbg';
-    }
-    else {
-        filename = programName.replace(programFiletypes, '.dbg');
+    const progDir = path.dirname(programName);
+    const progFile = path.basename(programName, path.extname(programName));
+
+    const possibles = await util.promisify(fs.readdir)(progDir);
+    const filename : string | undefined = possibles
+        .find(x => path.extname(x) == '.dbg' && path.basename(x).startsWith(progFile));
+
+    if(!filename) {
+        throw new Error("Could not find debug file");
     }
 
-    const dbgFileData = await util.promisify(fs.readFile)(filename, 'ascii');
+    const dbgFileData = await util.promisify(fs.readFile)(path.join(progDir, filename), 'ascii');
     return dbgfile.parse(dbgFileData, buildDir);
 }
