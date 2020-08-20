@@ -113,7 +113,7 @@ to see everything going on behind the scenes, type the command "!iwantitall"
                     this.enableFlood(sock);
                 }
                 else {
-                    const res = <string>await this._vice.exec(cmd);
+                    const res = <string>await this._vice.execText(cmd);
                     sock.write(contentMangler(res));
                 }
             };

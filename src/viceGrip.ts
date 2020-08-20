@@ -10,6 +10,7 @@ import * as util from 'util';
 import * as hasbin from 'hasbin';
 import { DebugProtocol } from 'vscode-debugprotocol'
 import * as debugUtils from './debugUtils';
+import * as bin from './binary-dto';
 
 const waitPort = require('wait-port');
 const queue = require('queue');
@@ -23,20 +24,53 @@ async function * fakeStream() {
 }
 
 export class ViceGrip extends EventEmitter {
-    private _port : number = -1;
-    private _conn: Readable & Writable;
+    private _textPort : number = -1;
+    private _binaryPort : number = -1;
+
+    private _textConn: Readable & Writable;
+    private _binaryConn: Readable & Writable;
+
+    private _responseBytes : Buffer[] = [];
+    private _responseByteCount : number = 0;
+    private _nextResponseLength : number = -1;
+    private _responseEmitter : EventEmitter = new EventEmitter();
+    private _binaryDataHandler(d : Buffer) {
+        // FIXME: API version
+        const header_size = 11;
+        if(this._nextResponseLength == -1) {
+            this._responseByteCount = 0;
+            this._nextResponseLength = d.readUInt32LE(2) + header_size;
+        }
+
+        this._responseBytes.push(d);
+        this._responseByteCount += d.length;
+
+        if(this._responseByteCount >= this._nextResponseLength) {
+            const buf = Buffer.concat(this._responseBytes);
+
+            const res = bin.responseBufferToObject(buf, this._nextResponseLength);
+
+            this._responseEmitter.emit(res.requestId.toString(16), res);
+
+            this._responseBytes = [];
+            this._responseByteCount = 0;
+
+            const oldResponseLength = this._nextResponseLength;
+            this._nextResponseLength = -1;
+
+            this._binaryDataHandler(buf.slice(oldResponseLength, buf.length));
+        }
+    };
+
     private _program: string;
     private _initBreak: number = -1;
     private _cwd: string;
     private _vicePath: string | undefined;
     private _viceArgs: string[] | undefined;
 
-    private _bufferFile: Writable;
-    private _bufferFileName: string;
-    private _fakeStream: Readable;
     private _consoleHandler: EventEmitter;
 
-    private _cmdQueue = queue({
+    private _textCmdQueue = queue({
         concurrency: 1,
         timeout: 5000,
         autostart: true,
@@ -65,32 +99,41 @@ export class ViceGrip extends EventEmitter {
         this._viceArgs = viceArgs;
     }
 
-    /**
-    * This isn't currently used but it is meant to allow commands to be written
-    * to a playback file which will be executed when VICE is started for real
-    * with start. I was originally doing this because TCP performance was lacking.
-    * my new workaround is to jam a bunch of commands together with ; separators.
-    */
-    public async openBuffer() {
-        this._bufferFileName = await util.promisify(tmp.tmpName)();
-        const write =  fs.createWriteStream(this._bufferFileName);
-        this._bufferFile = write;
-        this._fakeStream = (<any>Readable).from(fakeStream());
+    public async autostart() : Promise<bin.AutostartResponse> {
+        const cmd : bin.AutostartCommand = {
+            type: bin.CommandType.autostart,
+            filename: this._program,
+            index: 0,
+            run: true,
+        };
+
+        return await this.execBinary(cmd);
+    }
+
+    public async exit() : Promise<bin.ExitResponse> {
+        const cmd : bin.ExitCommand = {
+            type: bin.CommandType.exit,
+        };
+
+        return await this.execBinary(cmd);
+    }
+
+    public async checkpointDelete(cmd : bin.CheckpointDeleteCommand) : Promise<bin.CheckpointDeleteResponse> {
+        return await this.execBinary(cmd);
+    }
+
+    public async checkpointList() : Promise<bin.CheckpointListResponse> {
+        const cmd: bin.CheckpointListCommand = {
+            type: bin.CommandType.checkpointList,
+            responseType: bin.ResponseType.checkpointList,
+        };
+
+        return await this.execBinary(cmd);
     }
 
     public async start() {
-        if(this._fakeStream || this._bufferFile) {
-            const fake = this._fakeStream;
-            const buf = this._bufferFile;
-
-            this._fakeStream = <any>null;
-            this._bufferFile = <any>null;
-
-            fake.destroy();
-            buf.end();
-        }
-
-        this._port = await getPort({port: getPort.makeRange(29170, 29970)});
+        this._textPort = await getPort({port: getPort.makeRange(29170, 29570)});
+        this._binaryPort = await getPort({port: getPort.makeRange(29571, 29970)});
 
         let q = "'";
         let sep = ':';
@@ -112,7 +155,8 @@ export class ViceGrip extends EventEmitter {
 
             // Monitor
             "-nativemonitor",
-            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._port}`,
+            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._textPort}`,
+            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._binaryPort}`,
 
             // Hardware
             "-iecdevice8", "-autostart-warp", "-autostart-handle-tde",
@@ -168,45 +212,68 @@ export class ViceGrip extends EventEmitter {
 
         const connection = new net.Socket();
 
-        while(this._port == await getPort({port: getPort.makeRange(this._port, this._port + 256)}));
+        while(this._textPort == await getPort({port: getPort.makeRange(this._textPort, this._textPort + 256)}));
 
-        let tries = 0;
+        let textTries = 0;
         do {
-            tries++;
+            textTries++;
             try {
                 await waitPort({
                     host: '127.0.0.1',
-                    port: this._port,
+                    port: this._textPort,
                     timeout: 10000,
                     interval: 100,
                 });
 
                 connection.connect({
                     host: '127.0.0.1',
-                    port: this._port,
+                    port: this._textPort,
                 });
 
             } catch(e) {
-                if(tries > 3) {
+                if(textTries > 3) {
                     throw e;
                 }
                 continue;
             }
 
-            this._conn = connection;
+            this._textConn = connection;
             break;
         } while(true);
 
-        if(this._bufferFileName) {
-            await this.exec(`pb "${this._bufferFileName}"`);
-            await util.promisify(fs.unlink)(this._bufferFileName);
-            this._bufferFileName = <any>null;
-        }
+        while(this._binaryPort == await getPort({port: getPort.makeRange(this._binaryPort, this._binaryPort + 256)}));
 
-        this._conn.read();
+        let binaryTries = 0;
+        do {
+            binaryTries++;
+            try {
+                await waitPort({
+                    host: '127.0.0.1',
+                    port: this._binaryPort,
+                    timeout: 10000,
+                    interval: 100,
+                });
+
+                connection.connect({
+                    host: '127.0.0.1',
+                    port: this._binaryPort,
+                });
+
+            } catch(e) {
+                if(binaryTries > 3) {
+                    throw e;
+                }
+                continue;
+            }
+
+            this._binaryConn = connection;
+            break;
+        } while(true);
+
+        this._textConn.read();
         const writer = async () => {
             try {
-                await util.promisify((d, cb) => this._conn.write(d, cb))('\n');
+                await util.promisify((d, cb) => this._textConn.write(d, cb))('\n');
             }
             catch {
             }
@@ -214,47 +281,24 @@ export class ViceGrip extends EventEmitter {
             wid = setTimeout(writer, 100)
         }
         let wid = setTimeout(writer, 100);
-        await this.wait();
+        await this.waitText();
 
         clearTimeout(wid);
         await new Promise(resolve => setTimeout(resolve, 100));
-        this._conn.read();
+        this._textConn.read();
+        this._binaryConn.read();
+
+        this._binaryConn.on('data', this._binaryDataHandler);
     }
 
-    public async autostart() {
-        await this.exec(`autostart "${this._program}"`);
-    }
-
-    public async wait(binary: boolean = false) : Promise<string | Buffer> {
+    public async waitText() : Promise<string> {
         let conn: Readable;
-        if(this._fakeStream) {
-            conn = this._fakeStream;
-        }
-        else {
-            conn = this._conn;
-        }
+        conn = this._textConn;
 
-        return await new Promise<string | Buffer>((res, rej) => {
+        return await new Promise<string>((res, rej) => {
             let gather : string[] = [];
 
-            let binaryLength = -1;
-            let binaryCount = 0;
-            let binaryGather : Buffer[] = [];
             const waitForViceData = (d : Buffer) => {
-                if(binary) {
-                    if(binaryLength == -1) {
-                        binaryLength = d.readUInt32LE(1) + 6; // STX + address + error byte
-                    }
-                    binaryGather.push(d);
-                    binaryCount += d.length;
-                    if(binaryCount >= binaryLength) {
-                        conn.removeListener('data', waitForViceData);
-                        conn.removeListener('error', rej);
-                        res(Buffer.concat(binaryGather));
-                        return;
-                    }
-                }
-
                 const data = d.toString();
 
                 gather.push(data);
@@ -271,93 +315,120 @@ export class ViceGrip extends EventEmitter {
         });
     }
 
-    public async multiExec(cmds: string[]) : Promise<string> {
-        return (await Promise.all(_(cmds).chunk(MAX_CHUNK).map(async chunk => <string>await this.exec(
+    public async multiExecText(cmds: string[]) : Promise<string> {
+        return (await Promise.all(_(cmds).chunk(MAX_CHUNK).map(async chunk => <string>await this.execText(
             chunk.join(' ; ')
         )).value())).join('\n');
     }
 
-    public async exec(command: string | Uint8Array) : Promise<string | Buffer> {
+    public async execBinary<T extends bin.Command, U extends bin.Response<T>>(command: T) : Promise<U> {
+        return await this.multiExecBinary([command])[0];
+    }
+
+    public async multiExecBinary<T extends bin.Command, U extends bin.Response<T>>(commands: T[]) : Promise<U[]> {
+        let conn : Writable;
+        if(!commands || !commands.length) {
+            return [];
+        }
+
+        conn = this._binaryConn;
+
+        const frags : Uint8Array[] = [];
+        const results = Promise.all(commands.map(command => {
+            const body = bin.commandObjectToBytes(command);
+            const requestId = _.random(0, 0xffffffff);
+            const buf = Buffer.alloc(11);
+            buf.writeUInt8(0x02, 0); // start
+            buf.writeUInt8(0x01, 1); // version
+            buf.writeUInt32LE(body.length, 2);
+            buf.writeUInt32LE(requestId, 6);
+            buf.writeUInt8(command.type, 10);
+            frags.push(buf);
+            frags.push(body);
+            return new Promise<U>((res, rej) => {
+                try {
+                    const rid = requestId.toString(16);
+                    const related : bin.AbstractResponse[] = [];
+                    const afterResponse = (b : U) => {
+                        if(!command.responseType || b.type == command.responseType) {
+                            b.related = related;
+                            this._responseEmitter.off(rid, afterResponse)
+                            res(b);
+                        }
+                        else {
+                            related.push(b);
+                        }
+                    }
+                    this._responseEmitter.on(rid, afterResponse);
+                }
+                catch(e) {
+                    rej(e);
+                    throw e;
+                }
+            });
+        }));
+        conn.write(Buffer.concat(frags));
+        return await results;
+    }
+
+    public async execText(command: string) : Promise<string> {
         let conn : Writable;
         if(!command) {
             return '';
         }
 
-        if(this._bufferFile) {
-            conn = this._bufferFile;
-        }
-        else {
-            conn = this._conn;
-        }
+        conn = this._textConn;
 
-        if(command instanceof Uint8Array) {
-            return await new Promise<string | Buffer>((res, rej) => {
-                this._cmdQueue.push(async () => {
-                    try {
-                        conn.write(Buffer.from(command));
-                        const finish = this.wait(true);
-                        const done = await finish;
-                        res(done);
-                    }
-                    catch(e) {
-                        rej(e);
-                        throw e;
-                    }
-                });
+        return await new Promise<string>((res, rej) => {
+            this._textCmdQueue.push(async () => {
+                try {
+                    conn.write(command + "\n");
+                    const finish = this.waitText();
+                    const done = await finish;
+                    res(done);
+                }
+                catch(e) {
+                    rej(e);
+                    throw e;
+                }
             });
-        }
-        else {
-            return await new Promise<string | Buffer>((res, rej) => {
-                this._cmdQueue.push(async () => {
-                    try {
-                        conn.write(command + "\n");
-                        const finish = this.wait();
-                        const done = await finish;
-                        res(done);
-                    }
-                    catch(e) {
-                        rej(e);
-                        throw e;
-                    }
-                });
-            });
-        }
+        });
     }
 
     public async end() {
         this._pids[1] > -1 && process.kill(this._pids[1], "SIGKILL");
         this._pids[0] > -1 && process.kill(this._pids[0], "SIGKILL");
-        this.exec(`quit`);
-        this._conn && await util.promisify((cb) => this._conn.end(cb))();
+        const cmd : bin.QuitCommand = {
+            type: bin.CommandType.quit,
+        }
+        const res : bin.QuitResponse = await this.execBinary(cmd);
+        this._textConn && await util.promisify((cb) => this._textConn.end(cb))();
+        this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
         this._pids = [-1, -1];
-        this._conn = <any>null;
-        this._cmdQueue.end();
+        this._textConn = <any>null;
+        this._binaryConn = <any>null;
+        this._textCmdQueue.end();
     }
 
     pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean; }): T {
-        return this._conn.pipe(destination, options);
+        return this._textConn.pipe(destination, options);
     }
 
-    on(event: "data", listener: (data: Buffer) => void): this
-    on(event: "end", listener: () => void): this
-    on(event: string, listener: (...args: any[]) => void): this {
-        if(event == 'data') {
-            this._conn.on(event, listener);
-        }
-        else if(event == 'end') {
-            this._conn.on('close', listener);
-            this._conn.on('finish', listener);
-            this._conn.on('end', listener);
+    on(event: string, listener: ((r: bin.AbstractResponse) => void) | (() => void)): this {
+        if(event == 'end') {
+            this._binaryConn.on('close', listener);
+            this._binaryConn.on('finish', listener);
+            this._binaryConn.on('end', listener);
         }
         else {
-            this._conn.on(event, listener);
+            this._responseEmitter.on(event, listener);
         }
 
         return this;
     }
 
     public removeListener(event: string | symbol, listener: (...args: any[]) => void) : this {
-        this._conn.removeListener(event, listener);
+        this._textConn.removeListener(event, listener);
 
         return this;
     }
