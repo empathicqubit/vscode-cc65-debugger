@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.1
+
+* Implement binary monitor protocol, remove most text based commands.
+* Better event handling and async due to above.
+* Remove viceCommand from launch configuration and put into global settings.
+* Use injection for PRG loads instead of fake disk. More secure than virtualFS,
+less wonky than disk.
+
 ## 1.1.24
 
 * Prevent runaway step in when there's no function to step into.

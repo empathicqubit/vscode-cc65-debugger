@@ -210,7 +210,7 @@ export class ViceGrip extends EventEmitter {
                 this._pids = await this._handler(this._vicePath, args, opts)
             }
             catch {
-                throw new Error(`Could not start VICE using launch.json->viceCommand = "${this._vicePath}". Make sure it's an absolute path.`);
+                throw new Error(`Could not start VICE using the cc65vice.viceCommand setting = "${this._vicePath}". Make sure it's an absolute path.`);
             }
         }
         else {
@@ -219,7 +219,7 @@ export class ViceGrip extends EventEmitter {
                 this._pids = await this._handler(x64Exec, args, opts);
             }
             catch(e) {
-                throw new Error('Could not start either x64 or x64sc. Define your VICE path in your launch.json->viceCommand property');
+                throw new Error('Could not start either x64 or x64sc. Define your VICE path in your cc65vice.viceCommand setting');
             }
         }
 
