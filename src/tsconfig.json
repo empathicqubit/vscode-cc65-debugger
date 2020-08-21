@@ -4,6 +4,7 @@
         "target": "ES2015",
 
         "noImplicitAny": false,
+        "incremental": true,
         "removeComments": false,
         "noUnusedLocals": false,
         "noImplicitThis": true,

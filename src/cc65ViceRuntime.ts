@@ -39,6 +39,7 @@ export interface Registers {
     "00": number;
     "01": number;
     nvbdizc: number;
+    fl: number;
     line: number;
     cycle: number;
 }
@@ -220,6 +221,7 @@ export class CC65ViceRuntime extends EventEmitter {
         await this._setupViceDataHandler();
         await this._vice.autostart();
         await this.continue();
+        await this._vice.waitForStop();
         this._viceRunning = false;
 
         console.timeEnd('vice')
@@ -466,6 +468,7 @@ export class CC65ViceRuntime extends EventEmitter {
         const breaks = await this._setLineGuard(this._currentPosition, nextLine);
 
         await this.continue();
+        await this._vice.waitForStop();
 
         if(breaks) {
             const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
@@ -736,7 +739,18 @@ export class CC65ViceRuntime extends EventEmitter {
 
     // Memory access
 
-    //public async getMemory(addr: number, length: number) : Promise<Buffer>;
+    public async getMemory(addr: number, length: number) : Promise<Buffer> {
+        const res = await this._vice.execBinary<bin.MemoryGetCommand, bin.MemoryGetResponse>({
+            type: bin.CommandType.memoryGet,
+            sidefx: false,
+            startAddress: addr,
+            endAddress: addr + length - 1,
+            memspace: bin.ViceMemspace.main,
+            bankId: 0,
+        });
+
+        return Buffer.from(res.memory);
+    }
 
     private _getLocalVariableSyms(scope: dbgfile.Scope) : dbgfile.CSym[] {
         return scope.csyms.filter(x => x.sc == dbgfile.sc.auto)
@@ -965,14 +979,8 @@ export class CC65ViceRuntime extends EventEmitter {
 
                         this._cpuStackTop = 0x100 + r.sp;
                     }
-                    else if(meta['00'].id == reg.id) {
-                        r['00'] = reg.value;
-                    }
-                    else if(meta['01'].id == reg.id) {
-                        r['01'] = reg.value;
-                    }
-                    else if(meta['NV-BDIZC'].id == reg.id) {
-                        r.nvbdizc = reg.value;
+                    else if(meta['FL'].id == reg.id) {
+                        r.fl = reg.value;
                     }
                     else if(meta['LIN'].id == reg.id) {
                         r.line = reg.value;
@@ -1172,6 +1180,8 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             sp: 0xff,
             line: 0xff,
             cycle: 0xff,
+            pc: 0xffff,
+            fl: 0xff,
         };
     }
 

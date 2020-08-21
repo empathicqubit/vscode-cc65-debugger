@@ -86,6 +86,16 @@
         "onCommand:cc65-vice.stats"
     ],
     "contributes": {
+        "configuration": {
+            "title": "CC65 VICE Debugger",
+            "properties": {
+                "cc65vice.viceCommand": {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "The Path to VICE Emulator. Set this if you're on Windows."
+                }
+            }
+        },
         "commands": [],
         "breakpoints": [
             {
@@ -146,10 +156,6 @@
                             "program": {
                                 "type": "string",
                                 "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
-                            },
-                            "viceCommand": {
-                                "type": "string",
-                                "description": "The path to VICE executable, either x64 or x64sc. You'll probably need this on Windows."
                             },
                             "viceArgs": {
                                 "type": "array",

@@ -35,30 +35,46 @@ export class ViceGrip extends EventEmitter {
     private _nextResponseLength : number = -1;
     private _responseEmitter : EventEmitter = new EventEmitter();
     private _binaryDataHandler(d : Buffer) {
-        // FIXME: API version
-        const header_size = 11;
-        if(this._nextResponseLength == -1) {
-            this._responseByteCount = 0;
-            this._nextResponseLength = d.readUInt32LE(2) + header_size;
+        try {
+            // FIXME: API version
+            const header_size = 12;
+            if(this._nextResponseLength == -1) {
+                this._responseByteCount = 0;
+                this._nextResponseLength = d.readUInt32LE(2) + header_size;
+            }
+
+            this._responseBytes.push(d);
+            this._responseByteCount += d.length;
+
+            if(this._responseByteCount >= this._nextResponseLength) {
+                const buf = Buffer.concat(this._responseBytes);
+
+                const res = bin.responseBufferToObject(buf, this._nextResponseLength);
+
+                if(res.type == bin.ResponseType.stopped) {
+                    this._responseEmitter.emit('stopped', res);
+                }
+
+                this._responseEmitter.emit(res.requestId.toString(16), res);
+
+                this._responseBytes = [];
+                this._responseByteCount = 0;
+
+                const oldResponseLength = this._nextResponseLength;
+                this._nextResponseLength = -1;
+
+                const sliced = buf.slice(oldResponseLength, buf.length);
+                if(buf.length - oldResponseLength >= header_size) {
+                    this._binaryDataHandler(sliced);
+                }
+                else {
+                    this._responseBytes = [sliced];
+                }
+            }
+
         }
-
-        this._responseBytes.push(d);
-        this._responseByteCount += d.length;
-
-        if(this._responseByteCount >= this._nextResponseLength) {
-            const buf = Buffer.concat(this._responseBytes);
-
-            const res = bin.responseBufferToObject(buf, this._nextResponseLength);
-
-            this._responseEmitter.emit(res.requestId.toString(16), res);
-
-            this._responseBytes = [];
-            this._responseByteCount = 0;
-
-            const oldResponseLength = this._nextResponseLength;
-            this._nextResponseLength = -1;
-
-            this._binaryDataHandler(buf.slice(oldResponseLength, buf.length));
+        catch(e) {
+            console.error(e);
         }
     };
 
@@ -132,8 +148,10 @@ export class ViceGrip extends EventEmitter {
     }
 
     public async start() {
-        this._textPort = await getPort({port: getPort.makeRange(29170, 29570)});
-        this._binaryPort = await getPort({port: getPort.makeRange(29571, 29970)});
+        const startText = _.random(29170, 29400);
+        const startBinary = _.random(29700, 30000);
+        this._textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
+        this._binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
 
         let q = "'";
         let sep = ':';
@@ -156,10 +174,10 @@ export class ViceGrip extends EventEmitter {
             // Monitor
             "-nativemonitor",
             "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._textPort}`,
-            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._binaryPort}`,
+            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${this._binaryPort}`,
 
             // Hardware
-            "-iecdevice8", "-autostart-warp", "-autostart-handle-tde",
+            "-iecdevice8", "-autostart-warp", "-autostartprgmode", "1", "-autostart-handle-tde",
 
             ...(
                 this._initBreak > -1
@@ -210,7 +228,7 @@ export class ViceGrip extends EventEmitter {
             await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {})
         }
 
-        const connection = new net.Socket();
+        let textConn : net.Socket | undefined;
 
         while(this._textPort == await getPort({port: getPort.makeRange(this._textPort, this._textPort + 256)}));
 
@@ -218,6 +236,8 @@ export class ViceGrip extends EventEmitter {
         do {
             textTries++;
             try {
+                textConn = new net.Socket();
+
                 await waitPort({
                     host: '127.0.0.1',
                     port: this._textPort,
@@ -225,48 +245,25 @@ export class ViceGrip extends EventEmitter {
                     interval: 100,
                 });
 
-                connection.connect({
+                textConn.connect({
                     host: '127.0.0.1',
                     port: this._textPort,
                 });
 
             } catch(e) {
+                if(textConn) {
+                    try {
+                        textConn.end();
+                    }
+                    catch {}
+                }
                 if(textTries > 3) {
                     throw e;
                 }
                 continue;
             }
 
-            this._textConn = connection;
-            break;
-        } while(true);
-
-        while(this._binaryPort == await getPort({port: getPort.makeRange(this._binaryPort, this._binaryPort + 256)}));
-
-        let binaryTries = 0;
-        do {
-            binaryTries++;
-            try {
-                await waitPort({
-                    host: '127.0.0.1',
-                    port: this._binaryPort,
-                    timeout: 10000,
-                    interval: 100,
-                });
-
-                connection.connect({
-                    host: '127.0.0.1',
-                    port: this._binaryPort,
-                });
-
-            } catch(e) {
-                if(binaryTries > 3) {
-                    throw e;
-                }
-                continue;
-            }
-
-            this._binaryConn = connection;
+            this._textConn = textConn;
             break;
         } while(true);
 
@@ -284,11 +281,54 @@ export class ViceGrip extends EventEmitter {
         await this.waitText();
 
         clearTimeout(wid);
+
+        let binaryConn : net.Socket | undefined;
+
+        while(this._binaryPort == await getPort({port: getPort.makeRange(this._binaryPort, this._binaryPort + 256)}));
+
+        let binaryTries = 0;
+        do {
+            binaryTries++;
+            try {
+                binaryConn = new net.Socket({
+                });
+
+                await waitPort({
+                    host: '127.0.0.1',
+                    port: this._binaryPort,
+                    timeout: 10000,
+                    interval: 100,
+                });
+
+                binaryConn.connect({
+                    host: '127.0.0.1',
+                    port: this._binaryPort,
+                });
+
+            } catch(e) {
+                if(binaryConn) {
+                    try {
+                        binaryConn.end();
+                    }
+                    catch {
+                    }
+                }
+                if(binaryTries > 3) {
+                    throw e;
+                }
+                continue;
+            }
+
+            this._binaryConn = binaryConn;
+            break;
+        } while(true);
+
         await new Promise(resolve => setTimeout(resolve, 100));
         this._textConn.read();
-        this._binaryConn.read();
 
-        this._binaryConn.on('data', this._binaryDataHandler);
+        this._binaryConn.on('data', this._binaryDataHandler.bind(this));
+
+        this._binaryConn.resume();
     }
 
     public async waitText() : Promise<string> {
@@ -321,8 +361,18 @@ export class ViceGrip extends EventEmitter {
         )).value())).join('\n');
     }
 
+    public async waitForStop<T extends bin.AbstractResponse>() : Promise<T> {
+        return await new Promise<T>((res, rej) => {
+            const handle = (r) => {
+                res(r);
+            }
+            this._responseEmitter.once('stopped', handle);
+        });
+    }
+
     public async execBinary<T extends bin.Command, U extends bin.Response<T>>(command: T) : Promise<U> {
-        return await this.multiExecBinary([command])[0];
+        const results = await this.multiExecBinary<T, U>([command]);
+        return results[0];
     }
 
     public async multiExecBinary<T extends bin.Command, U extends bin.Response<T>>(commands: T[]) : Promise<U[]> {

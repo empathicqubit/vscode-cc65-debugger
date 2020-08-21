@@ -378,13 +378,14 @@ export enum CommandType {
 }
 
 export function responseBufferToObject(buf: Buffer, responseLength: number) : AbstractResponse {
-    const header_size = 11; // FIXME
-    const body = buf.slice(12, responseLength - header_size);
+    const header_size = 12; // FIXME
+    const body = buf.slice(header_size, responseLength);
     const res : AbstractResponse = {
         apiVersion: buf.readUInt8(0),
         type: buf.readUInt8(6),
         error: buf.readUInt8(7),
         requestId: buf.readUInt32LE(8),
+        related: [],
     };
     const type = res.type;
 
@@ -392,7 +393,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         const r : MemoryGetResponse = {
             ...res,
             type,
-            memory: new Uint8Array(),
+            memory: body.slice(2, 2 + body.readUInt16LE(0)),
         }
 
         return r;
@@ -437,6 +438,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
             ...res,
             type,
             count: body.readUInt32LE(0),
+            related: [],
         }
 
         return r;
@@ -537,7 +539,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         let cursor = 2;
         while(cursor < body.length) {
             const item_size = body.readUInt8(cursor + 0);
-            const nameLength = buf.readUInt8(cursor + 3);
+            const nameLength = body.readUInt8(cursor + 3);
             const item : SingleBankMeta = {
                 id: body.readUInt16LE(cursor + 1),
                 name: body.toString("ascii", cursor + 4, cursor + 4 + nameLength),
@@ -559,7 +561,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         let cursor = 2;
         while(cursor < body.length) {
             const item_size = body.readUInt8(cursor + 0);
-            const nameLength = buf.readUInt8(cursor + 3);
+            const nameLength = body.readUInt8(cursor + 3);
             const item : SingleRegisterMeta = {
                 id: body.readUInt8(cursor + 1),
                 size: body.readUInt8(cursor + 2),
