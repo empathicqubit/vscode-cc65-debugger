@@ -36,16 +36,13 @@ export interface Registers {
     y: number;
     sp: number;
     pc: number;
-    "00": number;
-    "01": number;
-    nvbdizc: number;
     fl: number;
     line: number;
     cycle: number;
 }
 
 /**
- * A CC65Vice runtime with minimal debugger functionality.
+ * A CC65Vice runtime with debugging functionality.
  */
 export class CC65ViceRuntime extends EventEmitter {
     private _dbgFile: dbgfile.Dbgfile;
@@ -222,6 +219,8 @@ export class CC65ViceRuntime extends EventEmitter {
         await this._vice.autostart();
         await this.continue();
         await this._vice.waitForStop();
+        await this.continue();
+        await this._vice.waitForStop(this._entryAddress);
         this._viceRunning = false;
 
         console.timeEnd('vice')
@@ -388,7 +387,8 @@ export class CC65ViceRuntime extends EventEmitter {
             const nextAddress = nextLine.span!.absoluteAddress;
             let breaks : bin.CheckpointInfoResponse[] | null;
             if(breaks = await this._setLineGuard(this._currentPosition, nextLine)) {
-                await this._vice.exit();
+                await this.continue();
+                await this._vice.waitForStop();
 
                 const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
                     type: bin.CommandType.checkpointDelete,
@@ -398,8 +398,6 @@ export class CC65ViceRuntime extends EventEmitter {
                 await this._vice.multiExecBinary(delBrks);
             }
             else {
-                // FIXME: Change via flow control events
-                this._viceRunning = true;
                 await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
                     type: bin.CommandType.checkpointSet,
                     startAddress: nextAddress,
@@ -1174,9 +1172,6 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             a: 0xff,
             x: 0xff,
             y: 0xff,
-            ["00"]: 0xff,
-            ["01"]: 0xff,
-            nvbdizc: 0xff,
             sp: 0xff,
             line: 0xff,
             cycle: 0xff,

@@ -153,12 +153,10 @@ export class ViceGrip extends EventEmitter {
         this._textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
         this._binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
 
-        let q = "'";
-        let sep = ':';
+        let q = "";
         let logfile : string | undefined;
         if(process.platform == "win32") {
             q = '"';
-            sep = ';';
             logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
 
             const tempdir = path.dirname(logfile!);
@@ -169,7 +167,7 @@ export class ViceGrip extends EventEmitter {
         }
 
         let args = [
-            "-directory", `${q}${path.normalize(__dirname + "/../system")}${sep}\$\$${q}`,
+            "-directory", `${q}${path.normalize(__dirname + "/../system")}${q}`,
 
             // Monitor
             "-nativemonitor",
@@ -361,12 +359,15 @@ export class ViceGrip extends EventEmitter {
         )).value())).join('\n');
     }
 
-    public async waitForStop<T extends bin.AbstractResponse>() : Promise<T> {
-        return await new Promise<T>((res, rej) => {
-            const handle = (r) => {
-                res(r);
+    public async waitForStop(addr?: number) : Promise<bin.StoppedResponse> {
+        return await new Promise<bin.StoppedResponse>((res, rej) => {
+            const handle = (r: bin.StoppedResponse) => {
+                if(!addr || r.programCounter == addr) {
+                    res(r);
+                    this._responseEmitter.off('stopped', handle);
+                }
             }
-            this._responseEmitter.once('stopped', handle);
+            this._responseEmitter.on('stopped', handle);
         });
     }
 
@@ -417,7 +418,7 @@ export class ViceGrip extends EventEmitter {
                 }
             });
         }));
-        conn.write(Buffer.concat(frags));
+        await util.promisify((d, cb) => conn.write(d, cb))(Buffer.concat(frags));
         return await results;
     }
 
