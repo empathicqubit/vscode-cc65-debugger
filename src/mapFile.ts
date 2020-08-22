@@ -5,7 +5,7 @@ export interface MapRef {
 
 export function parse(text: string) : MapRef[] {
     const piece = text.split(/(Exports list by value|Imports list)/gi)[2];
-    const funcrex = /\b(\w+)\s+([0-9a-f]+)\s+RLA/gi
+    const funcrex = /\b(\w+)\s+([0-9a-f]+)\s[R\s]LA/gi
     let funcmatch : RegExpExecArray | null;
     let arr : MapRef[] = [];
     while(funcmatch = funcrex.exec(piece)) {

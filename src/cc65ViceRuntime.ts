@@ -12,9 +12,27 @@ import * as dbgfile from './debugFile'
 import watch from 'node-watch';
 import { ViceGrip } from './viceGrip';
 import { CC65ViceDebugSession } from './cc65ViceDebug';
-import { VicesWonderfulWorldOfColor } from './vicesWonderfulWorldOfColor';
 import * as mapFile from './mapFile';
 import * as bin from './binary-dto';
+
+const opcodeSizes = [
+    1, 6, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
+    2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 2, 3, 3, 3,
+    3, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
+    2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+    1, 2, 1, 2, 2, 2, 3, 2, 1, 2, 1, 1, 3, 3, 3, 3,
+    2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, -1, 3,
+    1, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
+    2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+    2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+    2, 2, 1, 3, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+    2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
+    2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+    2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+    2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+    2, 2, 2, 3, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
+    2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+];
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -67,13 +85,13 @@ export class CC65ViceRuntime extends EventEmitter {
 
     private _breakPoints : CC65ViceBreakpoint[] = [];
 
-    private _stackFrameStarts : { [address: string]: dbgfile.Scope } = {};
-    private _stackFrameEnds : { [address: string]: dbgfile.Scope } = {};
+    private _stackFrameStarts : { [index: string]: dbgfile.Scope } = {};
+    private _stackFrameEnds : { [index: string]: dbgfile.Scope } = {};
 
-    private _stackFrameBreaks : { [address: string]: number } = {};
+    private _stackFrameBreakIndexes : number[] = [];
     private _stackFrameBreakOnAdded : boolean = false;
 
-    private _stackFrames : {line: dbgfile.SourceLine, scope: dbgfile.Scope}[];
+    private _stackFrames : {line: dbgfile.SourceLine, scope: dbgfile.Scope}[] = [];
 
     private _registers : Registers;
 
@@ -86,11 +104,10 @@ export class CC65ViceRuntime extends EventEmitter {
 
     private _currentPosition: dbgfile.SourceLine;
     private _consoleType?: string;
-    private _colorTerm: VicesWonderfulWorldOfColor;
     private _mapFile: mapFile.MapRef[];
     private _localTypes: { [typename: string]: clangQuery.ClangTypeInfo[]; } | undefined;
     private _runInTerminalRequest: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void;
-    private _checkpointQueue: bin.CheckpointInfoResponse[] = [];
+    private _colorTermPids: [number, number] = [-1, -1];
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -209,7 +226,9 @@ export class CC65ViceRuntime extends EventEmitter {
 
         this._otherHandlers = new EventEmitter();
 
-        this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), vicePath, viceArgs, this._otherHandlers);
+        const labelFile = await this._getLabelsPath(program);
+
+        this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), vicePath, viceArgs, labelFile);
 
         await this._vice.start();
 
@@ -227,9 +246,8 @@ export class CC65ViceRuntime extends EventEmitter {
 
         console.time('postVice')
 
-        await this._guardCodeSeg();
-        await this._loadLabels(program);
         await this._resetStackFrames();
+        await this._guardCodeSeg();
         await this._setParamStackBottom();
 
         await this._verifyBreakpoints();
@@ -245,8 +263,7 @@ export class CC65ViceRuntime extends EventEmitter {
             await this.continue();
         }
 
-        this._colorTerm = new VicesWonderfulWorldOfColor(this._vice, this._otherHandlers, (f, a, o) => this._processExecHandler(f, a, o))
-        this._colorTerm.main();
+        // FIXME this._colorTermPids = await this._processExecHandler('vice-rainbow-monitor', ['-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`], { })
 
         console.timeEnd('postVice')
     }
@@ -483,7 +500,7 @@ export class CC65ViceRuntime extends EventEmitter {
     public async stepOut(event = 'stopOnStep') {
         const lastFrame = this._stackFrames[this._stackFrames.length - 2];
         if(!lastFrame) {
-            this.sendEvent('output', 'console', 'Can\'t step out here!')
+            this.sendEvent('output', 'console', 'Can\'t step out here!\n')
             return;
         }
 
@@ -491,7 +508,7 @@ export class CC65ViceRuntime extends EventEmitter {
         const end = lastFrame.scope.spans.find(x => x.seg == this._codeSeg)!.absoluteAddress + lastFrame.scope.spans[0].size - 1;
 
         const allbrk = await this._vice.checkpointList();
-        const dis : bin.CheckpointToggleCommand[] = allbrk.related.map(x => ({
+        const dis : bin.CheckpointToggleCommand[] = allbrk.related.filter(x => x.stop).map(x => ({
             type: bin.CommandType.checkpointToggle,
             id: x.id,
             enabled: false,
@@ -503,20 +520,12 @@ export class CC65ViceRuntime extends EventEmitter {
             startAddress: begin,
             endAddress: end,
             enabled: true,
-            temporary: false,
+            temporary: true,
             stop: true,
             operation: bin.CpuOperation.exec,
         });
 
-        await this._vice.exit();
-
-        // FIXME: Wait for stopped event???
-        // FIXME: Review all flow control
-
-        await this._vice.checkpointDelete({
-            type: bin.CommandType.checkpointDelete,
-            id: brk.id,
-        });
+        await this._vice.waitForStop(brk.startAddress, brk.endAddress);
 
         const en : bin.CheckpointToggleCommand[] = allbrk.related.map(x => ({
             type: bin.CommandType.checkpointToggle,
@@ -529,9 +538,7 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     public async pause() {
-        await this._vice.execBinary<bin.PingCommand, bin.PingResponse>({
-            type: bin.CommandType.ping,
-        });
+        await this._vice.ping();
         this.sendEvent('stopOnStep', 'console');
     }
 
@@ -568,10 +575,11 @@ export class CC65ViceRuntime extends EventEmitter {
     // Clean up all the things
     public async terminate() : Promise<void> {
         try {
-            this._colorTerm && await this._colorTerm.end();
+            this._colorTermPids[1] > -1 && process.kill(this._colorTermPids[1], "SIGKILL");
+            this._colorTermPids[0] > -1 && process.kill(this._colorTermPids[0], "SIGKILL");
         }
         catch {}
-        this._colorTerm = <any>null;
+        this._colorTermPids = [-1, -1];
 
         try {
             this._vice && await this._vice.end();
@@ -921,14 +929,8 @@ export class CC65ViceRuntime extends EventEmitter {
         return promise;
     });
 
-    // We set labels here so the user doesn't have to generate Yet Another File
-    private async _loadLabels(program: string): Promise<void> {
-        // Labels in the absence of a label file are nice, but incomplete, especially
-        // if there's assembly code.
-        await this._vice.multiExecText(this._dbgFile.labs.map(lab =>
-            `al \$${lab.val.toString(16)} .${lab.name}`
-        ));
-
+    // Get the labels file if it exists
+    private async _getLabelsPath(program: string): Promise<string | null> {
         const match = debugUtils.programFiletypes.exec(program)!;
         let filename : string;
         if(match[1] == 'c64') {
@@ -940,12 +942,36 @@ export class CC65ViceRuntime extends EventEmitter {
 
         try {
             const fileStats = await util.promisify(fs.stat)(filename);
-            await this._vice.execText(`ll "${filename}"`);
+            return filename;
         }
-        catch {}
+        catch {
+            return null;
+        }
     }
 
     private _otherHandlers : EventEmitter;
+
+    private _addStackFrame(brk: bin.CheckpointInfoResponse) {
+        if(brk.stop) {
+            return;
+        }
+
+        if(brk.operation != bin.CpuOperation.exec) {
+            return;
+        }
+
+        let scope: dbgfile.Scope;
+        if(scope = this._stackFrameStarts[brk.id]) {
+            const line = this._getLineFromAddress(brk.startAddress);
+            this._stackFrames.push({line: line, scope: scope });
+        }
+        else if(scope = this._stackFrameEnds[brk.id]) {
+            const idx = [...this._stackFrames].reverse().findIndex(x => x.scope.id == scope.id);
+            if(idx > -1) {
+                this._stackFrames.splice(this._stackFrames.length - 1 - idx, 1);
+            }
+        }
+    }
 
     // FIXME These regexes could be pushed out and you could emit your own events.
     private async _setupViceDataHandler() {
@@ -1001,64 +1027,6 @@ export class CC65ViceRuntime extends EventEmitter {
                 this._currentPosition = this._getLineFromAddress(this._currentAddress);
 
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-
-                for(const brk of this._checkpointQueue) {
-                    let index = brk.id;
-
-                    // Is a breakpoint
-                    if(brk.stop) {
-                        if(this._codeSegGuardIndex == index) {
-                            const guard = this._codeSegGuardIndex;
-                            this._codeSegGuardIndex = -1;
-                            await this._vice.checkpointDelete({
-                                type: bin.CommandType.checkpointDelete,
-                                id: guard,
-                            })
-                            this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-                            this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
-                        }
-                        else if (this._exitAddresses.includes(this._currentAddress)) {
-                            await this.terminate();
-                        }
-                        // FIXME: Order of events could mess this up if current address isn't set by the time we get here.
-                        else if(this._stackFrameBreakOnAdded && this._stackFrameBreaks[this._currentAddress.toString(16).padStart(4, '0')]) {
-                            this._stackFrameBreakOnAdded = false;
-
-                            await this._stackFrameBreakToggle(false);
-
-                            await this.pause();
-                        }
-                        else {
-                            const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
-                            if(userBreak) {
-                                this._viceRunning = false;
-                                this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-                            }
-                        }
-                    }
-                    // Is a tracepoint
-                    else {
-                        if(brk.operation != bin.CpuOperation.exec) {
-                            continue;
-                        }
-
-                        const addr = this._currentAddress.toString(16).padStart(4, '0');
-                        let scope: dbgfile.Scope;
-                        if(scope = this._stackFrameStarts[addr]) {
-                            const line = this._currentPosition;
-                            this._stackFrames.push({line: line, scope: scope });
-                        }
-
-                        if(scope = this._stackFrameEnds[addr]) {
-                            const idx = [...this._stackFrames].reverse().findIndex(x => x.scope.id == scope.id);
-                            if(idx > -1) {
-                                this._stackFrames.splice(this._stackFrames.length - 1 - idx, 1);
-                            }
-                        }
-                    }
-                }
-
-                this._checkpointQueue = [];
             }
             else if(e.type == bin.ResponseType.resumed) {
                 this._viceRunning = true;
@@ -1069,11 +1037,46 @@ export class CC65ViceRuntime extends EventEmitter {
             }
             else if(e.type == bin.ResponseType.checkpointInfo) {
                 const brk = <bin.CheckpointInfoResponse>e;
+
                 if(!brk.hit) {
                     return;
                 }
 
-                this._checkpointQueue.push(brk);
+                this._addStackFrame(brk);
+
+                let index = brk.id;
+
+                // Is a breakpoint
+                if(brk.stop) {
+                    if(this._codeSegGuardIndex == index) {
+                        const guard = this._codeSegGuardIndex;
+                        this._codeSegGuardIndex = -1;
+                        await this._vice.checkpointDelete({
+                            type: bin.CommandType.checkpointDelete,
+                            id: guard,
+                        })
+                        this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+                        this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
+                    }
+                    else if (this._exitAddresses.includes(this._currentAddress)) {
+                        await this.terminate();
+                    }
+                    // FIXME: Order of events could mess this up if current address isn't set by the time we get here.
+                    else if(this._stackFrameBreakOnAdded && this._stackFrameBreakIndexes.includes(brk.id)) {
+                        this._stackFrameBreakOnAdded = false;
+
+                        await this._stackFrameBreakToggle(false);
+
+                        await this.pause();
+                    }
+                    else {
+                        const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
+                        if(userBreak) {
+                            this._viceRunning = false;
+                            this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+                        }
+                    }
+                }
             }
         });
     }
@@ -1149,24 +1152,6 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             || curSpan.lines[0];
     }
 
-    /*
-    private _getBreakpointMatches(breakpointText: string) : [number, number][] {
-        const rex = /\b(BREAK|WATCH|TRACE|UNTIL):\s+([0-9]+)\s+C:\$([0-9a-f]+)/gim;
-
-        const matches : [number, number][] = [];
-        let match;
-        while (match = rex.exec(breakpointText)) {
-            matches.push([parseInt(match[2]), parseInt(match[3], 16)]);
-        }
-
-        return matches;
-    }
-
-    private _getBreakpointNum(breakpointText: string) : number {
-        return this._getBreakpointMatches(breakpointText)[0][0];
-    }
-    */
-
     private _resetRegisters() {
         this._registers = {
             a: 0xff,
@@ -1191,7 +1176,7 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
 
     private async _stackFrameBreakToggle(enabled: boolean) {
         const cmd : bin.CheckpointToggleCommand[] =
-            Object.values(this._stackFrameBreaks)
+            this._stackFrameBreakIndexes
             .map(id => ({
                 type: bin.CommandType.checkpointToggle,
                 enabled,
@@ -1204,11 +1189,15 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
     private async _resetStackFrames() {
         this._stackFrameStarts = {};
         this._stackFrameEnds = {};
-        this._stackFrameBreaks = {};
+        this._stackFrameBreakIndexes = [];
         this._stackFrames = [];
         this._stackFrameBreakOnAdded = false;
 
+        const startFrames : { address: number, scope: dbgfile.Scope }[] = [];
+        const endFrames : { address: number, scope: dbgfile.Scope }[] = [];
         for(const scope of this._dbgFile.scopes) {
+            const scopeEndFrames : { address: number, scope: dbgfile.Scope }[] = [];
+
             if(!scope.name.startsWith("_")) {
                 continue;
             }
@@ -1221,28 +1210,30 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             const begin = span.absoluteAddress;
             const end = begin + span.size;
 
-            const dasm = <string>await this._vice.execText(`d \$${begin.toString(16)} \$${(end - 1).toString(16)}`);
-            const jmprex = /^\.([C]):([0-9a-f]{4})\s{2}4c\s(([0-9a-f]+\s){2})\s*JMP\s.*$/gim
-            let jmpmatch : RegExpExecArray | null;
-            while(jmpmatch = jmprex.exec(dasm)) {
-                const addr = parseInt(jmpmatch[2], 16);
-                const targetBytes = jmpmatch[3].split(/\s+/g).filter(x => x);
-                const targetAddr = parseInt(targetBytes[1] + targetBytes[0], 16);
+            const mem = await this.getMemory(begin, span.size);
+            const incsps = this._mapFile.filter(x => x.functionName.startsWith('incsp'));
+            let cmd = 0x100;
+            for(let cursor = 0; cursor < mem.length; cursor += opcodeSizes[cmd] || 0) {
+                cmd = mem.readUInt8(cursor);
+                if(cmd == 0x4c) {
+                    const addr = mem.readUInt16LE(cursor + 1);
+                    const builtin = incsps.find(x => x.functionAddress == addr);
+                    if(!builtin) {
+                        continue;
+                    }
 
-                const builtin = this._mapFile.find(x => x.functionName.startsWith('incsp') && x.functionAddress == targetAddr);
-                if(!builtin) {
-                    continue;
+                    if(scope.name == '_main') {
+                        this._exitAddresses.push(begin + cursor);
+                        break;
+                    }
+
+                    scopeEndFrames.push({
+                        scope,
+                        address: begin + cursor,
+                    });
                 }
-
-                if(scope.name == '_main') {
-                    this._exitAddresses.push(addr);
-                    break;
-                }
-
-                this._stackFrameEnds[addr.toString(16)] = scope;
             }
 
-            // FIXME May need to rethink the object structure.
             let finish = false;
             let start : dbgfile.SourceLine = this._dbgFile.lines[0];
             for(const line of this._dbgFile.lines) {
@@ -1256,72 +1247,104 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
 
                 if(!finish && (line.span.absoluteAddress + line.span.size) <= end) {
                     const addr = line.span.absoluteAddress;
-                    this._stackFrameEnds[addr.toString(16).padStart(4, '0')] = scope;
+                    scopeEndFrames.push({
+                        scope,
+                        address: addr,
+                    });
                     finish = true;
 
                     if(scope.name == '_main') {
                         this._exitAddresses.push(addr);
-                        break;
+                        continue;
                     }
                 }
 
                 start = line;
             }
 
-            this._stackFrameStarts[start.span!.absoluteAddress.toString(16).padStart(4, '0')] = scope;
+            endFrames.push(..._.uniqBy(scopeEndFrames, x => x.address));
+
+            startFrames.push({
+                scope,
+                address: start.span!.absoluteAddress,
+            });
         }
 
-        const cmds : bin.Command[] = [];
-        if(this._exitAddresses.length) {
-            const exits : bin.CheckpointSetCommand[] = this._exitAddresses.map(x => ({
-                type: bin.CommandType.checkpointSet,
-                startAddress: x,
-                endAddress: x,
-                stop: true,
-                enabled: true,
-                temporary: false,
-                operation: bin.CpuOperation.exec,
-            }));
-            cmds.push(...exits);
-        }
+        const [resExits, resStarts, resEnds, brks] = await Promise.all([
+            (async() => {
+                if(this._exitAddresses.length) {
+                    const exits : bin.CheckpointSetCommand[] = this._exitAddresses.map(x => ({
+                        type: bin.CommandType.checkpointSet,
+                        startAddress: x,
+                        endAddress: x,
+                        stop: true,
+                        enabled: true,
+                        temporary: false,
+                        operation: bin.CpuOperation.exec,
+                    }));
+                    return await this._vice.multiExecBinary(exits) as bin.CheckpointInfoResponse[];
+                }
 
-        const traceStartEnds : bin.CheckpointSetCommand[] =
-            [
-                ...Object.keys(this._stackFrameEnds),
-                ...Object.keys(this._stackFrameStarts)
-            ].map(addr => ({
-                type: bin.CommandType.checkpointSet,
-                operation: bin.CpuOperation.exec,
-                startAddress: parseInt(addr, 16),
-                endAddress: parseInt(addr, 16),
-                temporary: false,
-                stop: false,
-                enabled: true,
-            }));
+                return [];
+            })(),
+            (async() => {
+                const traceStarts : bin.CheckpointSetCommand[] =
+                    startFrames.map(frame => ({
+                        type: bin.CommandType.checkpointSet,
+                        operation: bin.CpuOperation.exec,
+                        startAddress: frame.address,
+                        endAddress: frame.address,
+                        temporary: false,
+                        stop: false,
+                        enabled: true,
+                    }));
+                return await this._vice.multiExecBinary(traceStarts) as bin.CheckpointInfoResponse[];
+            })(),
+            (async() => {
+                const traceEnds : bin.CheckpointSetCommand[] =
+                    endFrames.map(frame => ({
+                        type: bin.CommandType.checkpointSet,
+                        operation: bin.CpuOperation.exec,
+                        startAddress: frame.address,
+                        endAddress: frame.address,
+                        temporary: false,
+                        stop: false,
+                        enabled: true,
+                    }));
 
-        cmds.push(...traceStartEnds);
+                return await this._vice.multiExecBinary(traceEnds) as bin.CheckpointInfoResponse[];
+            })(),
+            (async() => {
+                const breakStarts : bin.CheckpointSetCommand[] =
+                    startFrames.map(frame => ({
+                        type: bin.CommandType.checkpointSet,
+                        operation: bin.CpuOperation.exec,
+                        startAddress: frame.address,
+                        endAddress: frame.address,
+                        temporary: false,
+                        stop: true,
+                        enabled: false,
+                    }));
 
-        await this._vice.multiExecBinary(cmds);
-
-        const breakStarts : bin.CheckpointSetCommand[] =
-            Object.keys(this._stackFrameStarts)
-                .map(addr => ({
-                    type: bin.CommandType.checkpointSet,
-                    operation: bin.CpuOperation.exec,
-                    startAddress: parseInt(addr, 16),
-                    endAddress: parseInt(addr, 16),
-                    temporary: false,
-                    stop: true,
-                    enabled: false,
-                }));
-
-        const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(breakStarts);
+                return await this._vice.multiExecBinary(breakStarts) as bin.CheckpointInfoResponse[];
+            })()
+        ]);
 
         for(const brk of brks) {
-            this._stackFrameBreaks[brk.startAddress.toString(16).padStart(4, '0')] = brk.id;
+            this._stackFrameBreakIndexes.push(brk.id);
+        }
+
+        for(const start of resStarts) {
+            this._stackFrameStarts[start.id] = startFrames.find(x => x.address == start.startAddress)!.scope;
+        }
+
+        for(const end of resEnds) {
+            this._stackFrameEnds[end.id] = endFrames.find(x => x.address == end.startAddress)!.scope;
         }
 
         await this._stackFrameBreakToggle(false);
+
+        this._addStackFrame(resStarts.find(x => x.startAddress == this._currentAddress)!);
     }
 
     // Comm

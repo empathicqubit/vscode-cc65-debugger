@@ -13,27 +13,17 @@ import * as debugUtils from './debugUtils';
 import * as bin from './binary-dto';
 
 const waitPort = require('wait-port');
-const queue = require('queue');
-
-const MAX_CHUNK = 10;
-
-async function * fakeStream() {
-    while(true) {
-        yield new Promise((res, rej) => setTimeout(() => res('\n(C:$0000) '), 1));
-    }
-}
 
 export class ViceGrip extends EventEmitter {
-    private _textPort : number = -1;
+    public textPort : number = -1;
     private _binaryPort : number = -1;
-
-    private _textConn: Readable & Writable;
     private _binaryConn: Readable & Writable;
 
     private _responseBytes : Buffer[] = [];
     private _responseByteCount : number = 0;
     private _nextResponseLength : number = -1;
     private _responseEmitter : EventEmitter = new EventEmitter();
+    private _labelFile: string | null;
     private _binaryDataHandler(d : Buffer) {
         try {
             // FIXME: API version
@@ -84,14 +74,6 @@ export class ViceGrip extends EventEmitter {
     private _vicePath: string | undefined;
     private _viceArgs: string[] | undefined;
 
-    private _consoleHandler: EventEmitter;
-
-    private _textCmdQueue = queue({
-        concurrency: 1,
-        timeout: 5000,
-        autostart: true,
-    });
-
     private _handler: debugUtils.ExecHandler;
     private _pids: [number, number] = [-1, -1];
 
@@ -102,17 +84,17 @@ export class ViceGrip extends EventEmitter {
         handler: debugUtils.ExecHandler,
         vicePath: string | undefined,
         viceArgs: string[] | undefined,
-        consoleHandler: EventEmitter
+        labelFile: string | null,
     ) {
         super();
 
         this._handler = handler;
-        this._consoleHandler = consoleHandler;
         this._program = program;
         this._initBreak = initBreak;
         this._cwd = cwd;
         this._vicePath = vicePath;
         this._viceArgs = viceArgs;
+        this._labelFile = labelFile;
     }
 
     public async autostart() : Promise<bin.AutostartResponse> {
@@ -150,7 +132,7 @@ export class ViceGrip extends EventEmitter {
     public async start() {
         const startText = _.random(29170, 29400);
         const startBinary = _.random(29700, 30000);
-        this._textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
+        this.textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
         this._binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
 
         let q = "";
@@ -171,7 +153,7 @@ export class ViceGrip extends EventEmitter {
 
             // Monitor
             "-nativemonitor",
-            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this._textPort}`,
+            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this.textPort}`,
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${this._binaryPort}`,
 
             // Hardware
@@ -226,60 +208,6 @@ export class ViceGrip extends EventEmitter {
             await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {})
         }
 
-        let textConn : net.Socket | undefined;
-
-        while(this._textPort == await getPort({port: getPort.makeRange(this._textPort, this._textPort + 256)}));
-
-        let textTries = 0;
-        do {
-            textTries++;
-            try {
-                textConn = new net.Socket();
-
-                await waitPort({
-                    host: '127.0.0.1',
-                    port: this._textPort,
-                    timeout: 10000,
-                    interval: 100,
-                });
-
-                textConn.connect({
-                    host: '127.0.0.1',
-                    port: this._textPort,
-                });
-
-            } catch(e) {
-                if(textConn) {
-                    try {
-                        textConn.end();
-                    }
-                    catch {}
-                }
-                if(textTries > 3) {
-                    throw e;
-                }
-                continue;
-            }
-
-            this._textConn = textConn;
-            break;
-        } while(true);
-
-        this._textConn.read();
-        const writer = async () => {
-            try {
-                await util.promisify((d, cb) => this._textConn.write(d, cb))('\n');
-            }
-            catch {
-            }
-
-            wid = setTimeout(writer, 100)
-        }
-        let wid = setTimeout(writer, 100);
-        await this.waitText();
-
-        clearTimeout(wid);
-
         let binaryConn : net.Socket | undefined;
 
         while(this._binaryPort == await getPort({port: getPort.makeRange(this._binaryPort, this._binaryPort + 256)}));
@@ -321,48 +249,26 @@ export class ViceGrip extends EventEmitter {
             break;
         } while(true);
 
-        await new Promise(resolve => setTimeout(resolve, 100));
-        this._textConn.read();
-
         this._binaryConn.on('data', this._binaryDataHandler.bind(this));
 
+        this._binaryConn.read();
         this._binaryConn.resume();
     }
 
-    public async waitText() : Promise<string> {
-        let conn: Readable;
-        conn = this._textConn;
+    public async ping() : Promise<bin.PingResponse> {
+        const cmd : bin.PingCommand = {
+            type: bin.CommandType.ping,
+        };
 
-        return await new Promise<string>((res, rej) => {
-            let gather : string[] = [];
-
-            const waitForViceData = (d : Buffer) => {
-                const data = d.toString();
-
-                gather.push(data);
-                const match = /^\(C:\$([0-9a-f]+)\)/m.test(data);
-                if(match) {
-                    conn.off('data', waitForViceData);
-                    conn.off('error', rej);
-                    res(gather.join(''));
-                }
-            };
-
-            conn.on('data', waitForViceData);
-            conn.on('error', rej);
-        });
+        return await this.execBinary(cmd);
     }
 
-    public async multiExecText(cmds: string[]) : Promise<string> {
-        return (await Promise.all(_(cmds).chunk(MAX_CHUNK).map(async chunk => <string>await this.execText(
-            chunk.join(' ; ')
-        )).value())).join('\n');
-    }
-
-    public async waitForStop(addr?: number) : Promise<bin.StoppedResponse> {
+    public async waitForStop(startAddress?: number, endAddress?: number) : Promise<bin.StoppedResponse> {
         return await new Promise<bin.StoppedResponse>((res, rej) => {
             const handle = (r: bin.StoppedResponse) => {
-                if(!addr || r.programCounter == addr) {
+                if(!endAddress
+                    ? (!startAddress || r.programCounter == startAddress)
+                    : (startAddress! <= r.programCounter && r.programCounter <= endAddress)) {
                     res(r);
                     this._responseEmitter.off('stopped', handle);
                 }
@@ -401,7 +307,10 @@ export class ViceGrip extends EventEmitter {
                     const rid = requestId.toString(16);
                     const related : bin.AbstractResponse[] = [];
                     const afterResponse = (b : U) => {
-                        if(!command.responseType || b.type == command.responseType) {
+                        if(b.error) {
+                            rej(b);
+                        }
+                        else if(!command.responseType || b.type == command.responseType) {
                             b.related = related;
                             this._responseEmitter.off(rid, afterResponse)
                             res(b);
@@ -422,30 +331,6 @@ export class ViceGrip extends EventEmitter {
         return await results;
     }
 
-    public async execText(command: string) : Promise<string> {
-        let conn : Writable;
-        if(!command) {
-            return '';
-        }
-
-        conn = this._textConn;
-
-        return await new Promise<string>((res, rej) => {
-            this._textCmdQueue.push(async () => {
-                try {
-                    conn.write(command + "\n");
-                    const finish = this.waitText();
-                    const done = await finish;
-                    res(done);
-                }
-                catch(e) {
-                    rej(e);
-                    throw e;
-                }
-            });
-        });
-    }
-
     public async end() {
         this._pids[1] > -1 && process.kill(this._pids[1], "SIGKILL");
         this._pids[0] > -1 && process.kill(this._pids[0], "SIGKILL");
@@ -453,16 +338,9 @@ export class ViceGrip extends EventEmitter {
             type: bin.CommandType.quit,
         }
         const res : bin.QuitResponse = await this.execBinary(cmd);
-        this._textConn && await util.promisify((cb) => this._textConn.end(cb))();
         this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
         this._pids = [-1, -1];
-        this._textConn = <any>null;
         this._binaryConn = <any>null;
-        this._textCmdQueue.end();
-    }
-
-    pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean; }): T {
-        return this._textConn.pipe(destination, options);
     }
 
     on(event: string, listener: ((r: bin.AbstractResponse) => void) | (() => void)): this {
@@ -474,12 +352,6 @@ export class ViceGrip extends EventEmitter {
         else {
             this._responseEmitter.on(event, listener);
         }
-
-        return this;
-    }
-
-    public removeListener(event: string | symbol, listener: (...args: any[]) => void) : this {
-        this._textConn.removeListener(event, listener);
 
         return this;
     }
