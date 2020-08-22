@@ -53,6 +53,8 @@ If you've used the default `Makefile` at [the CC65 project wiki](https://github.
 
 Make sure that the paths on the files are in the same folder and have the same name (minus the extension, of course) as your main program!
 
+If you have included any optimizations you should probably turn those off, however, I have made some effort to trace some of them.
+
 ## Changes needed to your system
 
 It's not required, but if you install Clang tools you can get details on data fields. To do that on Debian (stretch):
