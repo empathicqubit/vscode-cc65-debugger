@@ -89,7 +89,6 @@ export class CC65ViceRuntime extends EventEmitter {
     private _stackFrameEnds : { [index: string]: dbgfile.Scope } = {};
 
     private _stackFrameBreakIndexes : number[] = [];
-    private _stackFrameBreakOnAdded : boolean = false;
 
     private _stackFrames : {line: dbgfile.SourceLine, scope: dbgfile.Scope}[] = [];
 
@@ -475,8 +474,6 @@ export class CC65ViceRuntime extends EventEmitter {
             return;
         }
 
-        this._stackFrameBreakOnAdded = true
-
         await this._stackFrameBreakToggle(true);
 
         const nextLine = this._getNextLine();
@@ -494,6 +491,8 @@ export class CC65ViceRuntime extends EventEmitter {
             await this._vice.multiExecBinary(delBrks);
         }
 
+        await this._stackFrameBreakToggle(false);
+
         this.sendEvent('stopOnStep', 'console');
     }
 
@@ -501,6 +500,7 @@ export class CC65ViceRuntime extends EventEmitter {
         const lastFrame = this._stackFrames[this._stackFrames.length - 2];
         if(!lastFrame) {
             this.sendEvent('output', 'console', 'Can\'t step out here!\n')
+            this.sendEvent('stopOnStep', 'console');
             return;
         }
 
@@ -1061,14 +1061,6 @@ export class CC65ViceRuntime extends EventEmitter {
                     else if (this._exitAddresses.includes(this._currentAddress)) {
                         await this.terminate();
                     }
-                    // FIXME: Order of events could mess this up if current address isn't set by the time we get here.
-                    else if(this._stackFrameBreakOnAdded && this._stackFrameBreakIndexes.includes(brk.id)) {
-                        this._stackFrameBreakOnAdded = false;
-
-                        await this._stackFrameBreakToggle(false);
-
-                        await this.pause();
-                    }
                     else {
                         const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
                         if(userBreak) {
@@ -1186,88 +1178,130 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         await this._vice.multiExecBinary(cmd);
     }
 
-    private async _resetStackFrames() {
-        this._stackFrameStarts = {};
-        this._stackFrameEnds = {};
-        this._stackFrameBreakIndexes = [];
-        this._stackFrames = [];
-        this._stackFrameBreakOnAdded = false;
+    private async _getStackFramesForScope(searchScope: dbgfile.Scope, parentScope: dbgfile.Scope) : Promise<{
+    starts: { address: number, scope: dbgfile.Scope }[],
+    ends: { address: number, scope: dbgfile.Scope }[]
+    } | null> {
+        const scopeEndFrames : { address: number, scope: dbgfile.Scope }[] = [];
 
-        const startFrames : { address: number, scope: dbgfile.Scope }[] = [];
-        const endFrames : { address: number, scope: dbgfile.Scope }[] = [];
-        for(const scope of this._dbgFile.scopes) {
-            const scopeEndFrames : { address: number, scope: dbgfile.Scope }[] = [];
+        if(!parentScope.name.startsWith("_")) {
+            return null;
+        }
 
-            if(!scope.name.startsWith("_")) {
-                continue;
-            }
+        const span = searchScope.spans.find(x => x.seg == this._codeSeg);
+        if(!span) {
+            return null;
+        }
 
-            const span = scope.spans.find(x => x.seg == this._codeSeg);
-            if(!span) {
-                continue;
-            }
+        const begin = span.absoluteAddress;
+        const end = begin + span.size;
 
-            const begin = span.absoluteAddress;
-            const end = begin + span.size;
+        let finish = false;
 
-            const mem = await this.getMemory(begin, span.size);
-            const incsps = this._mapFile.filter(x => x.functionName.startsWith('incsp'));
-            let cmd = 0x100;
-            for(let cursor = 0; cursor < mem.length; cursor += opcodeSizes[cmd] || 0) {
-                cmd = mem.readUInt8(cursor);
-                if(cmd == 0x4c) {
-                    const addr = mem.readUInt16LE(cursor + 1);
+        const mem = await this.getMemory(begin, span.size);
+        const incsps = this._mapFile.filter(x => x.functionName.startsWith('incsp'));
+        let cmd = 0x100;
+        for(let cursor = 0; cursor < mem.length; cursor += opcodeSizes[cmd] || 0) {
+            cmd = mem.readUInt8(cursor);
+            if(cmd == 0x4c) { // JMP
+                const addr = mem.readUInt16LE(cursor + 1);
+                if(cursor == mem.length - 3) {
+                    if(!(this._codeSeg && this._codeSeg.start <= addr && addr <= this._codeSeg.start + this._codeSeg.size)) {
+                        continue;
+                    }
+
+                    const nextLabel = this._dbgFile.labs.find(x => x.val == addr && x.scope && x.scope != parentScope && x.scope != searchScope);
+                    if(!nextLabel) {
+                        continue;
+                    }
+
+                    const res = await this._getStackFramesForScope(nextLabel.scope!, parentScope);
+                    if(!res) {
+                        continue;
+                    }
+
+                    scopeEndFrames.push(...res.ends);
+
+                    finish = true;
+                }
+                else {
                     const builtin = incsps.find(x => x.functionAddress == addr);
                     if(!builtin) {
                         continue;
                     }
 
-                    if(scope.name == '_main') {
+                    if(parentScope.name == '_main') {
                         this._exitAddresses.push(begin + cursor);
                         break;
                     }
 
                     scopeEndFrames.push({
-                        scope,
+                        scope: parentScope,
                         address: begin + cursor,
                     });
                 }
             }
+            else if(cmd == 0x60) { // RTS
+                scopeEndFrames.push({
+                    scope: parentScope,
+                    address: begin + cursor,
+                });
+            }
+        }
 
-            let finish = false;
-            let start : dbgfile.SourceLine = this._dbgFile.lines[0];
-            for(const line of this._dbgFile.lines) {
-                if(!line.span) {
-                    continue;
-                }
-
-                if(line.span.absoluteAddress < begin) {
-                    break;
-                }
-
-                if(!finish && (line.span.absoluteAddress + line.span.size) <= end) {
-                    const addr = line.span.absoluteAddress;
-                    scopeEndFrames.push({
-                        scope,
-                        address: addr,
-                    });
-                    finish = true;
-
-                    if(scope.name == '_main') {
-                        this._exitAddresses.push(addr);
-                        continue;
-                    }
-                }
-
-                start = line;
+        let start : dbgfile.SourceLine = this._dbgFile.lines[0];
+        for(const line of this._dbgFile.lines) {
+            if(!line.span) {
+                continue;
             }
 
-            endFrames.push(..._.uniqBy(scopeEndFrames, x => x.address));
+            if(line.span.absoluteAddress < begin) {
+                break;
+            }
 
-            startFrames.push({
-                scope,
+            if(!finish && (line.span.absoluteAddress + line.span.size) <= end) {
+                const addr = line.span.absoluteAddress;
+                scopeEndFrames.push({
+                    scope: parentScope,
+                    address: addr,
+                });
+                finish = true;
+
+                if(parentScope.name == '_main') {
+                    this._exitAddresses.push(addr);
+                    continue;
+                }
+            }
+
+            start = line;
+        }
+
+        return {
+            starts: [{
+                scope: parentScope,
                 address: start.span!.absoluteAddress,
-            });
+            }],
+            ends: _.uniqBy(scopeEndFrames, x => x.address),
+        }
+    }
+
+    private async _resetStackFrames() {
+        this._stackFrameStarts = {};
+        this._stackFrameEnds = {};
+        this._stackFrameBreakIndexes = [];
+        this._stackFrames = [];
+
+        const startFrames : { address: number, scope: dbgfile.Scope }[] = [];
+        const endFrames : { address: number, scope: dbgfile.Scope }[] = [];
+
+        const reses = await Promise.all(this._dbgFile.scopes.map(x => this._getStackFramesForScope(x, x)))
+        for(const res of reses) {
+            if(!res) {
+                continue;
+            }
+
+            startFrames.push(...res.starts);
+            endFrames.push(...res.ends);
         }
 
         const [resExits, resStarts, resEnds, brks] = await Promise.all([

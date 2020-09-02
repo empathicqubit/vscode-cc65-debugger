@@ -143,7 +143,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         },
     };
 
-    const props = "([a-zA-Z]+)\\s*=\\s*\"?([^\n\r,\"]+)\"?\\s*,?";
+    const props = "([a-zA-Z]+)\\s*=\\s*\"?([^\n\r,\"]*)\"?\\s*,?";
     let rex = new RegExp("^\\s*(csym|file|info|lib|line|mod|scope|seg|span|sym|type|version)\\s+((" + props + ")+)$", "gim");
 
     let match = rex.exec(text);

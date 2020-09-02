@@ -7,6 +7,8 @@
 * Remove viceCommand from launch configuration and put into global settings.
 * Use injection for PRG loads instead of fake disk. More secure than virtualFS,
 less wonky than disk.
+* Better handling of tail call optimizations introduced by `-Or`.
+* Better behavior when step out fails.
 
 ## 1.1.24
 
