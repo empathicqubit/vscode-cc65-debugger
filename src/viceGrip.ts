@@ -4,7 +4,8 @@ import * as _ from 'lodash'
 import * as path from 'path'
 import * as getPort from 'get-port';
 import * as tmp from 'tmp';
-import { Readable, Writable, EventEmitter } from 'stream';
+import { EventEmitter } from 'events'
+import { Readable, Writable } from 'stream';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as hasbin from 'hasbin';

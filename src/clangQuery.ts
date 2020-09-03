@@ -83,26 +83,26 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
         structs[scope.name + '()'] = vars;
     }
 
-    const recordres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match recordDecl(isExpansionInMainFile())', ...codeFiles]);
-    const recordrex = /(RecordDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<([^\n\r]+):([0-9]+):([0-9]+),\s+line:([0-9]+):([0-9]+)\>\s+line:([0-9]+):([0-9+])\s+struct\s+(\w+\s+)?definition$)/gim;
+    const recordRes = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match recordDecl(isExpansionInMainFile())', ...codeFiles]);
+    const recordRex = /(RecordDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<([^\n\r]+):([0-9]+):([0-9]+),\s+line:([0-9]+):([0-9]+)\>\s+line:([0-9]+):([0-9+])\s+(invalid\s+)?struct\s+(\w+\s+)?definition$)/gim;
 
-    const recordsplit = recordres.stdout.split(recordrex);
+    const recordSplit = recordRes.stdout.split(recordRex);
 
-    for(let i = 1; i < recordsplit.length ; i+=13) {
+    for(let i = 1; i < recordSplit.length ; i+=14) {
         const fields : ClangTypeInfo[] = [];
-        const recordname = (recordsplit[i + 11] || '').trim();
-        if(!recordname) {
+        const recordName = (recordSplit[i + 12] || '').trim();
+        if(!recordName) {
             continue; // FIXME We can't handle direct typedefs yet because they're complicated
             // Must declare as bare struct, then typedef that
         }
 
-        const fieldres = recordsplit[i + 12];
-        const fieldrex = /FieldDecl\s+(0x[0-9a-f]+)\s+\<line:([0-9]+):([0-9]+),\s+col:([0-9]+)\>\s+col:([0-9]+)\s+(referenced\s+)?(\w+)\s+'([^']+)'(:'([\w\s]+)')?$/gim;
-        let fieldmatch : RegExpExecArray | null;
-        while(fieldmatch = fieldrex.exec(fieldres)) {
-            const name = fieldmatch[7];
-            const type = fieldmatch[8].replace('struct ', '');
-            const aliasOf = (fieldmatch[10] || '').replace('struct ', '');
+        const fieldRes = recordSplit[i + 13];
+        const fieldRex = /FieldDecl\s+(0x[0-9a-f]+)\s+\<line:([0-9]+):([0-9]+),\s+col:([0-9]+)\>\s+col:([0-9]+)\s+(referenced\s+)?(\w+)\s+'([^']+)'(:'([\w\s]+)')?$/gim;
+        let fieldMatch : RegExpExecArray | null;
+        while(fieldMatch = fieldRex.exec(fieldRes)) {
+            const name = fieldMatch[7];
+            const type = fieldMatch[8].replace('struct ', '');
+            const aliasOf = (fieldMatch[10] || '').replace('struct ', '');
 
             fields.push({
                 name,
@@ -115,7 +115,7 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
             continue;
         }
 
-        structs[recordname] = fields;
+        structs[recordName] = fields;
     }
 
     return structs;
