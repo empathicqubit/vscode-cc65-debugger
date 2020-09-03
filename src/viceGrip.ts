@@ -169,6 +169,12 @@ export class ViceGrip extends EventEmitter {
                 logfile
                 ? ['-logfile', logfile]
                 : []
+            ),
+
+            ...(
+                this._labelFile
+                ? ['-moncommands', this._labelFile]
+                : []
             )
         ];
 

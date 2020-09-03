@@ -231,6 +231,8 @@ export class CC65ViceRuntime extends EventEmitter {
 
         await this._vice.start();
 
+        console.log('TEXT PORT: ' + this._vice.textPort);
+
         this._vice.on('end', () => this.terminate());
 
         await this._setupViceDataHandler();
@@ -490,8 +492,6 @@ export class CC65ViceRuntime extends EventEmitter {
 
             await this._vice.multiExecBinary(delBrks);
         }
-
-        await this._stackFrameBreakToggle(false);
 
         this.sendEvent('stopOnStep', 'console');
     }
@@ -836,13 +836,13 @@ export class CC65ViceRuntime extends EventEmitter {
 
         if(vars.length <= 1) {
             const labs = this._dbgFile.labs.filter(x => x.seg && x.seg.name == "BSS" && x.scope == scope)
-            this.sendEvent('output', 'console', 'Total labs: ' + labs.length.toString());
+            this.sendEvent('output', 'console', `Total labs: ${labs.length}\n`);
             for(const lab of labs) {
                 vars.push(await this._varFromLab(lab));
             }
         }
         else {
-            this.sendEvent('output', 'console', 'We had vars');
+            this.sendEvent('output', 'console', 'We had vars\n');
         }
 
         return vars;
@@ -973,7 +973,6 @@ export class CC65ViceRuntime extends EventEmitter {
         }
     }
 
-    // FIXME These regexes could be pushed out and you could emit your own events.
     private async _setupViceDataHandler() {
         let breakpointHit = false;
 
@@ -1025,6 +1024,8 @@ export class CC65ViceRuntime extends EventEmitter {
                 this._viceRunning = false;
                 this._currentAddress = (<bin.StoppedResponse>e).programCounter;
                 this._currentPosition = this._getLineFromAddress(this._currentAddress);
+
+                await this._stackFrameBreakToggle(false);
 
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
@@ -1199,46 +1200,46 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         let finish = false;
 
         const mem = await this.getMemory(begin, span.size);
-        const incsps = this._mapFile.filter(x => x.functionName.startsWith('incsp'));
+        const stackManipulations = this._mapFile.filter(x => /^[^_].*sp[0-9]?$/i.test(x.functionName));
         let cmd = 0x100;
         for(let cursor = 0; cursor < mem.length; cursor += opcodeSizes[cmd] || 0) {
             cmd = mem.readUInt8(cursor);
             if(cmd == 0x4c) { // JMP
                 const addr = mem.readUInt16LE(cursor + 1);
-                if(cursor == mem.length - 3) {
+
+                const builtin = stackManipulations.find(x => x.functionAddress == addr);
+                if(builtin) {
+                    scopeEndFrames.push({
+                        scope: parentScope,
+                        address: begin + cursor,
+                    });
+                }
+                else if(addr < begin || addr >= end) {
                     if(!(this._codeSeg && this._codeSeg.start <= addr && addr <= this._codeSeg.start + this._codeSeg.size)) {
                         continue;
                     }
 
-                    const nextLabel = this._dbgFile.labs.find(x => x.val == addr && x.scope && x.scope != parentScope && x.scope != searchScope);
-                    if(!nextLabel) {
-                        continue;
+                    let nextScope = this._dbgFile.scopes.find(x => x.spans.find(x => x.absoluteAddress == addr)) || null;
+
+                    if(!nextScope) {
+                        const nextLabel = this._dbgFile.labs.find(x => x.val == addr && x.scope && x.scope != parentScope && x.scope != searchScope);
+                        if(!nextLabel) {
+                            continue;
+                        }
+
+                        nextScope = nextLabel.scope;
+
+                        if(!nextScope) {
+                            continue;
+                        }
                     }
 
-                    const res = await this._getStackFramesForScope(nextLabel.scope!, parentScope);
+                    const res = await this._getStackFramesForScope(nextScope!, parentScope);
                     if(!res) {
                         continue;
                     }
 
                     scopeEndFrames.push(...res.ends);
-
-                    finish = true;
-                }
-                else {
-                    const builtin = incsps.find(x => x.functionAddress == addr);
-                    if(!builtin) {
-                        continue;
-                    }
-
-                    if(parentScope.name == '_main') {
-                        this._exitAddresses.push(begin + cursor);
-                        break;
-                    }
-
-                    scopeEndFrames.push({
-                        scope: parentScope,
-                        address: begin + cursor,
-                    });
                 }
             }
             else if(cmd == 0x60) { // RTS
@@ -1257,20 +1258,6 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
 
             if(line.span.absoluteAddress < begin) {
                 break;
-            }
-
-            if(!finish && (line.span.absoluteAddress + line.span.size) <= end) {
-                const addr = line.span.absoluteAddress;
-                scopeEndFrames.push({
-                    scope: parentScope,
-                    address: addr,
-                });
-                finish = true;
-
-                if(parentScope.name == '_main') {
-                    this._exitAddresses.push(addr);
-                    continue;
-                }
             }
 
             start = line;
@@ -1302,6 +1289,10 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
 
             startFrames.push(...res.starts);
             endFrames.push(...res.ends);
+
+            if(res.ends[0] && res.ends[0].scope.name == '_main') {
+                this._exitAddresses.push(...res.ends.map(x => x.address));
+            }
         }
 
         const [resExits, resStarts, resEnds, brks] = await Promise.all([
@@ -1373,7 +1364,9 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         }
 
         for(const end of resEnds) {
-            this._stackFrameEnds[end.id] = endFrames.find(x => x.address == end.startAddress)!.scope;
+            const endFrame = endFrames.find(x => x.address == end.startAddress)!;
+            this._stackFrameEnds[end.id] = endFrame.scope;
+            _.remove(endFrames, x => x == endFrame);
         }
 
         await this._stackFrameBreakToggle(false);

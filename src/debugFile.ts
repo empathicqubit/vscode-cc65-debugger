@@ -495,7 +495,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         for(const span of dbgFile.spans) {
             if(scope.spanIds.includes(span.id)) {
                 scope.spans.push(span);
-                break;
+                if(scope.spans.length == scope.spanIds.length) {
+                    break;
+                }
             }
         }
     }
