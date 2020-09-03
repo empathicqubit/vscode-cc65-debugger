@@ -348,7 +348,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
             let value = '';
             if(fieldSize == 1) {
-                if(field.type.startsWith('signed')) {0
+                if(field.type.startsWith('signed')) {
                     value = (<any>mem.readInt8(currentPosition).toString(16)).padStart(2, '0');
                 }
                 else {
