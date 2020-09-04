@@ -99,6 +99,7 @@ export class CC65ViceRuntime extends EventEmitter {
     private _breakpointId = 1;
 
     private _viceRunning : boolean = false;
+    private _viceStarting : boolean = false;
     private _vice : ViceGrip;
 
     private _currentPosition: dbgfile.SourceLine;
@@ -194,6 +195,8 @@ export class CC65ViceRuntime extends EventEmitter {
         this._consoleType = consoleType;
         console.time('loadSource')
 
+        this._viceStarting = true;
+
         if(!debugUtils.programFiletypes.test(program)) {
             throw new Error("File must be a Commodore Disk image or PRoGram.");
         }
@@ -241,7 +244,6 @@ export class CC65ViceRuntime extends EventEmitter {
         await this._vice.waitForStop();
         await this.continue();
         await this._vice.waitForStop(this._entryAddress);
-        this._viceRunning = false;
 
         console.timeEnd('vice')
 
@@ -250,6 +252,8 @@ export class CC65ViceRuntime extends EventEmitter {
         await this._resetStackFrames();
         await this._guardCodeSeg();
         await this._setParamStackBottom();
+
+        this._viceStarting = false;
 
         await this._verifyBreakpoints();
 
@@ -387,7 +391,6 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     public async continue(reverse = false) {
-        this._viceRunning = true;
         await this._vice.exit();
     }
 
@@ -596,7 +599,7 @@ export class CC65ViceRuntime extends EventEmitter {
     // Breakpoints
 
     private async _verifyBreakpoints() : Promise<void> {
-        if(!this._dbgFile || !this._vice) {
+        if(!this._dbgFile || !this._vice || this._viceStarting) {
             return;
         }
 
