@@ -195,8 +195,6 @@ export class CC65ViceRuntime extends EventEmitter {
         this._consoleType = consoleType;
         console.time('loadSource')
 
-        this._viceStarting = true;
-
         if(!debugUtils.programFiletypes.test(program)) {
             throw new Error("File must be a Commodore Disk image or PRoGram.");
         }
@@ -232,6 +230,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), vicePath, viceArgs, labelFile);
 
+        this._viceStarting = true;
         await this._vice.start();
 
         console.log('TEXT PORT: ' + this._vice.textPort);
