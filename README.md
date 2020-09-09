@@ -23,6 +23,7 @@ There are a few settings in this configuration to note:
 - **viceCommand**: **OBSOLETE**! Please see the setting `cc65vice.viceCommand` in your user settings. Set this to specify the path to the VICE executable. You'll probably need this on Windows.
 - **viceArgs**: You'll want to set your C64 model here, and any other special hardware options that you need for your program. Either NTSC or one of the PAL models (jap, drean, etc). Look at the VICE manual for the full list.
 - **buildCommand**: Your actual build command. Defaults to make if unspecified. [You will need to change your Makefile to support being debugged with this.](#changes-needed-to-your-makefile)
+- **preprocessCommand**: The command used to generate the preprocessor `.i` files, which are used by Clang instead of the `.c` and `.h` files if they are available. Omitting this setting may cause the preprocessor files not to be built, which could result in less accurate struct handling.
 - **program**: Specify this if the debugger can't find your binary file. By default it will look for a d81/d64 and if it can't find any a PRG. If you have multiple of those types of files, it will try some fanciness to determine which one is the "real" one, such as looking at the modification date and how many files are in your disk image, but those may fail.
 - **type**: Always `cc65-vice` for this debugger.
 - **request**: Always launch. Attachment is not possible yet.
@@ -30,7 +31,7 @@ There are a few settings in this configuration to note:
 - **buildCwd**: The working directory for your build command.
 - **stopOnEntry**: This will break at the beginning of the program. Otherwise it will continue automatically after the debugger connects.
 
-You may have some problems with `autostart-warp` working correctly. I think the way VICE detects this is to blame. To turn it off, just add `+warp` and `+autostart-warp` to your `viceArgs`:
+You may have some problems with `autostart-warp` working correctly. The way VICE detects this may be to blame. To turn it off, just add `+warp` and `+autostart-warp` to your `viceArgs`:
 
 ```json
 {
@@ -45,7 +46,9 @@ You may have some problems with `autostart-warp` working correctly. I think the 
 
 ## Changes needed to your Makefile
 
-If you've used the default `Makefile` at [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself) then you only need to add the `-g` option to your `CFLAGS` **and** `LDFLAGS` variables at the top of the file. Otherwise, if you made a custom Makefile, you will need to tell the linker that you want a debug file and a map file. you would add the following options to your linker:
+If you've used the default `Makefile` at [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself), it's recommended to use a [slightly modified Makefile](src/tests/simple-project/Makefile). This Makefile contains targets to generate the preprocessor `.i` files, which are easier for Clang to understand to help you [browse struct data](#changes-needed-to-your-system). Otherwise you only need to add the `-g` option to your `CFLAGS` **and** `LDFLAGS` variables at the top of the file. 
+
+If instead you made a custom Makefile, you will need to tell the linker that you want a debug file and a map file. You would add the following options to your linker:
 
 ```sh
 -g -Wl "--mapfile,build/PROGRAMNAME.map" -Wl "--dbgfile,build/PROGRAMNAME.dbg"
@@ -53,11 +56,13 @@ If you've used the default `Makefile` at [the CC65 project wiki](https://github.
 
 Make sure that the paths on the files are in the same folder and have the same name (minus the extension, of course) as your main program!
 
-If you have included any optimizations you should probably turn those off, however, I have made some effort to trace some of them.
+You will also need a target to generate the preprocessor `.i` files. The default target is `preprocess-only`, but you can change the command used with the `preprocessCommand` option.
+
+If you have included any optimizations you should probably turn those off, however, efort has been made to trace some of them.
 
 ## Changes needed to your system
 
-It's not required, but if you install Clang tools you can get details on data fields. To do that on Debian (stretch):
+It's not required, but if you install Clang tools you can get details on struct fields. To do that on Debian (stretch):
 
 ```sh
 sudo apt install clang-tools-7
@@ -84,7 +89,7 @@ typedef struct {
 } blah;
 ```
 
-Also, do not name your typedefs differently than your struct. I have not tested it but I assume it will break.
+Also, do not name your typedefs differently than your struct. It hasn't been tested it but I assume it will break.
 
 ## What works
 
