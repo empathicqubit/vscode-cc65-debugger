@@ -204,16 +204,18 @@ ifeq ($(words $(TARGETLIST)),1)
 # Set PROGRAM to something like 'myprog.c64'.
 override PROGRAM := $(PROGRAM).$(TARGETLIST)
 
+CSOURCES := $(wildcard $(SRCDIR)/*.c)
+CSOURCES += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.c)
+
 # Set SOURCES to something like 'src/foo.c src/bar.s'.
 # Use of assembler files with names ending differently than .s is deprecated!
-SOURCES := $(wildcard $(SRCDIR)/*.c)
+SOURCES := $(CSOURCES)
 SOURCES += $(wildcard $(SRCDIR)/*.s)
 SOURCES += $(wildcard $(SRCDIR)/*.asm)
 SOURCES += $(wildcard $(SRCDIR)/*.a65)
 
 # Add to SOURCES something like 'src/c64/me.c src/c64/too.s'.
 # Use of assembler files with names ending differently than .s is deprecated!
-SOURCES += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.c)
 SOURCES += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.s)
 SOURCES += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.asm)
 SOURCES += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.a65)
@@ -222,7 +224,7 @@ SOURCES += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.a65)
 OBJECTS := $(addsuffix .o,$(basename $(addprefix $(TARGETOBJDIR)/,$(notdir $(SOURCES)))))
 
 # Set INTERMEDIATES to something like 'obj/c64/foo.i obj/c64/bar.i'.
-INTERMEDIATES := $(addsuffix .i,$(basename $(addprefix $(TARGETOBJDIR)/,$(notdir $(SOURCES)))))
+INTERMEDIATES := $(addsuffix .i,$(basename $(addprefix $(TARGETOBJDIR)/,$(notdir $(CSOURCES)))))
 
 # Set DEPENDS to something like 'obj/c64/foo.d obj/c64/bar.d'.
 DEPENDS := $(OBJECTS:.o=.d)
@@ -302,20 +304,8 @@ $(TARGETOBJDIR)/%.o: %.asm | $(TARGETOBJDIR)
 
 vpath %.a65 $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
-$(TARGETOBJDIR)/%.i: %.a65 | $(TARGETOBJDIR)
-	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
-
 $(TARGETOBJDIR)/%.i: %.c | $(TARGETOBJDIR)
 	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(CFLAGS) -o $@ $<
-
-$(TARGETOBJDIR)/%.i: %.s | $(TARGETOBJDIR)
-	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
-
-$(TARGETOBJDIR)/%.i: %.asm | $(TARGETOBJDIR)
-	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
-
-$(TARGETOBJDIR)/%.i: %.a65 | $(TARGETOBJDIR)
-	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
 
 $(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
 	cl65 -t $(CC65TARGET) $(LDFLAGS) -o $@ $(patsubst %.cfg,-C %.cfg,$^)
