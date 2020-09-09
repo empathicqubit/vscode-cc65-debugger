@@ -221,6 +221,9 @@ SOURCES += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.a65)
 # Set OBJECTS to something like 'obj/c64/foo.o obj/c64/bar.o'.
 OBJECTS := $(addsuffix .o,$(basename $(addprefix $(TARGETOBJDIR)/,$(notdir $(SOURCES)))))
 
+# Set INTERMEDIATES to something like 'obj/c64/foo.i obj/c64/bar.i'.
+INTERMEDIATES := $(addsuffix .i,$(basename $(addprefix $(TARGETOBJDIR)/,$(notdir $(SOURCES)))))
+
 # Set DEPENDS to something like 'obj/c64/foo.d obj/c64/bar.d'.
 DEPENDS := $(OBJECTS:.o=.d)
 
@@ -242,6 +245,8 @@ endif
 .PHONY: all test clean zap love
 
 all: $(PROGRAM)
+
+preprocess-only: $(INTERMEDIATES)
 
 -include $(DEPENDS)
 -include $(STATEFILE)
@@ -297,8 +302,20 @@ $(TARGETOBJDIR)/%.o: %.asm | $(TARGETOBJDIR)
 
 vpath %.a65 $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
-$(TARGETOBJDIR)/%.o: %.a65 | $(TARGETOBJDIR)
-	cl65 -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
+$(TARGETOBJDIR)/%.i: %.a65 | $(TARGETOBJDIR)
+	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
+
+$(TARGETOBJDIR)/%.i: %.c | $(TARGETOBJDIR)
+	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(CFLAGS) -o $@ $<
+
+$(TARGETOBJDIR)/%.i: %.s | $(TARGETOBJDIR)
+	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
+
+$(TARGETOBJDIR)/%.i: %.asm | $(TARGETOBJDIR)
+	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
+
+$(TARGETOBJDIR)/%.i: %.a65 | $(TARGETOBJDIR)
+	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
 
 $(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
 	cl65 -t $(CC65TARGET) $(LDFLAGS) -o $@ $(patsubst %.cfg,-C %.cfg,$^)
