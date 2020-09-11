@@ -244,30 +244,40 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     }
 
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
+        try {
+            const path = args.source.path!;
+            const clientLines = args.lines || [];
 
-        const path = <string>args.source.path;
-        const clientLines = args.lines || [];
+            const wasRunning = this._runtime.viceRunning;
 
-        await this._runtime.clearBreakpoints(path);
+            await this._runtime.clearBreakpoints(path);
 
-        // set and verify breakpoint locations
-        const actualBreakpoints = <any>(await Promise.all(clientLines.map(async l => {
-            const brk = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(l));
-            if(!brk) {
-                return null;
+            // set and verify breakpoint locations
+            const actualBreakpoints = <any>(await Promise.all(clientLines.map(async l => {
+                const brk = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(l));
+                if(!brk) {
+                    return null;
+                }
+
+                let { verified, line, id } = brk;
+                const bp = <DebugProtocol.Breakpoint> new Breakpoint(verified, this.convertDebuggerLineToClient(line.num));
+                bp.id = id;
+                return bp;
+            }))).filter(x => x);
+
+            if(wasRunning) {
+                this._runtime.continue();
             }
 
-            let { verified, line, id } = brk;
-            const bp = <DebugProtocol.Breakpoint> new Breakpoint(verified, this.convertDebuggerLineToClient(line.num));
-            bp.id= id;
-            return bp;
-        }))).filter(x => x);
-
-        // send back the actual breakpoint positions
-        response.body = {
-            breakpoints: actualBreakpoints
-        };
-        this.sendResponse(response);
+            // send back the actual breakpoint positions
+            response.body = {
+                breakpoints: actualBreakpoints
+            };
+            this.sendResponse(response);
+        }
+        catch(e) {
+            console.error(e);
+        }
     }
 
     protected async terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): Promise<void> {

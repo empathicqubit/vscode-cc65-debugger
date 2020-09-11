@@ -98,7 +98,7 @@ export class CC65ViceRuntime extends EventEmitter {
     // so that the frontend can match events with breakpoints.
     private _breakpointId = 1;
 
-    private _viceRunning : boolean = false;
+    public viceRunning : boolean = false;
     private _viceStarting : boolean = false;
     private _vice : ViceGrip;
 
@@ -160,7 +160,9 @@ export class CC65ViceRuntime extends EventEmitter {
                 ? util.promisify(child_process.exec)(preprocessCmd, {
                     ...opts,
                     shell: undefined,
-                }).then(() => this._usePreprocess = true).catch(() => {})
+                }).then(() => this._usePreprocess = true).catch(() => {
+                    this.sendEvent('output', 'console', 'Preprocessor files not generated!\n');
+                })
                 : Promise.resolve(),
         ]);
 
@@ -623,7 +625,7 @@ export class CC65ViceRuntime extends EventEmitter {
         }
         catch {}
         this._vice = <any>null;
-        this._viceRunning = false;
+        this.viceRunning = false;
 
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
@@ -636,8 +638,6 @@ export class CC65ViceRuntime extends EventEmitter {
         if(!this._dbgFile || !this._vice || this._viceStarting) {
             return;
         }
-
-        const wasRunning = this._viceRunning;
 
         const checkCmds : bin.CheckpointSetCommand[] = [];
         for(const bp of this._breakPoints) {
@@ -686,10 +686,6 @@ export class CC65ViceRuntime extends EventEmitter {
         }
 
         await this._vice.multiExecBinary(condCmds);
-
-        if(wasRunning) {
-            await this.continue();
-        }
     }
 
 
@@ -697,7 +693,11 @@ export class CC65ViceRuntime extends EventEmitter {
         const index = this._breakPoints.indexOf(bp);
         this._breakPoints.splice(index, 1);
 
-        const dels : bin.CheckpointDeleteCommand[] = [];
+        if(bp.viceIndex <= 0) {
+            return bp;
+        }
+
+        let dels : bin.CheckpointDeleteCommand[] = [];
 
         dels.push({
             type: bin.CommandType.checkpointDelete,
@@ -715,6 +715,8 @@ export class CC65ViceRuntime extends EventEmitter {
                 });
             }
         }
+
+        dels = _.uniqBy(dels, x => x.id);
 
         await this._vice.multiExecBinary(dels)
 
@@ -1062,7 +1064,7 @@ export class CC65ViceRuntime extends EventEmitter {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
             else if(e.type == bin.ResponseType.stopped) {
-                this._viceRunning = false;
+                this.viceRunning = false;
                 this._currentAddress = (<bin.StoppedResponse>e).programCounter;
                 this._currentPosition = this._getLineFromAddress(this._currentAddress);
 
@@ -1071,7 +1073,7 @@ export class CC65ViceRuntime extends EventEmitter {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
             else if(e.type == bin.ResponseType.resumed) {
-                this._viceRunning = true;
+                this.viceRunning = true;
                 this._currentAddress = (<bin.ResumedResponse>e).programCounter;
                 this._currentPosition = this._getLineFromAddress(this._currentAddress);
 
@@ -1097,19 +1099,17 @@ export class CC65ViceRuntime extends EventEmitter {
                             type: bin.CommandType.checkpointDelete,
                             id: guard,
                         })
-                        this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
                         this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
                     }
                     else if (this._exitAddresses.includes(this._currentAddress)) {
                         await this.terminate();
                     }
                     else {
-                        const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
-                        if(userBreak) {
-                            this._viceRunning = false;
-                            this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-                        }
+                        // const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
                     }
+
+                    this.viceRunning = false;
+                    this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
                 }
             }
         });
