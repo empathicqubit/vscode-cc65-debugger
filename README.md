@@ -58,7 +58,7 @@ Make sure that the paths on the files are in the same folder and have the same n
 
 You will also need a target to generate the preprocessor `.i` files. The default target is `preprocess-only`, but you can change the command used with the `preprocessCommand` option.
 
-If you have included any optimizations you should probably turn those off, however, efort has been made to trace some of them.
+If you have included any optimizations (`-Osir`) you should probably turn those off, however, efort has been made to trace some of them.
 
 ## Changes needed to your system
 
