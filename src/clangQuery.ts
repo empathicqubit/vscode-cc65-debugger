@@ -6,6 +6,8 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as hotel from 'hasbin';
 
+const execFile = util.promisify(child_process.execFile);
+
 export interface ClangTypeInfo {
     name: string;
     type: string;
@@ -13,19 +15,142 @@ export interface ClangTypeInfo {
 }
 
 export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boolean, cwd: string) : Promise<{[typename: string]:ClangTypeInfo[]}> {
-    const clangExec : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
-    let codeFiles : string[];
+    const clangExecPath : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
+    const baseArgs = ['-c=set output dump'];
 
+    let codeFiles : string[];
     if(usePreprocess) {
         // FIXME Get this list from elsewhere?
         codeFiles = (await util.promisify(readdir)(cwd) as string[]).filter(x => /\.i$/gi.test(x));
     }
     else {
-        codeFiles = dbgFile.files.filter(x => /\.(c|h)$/gi.test(x.name)).map(x => x.name);
+        codeFiles = _(dbgFile.files)
+            .filter(x => /\.(c|h)$/gi.test(x.name))
+            .map(x => x.name)
+            .sortBy(x => !/\.h$/gi.test(x), (x, i) => i)
+            .value();
+    }
+
+    // Try to find the path of CC65, in case it's nonstandard.
+    const files = `(apple2enh\\.lib|apple2\\.lib|atari2600\\.lib|atari5200\\.lib|atari\\.lib|atarixl\\.lib|atmos\\.lib|c128\\.lib|c16\\.lib|c64\\.lib|cbm510\\.lib|cbm610\\.lib|creativision\\.lib|gamate\\.lib|geos-apple\\.lib|geos-cbm\\.lib|lynx\\.lib|nes\\.lib|none\\.lib|osic1p\\.lib|pce\\.lib|pet\\.lib|plus4\\.lib|sim6502\\.lib|sim65c02\\.lib|supervision\\.lib|telestrat\\.lib|vic20\\.lib)`;
+    const sep = path.sep.replace('\\', '\\\\');
+    const lib = dbgFile.libs.find(x => new RegExp(`lib${sep}${files}$`, 'gi').test(x.name));
+    let cpath = `/usr/share/cc65/include`;
+    if(lib) {
+        const libPath = lib.name;
+        const cc65Path = path.dirname(path.dirname(libPath));
+        cpath = `${cc65Path}/include`;
+
+        // Add cc65 builtin defines so stuff doesn't break
+        const ln = path.basename(libPath).replace(/\.lib$/gi, '');
+
+        if(ln == 'apple2enh') {
+            baseArgs.push('-extra-arg=-D__APPLE2__=1');
+            baseArgs.push('-extra-arg=-D__APPLE2ENH__=1');
+        }
+        else if(ln == 'apple2') {
+            baseArgs.push('-extra-arg=-D__APPLE2__=1');
+        }
+        else if(ln == 'atari') {
+            baseArgs.push('-extra-arg=-D__ATARI__=1');
+        }
+        else if(ln == 'atari2600') {
+            baseArgs.push('-extra-arg=-D__ATARI2600__=1');
+        }
+        else if(ln == 'atari5200') {
+            baseArgs.push('-extra-arg=-D__ATARI5200__=1');
+        }
+        else if(ln == 'atarixl') {
+            baseArgs.push('-extra-arg=-D__ATARI__=1');
+            baseArgs.push('-extra-arg=-D__ATARIXL__=1');
+        }
+        else if(ln == 'atmos') {
+            baseArgs.push('-extra-arg=-D__ATMOS__=1');
+        }
+        else if(ln == 'c128') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__C128__=1');
+        }
+        else if(ln == 'c16') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__C16__=1');
+        }
+        else if(ln == 'c64') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__C64__=1');
+        }
+        else if(ln == 'cbm510') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__CBM510__=1');
+        }
+        else if(ln == 'cbm610') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__CBM610__=1');
+        }
+        else if(ln == 'creativision') {
+            baseArgs.push('-extra-arg=-D__CREATIVISION__=1');
+        }
+        else if(ln == 'gamate') {
+            baseArgs.push('-extra-arg=-D__GAMATE__=1');
+        }
+        else if(ln == 'geos-apple') {
+            baseArgs.push('-extra-arg=-D__GEOS__=1');
+            baseArgs.push('-extra-arg=-D__GEOS_APPLE__=1');
+        }
+        else if(ln == 'geos-cbm') {
+            baseArgs.push('-extra-arg=-D__GEOS__=1');
+            baseArgs.push('-extra-arg=-D__GEOS_CBM__=1');
+        }
+        else if(ln == 'lynx') {
+            baseArgs.push('-extra-arg=-D__LYNX__=1');
+        }
+        else if(ln == 'nes') {
+            baseArgs.push('-extra-arg=-D__NES__=1');
+        }
+        else if(ln == 'osic1p') {
+            baseArgs.push('-extra-arg=-D__OSI1CP__=1');
+        }
+        else if(ln == 'pce') {
+            baseArgs.push('-extra-arg=-D__PCE__=1');
+        }
+        else if(ln == 'pet') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__PET__=1');
+        }
+        else if(ln == 'plus4') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__PLUS4__=1');
+        }
+        else if(ln == 'sim6502') {
+            baseArgs.push('-extra-arg=-D__SIM6502__=1');
+        }
+        else if(ln == 'sim65c02') {
+            baseArgs.push('-extra-arg=-D__SIM65C02__=1');
+        }
+        else if(ln == 'supervision') {
+            baseArgs.push('-extra-arg=-D__SUPERVISION__=1');
+        }
+        else if(ln == 'telestrat') {
+            baseArgs.push('-extra-arg=-D__TELESTRAT__=1');
+        }
+        else if(ln == 'vic20') {
+            baseArgs.push('-extra-arg=-D__CBM__=1');
+            baseArgs.push('-extra-arg=-D__VIC20__=1');
+        }
+    }
+
+    const opts : child_process.ExecFileOptions = {
+        env: {
+            ...process.env,
+            CPATH: cpath,
+        }
+    };
+    const clangExec = async(args: string[]) => {
+        return await execFile(clangExecPath, [...baseArgs, ...args, ...codeFiles], opts);
     }
 
     const varRex = /VarDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<[^\>]+\>\s+col:([0-9]+)\s+(c|used)\s+(\w+)\s+'([^']+)'(\s+cinit|:'([\w\s]+)')?$/gim;
-    const globres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasGlobalStorage())', ...codeFiles])
+    const globres = await clangExec(['-c=match varDecl(isExpansionInMainFile(), hasGlobalStorage())']);
     const structs : {[typename:string]:ClangTypeInfo[]} = {};
     const globs : ClangTypeInfo[] = [];
     let globalVarMatch : RegExpExecArray | null;
@@ -43,7 +168,7 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boo
 
     structs['__GLOBAL__()'] = globs;
 
-    const varRes = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match functionDecl(isExpansionInMainFile(), hasDescendant(varDecl()))', ...codeFiles])
+    const varRes = await clangExec(['-c=match functionDecl(isExpansionInMainFile(), hasDescendant(varDecl()))']);
     const functionRex = /(FunctionDecl\s+0x([0-9a-f]+)\s+\<([^\n\r]+):([0-9]+):([0-9]+),\s+[^\>]+\>\s+\S+(\s+used)?\s+(\w+)\s+'([^']+)'$)/gim;
 
     const functionSplit = varRes.stdout.split(functionRex);
@@ -77,7 +202,7 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boo
         structs[`_${functionName}()`] = vars;
     }
 
-    const recordRes = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match recordDecl(isExpansionInMainFile())', ...codeFiles]);
+    const recordRes = await clangExec(['-c=match recordDecl(isExpansionInMainFile())']);
     const recordRex = /(RecordDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<([^\n\r]+):([0-9]+):([0-9]+),\s+line:([0-9]+):([0-9]+)\>\s+line:([0-9]+):([0-9+])\s+(invalid\s+)?struct\s+(\w+\s+)?definition$)/gim;
 
     const recordSplit = recordRes.stdout.split(recordRex);

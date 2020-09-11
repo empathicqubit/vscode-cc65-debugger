@@ -9,6 +9,7 @@
 less wonky than disk.
 * Better handling of tail call optimizations introduced by `-Or`.
 * Better behavior when step out fails.
+* Better breakpoint handling.
 
 ## 1.1.24
 

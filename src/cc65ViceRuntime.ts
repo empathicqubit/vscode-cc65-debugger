@@ -1204,6 +1204,7 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             this._localTypes = await clangQuery.getLocalTypes(this._dbgFile, this._usePreprocess, buildCwd);
         }
         catch(e) {
+            console.error(e);
             this.sendEvent('output', 'stderr', 'Not using Clang tools. Are they installed?');
         }
     }
