@@ -14,7 +14,7 @@ const config = async() => {
         __dirname: false,
       },
       entry: {
-        monitor: './node_modules/vice-rainbow-monitor/index.js', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+        monitor: './node_modules/@entan.gl/vice-rainbow-monitor/index.js', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
       },
       output: {
         // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
@@ -37,7 +37,7 @@ const config = async() => {
       module: {
         rules: [
         {
-            test: await util.promisify(fs.realpath)(path.resolve(__dirname, "node_modules/vice-rainbow-monitor/index.js")),
+            test: await util.promisify(fs.realpath)(path.resolve(__dirname, "node_modules/@entan.gl/vice-rainbow-monitor/index.js")),
             use: [
             {
                 loader: 'shebang-loader'
