@@ -4,7 +4,7 @@ import * as dbgfile from './debugFile';
 import * as child_process from 'child_process';
 import * as path from 'path';
 
-export const programFiletypes = /\.(d[0-9]{2}|prg|c64)$/i
+export const programFiletypes = /\.((d[0-9]{2}|prg)|(vic20|c16|c64|c128|plus4|cbm510|cbm610|pet))$/i
 
 export interface ExecHandler {
     (file: string, args: string[], opts: child_process.ExecFileOptions): Promise<[number, number]>;

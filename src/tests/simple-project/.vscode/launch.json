@@ -9,13 +9,10 @@
             "request": "launch",
             "name": "CC65 Vice Launch",
             "buildCwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/simple-project.c64",
             "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
             "debugServer": 4711,
             "stopOnEntry": true,
             "viceArgs": [
-                "-model",
-                "ntsc"
             ]
         }
     ]

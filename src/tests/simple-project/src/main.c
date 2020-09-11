@@ -1,7 +1,8 @@
+#include <stdio.h>
 #include <cbm.h>
 
 unsigned char main(void) {
-    *(unsigned char*)0x400 = 0x00;
+    printf("Hello world!");
     return 0;
 }
 

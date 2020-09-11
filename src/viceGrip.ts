@@ -150,7 +150,15 @@ export class ViceGrip extends EventEmitter {
         }
 
         let args = [
-            "-directory", `${q}${path.normalize(__dirname + "/../system")}${q}`,
+            // C64-specific
+            ...(
+                path.basename(this._vicePath).startsWith('x64')
+                ? [
+                    "-directory", `${q}${path.normalize(__dirname + "/../system")}${q}`,
+                    "-iecdevice8",
+                ]
+                : []
+            ),
 
             // Monitor
             "-nativemonitor",
@@ -158,7 +166,7 @@ export class ViceGrip extends EventEmitter {
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${this._binaryPort}`,
 
             // Hardware
-            "-iecdevice8", "-autostart-warp", "-autostartprgmode", "1", "-autostart-handle-tde",
+             "-autostart-warp", "-autostartprgmode", "1", "-autostart-handle-tde",
 
             ...(
                 this._initBreak > -1

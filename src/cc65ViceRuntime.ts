@@ -1015,8 +1015,9 @@ export class CC65ViceRuntime extends EventEmitter {
     // Get the labels file if it exists
     private async _getLabelsPath(program: string): Promise<string | null> {
         const match = debugUtils.programFiletypes.exec(program)!;
+        const isATargetExtension = !!match[3]; // For the standard Makefile's wonky targets.
         let filename : string;
-        if(match[1] == 'c64') {
+        if(isATargetExtension) {
             filename = program + '.lbl';
         }
         else {
