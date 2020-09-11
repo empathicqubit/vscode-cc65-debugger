@@ -315,7 +315,10 @@ export class ViceGrip extends EventEmitter {
                     const related : bin.AbstractResponse[] = [];
                     const afterResponse = (b : U) => {
                         if(b.error) {
-                            rej(b);
+                            const error : any = new Error('Response error');
+                            error.response = b;
+                            error.command = command;
+                            rej(error);
                         }
                         else if(!command.responseType || b.type == command.responseType) {
                             b.related = related;

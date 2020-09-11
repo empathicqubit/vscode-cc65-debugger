@@ -147,6 +147,11 @@
                                 "description": "The command to use to build before execution. Default is 'make'",
                                 "default": "make OPTIONS=debugfile,makefile,labelfile"
                             },
+                            "preprocessCommand": {
+                                "type": "string",
+                                "description": "The command to use to generate preprocessor .i files before execution. Default is 'make preprocess-only'",
+                                "default": "make OPTIONS=debugfile,makefile,labelfile preprocess-only"
+                            },
                             "stopOnEntry": {
                                 "type": "boolean",
                                 "description": "Automatically stop after launch.",
@@ -180,6 +185,7 @@
                         "name": "CC65 Vice Launch",
                         "buildCwd": "${workspaceFolder}",
                         "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+                        "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
                         "stopOnEntry": true,
                         "viceArgs": [
                             "-model",
@@ -197,6 +203,7 @@
                             "name": "CC65 Vice Launch",
                             "buildCwd": "^\"\\${workspaceFolder}\"",
                             "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+                            "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
                             "stopOnEntry": true,
                             "viceArgs": [
                                 "-model",

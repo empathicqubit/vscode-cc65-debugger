@@ -1,6 +1,7 @@
 import * as dbgfile from './debugFile';
 import * as util from 'util';
 import * as child_process from 'child_process';
+import * as readdir from 'recursive-readdir';
 import * as path from 'path';
 import * as _ from 'lodash';
 import * as hotel from 'hasbin';
@@ -11,19 +12,27 @@ export interface ClangTypeInfo {
     aliasOf: string;
 }
 
-export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typename: string]:ClangTypeInfo[]}> {
+export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boolean, cwd: string) : Promise<{[typename: string]:ClangTypeInfo[]}> {
     const clangExec : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
-    const codeFiles = dbgFile.files.filter(x => /\.(c|h)$/gi.test(x.name)).map(x => x.name);
+    let codeFiles : string[];
 
-    const varrex = /VarDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<([^\n\r]+):([0-9]+):([0-9]+),\s+col:([0-9]+)\>\s+col:([0-9]+)\s+used\s+(\w+)\s+'([^']+)'(\s+cinit|:'([\w\s]+)')?$/gim;
+    if(usePreprocess) {
+        // FIXME Get this list from elsewhere?
+        codeFiles = (await util.promisify(readdir)(cwd) as string[]).filter(x => /\.i$/gi.test(x));
+    }
+    else {
+        codeFiles = dbgFile.files.filter(x => /\.(c|h)$/gi.test(x.name)).map(x => x.name);
+    }
+
+    const varRex = /VarDecl\s+(0x[0-9a-f]+)\s+(prev\s+(0x[0-9a-f]+)\s+)?\<[^\>]+\>\s+col:([0-9]+)\s+(c|used)\s+(\w+)\s+'([^']+)'(\s+cinit|:'([\w\s]+)')?$/gim;
     const globres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasGlobalStorage())', ...codeFiles])
     const structs : {[typename:string]:ClangTypeInfo[]} = {};
     const globs : ClangTypeInfo[] = [];
-    let globvarmatch : RegExpExecArray | null;
-    while(globvarmatch = varrex.exec(globres.stdout)) {
-        const name = globvarmatch[9];
-        const type = globvarmatch[10].replace('struct ', '');
-        const aliasOf = (globvarmatch[12] || '').replace('struct ', '');
+    let globalVarMatch : RegExpExecArray | null;
+    while(globalVarMatch = varRex.exec(globres.stdout)) {
+        const name = globalVarMatch[6];
+        const type = globalVarMatch[7].replace('struct ', '');
+        const aliasOf = (globalVarMatch[9] || '').replace('struct ', '');
 
         globs.push({
             name,
@@ -34,53 +43,38 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile) : Promise<{[typena
 
     structs['__GLOBAL__()'] = globs;
 
-    const varres = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match varDecl(isExpansionInMainFile(), hasAncestor(functionDecl()))', ...codeFiles])
-    varrex.lastIndex = 0;
-    let varmatch;
-    const vars : ClangTypeInfo[] = [];
-    while(varmatch = varrex.exec(varres.stdout)) {
-        const lineNo = parseInt(varmatch[5]); // Numbered from 1, not 0
-        const filename = path.normalize(varmatch[4]);
-        const name = varmatch[9];
-        const dist : number[] = [];
-        const possibleSyms = dbgFile.csyms.filter(x => x.sc == dbgfile.sc.auto && x.name == name);
+    const varRes = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match functionDecl(isExpansionInMainFile(), hasDescendant(varDecl()))', ...codeFiles])
+    const functionRex = /(FunctionDecl\s+0x([0-9a-f]+)\s+\<([^\n\r]+):([0-9]+):([0-9]+),\s+[^\>]+\>\s+\S+(\s+used)?\s+(\w+)\s+'([^']+)'$)/gim;
 
-        const sym = _.minBy(possibleSyms, sym => {
-            if(!sym.scope || !sym.scope.spans || !sym.scope.spans[0].lines.length) {
-                return Number.MAX_SAFE_INTEGER;
+    const functionSplit = varRes.stdout.split(functionRex);
+    for(let i = 1; i < functionSplit.length ; i+=9) {
+        const functionName = functionSplit[i + 6];
+        const functionBody = functionSplit[i + 8];
+
+        varRex.lastIndex = 0;
+        let varMatch : RegExpExecArray | null;
+        const vars : ClangTypeInfo[] = [];
+        while(varMatch = varRex.exec(functionBody)) {
+            const name = varMatch[6];
+            const sym = dbgFile.csyms.find(x => x.sc == dbgfile.sc.auto && x.name == name && x.scope && x.scope.name == `_${functionName}`);
+
+            if(!sym) {
+                continue;
             }
 
-            const lines = sym.scope.spans[0].lines.filter(x => x.file && x.file.name == filename)
-            if(!lines.length) {
-                return Number.MAX_SAFE_INTEGER;
-            }
-            else if(lineNo - 1 < lines[0].num) {
-                return lines[0].num - (lineNo - 1);
-            }
-            else if(lineNo - 1 > _.last(lines)!.num) {
-                return (lineNo - 1) - _.last(lines)!.num;
-            }
-            else return 0;
-        });
+            const type = varMatch[7].replace('struct ', '');
+            const aliasOf = (varMatch[9] || '').replace('struct ', '');
 
-        if(!sym) {
-            continue;
+            const varObj : ClangTypeInfo = {
+                name,
+                type,
+                aliasOf
+            }
+
+            vars.push(varObj);
         }
 
-        const scope = sym.scope!;
-
-        const type = varmatch[10].replace('struct ', '');
-        const aliasOf = (varmatch[12] || '').replace('struct ', '');
-
-        const varObj : ClangTypeInfo = {
-            name,
-            type,
-            aliasOf
-        }
-
-        const vars = structs[scope.name + '()'] || [];
-        vars.push(varObj);
-        structs[scope.name + '()'] = vars;
+        structs[`_${functionName}()`] = vars;
     }
 
     const recordRes = await util.promisify(child_process.execFile)(clangExec, ['-c=set output dump', '-c=match recordDecl(isExpansionInMainFile())', ...codeFiles]);
@@ -126,7 +120,17 @@ export function recurseFieldSize(fields: ClangTypeInfo[], allTypes: {[typename:s
 
     for(const field of fields) {
         const realType = field.aliasOf || field.type;
-        if(realType.endsWith(' char')) {
+        let arrMatch : RegExpExecArray | null;
+        if(arrMatch = /^([^\[]+)\[([0-9]+)\]$/gi.exec(realType)) {
+            const itemCount = parseInt(arrMatch[2]);
+            const itemType = arrMatch[1];
+            dataSizes.push(recurseFieldSize([{
+                name: '',
+                type: itemType,
+                aliasOf: '',
+            }], allTypes)[0] * itemCount);
+        }
+        else if(realType.endsWith(' char')) {
             dataSizes.push(1);
         }
         else if(realType.endsWith(' int') || realType.endsWith('*')) {

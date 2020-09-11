@@ -108,6 +108,7 @@ export class CC65ViceRuntime extends EventEmitter {
     private _localTypes: { [typename: string]: clangQuery.ClangTypeInfo[]; } | undefined;
     private _runInTerminalRequest: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void;
     private _colorTermPids: [number, number] = [-1, -1];
+    private _usePreprocess: boolean;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -118,12 +119,13 @@ export class CC65ViceRuntime extends EventEmitter {
     * Build the program using the command specified and try to find the output file with monitoring.
     * @returns The possible output files of types d81, prg, and d64.
     */
-    public async build(workspaceDir: string, cmd: string) : Promise<string[]> {
+    public async build(workspaceDir: string, cmd: string, preprocessCmd: string) : Promise<string[]> {
+        const opts = {
+            shell: true,
+            cwd: workspaceDir,
+        };
         const builder = new Promise((res, rej) => {
-            const process = child_process.spawn(cmd, {
-                shell: true,
-                cwd: workspaceDir,
-            })
+            const process = child_process.spawn(cmd, opts)
 
             process.stdout.on('data', (d) => {
                 this.sendEvent('output', 'stdout', d.toString());
@@ -150,7 +152,17 @@ export class CC65ViceRuntime extends EventEmitter {
             filenames.push(filename);
         });
 
-        await builder;
+        this._usePreprocess = false;
+
+        await Promise.all([
+            builder,
+            preprocessCmd && preprocessCmd.trim()
+                ? util.promisify(child_process.exec)(preprocessCmd, {
+                    ...opts,
+                    shell: undefined,
+                }).then(() => this._usePreprocess = true).catch(() => {})
+                : Promise.resolve(),
+        ]);
 
         watcher.close();
         if(filenames.length) {
@@ -201,7 +213,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         await this._loadSource(program, buildCwd);
         await this._loadMapFile(program);
-        await this._getLocalTypes();
+        await this._getLocalTypes(buildCwd);
         this._initCodeSeg();
 
         console.timeEnd('loadSource')
@@ -316,18 +328,41 @@ export class CC65ViceRuntime extends EventEmitter {
         this._mapFile = mapFile.parse(text);
     }
 
-    public async getTypeFields(addr: number, typename: string) : Promise<VariableData[]> {
-        const typeParts = typename.split(/\s+/g);
+    public async getTypeFields(addr: number, typeName: string) : Promise<VariableData[]> {
+        if(!this._localTypes) {
+            return [];
+        }
+
+        const arrayParts = /^([^\[]+)\[([0-9]+)\]$/gi.exec(typeName);
+        let typeParts : string[];
+        if(arrayParts) {
+            const itemCount = parseInt(arrayParts[2]);
+            const vars : VariableData[] = [];
+            const itemSize = clangQuery.recurseFieldSize([{
+                aliasOf: '',
+                type: arrayParts[1],
+                name: '',
+            }], this._localTypes)[0];
+            for(let i = 0; i < itemCount; i++) {
+                vars.push({
+                    type: arrayParts[1],
+                    name: i.toString(),
+                    value: arrayParts[1],
+                    addr: addr + i * itemSize,
+                });
+            }
+
+            return vars;
+        }
+        else {
+            typeParts = typeName.split(/\s+/g);
+        }
 
         let isPointer = typeParts.length > 1 && _.last(typeParts) == '*';
 
         if(isPointer) {
             const pointerVal = await this.getMemory(addr, 2);
             addr = pointerVal.readUInt16LE(0);
-        }
-
-        if(!this._localTypes) {
-            return [];
         }
 
         const fields = this._localTypes[typeParts[0]];
@@ -748,6 +783,10 @@ export class CC65ViceRuntime extends EventEmitter {
     // Memory access
 
     public async getMemory(addr: number, length: number) : Promise<Buffer> {
+        if(length <= 0) {
+            return Buffer.alloc(0);
+        }
+
         const res = await this._vice.execBinary<bin.MemoryGetCommand, bin.MemoryGetResponse>({
             type: bin.CommandType.memoryGet,
             sidefx: false,
@@ -1160,9 +1199,9 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         };
     }
 
-    private async _getLocalTypes() {
+    private async _getLocalTypes(buildCwd: string) {
         try {
-            this._localTypes = await clangQuery.getLocalTypes(this._dbgFile);
+            this._localTypes = await clangQuery.getLocalTypes(this._dbgFile, this._usePreprocess, buildCwd);
         }
         catch(e) {
             this.sendEvent('output', 'stderr', 'Not using Clang tools. Are they installed?');

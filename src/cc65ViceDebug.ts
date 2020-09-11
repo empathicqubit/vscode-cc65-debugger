@@ -42,6 +42,8 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     viceArgs?: string[];
     /** The command to run before launching. This is a shell command so you can put arguments and variables in here too. */
     buildCommand?: string;
+    /** The command to run to generate preprocessor `.i` files. This is a shell command so you can put arguments and variables in here too. */
+    preprocessCommand?: string;
     /** The directory of your build command */
     buildCwd?: string;
     /** The d64, d81, or prg file to run, if automatic detection doesn't work */
@@ -219,7 +221,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // build the program.
             let possibles = <any>[];
             try {
-                            possibles = await this._runtime.build(buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile");
+                            possibles = await this._runtime.build(buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile", args.preprocessCommand || "make preprocess-only");
             }
             catch {
                             throw new Error("Couldn't finish the build successfully. Check the console for details.");
@@ -458,14 +460,27 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                     const pointerVal = val.readUInt16LE(0);
 
                     if(ref & VariablesReferenceFlag.HAS_TYPE) {
-                        variables.push({
-                            name: `Type at this address`,
-                            value: "",
-                            variablesReference: VariablesReferenceFlag.FOLLOW_TYPE | ref,
-                            presentationHint: {
-                                kind: 'virtual'
-                            }
-                        })
+                        const addr = ref & VariablesReferenceFlag.ADDR_MASK;
+                        if(pointerVal || !(this._addressTypes[addr.toString(16)] || '').endsWith('*')) {
+                            variables.push({
+                                name: `Type at this address`,
+                                value: "",
+                                variablesReference: VariablesReferenceFlag.FOLLOW_TYPE | ref,
+                                presentationHint: {
+                                    kind: 'virtual'
+                                }
+                            })
+                        }
+                        else {
+                            variables.push({
+                                name: `NULL`,
+                                value: "",
+                                variablesReference: 0,
+                                presentationHint: {
+                                    kind: 'virtual'
+                                }
+                            })
+                        }
                     }
 
                     variables.push(this._pointerMenu(pointerVal))
