@@ -112,6 +112,8 @@ export interface SourceFile {
 }
 
 export interface Dbgfile {
+    systemLib: Lib | null;
+    systemLibBaseName: string | null;
     libs: Lib[];
     mods: Mod[];
     csyms: CSym[];
@@ -127,6 +129,8 @@ export interface Dbgfile {
 
 export function parse(text: string, buildDir : string) : Dbgfile {
     const dbgFile : Dbgfile = {
+        systemLib: null,
+        systemLibBaseName: null,
         libs: [],
         mods: [],
         scopes: [],
@@ -442,6 +446,15 @@ export function parse(text: string, buildDir : string) : Dbgfile {
             continue;
         }
     } while(match = rex.exec(text))
+
+    const files = `(apple2enh\\.lib|apple2\\.lib|atari2600\\.lib|atari5200\\.lib|atari\\.lib|atarixl\\.lib|atmos\\.lib|c128\\.lib|c16\\.lib|c64\\.lib|cbm510\\.lib|cbm610\\.lib|creativision\\.lib|gamate\\.lib|geos-apple\\.lib|geos-cbm\\.lib|lynx\\.lib|nes\\.lib|none\\.lib|osic1p\\.lib|pce\\.lib|pet\\.lib|plus4\\.lib|sim6502\\.lib|sim65c02\\.lib|supervision\\.lib|telestrat\\.lib|vic20\\.lib)`;
+    const sep = path.sep.replace('\\', '\\\\');
+    const lib = dbgFile.libs.find(x => new RegExp(`lib${sep}${files}$`, 'gi').test(x.name));
+    if(lib) {
+        const libPath = lib.name;
+        dbgFile.systemLib = lib;
+        dbgFile.systemLibBaseName = path.basename(libPath).replace(/\.lib$/gi, '');
+    }
 
     for(const mod of dbgFile.mods) {
         if(mod.libId == -1) {

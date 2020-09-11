@@ -77,7 +77,8 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
             }
         }
 
-        config.viceCommand = vscode.workspace.getConfiguration('cc65vice').get('viceCommand');
+        config.viceDirectory = vscode.workspace.getConfiguration('cc65vice').get('viceDirectory');
+        config.preferX64OverX64sc = vscode.workspace.getConfiguration('cc65vice').get('preferX64OverX64sc');
 
         return config;
     }

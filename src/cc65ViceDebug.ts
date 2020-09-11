@@ -36,8 +36,10 @@ enum VariablesReferenceFlag {
  * Settings for launch.json
  */
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-    /** The command of VICE emulator. */
-    viceCommand?: string;
+    /** Use X64 instead of X64SC when appropriate. */
+    preferX64OverX64sc?: boolean;
+    /** The directory of VICE emulator. */
+    viceDirectory?: string;
     /** The arguments to use for starting VICE. No environment variables are allowed. */
     viceArgs?: string[];
     /** The command to run before launching. This is a shell command so you can put arguments and variables in here too. */
@@ -233,7 +235,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
 
             // start the program in the runtime
-            await this._runtime.start(program, buildCwd, !!args.stopOnEntry, args.viceCommand, args.viceArgs, args.console);
+            await this._runtime.start(program, buildCwd, !!args.stopOnEntry, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc);
         }
         catch (e) {
             response.success = false;

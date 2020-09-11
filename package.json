@@ -90,13 +90,21 @@
         "configuration": {
             "title": "CC65 VICE Debugger",
             "properties": {
-                "cc65vice.viceCommand": {
+                "cc65vice.viceDirectory": {
                     "type": [
                         "string",
                         "null"
                     ],
                     "default": null,
-                    "description": "The Path to VICE Emulator. Set this if you're on Windows."
+                    "description": "The directory containing VICE Emulator. Set this if you're on Windows."
+                },
+                "cc65vice.preferX64OverX64sc": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "Use X64, which is not recommended."
                 }
             }
         },

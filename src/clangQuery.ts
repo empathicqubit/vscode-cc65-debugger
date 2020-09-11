@@ -32,17 +32,13 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boo
     }
 
     // Try to find the path of CC65, in case it's nonstandard.
-    const files = `(apple2enh\\.lib|apple2\\.lib|atari2600\\.lib|atari5200\\.lib|atari\\.lib|atarixl\\.lib|atmos\\.lib|c128\\.lib|c16\\.lib|c64\\.lib|cbm510\\.lib|cbm610\\.lib|creativision\\.lib|gamate\\.lib|geos-apple\\.lib|geos-cbm\\.lib|lynx\\.lib|nes\\.lib|none\\.lib|osic1p\\.lib|pce\\.lib|pet\\.lib|plus4\\.lib|sim6502\\.lib|sim65c02\\.lib|supervision\\.lib|telestrat\\.lib|vic20\\.lib)`;
-    const sep = path.sep.replace('\\', '\\\\');
-    const lib = dbgFile.libs.find(x => new RegExp(`lib${sep}${files}$`, 'gi').test(x.name));
     let cpath = `/usr/share/cc65/include`;
-    if(lib) {
-        const libPath = lib.name;
+    if(dbgFile.systemLib) {
+        const libPath = dbgFile.systemLib.name;
+        const ln = dbgFile.systemLibBaseName;
+
         const cc65Path = path.dirname(path.dirname(libPath));
         cpath = `${cc65Path}/include`;
-
-        // Add cc65 builtin defines so stuff doesn't break
-        const ln = path.basename(libPath).replace(/\.lib$/gi, '');
 
         if(ln == 'apple2enh') {
             baseArgs.push('-extra-arg=-D__APPLE2__=1');

@@ -20,7 +20,7 @@ After installing go to your launch.json and create a new section using the snipp
 
 There are a few settings in this configuration to note:
 
-- **viceCommand**: **OBSOLETE**! Please see the setting `cc65vice.viceCommand` in your user settings. Set this to specify the path to the VICE executable. You'll probably need this on Windows.
+- **viceCommand**: **OBSOLETE**! Please see the setting `cc65vice.viceDirectory` in your user settings.
 - **viceArgs**: You'll want to set your C64 model here, and any other special hardware options that you need for your program. Either NTSC or one of the PAL models (jap, drean, etc). Look at the VICE manual for the full list.
 - **buildCommand**: Your actual build command. Defaults to make if unspecified. [You will need to change your Makefile to support being debugged with this.](#changes-needed-to-your-makefile)
 - **preprocessCommand**: The command used to generate the preprocessor `.i` files, which are used by Clang instead of the `.c` and `.h` files if they are available. Omitting this setting may cause the preprocessor files not to be built, which could result in less accurate struct handling.
@@ -30,6 +30,11 @@ There are a few settings in this configuration to note:
 - **name**: The name in the debug dropdown menu.
 - **buildCwd**: The working directory for your build command.
 - **stopOnEntry**: This will break at the beginning of the program. Otherwise it will continue automatically after the debugger connects.
+
+There are also some user settings to note:
+
+- **cc65.viceDirectory**: Set this to specify the directory that contains the VICE executables. You'll probably need this on Windows. If this is omitted then it will look on the system PATH.
+- **cc65.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
 
 You may have some problems with `autostart-warp` working correctly. The way VICE detects this may be to blame. To turn it off, just add `+warp` and `+autostart-warp` to your `viceArgs`:
 

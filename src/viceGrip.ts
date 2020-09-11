@@ -72,7 +72,7 @@ export class ViceGrip extends EventEmitter {
     private _program: string;
     private _initBreak: number = -1;
     private _cwd: string;
-    private _vicePath: string | undefined;
+    private _vicePath: string;
     private _viceArgs: string[] | undefined;
 
     private _handler: debugUtils.ExecHandler;
@@ -83,7 +83,7 @@ export class ViceGrip extends EventEmitter {
         initBreak: number,
         cwd: string,
         handler: debugUtils.ExecHandler,
-        vicePath: string | undefined,
+        vicePath: string,
         viceArgs: string[] | undefined,
         labelFile: string | null,
     ) {
@@ -191,23 +191,11 @@ export class ViceGrip extends EventEmitter {
             cwd: this._cwd,
         };
 
-        if(this._vicePath) {
-            try {
-                await util.promisify(fs.stat)(this._vicePath)
-                this._pids = await this._handler(this._vicePath, args, opts)
-            }
-            catch {
-                throw new Error(`Could not start VICE using the cc65vice.viceCommand setting = "${this._vicePath}". Make sure it's an absolute path.`);
-            }
+        try {
+            this._pids = await this._handler(this._vicePath, args, opts)
         }
-        else {
-            try {
-                const x64Exec : string = <any>await util.promisify((i, cb) => hasbin.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['x64sc', 'x64'])
-                this._pids = await this._handler(x64Exec, args, opts);
-            }
-            catch(e) {
-                throw new Error('Could not start either x64 or x64sc. Define your VICE path in your cc65vice.viceCommand setting');
-            }
+        catch {
+            throw new Error(`Could not start VICE with "${this._vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
         }
 
         // Windows only, for debugging

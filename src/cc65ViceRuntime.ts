@@ -205,7 +205,7 @@ export class CC65ViceRuntime extends EventEmitter {
     /**
     * Start executing the given program.
     */
-    public async start(program: string, buildCwd: string, stopOnEntry: boolean, vicePath?: string, viceArgs?: string[], consoleType?: string) {
+    public async start(program: string, buildCwd: string, stopOnEntry: boolean, viceDirectory?: string, viceArgs?: string[], consoleType?: string, preferX64OverX64sc?: boolean) {
         this._consoleType = consoleType;
         console.time('loadSource')
 
@@ -242,7 +242,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         const labelFile = await this._getLabelsPath(program);
 
-        this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), vicePath, viceArgs, labelFile);
+        this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), await this._getVicePath(viceDirectory, !!preferX64OverX64sc), viceArgs, labelFile);
 
         this._viceStarting = true;
         await this._vice.start();
@@ -971,6 +971,46 @@ export class CC65ViceRuntime extends EventEmitter {
 
         return promise;
     });
+
+    private async _getVicePath(viceDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
+        let viceBaseName : string;
+        const ln = this._dbgFile.systemLibBaseName;
+        if(ln == 'c128') {
+            viceBaseName = 'x128';
+        }
+        else if(ln == 'cbm510') {
+            viceBaseName = 'xcbm5x0';
+        }
+        else if(ln == 'pet') {
+            viceBaseName = 'xpet';
+        }
+        else if(ln == 'plus4') {
+            viceBaseName = 'xplus4';
+        }
+        else if(ln == 'vic20') {
+            viceBaseName = 'xvic';
+        }
+        else {
+            viceBaseName = preferX64OverX64sc ? 'x64' : 'x64sc';
+        }
+
+        let vicePath : string;
+        if(viceDirectory) {
+            vicePath = path.normalize(path.join(viceDirectory, viceBaseName));
+        }
+        else {
+            vicePath = viceBaseName;
+        }
+
+        try {
+            await util.promisify(child_process.execFile)(vicePath, ['--help']);
+        }
+        catch(e) {
+            throw new Error("Couldn't find VICE. Make sure your `cc65vice.viceDirectory` user setting is pointing to the directory containing VICE executables.");
+        }
+
+        return vicePath;
+    }
 
     // Get the labels file if it exists
     private async _getLabelsPath(program: string): Promise<string | null> {
