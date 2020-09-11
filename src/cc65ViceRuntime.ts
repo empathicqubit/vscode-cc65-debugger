@@ -247,8 +247,6 @@ export class CC65ViceRuntime extends EventEmitter {
         this._viceStarting = true;
         await this._vice.start();
 
-        console.log('TEXT PORT: ' + this._vice.textPort);
-
         this._vice.on('end', () => this.terminate());
 
         await this._setupViceDataHandler();
@@ -281,7 +279,7 @@ export class CC65ViceRuntime extends EventEmitter {
             await this.continue();
         }
 
-        // FIXME this._colorTermPids = await this._processExecHandler('vice-rainbow-monitor', ['-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`], { })
+        this._colorTermPids = await this._processExecHandler('vice-rainbow-monitor', ['-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`], { })
 
         console.timeEnd('postVice')
     }

@@ -34,11 +34,11 @@
     "scripts": {
         "adapter": "webpack --config webpack.adapter.config.js --mode production",
         "extension": "webpack --mode production",
-        "nc": "webpack --config webpack.nc.config.js --mode production",
+        "monitor": "webpack --config webpack.monitor.config.js --mode production",
         "webviews": "webpack --config webpack.webviews.config.js --mode production",
         "extension:debug": "webpack --mode development",
         "not-extension:debug": "tsc -p src",
-        "vscode:prepublish": "npm-run-all -p webviews nc adapter extension",
+        "vscode:prepublish": "npm-run-all -p webviews monitor adapter extension",
         "vscode:debug": "npm-run-all not-extension:debug extension:debug",
         "test": "mocha -u tdd ./out/tests/",
         "postinstall": "node ./node_modules/vscode/bin/install",
@@ -46,12 +46,12 @@
         "publish": "vsce publish --packageManager pnpm"
     },
     "dependencies": {
+        "@entan.gl/vice-rainbow-monitor": "^1.0.2",
         "await-notify": "1.0.1",
         "colors": "^1.4.0",
         "get-port": "^5.1.1",
         "hasbin": "^1.2.3",
         "lodash": "^4.17.15",
-        "nc": "^1.0.3",
         "node-watch": "^0.6.3",
         "performance-now": "^2.1.0",
         "recursive-readdir": "^2.2.2",
