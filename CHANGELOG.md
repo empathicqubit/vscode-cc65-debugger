@@ -10,6 +10,7 @@ less wonky than disk.
 * Better handling of tail call optimizations introduced by `-Or`.
 * Better behavior when step out fails.
 * Better breakpoint handling.
+* Include support for other VICE machines such as C128, PET, etc.
 
 ## 1.1.24
 
