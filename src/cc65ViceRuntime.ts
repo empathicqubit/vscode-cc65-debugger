@@ -161,7 +161,7 @@ export class CC65ViceRuntime extends EventEmitter {
                     ...opts,
                     shell: undefined,
                 }).then(() => this._usePreprocess = true).catch(() => {
-                    this.sendEvent('output', 'console', 'Preprocessor files not generated!\n');
+                    this.sendEvent('output', 'stderr', 'Preprocessor files not generated! Did you add a preprocess-only target to your Makefile?\n');
                 })
                 : Promise.resolve(),
         ]);
@@ -206,6 +206,8 @@ export class CC65ViceRuntime extends EventEmitter {
     * Start executing the given program.
     */
     public async start(program: string, buildCwd: string, stopOnEntry: boolean, viceDirectory?: string, viceArgs?: string[], consoleType?: string, preferX64OverX64sc?: boolean) {
+        this.sendEvent('output', 'console', 'Make sure you\'re using the latest version of VICE or this extension won\'t work! You may need to build from source if you\'re having problems.');
+
         this._consoleType = consoleType;
         console.time('loadSource')
 
@@ -1112,6 +1114,9 @@ export class CC65ViceRuntime extends EventEmitter {
                 await this._stackFrameBreakToggle(false);
 
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+                if(!this._viceStarting) {
+                    this.sendEvent('stopOnStep', 'console');
+                }
             }
             else if(e.type == bin.ResponseType.resumed) {
                 this.viceRunning = true;

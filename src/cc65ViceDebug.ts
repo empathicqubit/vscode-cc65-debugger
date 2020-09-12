@@ -223,10 +223,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // build the program.
             let possibles = <any>[];
             try {
-                            possibles = await this._runtime.build(buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile", args.preprocessCommand || "make preprocess-only");
+                possibles = await this._runtime.build(buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile", args.preprocessCommand || "make preprocess-only");
             }
             catch {
-                            throw new Error("Couldn't finish the build successfully. Check the console for details.");
+                throw new Error("Couldn't finish the build successfully. Check the console for details.");
             }
 
             const program = args.program || possibles[0];
