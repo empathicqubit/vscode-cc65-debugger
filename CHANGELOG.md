@@ -11,6 +11,8 @@ less wonky than disk.
 * Better behavior when step out fails.
 * Better breakpoint handling.
 * Include support for other VICE machines such as C128, PET, etc.
+* Use pnpm for package management.
+* Custom version of vsce to work with pnpm.
 
 ## 1.1.24
 
