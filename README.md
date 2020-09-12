@@ -114,6 +114,17 @@ Also, do not name your typedefs differently than your struct. It hasn't been tes
 
 - Array types
 
+## Building
+
+You will need node >=13, vscode >=1.42, pnpm >=5.5.
+
+To build, run the following commands:
+
+```sh
+pnpm install --shamefully-hoist
+pnpm package
+```
+
 ## Additional Credits (see also LICENSE.md)
 
 * **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
