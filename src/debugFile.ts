@@ -341,7 +341,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                         fil.name = path.normalize(path.join(buildDir, val));
                     }
                     else {
-                        fil.name = val;
+                        fil.name = path.normalize(val);
                     }
                 }
                 else if (key == "mod") {

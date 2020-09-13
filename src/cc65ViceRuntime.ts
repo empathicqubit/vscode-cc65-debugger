@@ -643,7 +643,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         const checkCmds : bin.CheckpointSetCommand[] = [];
         for(const bp of this._breakPoints) {
-            const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.num == bp.line.num) && x.name == bp.line.file!.name);
+            const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.num == bp.line.num) && !path.relative(x.name, bp.line.file!.name));
             if (!(sourceFile && !bp.verified && bp.line.num <= sourceFile.lines[sourceFile.lines.length - 1].num)) {
                 continue;
             }
@@ -729,10 +729,10 @@ export class CC65ViceRuntime extends EventEmitter {
         return [];
     }
 
-    public async setBreakPoint(path: string, line: number) : Promise<CC65ViceBreakpoint | null> {
+    public async setBreakPoint(breakPath: string, line: number) : Promise<CC65ViceBreakpoint | null> {
         let lineSym : dbgfile.SourceLine | undefined;
         if(this._dbgFile) {
-            lineSym = this._dbgFile.lines.find(x => x.num == line && path.includes(x.file!.name))
+            lineSym = this._dbgFile.lines.find(x => x.num == line && !path.relative(breakPath, x.file!.name));
             if(!lineSym){
                 return null;
             }
@@ -741,7 +741,7 @@ export class CC65ViceRuntime extends EventEmitter {
         if(!lineSym) {
             const fil : dbgfile.SourceFile = {
                 mtime: new Date(),
-                name: path,
+                name: breakPath,
                 mod: "",
                 lines: [],
                 id: 0,
@@ -769,7 +769,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
     public async clearBreakpoints(p : string): Promise<void> {
         for(const bp of [...this._breakPoints]) {
-            if(!bp.line.file!.name.includes(p)) {
+            if(!path.relative(p, bp.line.file!.name)) {
                 continue;
             }
 
