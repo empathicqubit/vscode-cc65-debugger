@@ -90,7 +90,7 @@ choco install --pre --version 3.4-r38511 winvice-nightly
 choco install llvm
 ```
 
-### Linux-specific instructions
+### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
 You will need to install LLVM, cc65 2.17 (later versions had problems building
 my test project the same way as before), and VICE Nightly r38511 (or a later
@@ -107,8 +107,17 @@ To install VICE r38511 before version 3.5 is released, you will need to build
 VICE from source, to do that:
 
 ```sh
+sudo apt install build-essential checkinstall
 sudo apt build-dep vice
+svn checkout -r 38511 svn://svn.code.sf.net/p/vice-emu/code/trunk vice-emu-code
+cd vice-emu-code/vice
+./autogen.sh
+./configure
+make -j$(nproc)
+sudo mkdir -p /usr/local/share/{vice/C64,doc/vice} && sudo checkinstall -y --exclude=/home --install=yes --pkgname=vice --pkgversion=3.4-r38511 --summary='VICE is a Commodore 64 emulator. This is a version I built to be able to use new features required by VSCode.' --provides=vice --requires='libasound2, libatk1.0-0, libc6, libcairo-gobject2, libcairo2, libfontconfig1, libgcc1, libgdk-pixbuf2.0-0, libgl1, libglew2.1, libglib2.0-0, libgtk-3-0, libjpeg62-turbo, libpango-1.0-0, libpangocairo-1.0-0, libpng16-16, libpulse0, libreadline7, libstdc++6, zlib1g' --nodoc make install
 ```
+
+The last two commands will take a while, but afterwards VICE should be installed.
 
 ## Changes needed to your Makefile
 
