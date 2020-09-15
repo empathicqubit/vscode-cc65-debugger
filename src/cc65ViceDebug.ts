@@ -36,6 +36,8 @@ enum VariablesReferenceFlag {
  * Settings for launch.json
  */
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+    /** When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately. */
+    runAhead?: boolean;
     /** Use X64 instead of X64SC when appropriate. */
     preferX64OverX64sc?: boolean;
     /** The directory of VICE emulator. */
@@ -235,7 +237,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
 
             // start the program in the runtime
-            await this._runtime.start(program, buildCwd, !!args.stopOnEntry, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc);
+            await this._runtime.start(program, buildCwd, !!args.stopOnEntry, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc, args.runAhead);
         }
         catch (e) {
             response.success = false;

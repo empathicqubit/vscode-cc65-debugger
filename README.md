@@ -15,8 +15,8 @@ In progress debugger extension to allow vscode to interact with VICE and CC65.
 ## Setup
 
 To make sure all the features work, you'll want to install Clang, cc65 2.17
-(newer versions will work, however I was having trouble getting a correct build
-of my test project), and VICE Nightly r38511 or later (you should install an
+(newer versions should work, however I was having trouble getting a correct build
+of my test project), and VICE Nightly r38521 or later (you should install an
 appropriate release when it becomes available).
 
 After installing go to your launch.json and create a new section using the
@@ -55,6 +55,8 @@ There are also some user settings to note:
 VICE executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
 - **cc65.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
+- **cc65.runAhead**: When hitting a breakpoint, step ahead by one frame so that
+any screen updates that may have been made become visible immediately.
 
 You may have some problems with `autostart-warp` working correctly. The way
 VICE detects this may be to blame. To turn it off, just add `+warp` and
@@ -74,7 +76,7 @@ VICE detects this may be to blame. To turn it off, just add `+warp` and
 ### Windows-specific instructions
 
 You will need to install LLVM, cc65 2.17 (later versions had problems building
-my test project the same way as before), and VICE Nightly r38511 (or a later
+my test project the same way as before), and VICE Nightly r38521 (or a later
 release version when it becomes available). The easiest way to install these
 packages to your PATH is to use [Chocolatey](https://chocolatey.org/).
 
@@ -86,14 +88,14 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 # Install the packages
 choco install --version 2.17 cc65-compiler
-choco install --pre --version 3.4-r38511 winvice-nightly
+choco install --pre --version 3.4-rFIXME winvice-nightly
 choco install llvm
 ```
 
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
 You will need to install LLVM, cc65 2.17 (later versions had problems building
-my test project the same way as before), and VICE Nightly r38511 (or a later
+my test project the same way as before), and VICE Nightly r38521 (or a later
 release version when it becomes available).
 
 For Debian Buster, the latest version of cc65 is 2.17 in the repositories, so
@@ -103,18 +105,18 @@ just install it with apt:
 sudo apt install clang-tools-7 cc65
 ```
 
-To install VICE r38511 before version 3.5 is released, you will need to build
+To install VICE r38521 before version 3.5 is released, you will need to build
 VICE from source, to do that:
 
 ```sh
 sudo apt install build-essential checkinstall
 sudo apt build-dep vice
-svn checkout -r 38511 svn://svn.code.sf.net/p/vice-emu/code/trunk vice-emu-code
+svn checkout -r 38521 svn://svn.code.sf.net/p/vice-emu/code/trunk vice-emu-code
 cd vice-emu-code/vice
 ./autogen.sh
 ./configure
 make -j$(nproc)
-sudo mkdir -p /usr/local/share/{vice/C64,doc/vice} && sudo checkinstall -y --exclude=/home --install=yes --pkgname=vice --pkgversion=3.4-r38511 --summary='VICE is a Commodore 64 emulator. This is a version I built to be able to use new features required by VSCode.' --provides=vice --requires='libasound2, libatk1.0-0, libc6, libcairo-gobject2, libcairo2, libfontconfig1, libgcc1, libgdk-pixbuf2.0-0, libgl1, libglew2.1, libglib2.0-0, libgtk-3-0, libjpeg62-turbo, libpango-1.0-0, libpangocairo-1.0-0, libpng16-16, libpulse0, libreadline7, libstdc++6, zlib1g' --nodoc make install
+sudo mkdir -p /usr/local/share/{vice/C64,doc/vice} && sudo checkinstall -y --exclude=/home --install=yes --pkgname=vice --pkgversion=3.4-r38521 --summary='VICE is a Commodore 64 emulator. This is a version I built to be able to use new features required by VSCode.' --provides=vice --requires='libasound2, libatk1.0-0, libc6, libcairo-gobject2, libcairo2, libfontconfig1, libgcc1, libgdk-pixbuf2.0-0, libgl1, libglew2.1, libglib2.0-0, libgtk-3-0, libjpeg62-turbo, libpango-1.0-0, libpangocairo-1.0-0, libpng16-16, libpulse0, libreadline7, libstdc++6, zlib1g' --nodoc make install
 ```
 
 The last two commands will take a while, but afterwards VICE should be installed.

@@ -1,5 +1,6 @@
 import { identity } from "lodash";
 import { BreakpointEvent } from "vscode-debugadapter";
+import { Color } from "vscode";
 
 export interface Command {
     type: CommandType
@@ -195,6 +196,16 @@ export interface RegistersAvailableResponse extends Response<RegistersAvailableC
     registers: SingleRegisterMeta[];
 }
 
+export interface DisplayGetCommand extends Command {
+    type: CommandType.displayGet;
+    useVicII: boolean;
+}
+
+export interface DisplayGetResponse extends Response<DisplayGetCommand> {
+    type: ResponseType.displayGet;
+    imageData: Uint8Array;
+}
+
 export interface ExitCommand extends Command {
     type: CommandType.exit;
 }
@@ -336,6 +347,7 @@ export enum ResponseType {
     ping = 0x81,
     banksAvailable = 0x82,
     registersAvailable = 0x83,
+    displayGet = 0x84,
 
     exit = 0xaa,
     quit = 0xbb,
@@ -370,6 +382,7 @@ export enum CommandType {
     ping = 0x81,
     banksAvailable = 0x82,
     registersAvailable = 0x83,
+    displayGet = 0x84,
 
     exit = 0xaa,
     quit = 0xbb,
@@ -570,6 +583,17 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
             r.registers.push(item);
             cursor += item_size + 1;
         }
+
+        return r;
+    }
+    else if(type == ResponseType.displayGet) {
+        const r : DisplayGetResponse = {
+            ...res,
+            type,
+            imageData: new Uint8Array(0),
+        }
+
+        r.imageData = body;
 
         return r;
     }
@@ -782,6 +806,12 @@ export function commandObjectToBytes(command: Command) : Uint8Array {
     else if(type == CommandType.registersAvailable) {
         const cmd = <RegistersAvailableCommand>command;
         const buf = Buffer.alloc(0);
+        return buf;
+    }
+    else if(type == CommandType.displayGet) {
+        const cmd = <DisplayGetCommand>command;
+        const buf = Buffer.alloc(1);
+        buf.writeUInt8(Number(cmd.useVicII), 0);
         return buf;
     }
     else if(type == CommandType.exit) {

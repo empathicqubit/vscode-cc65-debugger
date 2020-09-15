@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as readdir from 'recursive-readdir';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import * as tmp from 'tmp';
 import * as child_process from 'child_process'
 import { EventEmitter } from 'events';
 import * as path from 'path';
@@ -14,6 +15,7 @@ import { ViceGrip } from './viceGrip';
 import { CC65ViceDebugSession } from './cc65ViceDebug';
 import * as mapFile from './mapFile';
 import * as bin from './binary-dto';
+import { ExecuteCommandRequest } from 'vscode-languageclient';
 
 const opcodeSizes = [
     1, 6, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
@@ -109,6 +111,8 @@ export class CC65ViceRuntime extends EventEmitter {
     private _runInTerminalRequest: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void;
     private _colorTermPids: [number, number] = [-1, -1];
     private _usePreprocess: boolean;
+    private _runAhead: boolean;
+    private _isRunningAhead: boolean = false;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -205,9 +209,10 @@ export class CC65ViceRuntime extends EventEmitter {
     /**
     * Start executing the given program.
     */
-    public async start(program: string, buildCwd: string, stopOnEntry: boolean, viceDirectory?: string, viceArgs?: string[], consoleType?: string, preferX64OverX64sc?: boolean) {
+    public async start(program: string, buildCwd: string, stopOnEntry: boolean, viceDirectory?: string, viceArgs?: string[], consoleType?: string, preferX64OverX64sc?: boolean, runAhead?: boolean) {
         this.sendEvent('output', 'console', 'Make sure you\'re using the latest version of VICE or this extension won\'t work! You may need to build from source if you\'re having problems.');
 
+        this._runAhead = !!runAhead;
         this._consoleType = consoleType;
         console.time('loadSource')
 
@@ -468,6 +473,9 @@ export class CC65ViceRuntime extends EventEmitter {
                 })
             }
         }
+
+        await this._doRunAhead();
+
         this.sendEvent(event, 'console')
     }
 
@@ -525,6 +533,10 @@ export class CC65ViceRuntime extends EventEmitter {
         await this.continue();
         await this._vice.waitForStop();
 
+        await this._stackFrameBreakToggle(false);
+
+        await this._doRunAhead();
+
         if(breaks) {
             const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
                 type: bin.CommandType.checkpointDelete,
@@ -548,44 +560,32 @@ export class CC65ViceRuntime extends EventEmitter {
         const begin = lastFrame.scope.spans.find(x => x.seg == this._codeSeg)!.absoluteAddress;
         const end = lastFrame.scope.spans.find(x => x.seg == this._codeSeg)!.absoluteAddress + lastFrame.scope.spans[0].size - 1;
 
-        const allbrk = await this._vice.checkpointList();
-        const dis : bin.CheckpointToggleCommand[] = allbrk.related.filter(x => x.stop).map(x => ({
-            type: bin.CommandType.checkpointToggle,
-            id: x.id,
-            enabled: false,
-        }));
-        await this._vice.multiExecBinary(dis);
+        await this._withAllBreaksDisabled(async() => {
+            const brk = await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
+                type: bin.CommandType.checkpointSet,
+                startAddress: begin,
+                endAddress: end,
+                enabled: true,
+                temporary: true,
+                stop: true,
+                operation: bin.CpuOperation.exec,
+            });
 
-        const brk = await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
-            type: bin.CommandType.checkpointSet,
-            startAddress: begin,
-            endAddress: end,
-            enabled: true,
-            temporary: true,
-            stop: true,
-            operation: bin.CpuOperation.exec,
+            await this._vice.waitForStop(brk.startAddress, brk.endAddress);
+
+            await this._doRunAhead();
         });
-
-        await this._vice.waitForStop(brk.startAddress, brk.endAddress);
-
-        const en : bin.CheckpointToggleCommand[] = allbrk.related.map(x => ({
-            type: bin.CommandType.checkpointToggle,
-            id: x.id,
-            enabled: true,
-        }));
-        await this._vice.multiExecBinary(en);
 
         this.sendEvent(event, 'console')
     }
 
     public async pause() {
         await this._vice.ping();
+        await this._doRunAhead();
         this.sendEvent('stopOnStep', 'console');
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<any> {
-        await this._setCpuStack();
-
         const frames = new Array<any>();
         let i = startFrame;
 
@@ -769,7 +769,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
     public async clearBreakpoints(p : string): Promise<void> {
         for(const bp of [...this._breakPoints]) {
-            if(!path.relative(p, bp.line.file!.name)) {
+            if(path.relative(p, bp.line.file!.name)) {
                 continue;
             }
 
@@ -786,7 +786,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
     // Memory access
 
-    public async getMemory(addr: number, length: number) : Promise<Buffer> {
+    public async getMemory(addr: number, length: number, ignoreRunBack?: boolean) : Promise<Buffer> {
         if(length <= 0) {
             return Buffer.alloc(0);
         }
@@ -1070,7 +1070,10 @@ export class CC65ViceRuntime extends EventEmitter {
         avail.registers.map(x => meta[x.name] = x);
 
         this._vice.on(0xffffffff.toString(16), async e => {
-            if(e.type == bin.ResponseType.registerInfo) {
+            if(this._isRunningAhead) {
+                return;
+            }
+            else if(e.type == bin.ResponseType.registerInfo) {
                 const rr = (<bin.RegisterInfoResponse>e).registers;
                 const r = this._registers;
                 for(const reg of rr) {
@@ -1100,18 +1103,12 @@ export class CC65ViceRuntime extends EventEmitter {
                     else if(meta['PC'].id == reg.id) {
                         r.pc = reg.value;
                     }
-                    // FIXME: Double check naming, which ones still exists?
-                    // I have doubts about 00, 01, and NV-BDIZC
                 }
-
-                this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
             else if(e.type == bin.ResponseType.stopped) {
                 this.viceRunning = false;
                 this._currentAddress = (<bin.StoppedResponse>e).programCounter;
                 this._currentPosition = this._getLineFromAddress(this._currentAddress);
-
-                await this._stackFrameBreakToggle(false);
 
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
                 if(!this._viceStarting) {
@@ -1144,14 +1141,17 @@ export class CC65ViceRuntime extends EventEmitter {
                         await this._vice.checkpointDelete({
                             type: bin.CommandType.checkpointDelete,
                             id: guard,
-                        })
+                        });
                         this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
                     }
                     else if (this._exitAddresses.includes(this._currentAddress)) {
                         await this.terminate();
                     }
                     else {
-                        // const userBreak = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == this._currentPosition.span!.absoluteAddress);
+                        const userBreak = this._breakPoints.find(x => x.viceIndex == brk.id);
+                        if(userBreak) {
+                            await this._doRunAhead();
+                        }
                     }
 
                     this.viceRunning = false;
@@ -1159,6 +1159,77 @@ export class CC65ViceRuntime extends EventEmitter {
                 }
             }
         });
+    }
+
+    private async _doRunAhead() : Promise<void>{
+        if(!this._runAhead) {
+            return;
+        }
+
+        this._memoryData = await this.getMemory(0x00, 0xffff, true);
+
+        const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
+        const dumpCmd : bin.DumpCommand =  {
+            type: bin.CommandType.dump,
+            saveDisks: false,
+            saveRoms: false,
+            filename: dumpFileName,
+        }
+        await this._vice.execBinary(dumpCmd);
+
+        const oldLine = this._registers.line;
+        const oldPosition = this._currentPosition;
+        this._isRunningAhead = true;
+        await this._withAllBreaksDisabled(async() => {
+            const brkCmd : bin.CheckpointSetCommand = {
+                type: bin.CommandType.checkpointSet,
+                startAddress: 0x0000,
+                endAddress: 0xffff,
+                stop: true,
+                enabled: true,
+                operation: bin.CpuOperation.exec,
+                temporary: false,
+            };
+            const brkRes : bin.CheckpointInfoResponse = await this._vice.execBinary(brkCmd);
+            const notCmd : bin.ConditionSetCommand = {
+                type: bin.CommandType.conditionSet,
+                condition: 'RL != $' + oldLine.toString(16),
+                checkpointId: brkRes.id,
+            };
+            await this._vice.execBinary(notCmd);
+            await this.continue();
+            await this._vice.waitForStop();
+            const notNotCmd : bin.ConditionSetCommand = {
+                type: bin.CommandType.conditionSet,
+                condition: 'RL == $' + oldLine.toString(16),
+                checkpointId: brkRes.id,
+            };
+            await this._vice.execBinary(notNotCmd);
+            await this.continue();
+            await this._vice.waitForStop();
+            const delBrk : bin.CheckpointDeleteCommand = {
+                type: bin.CommandType.checkpointDelete,
+                id: brkRes.id,
+            };
+            await this._vice.execBinary(delBrk);
+        });
+        this._isRunningAhead = false;
+
+        const displayCmd : bin.DisplayGetCommand = {
+            type: bin.CommandType.displayGet,
+            useVicII: false,
+        }
+        const dispRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
+
+        // FIXME Logic to get frame into the UI goes here.
+
+        const undumpCmd : bin.UndumpCommand = {
+            type: bin.CommandType.undump,
+            filename: dumpFileName,
+        };
+        await this._vice.execBinary(undumpCmd);
+
+        this.sendEvent('output', 'console', null, oldPosition.file!.name, oldPosition.num, 0);
     }
 
     private async _loadSource(file: string, buildDir: string) : Promise<dbgfile.Dbgfile> {
@@ -1202,13 +1273,6 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         }
 
         this._paramStackPointer = zp.start;
-    }
-
-    private async _setCpuStack() {
-        let i = 0;
-        for(const byt of await this.getMemory(this._cpuStackTop, this._cpuStackBottom - this._cpuStackTop)){
-            this._memoryData.writeUInt8(byt, this._cpuStackTop + i)
-        }
     }
 
     private _getLineFromAddress(addr: number) : dbgfile.SourceLine {
@@ -1265,6 +1329,26 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             }));
 
         await this._vice.multiExecBinary(cmd);
+    }
+
+    private async _withAllBreaksDisabled<T>(func: () => Promise<T>) : Promise<T> {
+        const allbrk = await this._vice.checkpointList();
+        const tog : bin.CheckpointToggleCommand[] = allbrk.related.filter(x => x.stop && x.enabled).map(x => ({
+            type: bin.CommandType.checkpointToggle,
+            id: x.id,
+            enabled: false,
+        }));
+        await this._vice.multiExecBinary(tog);
+
+        const res = await func();
+
+        for(const t of tog) {
+            t.enabled = true;
+        }
+
+        await this._vice.multiExecBinary(tog);
+
+        return res;
     }
 
     private async _getStackFramesForScope(searchScope: dbgfile.Scope, parentScope: dbgfile.Scope) : Promise<{
