@@ -102,7 +102,7 @@ For Debian Buster, the latest version of cc65 is 2.17 in the repositories, so
 just install it with apt:
 
 ```sh
-sudo apt install clang-tools-7 cc65
+sudo apt install clang-tools-8 cc65
 ```
 
 To install VICE r38521 before version 3.5 is released, you will need to build
