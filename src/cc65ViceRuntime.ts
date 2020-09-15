@@ -1269,6 +1269,8 @@ export class CC65ViceRuntime extends EventEmitter {
         };
         await this._vice.execBinary(undumpCmd);
 
+        await util.promisify(fs.unlink)(dumpFileName);
+
         this.sendEvent('runahead', {
             runAhead: aheadRes.imageData,
             current: currentRes.imageData,
