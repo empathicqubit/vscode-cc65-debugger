@@ -4,7 +4,8 @@
 
 * Implement binary monitor protocol, remove most text based commands.
 * Better event handling and async due to above.
-* Remove viceCommand from launch configuration and put into global settings.
+* Run ahead function to preview the next frame. Enabled by default.
+* Remove viceCommand from launch configuration and put into global settings as viceDirectory.
 * Use injection for PRG loads instead of fake disk. More secure than virtualFS,
 less wonky than disk.
 * Better handling of tail call optimizations introduced by `-Or`.
