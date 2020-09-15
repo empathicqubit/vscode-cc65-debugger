@@ -17,6 +17,10 @@ import * as mapFile from './mapFile';
 import * as bin from './binary-dto';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
 
+function timeout(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const opcodeSizes = [
     1, 6, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
     2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 2, 3, 3, 3,
@@ -76,11 +80,12 @@ export class CC65ViceRuntime extends EventEmitter {
     private _cpuStackBottom: number = 0x1ff;
     private _cpuStackTop: number = 0x1ff;
 
-    private _memoryData : Buffer = Buffer.alloc(0xffff);
-
     private _codeSeg: dbgfile.CodeSeg | undefined;
     // Monitors the code segment after initialization so that it doesn't accidentally get modified.
     private _codeSegGuardIndex: number = -1;
+
+    // Updates the screen once a frame;
+    private _screenUpdateIndex: number = -1;
 
     private _entryAddress: number = 0;
     private _exitAddresses: number[] = [];
@@ -270,6 +275,7 @@ export class CC65ViceRuntime extends EventEmitter {
         await this._resetStackFrames();
         await this._guardCodeSeg();
         await this._setParamStackBottom();
+        // FIXME await this._setScreenUpdateCheckpoint();
 
         this._viceStarting = false;
 
@@ -291,6 +297,26 @@ export class CC65ViceRuntime extends EventEmitter {
         this.sendEvent('output', 'console', 'Switch to the TERMINAL tab to access the monitor and VICE log output.\n');
 
         console.timeEnd('postVice');
+    }
+
+    private async _setScreenUpdateCheckpoint() {
+        const cmd : bin.CheckpointSetCommand = {
+            type: bin.CommandType.checkpointSet,
+            operation: bin.CpuOperation.exec,
+            startAddress: 0x0000,
+            endAddress: 0xffff,
+            enabled: true,
+            stop: false,
+            temporary: false,
+        };
+        const brkRes : bin.CheckpointInfoResponse = await this._vice.execBinary(cmd);
+        const condCmd : bin.ConditionSetCommand = {
+            type: bin.CommandType.conditionSet,
+            condition: 'RL == $00 && CY == $00',
+            checkpointId: brkRes.id,
+        };
+        await this._vice.execBinary(condCmd);
+        this._screenUpdateIndex = brkRes.id;
     }
 
     private _initCodeSeg() : void {
@@ -1157,6 +1183,22 @@ export class CC65ViceRuntime extends EventEmitter {
                     this.viceRunning = false;
                     this.sendEvent('stopOnBreakpoint', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
                 }
+                else if(this._screenUpdateIndex == brk.id) {
+                    const wasRunning = this.viceRunning;
+                    const displayCmd : bin.DisplayGetCommand = {
+                        type: bin.CommandType.displayGet,
+                        useVicII: false,
+                    }
+                    const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
+
+                    if(wasRunning) {
+                        await this.continue();
+                    }
+
+                    this.sendEvent('current', {
+                        current: currentRes.imageData,
+                    });
+                }
             }
         });
     }
@@ -1166,7 +1208,11 @@ export class CC65ViceRuntime extends EventEmitter {
             return;
         }
 
-        this._memoryData = await this.getMemory(0x00, 0xffff, true);
+        const displayCmd : bin.DisplayGetCommand = {
+            type: bin.CommandType.displayGet,
+            useVicII: false,
+        }
+        const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
 
         const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
         const dumpCmd : bin.DumpCommand =  {
@@ -1215,19 +1261,18 @@ export class CC65ViceRuntime extends EventEmitter {
         });
         this._isRunningAhead = false;
 
-        const displayCmd : bin.DisplayGetCommand = {
-            type: bin.CommandType.displayGet,
-            useVicII: false,
-        }
-        const dispRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
-
-        // FIXME Logic to get frame into the UI goes here.
+        const aheadRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
 
         const undumpCmd : bin.UndumpCommand = {
             type: bin.CommandType.undump,
             filename: dumpFileName,
         };
         await this._vice.execBinary(undumpCmd);
+
+        this.sendEvent('runahead', {
+            runAhead: aheadRes.imageData,
+            current: currentRes.imageData,
+        });
 
         this.sendEvent('output', 'console', null, oldPosition.file!.name, oldPosition.num, 0);
     }

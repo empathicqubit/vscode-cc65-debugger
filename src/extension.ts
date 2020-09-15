@@ -9,6 +9,7 @@ import * as Net from 'net';
 import * as util from 'util';
 import * as debugUtils from './debugUtils';
 import { StatsWebview } from './statsWebview';
+import { DebugSession } from 'vscode-debugadapter';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -17,13 +18,15 @@ import { StatsWebview } from './statsWebview';
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
 export function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
-		vscode.commands.registerCommand('cc65-vice.stats', async () => {
-            StatsWebview.createOrShow(context.extensionPath);
-            const dbgfile = await debugUtils.loadDebugFile("boop", "boop");
-            StatsWebview.update(dbgfile);
-		})
-	);
+    vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
+        StatsWebview.createOrShow(context.extensionPath);
+        if(e.event == 'runahead') {
+            StatsWebview.update(e.body.runAhead.data, e.body.current.data);
+        }
+        else if(e.event == 'current') {
+            StatsWebview.update(undefined, e.body.current.data);
+        }
+    });
 
     const provider = new CC65ViceConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('cc65-vice', provider));
@@ -36,12 +39,8 @@ export function activate(context: vscode.ExtensionContext) {
             factory = new CC65ViceDebugAdapterDescriptorFactory();
             break;
 
-        case 'inline':
+        case 'inline': default:
             factory = new InlineDebugAdapterFactory();
-            break;
-
-        case 'external': default:
-            factory = new DebugAdapterExecutableFactory();
             break;
         }
 
@@ -55,6 +54,11 @@ export function deactivate() {
     // nothing to do
 }
 
+const newSession = () : DebugSession => {
+    const sesh = new CC65ViceDebugSession();
+
+    return sesh;
+}
 
 class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -85,33 +89,6 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
     }
 }
 
-class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFactory {
-
-    // The following use of a DebugAdapter factory shows how to control what debug adapter executable is used.
-    // Since the code implements the default behavior, it is absolutely not neccessary and we show it here only for educational purpose.
-
-    createDebugAdapterDescriptor(_session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): ProviderResult<vscode.DebugAdapterDescriptor> {
-        // param "executable" contains the executable optionally specified in the package.json (if any)
-
-        // use the executable specified in the package.json if it exists or determine it based on some other information (e.g. the session)
-        if (!executable) {
-            const command = "absolute path to my DA executable";
-            const args = [
-                "some args",
-                "another arg"
-            ];
-            const options = {
-                cwd: "working directory for executable",
-                env: { "VAR": "some value" }
-            };
-            executable = new vscode.DebugAdapterExecutable(command, args, options);
-        }
-
-        // make VS Code launch the DA executable
-        return executable;
-    }
-}
-
 class CC65ViceDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
 
     private server?: Net.Server;
@@ -120,7 +97,7 @@ class CC65ViceDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescri
         if (!this.server) {
             // start listening on a random port
             this.server = Net.createServer(socket => {
-                const session = new CC65ViceDebugSession();
+                const session = newSession();
                 session.setRunAsServer(true);
                 session.start(<NodeJS.ReadableStream>socket, socket);
             }).listen(0);
@@ -140,7 +117,7 @@ class CC65ViceDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescri
 class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
 
     createDebugAdapterDescriptor(_session: vscode.DebugSession): ProviderResult<vscode.DebugAdapterDescriptor> {
-        const sesh = new CC65ViceDebugSession();
+        const sesh = newSession();
         return new (<any>vscode).DebugAdapterInlineImplementation();
     }
 }

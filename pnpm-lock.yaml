@@ -7,6 +7,8 @@ dependencies:
   lodash: 4.17.20
   node-watch: 0.6.4
   performance-now: 2.1.0
+  react: 16.13.1
+  react-dom: 16.13.1_react@16.13.1
   recursive-readdir: 2.2.2
   tmp: 0.1.0
   vscode-debugadapter: 1.38.0
@@ -17,9 +19,11 @@ devDependencies:
   '@types/lodash': 4.14.161
   '@types/mocha': 5.2.7
   '@types/node': 14.6.4
+  '@types/react': 16.9.49
   mocha: 6.2.0
   npm-run-all: 4.1.5
   shebang-loader: 0.0.1
+  shx: 0.3.2
   ts-loader: 6.2.2_typescript@3.9.7
   ts-node: 8.10.2_typescript@3.9.7
   tslint: 5.18.0_typescript@3.9.7
@@ -106,6 +110,17 @@ packages:
     dev: true
     resolution:
       integrity: sha512-Wk7nG1JSaMfMpoMJDKUsWYugliB2Vy55pdjLpmLixeyMi7HizW2I/9QoxsPCkXl3dO+ZOVqPumKaDUv5zJu2uQ==
+  /@types/prop-types/15.7.3:
+    dev: true
+    resolution:
+      integrity: sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
+  /@types/react/16.9.49:
+    dependencies:
+      '@types/prop-types': 15.7.3
+      csstype: 3.0.3
+    dev: true
+    resolution:
+      integrity: sha512-DtLFjSj0OYAdVLBbyjhuV9CdGVHCkHn2R+xr3XkBvK2rS1Y1tkc14XSGjYgm5Fjjr90AxH9tiSzc1pCFMGO06g==
   /@webassemblyjs/ast/1.9.0:
     dependencies:
       '@webassemblyjs/helper-module-context': 1.9.0
@@ -921,6 +936,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-a+EPoD+uZiNfh+5fxw2nO9QwFa6nJe2Or35fGY6Ipw1R3R4AGz1d1TEZrCegvw2YTmZ0jXirGYlzxxpYSHwpEg==
+  /csstype/3.0.3:
+    dev: true
+    resolution:
+      integrity: sha512-jPl+wbWPOWJ7SXsWyqGRk3lGecbar0Cb0OvZF/r/ZU011R4YqiRehgkQ9p4eQfo9DSDLqLL3wHwfxeJiuIsNag==
   /cyclist/1.0.1:
     dev: true
     resolution:
@@ -1164,6 +1183,10 @@ packages:
       node: '>= 0.4'
     resolution:
       integrity: sha512-QCOllgZJtaUo9miYBcLChTUaHNjJF3PYs1VidD7AwiEj1kYxKeQTctLAezAOH5ZKRH0g2IgPn6KwB4IT8iRpvA==
+  /es6-object-assign/1.1.0:
+    dev: true
+    resolution:
+      integrity: sha1-wsNYJlYkfDnqEHyx5mUrb58kUjw=
   /es6-promise/4.2.8:
     dev: true
     resolution:
@@ -2019,7 +2042,6 @@ packages:
     resolution:
       integrity: sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
   /js-tokens/4.0.0:
-    dev: true
     resolution:
       integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
   /js-yaml/3.13.1:
@@ -2148,6 +2170,13 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-VeIAFslyIerEJLXHziedo2basKbMKtTw3vfn5IzG0XTjhAVEJyNHnL2p7vc+wBDSdQuUpNw3M2u6xb9QsAY5Eg==
+  /loose-envify/1.4.0:
+    dependencies:
+      js-tokens: 4.0.0
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==
   /lru-cache/5.1.1:
     dependencies:
       yallist: 3.1.1
@@ -2565,7 +2594,6 @@ packages:
     resolution:
       integrity: sha1-CXtgK1NCKlIsGvuHkDGDNpQaAR0=
   /object-assign/4.1.1:
-    dev: true
     engines:
       node: '>=0.10.0'
     resolution:
@@ -2874,6 +2902,14 @@ packages:
     dev: true
     resolution:
       integrity: sha1-mEcocL8igTL8vdhoEputEsPAKeM=
+  /prop-types/15.7.2:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      react-is: 16.13.1
+    dev: false
+    resolution:
+      integrity: sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
   /prr/1.0.1:
     dev: true
     resolution:
@@ -2950,6 +2986,32 @@ packages:
     dev: true
     resolution:
       integrity: sha512-87lcbR8+MhcWcUiQ+9e+Rwx8MyR2P7qnt15ynUlbm3TU/fjbgz4GsvfSUDTemtCCtVCqb4ZcEFlyPNTh9bBTLw==
+  /react-dom/16.13.1_react@16.13.1:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      prop-types: 15.7.2
+      react: 16.13.1
+      scheduler: 0.19.1
+    dev: false
+    peerDependencies:
+      react: ^16.13.1
+    resolution:
+      integrity: sha512-81PIMmVLnCNLO/fFOQxdQkvEq/+Hfpv24XNJfpyZhTRfO0QcmQIF/PgCa1zCOj2w1hrn12MFLyaJ/G0+Mxtfag==
+  /react-is/16.13.1:
+    dev: false
+    resolution:
+      integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
+  /react/16.13.1:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      prop-types: 15.7.2
+    dev: false
+    engines:
+      node: '>=0.10.0'
+    resolution:
+      integrity: sha512-YMZQQq32xHLX0bz5Mnibv1/LHb3Sqzngu7xstSM+vrkE5Kzr9xE0yMByK5kMoTK30YVJE61WfbxIFFvfeDKT1w==
   /read-pkg/3.0.0:
     dependencies:
       load-json-file: 4.0.0
@@ -3010,6 +3072,14 @@ packages:
     optional: true
     resolution:
       integrity: sha512-0xe001vZBnJEK+uKcj8qOhyAKPzIT+gStxWr3LCB0DwcXR5NZJ3IaC+yGnHCYzB/S7ov3m3EEbZI2zeNvX+hGQ==
+  /rechoir/0.6.2:
+    dependencies:
+      resolve: 1.17.0
+    dev: true
+    engines:
+      node: '>= 0.10'
+    resolution:
+      integrity: sha1-hSBLVNuoLVdC4oyWdW70OvUOM4Q=
   /recursive-readdir/2.2.2:
     dependencies:
       minimatch: 3.0.4
@@ -3135,6 +3205,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
+  /scheduler/0.19.1:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+    dev: false
+    resolution:
+      integrity: sha512-n/zwRWRYSUj0/3g/otKDRPMh6qv2SYMWNq85IEa8iZyAv8od9zDYpGSnpBEjNgcMNq6Scbu5KfIPxNF72R/2EA==
   /schema-utils/1.0.0:
     dependencies:
       ajv: 6.12.4
@@ -3209,6 +3286,28 @@ packages:
     dev: true
     resolution:
       integrity: sha512-mRz/m/JVscCrkMyPqHc/bczi3OQHkLTqXHEFu0zDhK/qfv3UcOA4SVmRCLmos4bhjr9ekVQubj/R7waKapmiQg==
+  /shelljs/0.8.4:
+    dependencies:
+      glob: 7.1.6
+      interpret: 1.4.0
+      rechoir: 0.6.2
+    dev: true
+    engines:
+      node: '>=4'
+    hasBin: true
+    resolution:
+      integrity: sha512-7gk3UZ9kOfPLIAbslLzyWeGiEqx9e3rxwZM0KE6EL8GlGwjym9Mrlx5/p33bWTu9YG6vcS4MBxYZDHYr5lr8BQ==
+  /shx/0.3.2:
+    dependencies:
+      es6-object-assign: 1.1.0
+      minimist: 1.2.5
+      shelljs: 0.8.4
+    dev: true
+    engines:
+      node: '>=4'
+    hasBin: true
+    resolution:
+      integrity: sha512-aS0mWtW3T2sHAenrSrip2XGv39O9dXIFUqxAEWHEOS1ePtGIBavdPJY1kE2IHl14V/4iCbUiNDPGdyYTtmhSoA==
   /signal-exit/3.0.3:
     dev: true
     resolution:
@@ -4140,6 +4239,7 @@ specifiers:
   '@types/lodash': ^4.14.149
   '@types/mocha': 5.2.7
   '@types/node': ^14.6.4
+  '@types/react': ^16.9.49
   await-notify: 1.0.1
   colors: ^1.4.0
   get-port: ^5.1.1
@@ -4149,8 +4249,11 @@ specifiers:
   node-watch: ^0.6.3
   npm-run-all: ^4.1.5
   performance-now: ^2.1.0
+  react: ^16.13.1
+  react-dom: ^16.13.1
   recursive-readdir: ^2.2.2
   shebang-loader: ^0.0.1
+  shx: ^0.3.2
   tmp: ^0.1.0
   ts-loader: ^6.2.1
   ts-node: ^8.6.2

@@ -2,7 +2,7 @@ import {
     Logger, logger,
     LoggingDebugSession,
     InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
-    Thread, StackFrame, Scope, Source, Handles, Breakpoint
+    Thread, StackFrame, Scope, Source, Handles, Breakpoint, Event
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
@@ -11,10 +11,7 @@ import * as debugUtils from './debugUtils';
 import { CC65ViceRuntime, CC65ViceBreakpoint } from './cc65ViceRuntime';
 const { Subject } = require('await-notify');
 import * as colors from 'colors/safe';
-
-function timeout(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+import { DebugAdapterExecutable } from 'vscode';
 
 enum VariablesReferenceFlag {
     HAS_TYPE    =    0x10000,
@@ -101,10 +98,19 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._runtime.on('breakpointValidated', (bp: CC65ViceBreakpoint) => {
             this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
         });
+        this._runtime.on('runahead', data => {
+            const e = new Event('runahead', data);
+            this.sendEvent(e);
+        });
+        this._runtime.on('current', data => {
+            const e = new Event('current', data);
+            this.sendEvent(e);
+        });
         this._runtime.on('output', (category, text, filePath, line, column) => {
             const e: DebugProtocol.OutputEvent = new OutputEvent(text);
 
             e.body.category = category;
+
             if(filePath) {
                 e.body.source = this.createSource(filePath);
             }
