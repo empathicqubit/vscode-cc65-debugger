@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as readdir from 'recursive-readdir';
+import * as TGA from 'tga';
+import * as pngjs from 'pngjs';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as tmp from 'tmp';
 import * as child_process from 'child_process'
@@ -1195,8 +1197,13 @@ export class CC65ViceRuntime extends EventEmitter {
                         await this.continue();
                     }
 
+                    const current = new TGA(currentRes.imageData);
                     this.sendEvent('current', {
-                        current: currentRes.imageData,
+                        current: {
+                            data: current.pixels,
+                            width: current.width,
+                            height: current.height,
+                        },
                     });
                 }
             }
@@ -1271,9 +1278,30 @@ export class CC65ViceRuntime extends EventEmitter {
 
         await util.promisify(fs.unlink)(dumpFileName);
 
+        const ahead = new TGA(aheadRes.imageData);
+        const current = new TGA(currentRes.imageData);
+        const aheadPng = new pngjs.PNG({
+            width: ahead.width,
+            height: ahead.height
+        });
+        aheadPng.data = ahead.pixels;
+        const currentPng = new pngjs.PNG({
+            width: ahead.width,
+            height: ahead.height
+        });
+        currentPng.data = current.pixels;
+
         this.sendEvent('runahead', {
-            runAhead: aheadRes.imageData,
-            current: currentRes.imageData,
+            runAhead: {
+                data: Array.from(pngjs.PNG.sync.write(aheadPng)),
+                width: ahead.width,
+                height: ahead.height,
+            },
+            current: {
+                data: Array.from(pngjs.PNG.sync.write(currentPng)),
+                width: current.width,
+                height: current.height,
+            },
         });
 
         this.sendEvent('output', 'console', null, oldPosition.file!.name, oldPosition.num, 0);

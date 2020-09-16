@@ -21,10 +21,10 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
         StatsWebview.createOrShow(context.extensionPath);
         if(e.event == 'runahead') {
-            StatsWebview.update(e.body.runAhead.data, e.body.current.data);
+            StatsWebview.update(e.body.runAhead, e.body.current);
         }
         else if(e.event == 'current') {
-            StatsWebview.update(undefined, e.body.current.data);
+            StatsWebview.update(undefined, e.body.current);
         }
     });
 

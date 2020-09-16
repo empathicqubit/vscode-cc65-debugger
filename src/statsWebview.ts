@@ -6,8 +6,8 @@ import * as util from 'util';
 
 export class StatsWebview {
 	private static _currentPanel: StatsWebview | undefined;
-	private static _runAhead : number[];
-	private static _current: number[];
+	private static _runAhead : ImageData;
+	private static _current: ImageData;
 
 	public static readonly viewType = 'statsWebview';
 
@@ -15,7 +15,7 @@ export class StatsWebview {
 	private readonly _extensionPath: string;
     private _disposables: vscode.Disposable[] = [];
 
-    public static update(runAhead?: number[], current?: number[]) {
+    public static update(runAhead?: ImageData, current?: ImageData) {
         StatsWebview._runAhead = runAhead || StatsWebview._runAhead;
         StatsWebview._current = current || StatsWebview._current;
         if(StatsWebview._currentPanel && StatsWebview._runAhead) {
