@@ -161,7 +161,7 @@
 		"labels": {
 			"patterns": [{
 				"name": "entity.name.label.ca65",
-				"match": "^\\s*\\S*:"
+				"match": "^\\s*[^;\\s]*:"
 			}]
 		}
 	},
