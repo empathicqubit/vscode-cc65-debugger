@@ -68,7 +68,7 @@
         "wait-port": "^0.2.7"
     },
     "devDependencies": {
-        "@entan.gl/vsce": "^1.79.5",
+        "@entan.gl/vsce": "^1.79.6",
         "@types/lodash": "^4.14.149",
         "@types/mocha": "5.2.7",
         "@types/node": "^14.6.4",
