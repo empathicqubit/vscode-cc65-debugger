@@ -26,9 +26,8 @@ export class StatsWebview {
         }
     }
 
-	public static createOrShow(extensionPath: string) {
+	public static maybeCreate(extensionPath: string) {
 		if (StatsWebview._currentPanel) {
-			StatsWebview._currentPanel._panel.reveal(vscode.ViewColumn.Two);
 			return;
 		}
 

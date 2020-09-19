@@ -19,11 +19,12 @@ const runMode: 'external' | 'server' | 'inline' = 'external';
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
-        StatsWebview.createOrShow(context.extensionPath);
         if(e.event == 'runahead') {
+            StatsWebview.maybeCreate(context.extensionPath);
             StatsWebview.update(e.body.runAhead, e.body.current);
         }
         else if(e.event == 'current') {
+            StatsWebview.maybeCreate(context.extensionPath);
             StatsWebview.update(undefined, e.body.current);
         }
     });
