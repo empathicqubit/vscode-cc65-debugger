@@ -109,7 +109,7 @@ To install VICE r38557 before version 3.5 is released, you will need to build
 VICE from source, to do that:
 
 ```sh
-sudo apt install build-essential checkinstall
+sudo apt install build-essential checkinstall subversion
 sudo apt build-dep vice
 svn checkout -r 38557 svn://svn.code.sf.net/p/vice-emu/code/trunk vice-emu-code
 cd vice-emu-code/vice
