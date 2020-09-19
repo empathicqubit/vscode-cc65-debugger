@@ -1,4 +1,4 @@
-import { identity } from "lodash";
+import * as _ from "lodash";
 import { BreakpointEvent } from "vscode-debugadapter";
 import { Color } from "vscode";
 
@@ -143,6 +143,34 @@ export interface UndumpResponse extends Response<UndumpCommand> {
     type: ResponseType.undump;
 }
 
+export enum ResourceType {
+    string = 0x00,
+    int = 0x01,
+}
+
+export interface ResourceGetCommand extends Command {
+    type: CommandType.resourceGet;
+    resourceName: string;
+}
+
+export interface ResourceGetResponse extends Response<ResourceGetCommand> {
+    type: ResponseType.resourceGet;
+    resourceType: ResourceType;
+    intValue?: number;
+    stringValue?: string;
+}
+
+export interface ResourceSetCommand extends Command {
+    type: CommandType.resourceSet;
+    resourceType: ResourceType;
+    resourceName: string;
+    resourceValue: string | number;
+}
+
+export interface ResourceSetResponse extends Response<ResourceSetCommand> {
+    type: ResponseType.resourceSet;
+}
+
 export interface AdvanceInstructionsCommand extends Command {
     type: CommandType.advanceInstructions;
     subroutines: boolean;
@@ -196,14 +224,31 @@ export interface RegistersAvailableResponse extends Response<RegistersAvailableC
     registers: SingleRegisterMeta[];
 }
 
+export enum DisplayGetFormat {
+    Indexed8 = 0x00,
+    RGB = 0x01,
+    BGR = 0x02,
+    RGBA = 0x03,
+    BGRA = 0x04,
+}
+
 export interface DisplayGetCommand extends Command {
     type: CommandType.displayGet;
     useVicII: boolean;
+    format: DisplayGetFormat;
 }
 
 export interface DisplayGetResponse extends Response<DisplayGetCommand> {
     type: ResponseType.displayGet;
-    imageData: Uint8Array;
+    debugWidth: number;
+    debugHeight: number;
+    offsetX: number;
+    offsetY: number;
+    innerWidth: number;
+    innerHeight: number;
+    bpp: number;
+    imageData: Buffer;
+    displayBuffer: Buffer;
 }
 
 export interface ExitCommand extends Command {
@@ -336,6 +381,9 @@ export enum ResponseType {
     dump = 0x41,
     undump = 0x42,
 
+    resourceGet = 0x51,
+    resourceSet = 0x52,
+
     jam = 0x61,
     stopped = 0x62,
     resumed = 0x63,
@@ -374,6 +422,9 @@ export enum CommandType {
 
     dump = 0x41,
     undump = 0x42,
+
+    resourceGet = 0x51,
+    resourceSet = 0x52,
 
     advanceInstructions = 0x71,
     keyboardFeed = 0x72,
@@ -509,6 +560,45 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
 
         return r;
     }
+    else if(type == ResponseType.resourceGet) {
+        const r : ResourceGetResponse = {
+            ...res,
+            type,
+            resourceType: body.readUInt8(0),
+        }
+
+        const length = body.readUInt8(1);
+        if(r.resourceType == ResourceType.int) {
+            if(length == 1) {
+                r.intValue = body.readUInt8(2)
+            }
+            else if(length == 2) {
+                r.intValue = body.readUInt16LE(2)
+            }
+            else if(length == 4) {
+                r.intValue = body.readUInt32LE(2)
+            }
+            else {
+                throw new Error("Invalid bit length int");
+            }
+        }
+        else if(r.resourceType == ResourceType.string) {
+            r.stringValue = body.toString("ascii", 2, 2 + length);
+        }
+        else {
+            throw new Error("Invalid resource type");
+        }
+
+        return r;
+    }
+    else if(type == ResponseType.resourceSet) {
+        const r : ResourceSetResponse = {
+            ...res,
+            type,
+        }
+
+        return r;
+    }
     else if(type == ResponseType.advanceInstructions) {
         const r : AdvanceInstructionsResponse = {
             ...res,
@@ -590,10 +680,16 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         const r : DisplayGetResponse = {
             ...res,
             type,
-            imageData: new Uint8Array(0),
-        }
-
-        r.imageData = body;
+            debugWidth: body.readUInt16LE(12),
+            debugHeight: body.readUInt16LE(14),
+            offsetX: body.readUInt16LE(16),
+            offsetY: body.readUInt16LE(18),
+            innerWidth: body.readUInt16LE(20),
+            innerHeight: body.readUInt16LE(22),
+            bpp: body.readUInt16LE(23),
+            displayBuffer: body.slice(4 + body.readUInt32LE(0), body.length),
+            imageData: body.slice(12 + body.readUInt32LE(4), body.length),
+        };
 
         return r;
     }
@@ -773,6 +869,33 @@ export function commandObjectToBytes(command: Command) : Uint8Array {
 
         return Buffer.concat([buf, Buffer.from(cmd.filename, "ascii")])
     }
+    else if(type == CommandType.resourceGet) {
+        const cmd = <ResourceGetCommand>command;
+        const buf = Buffer.alloc(1);
+        buf.writeUInt8(Number(cmd.resourceName.length), 0);
+
+        return Buffer.concat([buf, Buffer.from(cmd.resourceName, "ascii")]);
+    }
+    else if(type == CommandType.resourceSet) {
+        const cmd = <ResourceSetCommand>command;
+        const valueLength = _.isString(cmd.resourceValue) ? cmd.resourceValue.length : 4;
+        const buf = Buffer.alloc(1 + cmd.resourceName.length + 1 + valueLength);
+        buf.writeUInt8(cmd.resourceType, 0);
+        buf.writeUInt8(cmd.resourceName.length, 1);
+        buf.write(cmd.resourceName, 2, "ascii");
+        buf.writeUInt8(valueLength, 2 + cmd.resourceName.length);
+        if(cmd.resourceType == ResourceType.int) {
+            buf.writeUInt32LE(<number>cmd.resourceValue, 3 + cmd.resourceName.length)
+        }
+        else if(type == ResourceType.string) {
+            buf.write(<string>cmd.resourceValue, 3 + cmd.resourceName.length, "ascii")
+        }
+        else {
+            throw new Error("Invalid Type");
+        }
+
+        return Buffer.concat([buf, Buffer.from(cmd.resourceName, "ascii")]);
+    }
     else if(type == CommandType.advanceInstructions) {
         const cmd = <AdvanceInstructionsCommand>command;
         const buf = Buffer.alloc(3);
@@ -810,8 +933,9 @@ export function commandObjectToBytes(command: Command) : Uint8Array {
     }
     else if(type == CommandType.displayGet) {
         const cmd = <DisplayGetCommand>command;
-        const buf = Buffer.alloc(1);
+        const buf = Buffer.alloc(2);
         buf.writeUInt8(Number(cmd.useVicII), 0);
+        buf.writeUInt8(cmd.format, 1);
         return buf;
     }
     else if(type == CommandType.exit) {

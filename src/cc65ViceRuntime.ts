@@ -1190,7 +1190,8 @@ export class CC65ViceRuntime extends EventEmitter {
                     const displayCmd : bin.DisplayGetCommand = {
                         type: bin.CommandType.displayGet,
                         useVicII: false,
-                    }
+                        format: bin.DisplayGetFormat.BGRA,
+                    };
                     const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
 
                     if(wasRunning) {
@@ -1218,6 +1219,7 @@ export class CC65ViceRuntime extends EventEmitter {
         const displayCmd : bin.DisplayGetCommand = {
             type: bin.CommandType.displayGet,
             useVicII: false,
+            format: bin.DisplayGetFormat.BGRA,
         }
         const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
 
