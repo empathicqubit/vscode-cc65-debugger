@@ -187,16 +187,21 @@ export class CC65ViceRuntime extends EventEmitter {
         filenames = filenames.filter(x => debugUtils.programFiletypes.test(x))
 
         const files = await Promise.all(filenames.map(async filename => {
-            const fileStats = await util.promisify(fs.stat)(filename);
-            let listingLength : number = 0;
-            const ext = path.extname(filename).toLowerCase();
-            if (/^\.d[0-9]{2}$/.test(ext)) {
-                try {
-                    const res = await util.promisify(child_process.execFile)('c1541', ['-attach', filename, '-list'])
-                    listingLength = (res.stdout.match(/[\r\n]+/g) || '').length
-                }
-                catch {}
-            }
+            const [fileStats, listingLength] = await Promise.all([
+                util.promisify(fs.stat)(filename),
+                (async() => {
+                    const ext = path.extname(filename).toLowerCase();
+                    if (/^\.d[0-9]{2}$/.test(ext)) {
+                        try {
+                            const res = await util.promisify(child_process.execFile)('c1541', ['-attach', filename, '-list'])
+                            return (res.stdout.match(/[\r\n]+/g) || '').length
+                        }
+                        catch {}
+                    }
+
+                    return 0;
+                })(),
+            ]);
 
             return {
                 fileStats,
@@ -227,8 +232,11 @@ export class CC65ViceRuntime extends EventEmitter {
             throw new Error("File must be a Commodore Disk image or PRoGram.");
         }
 
-        await this._loadSource(program, buildCwd);
-        await this._loadMapFile(program);
+        const [,, labelFile] = await Promise.all([
+            this._loadSource(program, buildCwd),
+            this._loadMapFile(program),
+            this._getLabelsPath(program),
+        ]);
         await this._getLocalTypes(buildCwd);
         this._initCodeSeg();
 
@@ -254,8 +262,6 @@ export class CC65ViceRuntime extends EventEmitter {
 
         this._otherHandlers = new EventEmitter();
 
-        const labelFile = await this._getLabelsPath(program);
-
         this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), await this._getVicePath(viceDirectory, !!preferX64OverX64sc), viceArgs, labelFile);
 
         this._viceStarting = true;
@@ -274,9 +280,11 @@ export class CC65ViceRuntime extends EventEmitter {
 
         console.time('postVice')
 
-        await this._resetStackFrames();
-        await this._guardCodeSeg();
-        await this._setParamStackBottom();
+        await Promise.all([
+            this._resetStackFrames(),
+            this._guardCodeSeg(),
+            this._setParamStackBottom(),
+        ]);
         // FIXME await this._setScreenUpdateCheckpoint();
 
         this._viceStarting = false;
