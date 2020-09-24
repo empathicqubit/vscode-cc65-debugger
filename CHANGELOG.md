@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0
+
+* Faster startup by doing more operations in parallel.
+* Improved syntax highlighting.
+
 ## 2.0.1
 
 * Implement binary monitor protocol, remove most text based commands.
