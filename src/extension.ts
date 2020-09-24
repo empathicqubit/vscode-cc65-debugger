@@ -40,10 +40,14 @@ export function activate(context: vscode.ExtensionContext) {
             factory = new CC65ViceDebugAdapterDescriptorFactory();
             break;
 
-        case 'inline': default:
+        case 'inline':
             factory = new InlineDebugAdapterFactory();
             break;
-        }
+
+        case 'external': default:
+            factory = new DebugAdapterExecutableFactory();
+            break;
+    }
 
     context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('cc65-vice', factory));
     if ('dispose' in factory) {
@@ -59,6 +63,12 @@ const newSession = () : DebugSession => {
     const sesh = new CC65ViceDebugSession();
 
     return sesh;
+}
+
+class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFactory {
+    createDebugAdapterDescriptor(_session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): ProviderResult<vscode.DebugAdapterDescriptor> {
+           return executable;
+    }
 }
 
 class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider {

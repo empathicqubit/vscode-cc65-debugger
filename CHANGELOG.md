@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.0
+
+* Fixed an issue that caused the debugger not to launch at all.
+
 ## 2.1.0
 
 * Faster startup by doing more operations in parallel.

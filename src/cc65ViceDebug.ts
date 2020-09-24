@@ -246,6 +246,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             await this._runtime.start(program, buildCwd, !!args.stopOnEntry, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc, args.runAhead);
         }
         catch (e) {
+            console.error(e);
             response.success = false;
             response.message = (<any>e).stack.toString();
         }
