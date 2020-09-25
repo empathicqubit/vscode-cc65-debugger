@@ -1,5 +1,5 @@
 dependencies:
-  '@entan.gl/vice-rainbow-monitor': 1.0.2
+  '@entan.gl/vice-rainbow-monitor': 1.0.5
   await-notify: 1.0.1
   colors: 1.4.0
   get-port: 5.1.1
@@ -57,13 +57,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-i6rgnR/YgPEQzZZnbTHHuZdlE8qyoBNalD6F+q4vAFlcMEcqmkoG+mPqJYJCo63qPf74+Y1UZsl3l6f7/RIkmA==
-  /@entan.gl/vice-rainbow-monitor/1.0.2:
+  /@entan.gl/vice-rainbow-monitor/1.0.5:
     dependencies:
       colors: 1.4.0
     dev: false
     hasBin: true
     resolution:
-      integrity: sha512-T0j1LXz6FsmaOGoP0nwxHTKfUwl+E0t0nbtjXAuMrSe7t/ufaWQckTXi64SRq2voSZRK1n8og3AaQRczBCE8uA==
+      integrity: sha512-ZqiN5BZDlbSBEAGZAPOM5At0l5kedkDGzaWpkuhi1q9BgxqQbi+LHVys2igXyYIi29imHwSWCKUM9e/Mff/37Q==
   /@entan.gl/vsce/1.79.6:
     dependencies:
       azure-devops-node-api: 7.2.0
@@ -4543,7 +4543,7 @@ packages:
       tarball: 'https://codeload.github.com/mjohnston/scroller/tar.gz/054c3349d5ff7474589eb7fbbb36708e5c48e435'
     version: 0.0.1
 specifiers:
-  '@entan.gl/vice-rainbow-monitor': ^1.0.2
+  '@entan.gl/vice-rainbow-monitor': ^1.0.5
   '@entan.gl/vsce': ^1.79.6
   '@types/lodash': ^4.14.149
   '@types/mocha': 5.2.7

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.0
+
+* Less detailed trace information in the monitor output.
+
 ## 2.2.0
 
 * Fixed an issue that caused the debugger not to launch at all.

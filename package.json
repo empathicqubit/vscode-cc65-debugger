@@ -1,7 +1,7 @@
 {
     "name": "cc65-vice",
     "displayName": "C64 CC65/VICE Debugger",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "publisher": "entan-gl",
     "description": "An extension to unify VSCode, CC65, and VICE monitor.",
     "author": {
@@ -33,13 +33,16 @@
     },
     "scripts": {
         "adapter": "webpack --config webpack.adapter.config.js --mode production",
-        "extension": "webpack --mode production",
         "monitor": "webpack --config webpack.monitor.config.js --mode production",
         "webviews": "webpack --config webpack.webviews.config.js --mode production",
         "styles": "shx cp src/styles.css dist/styles.css",
+        "adapter:debug": "webpack --config webpack.adapter.config.js --mode development",
+        "monitor:debug": "webpack --config webpack.monitor.config.js --mode production",
+        "webviews:debug": "webpack --config webpack.webviews.config.js --mode production",
+        "extension": "webpack --mode production",
         "extension:debug": "webpack --mode development",
-        "not-extension:debug": "tsc -p src",
-        "vscode:prepublish": "npm-run-all -p webviews monitor adapter extension && npm-run-all styles",
+        "not-extension:debug": "npm-run-all -p adapter:debug monitor:debug webviews:debug styles && tsc -p src",
+        "vscode:prepublish": "npm-run-all -p webviews monitor adapter extension styles",
         "vscode:debug": "npm-run-all not-extension:debug extension:debug",
         "test": "mocha -u tdd ./out/tests/",
         "postinstall": "node ./node_modules/vscode/bin/install",
@@ -47,7 +50,7 @@
         "publish": "vsce publish --packageManager pnpm"
     },
     "dependencies": {
-        "@entan.gl/vice-rainbow-monitor": "^1.0.2",
+        "@entan.gl/vice-rainbow-monitor": "^1.0.5",
         "await-notify": "1.0.1",
         "colors": "^1.4.0",
         "get-port": "^5.1.1",
