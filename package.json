@@ -169,7 +169,7 @@
                 "runtime": "node",
                 "configurationAttributes": {
                     "attach": {
-                        "required": [],
+                        "required": ["buildCwd"],
                         "properties": {
                             "stopOnEntry": {
                                 "type": "boolean",
@@ -178,7 +178,7 @@
                             },
                             "buildCwd": {
                                 "type": "string",
-                                "description": "The folder to run the build command in. Default is '${workspaceFolder}'",
+                                "description": "The full absolute path where the source was built. Default is '${workspaceFolder}'",
                                 "default": "${workspaceFolder}"
                             },
                             "program": {
@@ -206,7 +206,7 @@
                         }
                     },
                     "launch": {
-                        "required": [],
+                        "required": ["buildCwd"],
                         "properties": {
                             "buildCommand": {
                                 "type": "string",
@@ -225,7 +225,7 @@
                             },
                             "buildCwd": {
                                 "type": "string",
-                                "description": "The folder to run the build command in. Default is '${workspaceFolder}'",
+                                "description": "The full absolute path to run the build command in. Default is '${workspaceFolder}'",
                                 "default": "${workspaceFolder}"
                             },
                             "program": {

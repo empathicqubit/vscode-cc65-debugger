@@ -49,8 +49,8 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     buildCommand?: string;
     /** The command to run to generate preprocessor `.i` files. This is a shell command so you can put arguments and variables in here too. */
     preprocessCommand?: string;
-    /** The directory of your build command */
-    buildCwd?: string;
+    /** The full absolute path to run your build command in */
+    buildCwd: string;
     /** The d64, d81, or prg file to run, if automatic detection doesn't work */
     program?: string;
     /** The debug file path, if automatic detection doesn't work */
@@ -231,8 +231,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
         try {
-            const buildCwd = args.buildCwd || ".";
-            await this._runtime.attach(args.attachPort, buildCwd, !!args.stopOnEntry, !!args.runAhead, args.console, args.program, args.debugFile, args.mapFile);
+            await this._runtime.attach(args.attachPort, args.buildCwd, !!args.stopOnEntry, !!args.runAhead, args.console, args.program, args.debugFile, args.mapFile);
         }
         catch (e) {
             console.error(e);
@@ -248,12 +247,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
             await this._configurationDone.wait(3000);
 
-            const buildCwd = args.buildCwd || ".";
-
             // build the program.
             let possibles = <any>[];
             try {
-                possibles = await this._runtime.build(buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile", args.preprocessCommand || "make preprocess-only");
+                possibles = await this._runtime.build(args.buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile", args.preprocessCommand || "make preprocess-only");
             }
             catch {
                 throw new Error("Couldn't finish the build successfully. Check the console for details.");
@@ -265,7 +262,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
 
             // start the program in the runtime
-            await this._runtime.start(program, buildCwd, !!args.stopOnEntry, !!args.runAhead, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc);
+            await this._runtime.start(program, args.buildCwd, !!args.stopOnEntry, !!args.runAhead, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc);
         }
         catch (e) {
             console.error(e);
