@@ -25,9 +25,25 @@ in the debug section should create a simple one.
 
 <img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/config.png?raw=true" />
 
-There are a few settings in this configuration to note:
+Obsolete settings:
 
-- **viceCommand**: **OBSOLETE**! Please see the setting `cc65vice.viceDirectory` in your user settings.
+- **viceCommand**: Please see the setting `cc65vice.viceDirectory` in your user settings.
+
+Required settings for both launch and attach:
+
+- **name**: The name in the debug dropdown menu.
+- **request**: `launch` will launch, `attach` will attach.
+- **type**: Always `cc65-vice` for this debugger.
+- **buildCwd**: The working directory for your build command. You need this for
+attachment as well, so the debugger can find relative paths in your debug file.
+
+Required for attach mode only:
+
+- **attachPort**: The port to attach to in attach mode. This is the port
+configured with VICE's `-binarymonitoraddress` option.
+
+Required for launch mode only:
+
 - **viceArgs**: You'll want to set your C64 model here, and any other special
 hardware options that you need for your program. Either NTSC or one of the PAL
 models (jap, drean, etc). Look at the VICE manual for the full list.
@@ -37,17 +53,25 @@ models (jap, drean, etc). Look at the VICE manual for the full list.
 files, which are used by Clang instead of the `.c` and `.h` files if they are
 available. Omitting this setting may cause the preprocessor files not to be
 built, which could result in less accurate struct handling.
+
+Other shared settings:
+
+- **stopOnEntry**: This will break at the beginning of the program. Otherwise
+it will continue automatically after the debugger connects.
+
+Optional shared settings which may be helpful if things aren't working:
+
 - **program**: Specify this if the debugger can't find your binary file. By
 default it will look for a d81/d64 and if it can't find any a PRG. If you have
 multiple of those types of files, it will try some fanciness to determine which
 one is the "real" one, such as looking at the modification date and how many
 files are in your disk image, but those may fail.
-- **type**: Always `cc65-vice` for this debugger.
-- **request**: Always launch. Attachment is not possible yet.
-- **name**: The name in the debug dropdown menu.
-- **buildCwd**: The working directory for your build command.
-- **stopOnEntry**: This will break at the beginning of the program. Otherwise
-it will continue automatically after the debugger connects.
+- **mapFile**: Manually specify the path of your map file. Use this if auto
+detection fails. When this is unset it will look for a file in the same folder
+as your program named PROGRAMNAME.map
+- **debugFile**: Manually specify the path of your debug file. Use this if auto
+detection fails. When this is unset it will look for a file in the same folder
+as your program named PROGRAMNAME.dbg
 
 There are also some user settings to note:
 
