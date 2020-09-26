@@ -45,7 +45,7 @@
         "webpack:debug": "webpack --mode development",
         "tisk": "tsc -p src",
         "vscode:prepublish": "npm-run-all -p tisk webpack styles",
-        "vscode:debug": "npm-run-all -p tisk webpack:debug",
+        "vscode:debug": "npm-run-all -p tisk webpack:debug styles",
         "test": "mocha -u tdd ./out/tests/",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "package": "vsce package --packageManager pnpm",
