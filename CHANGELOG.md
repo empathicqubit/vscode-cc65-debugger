@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.0
+
+* Attach mode
+* Change required version of VICE to r38632 FIXME
+
 ## 2.3.0
 
 * Less detailed trace information in the monitor output.

@@ -16,7 +16,7 @@ import * as bin from './binary-dto';
 const waitPort = require('wait-port');
 
 export class ViceGrip extends EventEmitter {
-    public textPort : number = -1;
+    public textPort : number | undefined;
     private _binaryPort : number = -1;
     private _binaryConn: Readable & Writable;
 
@@ -24,7 +24,6 @@ export class ViceGrip extends EventEmitter {
     private _responseByteCount : number = 0;
     private _nextResponseLength : number = -1;
     private _responseEmitter : EventEmitter = new EventEmitter();
-    private _labelFile: string | null;
     private _binaryDataHandler(d : Buffer) {
         try {
             // FIXME: API version
@@ -36,6 +35,20 @@ export class ViceGrip extends EventEmitter {
 
             this._responseBytes.push(d);
             this._responseByteCount += d.length;
+
+            if(this._responseBytes[0] &&
+                this._responseBytes[0].length &&
+                this._responseBytes[0].readUInt8(0) != 0x02) {
+                const res : bin.AbstractResponse = {
+                    type: 0,
+                    apiVersion: 0,
+                    related: [],
+                    error: 0xff,
+                    requestId: 0xffffffff,
+                };
+
+                this._responseEmitter.emit('error', res);
+            }
 
             if(this._responseByteCount >= this._nextResponseLength) {
                 const buf = Buffer.concat(this._responseBytes);
@@ -69,39 +82,21 @@ export class ViceGrip extends EventEmitter {
         }
     };
 
-    private _program: string;
-    private _initBreak: number = -1;
-    private _cwd: string;
-    private _vicePath: string;
-    private _viceArgs: string[] | undefined;
-
     private _handler: debugUtils.ExecHandler;
     private _pids: [number, number] = [-1, -1];
 
     constructor(
-        program: string,
-        initBreak: number,
-        cwd: string,
         handler: debugUtils.ExecHandler,
-        vicePath: string,
-        viceArgs: string[] | undefined,
-        labelFile: string | null,
     ) {
         super();
 
         this._handler = handler;
-        this._program = program;
-        this._initBreak = initBreak;
-        this._cwd = cwd;
-        this._vicePath = vicePath;
-        this._viceArgs = viceArgs;
-        this._labelFile = labelFile;
     }
 
-    public async autostart() : Promise<bin.AutostartResponse> {
+    public async autostart(program: string) : Promise<bin.AutostartResponse> {
         const cmd : bin.AutostartCommand = {
             type: bin.CommandType.autostart,
-            filename: this._program,
+            filename: program,
             index: 0,
             run: true,
         };
@@ -130,90 +125,10 @@ export class ViceGrip extends EventEmitter {
         return await this.execBinary(cmd);
     }
 
-    public async start() {
-        const startText = _.random(29170, 29400);
-        const startBinary = _.random(29700, 30000);
-        this.textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
-        this._binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
-
-        let q = "";
-        let logfile : string | undefined;
-        if(process.platform == "win32") {
-            q = '"';
-            logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
-
-            const tempdir = path.dirname(logfile!);
-            const temps = await util.promisify(fs.readdir)(tempdir);
-            temps
-                .filter(x => /^cc65-vice-/.test(x))
-                .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
-        }
-
-        let args = [
-            // C64-specific
-            ...(
-                path.basename(this._vicePath).startsWith('x64')
-                ? [
-                    "-directory", `${q}${path.normalize(__dirname + "/../system")}${q}`,
-                    "-iecdevice8",
-                ]
-                : []
-            ),
-
-            // Monitor
-            "-nativemonitor",
-            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${this.textPort}`,
-            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${this._binaryPort}`,
-
-            // Hardware
-             "-autostart-warp", "-autostartprgmode", "1", "-autostart-handle-tde",
-
-            ...(
-                this._initBreak > -1
-                ? ['-initbreak', this._initBreak.toString()]
-                : []
-            ),
-
-            ...(
-                logfile
-                ? ['-logfile', logfile]
-                : []
-            ),
-
-            ...(
-                this._labelFile
-                ? ['-moncommands', this._labelFile]
-                : []
-            )
-        ];
-
-        if(this._viceArgs) {
-            args = [...args, ...this._viceArgs];
-        }
-        else {
-            args = [...args];
-        }
-
-        const opts = {
-            shell: false,
-            cwd: this._cwd,
-        };
-
-        try {
-            this._pids = await this._handler(this._vicePath, args, opts)
-        }
-        catch {
-            throw new Error(`Could not start VICE with "${this._vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
-        }
-
-        // Windows only, for debugging
-        if(logfile) {
-            await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {})
-        }
-
+    public async connect(binaryPort: number) {
         let binaryConn : net.Socket | undefined;
 
-        while(this._binaryPort == await getPort({port: getPort.makeRange(this._binaryPort, this._binaryPort + 256)}));
+        while(binaryPort == await getPort({port: getPort.makeRange(binaryPort, binaryPort + 256)}));
 
         let binaryTries = 0;
         do {
@@ -224,14 +139,14 @@ export class ViceGrip extends EventEmitter {
 
                 await waitPort({
                     host: '127.0.0.1',
-                    port: this._binaryPort,
+                    port: binaryPort,
                     timeout: 10000,
                     interval: 100,
                 });
 
                 binaryConn.connect({
                     host: '127.0.0.1',
-                    port: this._binaryPort,
+                    port: binaryPort,
                 });
 
             } catch(e) {
@@ -256,6 +171,101 @@ export class ViceGrip extends EventEmitter {
 
         this._binaryConn.read();
         this._binaryConn.resume();
+
+        this._binaryPort = binaryPort;
+
+        const textCommand : bin.ResourceGetCommand = {
+            type: bin.CommandType.resourceGet,
+            resourceName: 'MonitorServerAddress',
+        };
+
+        const textRes : bin.ResourceGetResponse = await this.execBinary(textCommand);
+
+        this.textPort = parseInt(_.last(textRes.stringValue!.split(':'))!);
+    }
+
+    public async start(initBreak: number, cwd: string, vicePath: string, viceArgs?: string[], labelFile?: string) {
+        const startText = _.random(29170, 29400);
+        const startBinary = _.random(29700, 30000);
+        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
+        const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
+
+        let q = "";
+        let logfile : string | undefined;
+        if(process.platform == "win32") {
+            q = '"';
+            logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
+
+            const tempdir = path.dirname(logfile!);
+            const temps = await util.promisify(fs.readdir)(tempdir);
+            temps
+                .filter(x => /^cc65-vice-/.test(x))
+                .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
+        }
+
+        let args = [
+            // C64-specific
+            ...(
+                path.basename(vicePath).startsWith('x64')
+                ? [
+                    "-directory", `${q}${path.normalize(__dirname + "/../system")}${q}`,
+                    "-iecdevice8",
+                ]
+                : []
+            ),
+
+            // Monitor
+            "-nativemonitor",
+            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
+            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
+
+            // Hardware
+             "-autostart-warp", "-autostartprgmode", "1", "-autostart-handle-tde",
+
+            ...(
+                initBreak > -1
+                ? ['-initbreak', initBreak.toString()]
+                : []
+            ),
+
+            ...(
+                logfile
+                ? ['-logfile', logfile]
+                : []
+            ),
+
+            ...(
+                labelFile
+                ? ['-moncommands', labelFile]
+                : []
+            )
+        ];
+
+        if(viceArgs) {
+            args = [...args, ...viceArgs];
+        }
+        else {
+            args = [...args];
+        }
+
+        const opts = {
+            shell: false,
+            cwd: cwd,
+        };
+
+        try {
+            this._pids = await this._handler(vicePath, args, opts)
+        }
+        catch {
+            throw new Error(`Could not start VICE with "${vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
+        }
+
+        // Windows only, for debugging
+        if(logfile) {
+            await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {})
+        }
+
+        await this.connect(binaryPort);
     }
 
     public async ping() : Promise<bin.PingResponse> {
@@ -337,16 +347,20 @@ export class ViceGrip extends EventEmitter {
         return await results;
     }
 
-    public async end() {
+    public async disconnect() {
+        this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
+        this._pids = [-1, -1];
+        this._binaryConn = <any>null;
+    }
+
+    public async terminate() {
         this._pids[1] > -1 && process.kill(this._pids[1], "SIGKILL");
         this._pids[0] > -1 && process.kill(this._pids[0], "SIGKILL");
         const cmd : bin.QuitCommand = {
             type: bin.CommandType.quit,
         }
         const res : bin.QuitResponse = await this.execBinary(cmd);
-        this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
-        this._pids = [-1, -1];
-        this._binaryConn = <any>null;
+        await this.disconnect();
     }
 
     on(event: string, listener: ((r: bin.AbstractResponse) => void) | (() => void)): this {

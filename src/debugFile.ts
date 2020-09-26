@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as _ from 'lodash';
 
 export interface Version {
     major: number;
@@ -114,6 +115,8 @@ export interface SourceFile {
 export interface Dbgfile {
     systemLib: Lib | null;
     systemLibBaseName: string | null;
+    mainScope: Scope | null;
+    mainLab: Sym | null;
     libs: Lib[];
     mods: Mod[];
     csyms: CSym[];
@@ -121,6 +124,8 @@ export interface Dbgfile {
     files: SourceFile[];
     lines: SourceLine[];
     segs: CodeSeg[];
+    codeSeg: CodeSeg | null;
+    entryAddress: number;
     syms: Sym[];
     labs: Sym[];
     spans: DebugSpan[];
@@ -131,6 +136,10 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     const dbgFile : Dbgfile = {
         systemLib: null,
         systemLibBaseName: null,
+        entryAddress: 0,
+        codeSeg: null,
+        mainScope: null,
+        mainLab: null,
         libs: [],
         mods: [],
         scopes: [],
@@ -382,6 +391,10 @@ export function parse(text: string, buildDir : string) : Dbgfile {
             } while(propMatch = propsRex.exec(propVals));
 
             dbgFile.segs.push(seg);
+
+            if(seg.name == "CODE") {
+                dbgFile.codeSeg = seg;
+            }
         }
         else if(ots == "span") {
             const span : DebugSpan = {
@@ -578,11 +591,21 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     dbgFile.scopes.sort((a, b) => spanSort(a.spans[0], b.spans[0]));
     dbgFile.lines.sort((a, b) => spanSort(a.span, b.span))
 
-    dbgFile.spans.sort((a, b) => b.absoluteAddress - a.absoluteAddress)
+    dbgFile.spans = _.sortBy(dbgFile.spans, x => -x.absoluteAddress, x => x.size);
 
     const segSort = (a, b) => b.segId - a.segId;
     dbgFile.syms.sort(segSort)
     dbgFile.labs.sort(segSort);
+
+    dbgFile.mainLab = dbgFile.labs.find(x => x.name == "_main") || null;
+    dbgFile.mainScope = dbgFile.scopes.find(x => x.name == "_main") || null;
+
+    if(dbgFile.mainLab) {
+        dbgFile.entryAddress = dbgFile.mainLab.val;
+    }
+    else if(dbgFile.codeSeg) {
+        dbgFile.entryAddress = dbgFile.codeSeg.start;
+    }
 
     return dbgFile;
 }

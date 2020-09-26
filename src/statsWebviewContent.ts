@@ -1,9 +1,6 @@
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 
-import * as fs from 'fs';
-import * as util from 'util';
-
 export function _statsWebviewContent() {
     const r = React.createElement;
     const content = document.querySelector("#content")!;

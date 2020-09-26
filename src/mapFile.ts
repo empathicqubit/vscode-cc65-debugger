@@ -1,6 +1,29 @@
+import * as path from 'path';
+import * as util from 'util';
+import * as fs from 'fs';
+
 export interface MapRef {
     functionName: string;
     functionAddress: number;
+}
+
+export async function getMapFilePath(program?: string) : Promise<string | undefined> {
+    if(!program) {
+        return;
+    }
+
+    const progDir = path.dirname(program);
+    const progFile = path.basename(program, path.extname(program));
+
+    const possibles = await util.promisify(fs.readdir)(progDir);
+    const filename : string | undefined = possibles
+        .find(x => path.extname(x) == '.map' && path.basename(x).startsWith(progFile));
+
+    if(!filename) {
+        return;
+    }
+
+    return path.join(progDir, filename);
 }
 
 export function parse(text: string) : MapRef[] {

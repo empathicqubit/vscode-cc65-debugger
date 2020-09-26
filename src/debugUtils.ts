@@ -14,7 +14,11 @@ export function rawBufferHex(buf: Buffer) {
     return buf.toString('hex').replace(/([0-9a-f]{8})/gi, '$1 ').replace(/([0-9a-f]{2})/gi, '$1 ');
 }
 
-export async function loadDebugFile(programName: string, buildDir: string) {
+export async function getDebugFilePath(programName?: string, buildDir?: string) : Promise<string | undefined> {
+    if(!programName || !buildDir) {
+        return;
+    }
+
     const progDir = path.dirname(programName);
     const progFile = path.basename(programName, path.extname(programName));
 
@@ -23,9 +27,13 @@ export async function loadDebugFile(programName: string, buildDir: string) {
         .find(x => path.extname(x) == '.dbg' && path.basename(x).startsWith(progFile));
 
     if(!filename) {
-        throw new Error("Could not find debug file");
+        return;
     }
 
-    const dbgFileData = await util.promisify(fs.readFile)(path.join(progDir, filename), 'ascii');
+    return path.join(progDir, filename);
+}
+
+export async function loadDebugFile(filename: string, buildDir: string) {
+    const dbgFileData = await util.promisify(fs.readFile)(filename, 'ascii');
     return dbgfile.parse(dbgFileData, buildDir);
 }

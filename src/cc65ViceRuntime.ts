@@ -42,6 +42,8 @@ const opcodeSizes = [
     2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
 ];
 
+const maxOpCodeSize = _.max(opcodeSizes)!;
+
 export interface CC65ViceBreakpoint {
     id: number;
     line: dbgfile.SourceLine;
@@ -82,14 +84,12 @@ export class CC65ViceRuntime extends EventEmitter {
     private _cpuStackBottom: number = 0x1ff;
     private _cpuStackTop: number = 0x1ff;
 
-    private _codeSeg: dbgfile.CodeSeg | undefined;
     // Monitors the code segment after initialization so that it doesn't accidentally get modified.
     private _codeSegGuardIndex: number = -1;
 
     // Updates the screen once a frame;
     private _screenUpdateIndex: number = -1;
 
-    private _entryAddress: number = 0;
     private _exitAddresses: number[] = [];
 
     private _breakPoints : CC65ViceBreakpoint[] = [];
@@ -119,7 +119,7 @@ export class CC65ViceRuntime extends EventEmitter {
     private _colorTermPids: [number, number] = [-1, -1];
     private _usePreprocess: boolean;
     private _runAhead: boolean;
-    private _isRunningAhead: boolean = false;
+    private _bypassStatusUpdates: boolean = false;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -219,9 +219,192 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     /**
-    * Start executing the given program.
-    */
-    public async start(program: string, buildCwd: string, stopOnEntry: boolean, viceDirectory?: string, viceArgs?: string[], consoleType?: string, preferX64OverX64sc?: boolean, runAhead?: boolean) {
+     * Attach to an already running program
+     * @param attachPort Binary monitor port
+     * @param stopOnEntry Stop after attaching
+     * @param consoleType The type of terminal to use when spawning the text monitor
+     * @param runAhead Step ahead one frame when stopping
+     */
+    public async attach(attachPort: number, buildCwd: string, stopOnEntry: boolean, runAhead: boolean, consoleType?: string, program?: string, debugFilePath?: string, mapFilePath?: string) {
+        const promises : Promise<any>[] = [];
+
+        console.time('loadSource')
+
+        if(!debugFilePath) {
+            promises.push(debugUtils.getDebugFilePath(program, buildCwd).then(x => debugFilePath = x));
+        }
+
+        if(!mapFilePath) {
+            promises.push(mapFile.getMapFilePath(program).then(x => mapFilePath = x));
+        }
+
+        await Promise.all(promises);
+        
+        await Promise.all([
+            this._loadDebugFile(debugFilePath, buildCwd),
+            this._loadMapFile(mapFilePath),
+        ]);
+        await this._getLocalTypes(buildCwd);
+
+        console.timeEnd('loadSource')
+
+        console.time('preVice');
+
+        this._resetRegisters();
+        this._setParamStackPointer();
+
+        console.timeEnd('preVice');
+
+        console.time('vice');
+
+        this._vice = new ViceGrip(
+            <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts))
+        );
+
+        this._viceStarting = true;
+        await this._vice.connect(attachPort);
+
+        this._vice.on('end', () => this.terminate());
+
+        await this._setupViceDataHandler();
+
+        // Try to determine if we are loaded and wait if not
+        await this._attachWait();
+
+        console.timeEnd('vice');
+
+        console.time('postVice');
+
+        await Promise.all([
+            this._resetStackFrames(),
+            this._guardCodeSeg(),
+            this._setParamStackBottom(),
+        ]);
+        // FIXME await this._setScreenUpdateCheckpoint();
+
+        this._viceStarting = false;
+
+        await this._verifyBreakpoints();
+
+        await this.pause();
+
+        if (stopOnEntry) {
+            // We don't do anything here since VICE should already be in the
+            // correct position after the startup routine.
+            this.sendEvent('stopOnEntry', 'console');
+        } else {
+            // we just start to run until we hit a breakpoint or an exception
+            await this.continue();
+        }
+
+        if(this._vice.textPort) {
+            this._colorTermPids = await this._processExecHandler(process.execPath, [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`], {});
+        }
+
+        this.sendEvent('output', 'console', 'Switch to the TERMINAL tab to access the monitor and VICE log output.\n');
+
+        console.timeEnd('postVice');
+    }
+
+    private async _attachWait() : Promise<void> {
+        if(this._dbgFile.codeSeg) {
+            const mainLab = this._dbgFile.mainLab;
+            this.sendEvent('output', 'console', 'Checking if the program is started...\n');
+
+            const scopes = this._dbgFile.scopes.filter(x => x.spans.length && x.name.startsWith("_") && x.size > maxOpCodeSize);
+            const firstLastScopes = _.uniq([_.first(scopes)!, _.last(scopes)!]);
+
+            if(!await this._validateLoad(firstLastScopes)) {
+                this.sendEvent('output', 'console', 'Waiting for program to start...\n');
+                await this._withAllBreaksDisabled(async () => {
+                    const storeCmds = _(firstLastScopes)
+                        .map(x => [ x.spans[0].absoluteAddress, x.spans[0].absoluteAddress + x.spans[0].size - 1])
+                        .flatten()
+                        .map(x => {
+                            const val : bin.CheckpointSetCommand = {
+                                type: bin.CommandType.checkpointSet,
+                                startAddress: x,
+                                endAddress: x,
+                                stop: true,
+                                enabled: true,
+                                temporary: false,
+                                operation: bin.CpuOperation.store,
+                            };
+                            return val;
+                        })
+                        .value();
+
+                    const storeReses : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(storeCmds);
+
+                    this._bypassStatusUpdates = true;
+                    do {
+                        await this.continue();
+                        await this._vice.waitForStop();
+                    } while(!await this._validateLoad(firstLastScopes)) 
+                    this._bypassStatusUpdates = false;
+
+                    const delCmds : bin.CheckpointDeleteCommand[] = storeReses
+                        .map(x => ({
+                                type: bin.CommandType.checkpointDelete,
+                                id: x.id,
+                        }));
+                    await this._vice.multiExecBinary(delCmds);
+                });
+            }
+
+            await this.continue();
+            await this._vice.ping();
+
+            this.sendEvent('output', 'console', 'Program started.\n')
+        }
+    }
+
+    private async _validateLoad(scopes: dbgfile.Scope[]) : Promise<boolean> {
+        if(!this._dbgFile.codeSeg) {
+            return true;
+        }
+
+        if(!scopes.length) {
+            return true;
+        }
+
+        for(const scope of scopes) {
+            const scopeSpan = scope.spans[0];
+            const instructionSpans = _(this._dbgFile.spans)
+                .dropWhile(x => x.absoluteAddress >= scopeSpan.absoluteAddress + scopeSpan.size)
+                .filter((x, i, c) => x.size <= maxOpCodeSize && (!c[i - 1] || c[i - 1].absoluteAddress != x.absoluteAddress))
+                .takeWhile(x => x.absoluteAddress >= scopeSpan.absoluteAddress)
+                .reverse()
+                .value();
+                
+            await timeout(1000);
+            const mem = await this.getMemory(scopeSpan.absoluteAddress, scopeSpan.size);
+            let i = 0;
+            let cmd = 0x100;
+            for(let cursor = 0; cursor < scopeSpan.size; cursor += opcodeSizes[cmd] || 0) {
+                cmd = mem.readUInt8(cursor);
+                if(instructionSpans[i].size != opcodeSizes[cmd]) {
+                    return false;
+                }
+                i++;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Start running the given program
+     * @param program Program path
+     * @param buildCwd Build path
+     * @param stopOnEntry Stop after hitting main
+     * @param viceDirectory The path with all the VICE executables
+     * @param viceArgs Extra arguments to pass to VICE
+     * @param consoleType How the user wants the terminals to launch
+     * @param preferX64OverX64sc Use x64 when appropriate
+     * @param runAhead Skip ahead one frame
+     */
+    public async start(program: string, buildCwd: string, stopOnEntry: boolean, runAhead: boolean, viceDirectory?: string, viceArgs?: string[], consoleType?: string, preferX64OverX64sc?: boolean,  debugFilePath?: string, mapFilePath?: string, labelFilePath?: string) {
         this.sendEvent('output', 'console', 'Make sure you\'re using the latest version of VICE or this extension won\'t work! You may need to build from source if you\'re having problems.');
 
         this._runAhead = !!runAhead;
@@ -232,26 +415,31 @@ export class CC65ViceRuntime extends EventEmitter {
             throw new Error("File must be a Commodore Disk image or PRoGram.");
         }
 
-        const [,, labelFile] = await Promise.all([
-            this._loadSource(program, buildCwd),
-            this._loadMapFile(program),
-            this._getLabelsPath(program),
+        const promises : Promise<any>[] = [];
+
+        if(!debugFilePath) {
+            promises.push(debugUtils.getDebugFilePath(program, buildCwd).then(x => debugFilePath = x));
+        }
+
+        if(!mapFilePath) {
+            promises.push(mapFile.getMapFilePath(program).then(x => mapFilePath = x));
+        }
+
+        if(!labelFilePath) {
+            promises.push(this._getLabelsPath(program).then(x => labelFilePath = x));
+        }
+
+        await Promise.all(promises);
+
+        await Promise.all([
+            this._loadDebugFile(debugFilePath, buildCwd),
+            this._loadMapFile(mapFilePath),
         ]);
         await this._getLocalTypes(buildCwd);
-        this._initCodeSeg();
 
         console.timeEnd('loadSource')
 
         console.time('preVice');
-
-        const startSym = this._dbgFile.labs.find(x => x.name == "_main");
-
-        if(startSym) {
-            this._entryAddress = startSym.val;
-        }
-        else if(this._codeSeg) {
-            this._entryAddress = this._codeSeg.start;
-        }
 
         this._resetRegisters();
         this._setParamStackPointer();
@@ -260,21 +448,31 @@ export class CC65ViceRuntime extends EventEmitter {
 
         console.time('vice');
 
-        this._otherHandlers = new EventEmitter();
-
-        this._vice = new ViceGrip(program, this._entryAddress, path.dirname(program), <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), await this._getVicePath(viceDirectory, !!preferX64OverX64sc), viceArgs, labelFile);
+        this._vice = new ViceGrip(
+            <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), 
+        );
 
         this._viceStarting = true;
-        await this._vice.start();
+        await this._vice.start(
+            this._dbgFile.entryAddress, 
+            path.dirname(program),
+            await this._getVicePath(viceDirectory, !!preferX64OverX64sc), 
+            viceArgs,
+            labelFilePath
+        )
+
+        this._vice.on('error', (res) => {
+            console.error(res);
+        })
 
         this._vice.on('end', () => this.terminate());
 
         await this._setupViceDataHandler();
-        await this._vice.autostart();
+        await this._vice.autostart(program);
         await this.continue();
         await this._vice.waitForStop();
         await this.continue();
-        await this._vice.waitForStop(this._entryAddress);
+        await this._vice.waitForStop(this._dbgFile.entryAddress);
 
         console.timeEnd('vice')
 
@@ -329,26 +527,16 @@ export class CC65ViceRuntime extends EventEmitter {
         this._screenUpdateIndex = brkRes.id;
     }
 
-    private _initCodeSeg() : void {
-        const codeSeg = this._dbgFile.segs.find(x => x.name == "CODE");
-
-        if(!codeSeg) {
-            return;
-        }
-
-        this._codeSeg = codeSeg;
-    }
-
     private async _guardCodeSeg() : Promise<void> {
-        if(!this._codeSeg) {
+        if(!this._dbgFile.codeSeg) {
             return;
         }
 
         const cmd : bin.CheckpointSetCommand = {
             type: bin.CommandType.checkpointSet,
             operation: bin.CpuOperation.store,
-            startAddress: this._codeSeg.start,
-            endAddress: this._codeSeg.start + this._codeSeg.size - 1,
+            startAddress: this._dbgFile.codeSeg.start,
+            endAddress: this._dbgFile.codeSeg.start + this._dbgFile.codeSeg.size - 1,
             enabled: true,
             stop: true,
             temporary: false,
@@ -357,20 +545,21 @@ export class CC65ViceRuntime extends EventEmitter {
         this._codeSegGuardIndex = res.id;
     }
 
-    private async _loadMapFile(program: string) : Promise<void> {
-        const progDir = path.dirname(program);
-        const progFile = path.basename(program, path.extname(program));
+    private async _loadMapFile(filename: string | undefined) : Promise<void> {
+        try {
+            if(!filename) {
+                throw new Error();
+            }
 
-        const possibles = await util.promisify(fs.readdir)(progDir);
-        const filename : string | undefined = possibles
-            .find(x => path.extname(x) == '.map' && path.basename(x).startsWith(progFile));
-
-        if(!filename) {
-            throw new Error("Could not find map file");
+            const text = await util.promisify(fs.readFile)(filename, 'utf8');
+            this._mapFile = mapFile.parse(text);
         }
-
-        const text = await util.promisify(fs.readFile)(path.join(progDir, filename), 'utf8');
-        this._mapFile = mapFile.parse(text);
+        catch {
+            throw new Error(
+`Could not load map file from cc65. Make sure it's being generated,
+or define the location manually with the launch.json->mapFile setting`
+            );
+        }
     }
 
     public async getTypeFields(addr: number, typeName: string) : Promise<VariableData[]> {
@@ -540,7 +729,7 @@ export class CC65ViceRuntime extends EventEmitter {
             return null;
         }
 
-        const functionLines = currentFunction.spans.find(x => x.seg == this._codeSeg)!.lines.filter(x => x.file == this._currentPosition.file);
+        const functionLines = currentFunction.spans.find(x => x.seg == this._dbgFile.codeSeg)!.lines.filter(x => x.file == this._currentPosition.file);
         const currentIdx = functionLines.findIndex(x => x.num == nextLine.num);
         const remainingLines = functionLines.slice(currentIdx);
         const setBreaks : bin.CheckpointSetCommand[] = remainingLines.map(x => ({
@@ -557,7 +746,7 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     public async stepIn() : Promise<void> {
-        if(!this._codeSeg) {
+        if(!this._dbgFile.codeSeg) {
             return;
         }
 
@@ -593,8 +782,8 @@ export class CC65ViceRuntime extends EventEmitter {
             return;
         }
 
-        const begin = lastFrame.scope.spans.find(x => x.seg == this._codeSeg)!.absoluteAddress;
-        const end = lastFrame.scope.spans.find(x => x.seg == this._codeSeg)!.absoluteAddress + lastFrame.scope.spans[0].size - 1;
+        const begin = lastFrame.scope.spans.find(x => x.seg == this._dbgFile.codeSeg)!.absoluteAddress;
+        const end = lastFrame.scope.spans.find(x => x.seg == this._dbgFile.codeSeg)!.absoluteAddress + lastFrame.scope.spans[0].size - 1;
 
         await this._withAllBreaksDisabled(async() => {
             const brk = await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
@@ -651,23 +840,32 @@ export class CC65ViceRuntime extends EventEmitter {
 
     // Clean up all the things
     public async terminate() : Promise<void> {
+        await this.disconnect();
+
+        try {
+            this._vice && await this._vice.terminate();
+        }
+        catch {}
+
+        this.sendEvent('end');
+    }
+
+    public async disconnect() {
         try {
             this._colorTermPids[1] > -1 && process.kill(this._colorTermPids[1], "SIGKILL");
             this._colorTermPids[0] > -1 && process.kill(this._colorTermPids[0], "SIGKILL");
         }
         catch {}
+
         this._colorTermPids = [-1, -1];
 
-        try {
-            this._vice && await this._vice.end();
-        }
-        catch {}
+        await this._vice.disconnect();
+
         this._vice = <any>null;
         this.viceRunning = false;
 
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
-        this.sendEvent('end');
     }
 
     // Breakpoints
@@ -972,7 +1170,7 @@ export class CC65ViceRuntime extends EventEmitter {
     public async getGlobalVariables() : Promise<VariableData[]> {
         const vars: VariableData[] = [];
         for(const sym of this._dbgFile.labs) {
-            if(!sym.name.startsWith("_") || (sym.seg == this._codeSeg)) {
+            if(!sym.name.startsWith("_") || (sym.seg == this._dbgFile.codeSeg)) {
                 continue;
             }
 
@@ -1051,7 +1249,7 @@ export class CC65ViceRuntime extends EventEmitter {
     }
 
     // Get the labels file if it exists
-    private async _getLabelsPath(program: string): Promise<string | null> {
+    private async _getLabelsPath(program: string): Promise<string | undefined> {
         const match = debugUtils.programFiletypes.exec(program)!;
         const isATargetExtension = !!match[3]; // For the standard Makefile's wonky targets.
         let filename : string;
@@ -1067,11 +1265,9 @@ export class CC65ViceRuntime extends EventEmitter {
             return filename;
         }
         catch {
-            return null;
+            return undefined;
         }
     }
-
-    private _otherHandlers : EventEmitter;
 
     private _addStackFrame(brk: bin.CheckpointInfoResponse) {
         if(brk.stop) {
@@ -1106,7 +1302,7 @@ export class CC65ViceRuntime extends EventEmitter {
         avail.registers.map(x => meta[x.name] = x);
 
         this._vice.on(0xffffffff.toString(16), async e => {
-            if(this._isRunningAhead) {
+            if(this._bypassStatusUpdates) {
                 return;
             }
             else if(e.type == bin.ResponseType.registerInfo) {
@@ -1242,7 +1438,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         const oldLine = this._registers.line;
         const oldPosition = this._currentPosition;
-        this._isRunningAhead = true;
+        this._bypassStatusUpdates = true;
         await this._withAllBreaksDisabled(async() => {
             const brkCmd : bin.CheckpointSetCommand = {
                 type: bin.CommandType.checkpointSet,
@@ -1276,7 +1472,7 @@ export class CC65ViceRuntime extends EventEmitter {
             };
             await this._vice.execBinary(delBrk);
         });
-        this._isRunningAhead = false;
+        this._bypassStatusUpdates = false;
 
         const aheadRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
 
@@ -1317,14 +1513,19 @@ export class CC65ViceRuntime extends EventEmitter {
         this.sendEvent('output', 'console', null, oldPosition.file!.name, oldPosition.num, 0);
     }
 
-    private async _loadSource(file: string, buildDir: string) : Promise<dbgfile.Dbgfile> {
+    private async _loadDebugFile(filename: string | undefined, buildDir: string) : Promise<dbgfile.Dbgfile> {
         try {
-            this._dbgFile = await debugUtils.loadDebugFile(file, buildDir);
+            if(!filename) {
+                throw new Error();
+            }
+
+            this._dbgFile = await debugUtils.loadDebugFile(filename, buildDir);
         }
         catch {
             throw new Error(
 `Could not load debug symbols file from cc65. It must nave
-the same name as your d84/d64/prg file with an .dbg extension.`
+the same name as your d84/d64/prg file with an .dbg extension.
+Alternatively, define the location with the launch.json->debugFile setting`
             );
         }
 
@@ -1446,7 +1647,7 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             return null;
         }
 
-        const span = searchScope.spans.find(x => x.seg == this._codeSeg);
+        const span = searchScope.spans.find(x => x.seg == this._dbgFile.codeSeg);
         if(!span) {
             return null;
         }
@@ -1472,7 +1673,7 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
                     });
                 }
                 else if(addr < begin || addr >= end) {
-                    if(!(this._codeSeg && this._codeSeg.start <= addr && addr <= this._codeSeg.start + this._codeSeg.size)) {
+                    if(!(this._dbgFile.codeSeg && this._dbgFile.codeSeg.start <= addr && addr <= this._dbgFile.codeSeg.start + this._dbgFile.codeSeg.size)) {
                         continue;
                     }
 
@@ -1547,7 +1748,7 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             startFrames.push(...res.starts);
             endFrames.push(...res.ends);
 
-            if(res.ends[0] && res.ends[0].scope.name == '_main') {
+            if(res.ends[0] && res.ends[0].scope == this._dbgFile.mainScope) {
                 this._exitAddresses.push(...res.ends.map(x => x.address));
             }
         }
@@ -1628,7 +1829,12 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
 
         await this._stackFrameBreakToggle(false);
 
-        this._addStackFrame(resStarts.find(x => x.startAddress == this._currentAddress)!);
+        const current = resStarts.find(x => x.startAddress == this._currentAddress);
+        if(!current) {
+            return;
+        }
+
+        this._addStackFrame(current);
     }
 
     // Comm

@@ -10,6 +10,7 @@ dist/
 *.orig
 *.rej
 *.js
+!webpack.*.config.js
 *.c64
 *.prg
 *.d81

@@ -1,7 +1,7 @@
 {
     "name": "cc65-vice",
     "displayName": "C64 CC65/VICE Debugger",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "publisher": "entan-gl",
     "description": "An extension to unify VSCode, CC65, and VICE monitor.",
     "author": {
@@ -39,15 +39,22 @@
         "adapter:debug": "webpack --config webpack.adapter.config.js --mode development",
         "monitor:debug": "webpack --config webpack.monitor.config.js --mode development",
         "webviews:debug": "webpack --config webpack.webviews.config.js --mode development",
-        "extension": "webpack --mode production",
-        "extension:debug": "webpack --mode development",
-        "not-extension:debug": "npm-run-all -p adapter:debug monitor:debug webviews:debug styles && tsc -p src",
-        "vscode:prepublish": "npm-run-all -p webviews monitor adapter extension styles",
-        "vscode:debug": "npm-run-all not-extension:debug extension:debug",
+        "extension": "webpack --config webpack.extension.config.js --mode production",
+        "extension:debug": "webpack --config webpack.extension.config.js --mode development",
+        "webpack": "webpack --mode production",
+        "webpack:debug": "webpack --mode development",
+        "tisk": "tsc -p src",
+        "vscode:prepublish": "npm-run-all -p tisk webpack styles",
+        "vscode:debug": "npm-run-all -p tisk webpack:debug",
         "test": "mocha -u tdd ./out/tests/",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "package": "vsce package --packageManager pnpm",
         "publish": "vsce publish --packageManager pnpm"
+    },
+    "fork-ts-checker": {
+        "typescript": {
+            "configFile": "src/tsconfig.json"
+        }
     },
     "dependencies": {
         "@entan.gl/vice-rainbow-monitor": "^1.0.5",
@@ -60,7 +67,7 @@
         "performance-now": "^2.1.0",
         "pngjs": "^5.0.0",
         "react": "^16.13.1",
-        "react-canvas": "^1.3.0",
+        "react-canvas-wrapper": "^0.5.1",
         "react-dom": "^16.13.1",
         "recursive-readdir": "^2.2.2",
         "tga": "^1.0.4",
@@ -87,8 +94,8 @@
         "vscode": "^1.1.36",
         "vscode-debugadapter-testsupport": "1.40.1",
         "vscode-debugprotocol": "^1.41.0",
-        "webpack": "^4.41.6",
-        "webpack-cli": "^3.3.11"
+        "webpack": "^4.44.2",
+        "webpack-cli": "^3.3.12"
     },
     "main": "./dist/extension",
     "activationEvents": [
@@ -161,6 +168,43 @@
                 "program": "./dist/debugAdapter.js",
                 "runtime": "node",
                 "configurationAttributes": {
+                    "attach": {
+                        "required": [],
+                        "properties": {
+                            "stopOnEntry": {
+                                "type": "boolean",
+                                "description": "Automatically stop after launch.",
+                                "default": true
+                            },
+                            "buildCwd": {
+                                "type": "string",
+                                "description": "The folder to run the build command in. Default is '${workspaceFolder}'",
+                                "default": "${workspaceFolder}"
+                            },
+                            "program": {
+                                "type": "string",
+                                "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
+                            },
+                            "debugFile": {
+                                "type": "string",
+                                "description": "The debug file path. Use this if autodetection fails."
+                            },
+                            "mapFile": {
+                                "type": "string",
+                                "description": "The map file path. Use this if autodetection fails."
+                            },
+                            "attachPort": {
+                                "type": "number",
+                                "description": "The port number to attach to in attach mode. This is the port configured with VICE's -binarymonitoraddress option.",
+                                "default": 6502
+                            },
+                            "trace": {
+                                "type": "boolean",
+                                "description": "Enable logging of the Debug Adapter Protocol.",
+                                "default": true
+                            }
+                        }
+                    },
                     "launch": {
                         "required": [],
                         "properties": {
@@ -187,6 +231,14 @@
                             "program": {
                                 "type": "string",
                                 "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
+                            },
+                            "debugFile": {
+                                "type": "string",
+                                "description": "The debug file path. Use this if autodetection fails."
+                            },
+                            "mapFile": {
+                                "type": "string",
+                                "description": "The map file path. Use this if autodetection fails."
                             },
                             "viceArgs": {
                                 "type": "array",

@@ -33,6 +33,10 @@ enum VariablesReferenceFlag {
  * Settings for launch.json
  */
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+    /** launch or attach */
+    request?: 'launch' | 'attach';
+    /** Port of the binary monitor to connect to */
+    attachPort: number;
     /** When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately. */
     runAhead?: boolean;
     /** Use X64 instead of X64SC when appropriate. */
@@ -49,6 +53,10 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     buildCwd?: string;
     /** The d64, d81, or prg file to run, if automatic detection doesn't work */
     program?: string;
+    /** The debug file path, if automatic detection doesn't work */
+    debugFile?: string;
+    /** The map file path, if automatic detection doesn't work */
+    mapFile?: string;
     /** Automatically stop target after launch. If not specified, target does not stop. */
     stopOnEntry?: boolean;
     /** enable logging the Debug Adapter Protocol */
@@ -221,6 +229,20 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         }
     }
 
+    protected async attachRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
+        try {
+            const buildCwd = args.buildCwd || ".";
+            await this._runtime.attach(args.attachPort, buildCwd, !!args.stopOnEntry, !!args.runAhead, args.console, args.program, args.debugFile, args.mapFile);
+        }
+        catch (e) {
+            console.error(e);
+            response.success = false;
+            response.message = (<any>e).stack.toString();
+        }
+
+        this.sendResponse(response);
+    }
+
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
         try {
             logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
@@ -243,7 +265,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
 
             // start the program in the runtime
-            await this._runtime.start(program, buildCwd, !!args.stopOnEntry, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc, args.runAhead);
+            await this._runtime.start(program, buildCwd, !!args.stopOnEntry, !!args.runAhead, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc);
         }
         catch (e) {
             console.error(e);
@@ -637,9 +659,16 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     }
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request) : Promise<void> {
-        await this._runtime.terminate();
+        try {
+            await this._runtime.disconnect();
+        }
+        catch(e) {
+            console.error(e);
+            response.success = false;
+            response.message = (<any>e).stack.toString();
+        }
         this._addressTypes = {};
-        this.sendResponse(response)
+        this.sendResponse(response);
     }
 
     //---- helpers
