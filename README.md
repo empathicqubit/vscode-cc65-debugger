@@ -12,6 +12,18 @@ This is an extension to let you debug CC65 code made for the Commodore platforms
 
 <a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
 
+- [vscode-cc65-vice-debug](#vscode-cc65-vice-debug)
+  * [Setup](#setup)
+    + [Windows-specific instructions](#windows-specific-instructions)
+    + [Linux-specific instructions (Debian \[and probably also Ubuntu\])](#linux-specific-instructions--debian---and-probably-also-ubuntu---)
+  * [Project Configuration](#project-configuration)
+  * [Changes needed to your Makefile](#changes-needed-to-your-makefile)
+  * [Changes needed to your code](#changes-needed-to-your-code)
+  * [What works](#what-works)
+  * [What's weird](#what-s-weird)
+  * [Building](#building)
+  * [Additional Credits (see also LICENSE.md)](#additional-credits--see-also-licensemd-)
+
 ## Setup
 
 To make sure all the features work, you'll want to install Clang, cc65 2.17
