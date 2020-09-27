@@ -3,7 +3,7 @@
 ## 2.4.0
 
 * Attach mode
-* Change required version of VICE to r38632 FIXME
+* Change required version of VICE to r38635
 
 ## 2.3.0
 
