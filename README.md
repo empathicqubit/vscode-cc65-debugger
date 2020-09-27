@@ -4,6 +4,12 @@
 [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 [![Ratings](https://vsmarketplacebadge.apphb.com/rating/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 
+Dependencies:
+
+
+[![VICE](https://img.shields.io/badge/VICE-r38635-blue)](https://chocolatey.org/packages/winvice-nightly/3.4.0-r38635)
+[![CC65](https://img.shields.io/badge/CC65-2.17-blue)](https://chocolatey.org/packages/cc65-compiler/2.17)
+
 This is an extension to let you debug CC65 code made for the Commodore platforms, including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
 
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
