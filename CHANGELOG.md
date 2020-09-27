@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.1
+
+* Fix terminate
+
 ## 2.4.0
 
 * Attach mode

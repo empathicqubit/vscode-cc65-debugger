@@ -840,12 +840,14 @@ or define the location manually with the launch.json->mapFile setting`
 
     // Clean up all the things
     public async terminate() : Promise<void> {
-        await this.disconnect();
-
         try {
             this._vice && await this._vice.terminate();
         }
         catch {}
+
+        this._vice = <any>null;
+
+        await this.disconnect();
 
         this.sendEvent('end');
     }
@@ -859,9 +861,10 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._colorTermPids = [-1, -1];
 
-        await this._vice.disconnect();
+        this._vice && await this._vice.disconnect();
 
         this._vice = <any>null;
+
         this.viceRunning = false;
 
         this._dbgFile = <any>null;
