@@ -214,8 +214,9 @@ export class ViceGrip extends EventEmitter {
                 : []
             ),
 
+            // FIXME Double-check to see if there are caveats to omitting
+            // the -nativemonitor flag. Sometimes the GUI monitor would steal focus.
             // Monitor
-            "-nativemonitor",
             "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
 
@@ -321,7 +322,7 @@ export class ViceGrip extends EventEmitter {
                     const related : bin.AbstractResponse[] = [];
                     const afterResponse = (b : U) => {
                         if(b.error) {
-                            const error : any = new Error('Response error');
+                            const error : any = new Error(`Response error: error 0x${b.error.toString(16)}: req_type 0x${command.type.toString(16)}: req_id 0x${requestId.toString(16)}`);
                             error.response = b;
                             error.command = command;
                             rej(error);
@@ -348,23 +349,62 @@ export class ViceGrip extends EventEmitter {
     }
 
     public async disconnect() {
-        this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
+        try {
+            this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
+        }
+        catch(e) {
+            console.error(e);
+        }
         this._pids = [-1, -1];
         this._binaryConn = <any>null;
     }
 
     public async terminate() {
-        this._pids[1] > -1 && process.kill(this._pids[1], "SIGKILL");
-        this._pids[0] > -1 && process.kill(this._pids[0], "SIGKILL");
-        const cmd : bin.QuitCommand = {
-            type: bin.CommandType.quit,
+        try {
+            const cmd : bin.QuitCommand = {
+                type: bin.CommandType.quit,
+            }
+            this._binaryConn && await this.execBinary(cmd);
+
         }
-        const res : bin.QuitResponse = await this.execBinary(cmd);
+        catch(e) {
+            console.error(e);
+        }
+
+        // Give VICE a second to shut down properly
+        // FIXME Something about this delay causes a race condition when
+        // awaited.
+        const pids = this._pids;
+        debugUtils.delay(1000).then(() => {
+            try {
+                for(const pid of _.uniq(pids)) {
+                    pid > -1 && process.kill(pid, 0) && process.kill(pid, "SIGKILL");
+                }
+            }
+            catch {}
+        })
+        this._pids = [-1, -1];
+
         await this.disconnect();
+    }
+
+    once(event: string, listener: ((r: bin.AbstractResponse) => void) | (() => void)): this {
+        if(event == 'end') {
+            this._binaryConn.once('error', listener);
+            this._binaryConn.once('close', listener);
+            this._binaryConn.once('finish', listener);
+            this._binaryConn.once('end', listener);
+        }
+        else {
+            this._responseEmitter.on(event, listener);
+        }
+
+        return this;
     }
 
     on(event: string, listener: ((r: bin.AbstractResponse) => void) | (() => void)): this {
         if(event == 'end') {
+            this._binaryConn.on('error', listener);
             this._binaryConn.on('close', listener);
             this._binaryConn.on('finish', listener);
             this._binaryConn.on('end', listener);

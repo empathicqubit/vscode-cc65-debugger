@@ -57,8 +57,10 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     debugFile?: string;
     /** The map file path, if automatic detection doesn't work */
     mapFile?: string;
-    /** Automatically stop target after launch. If not specified, target does not stop. */
+    /** Automatically stop target after hitting the beginning of main(). If not specified, target does not stop. */
     stopOnEntry?: boolean;
+    /** Automatically stop target after hitting the end of main(). */
+    stopOnExit?: boolean;
     /** enable logging the Debug Adapter Protocol */
     trace?: boolean;
     console?: 'integratedTerminal' | 'integratedConsole' | 'externalTerminal';
@@ -231,7 +233,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
         try {
-            await this._runtime.attach(args.attachPort, args.buildCwd, !!args.stopOnEntry, !!args.runAhead, args.console, args.program, args.debugFile, args.mapFile);
+            await this._runtime.attach(args.attachPort, args.buildCwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.console, args.program, args.debugFile, args.mapFile);
         }
         catch (e) {
             console.error(e);
@@ -262,7 +264,17 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
 
             // start the program in the runtime
-            await this._runtime.start(program, args.buildCwd, !!args.stopOnEntry, !!args.runAhead, args.viceDirectory, args.viceArgs, args.console, args.preferX64OverX64sc);
+            await this._runtime.start(
+                program, 
+                args.buildCwd, 
+                !!args.stopOnEntry, 
+                !!args.stopOnExit, 
+                !!args.runAhead, 
+                args.viceDirectory, 
+                args.viceArgs, 
+                args.console, 
+                args.preferX64OverX64sc
+            );
         }
         catch (e) {
             console.error(e);
@@ -311,8 +323,16 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     }
 
     protected async terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): Promise<void> {
-        await this._runtime.terminate();
-        this._addressTypes = {};
+        try {
+            await this._runtime.terminate();
+            this._addressTypes = {};
+        }
+        catch(e) {
+            console.error(e);
+            response.success = false;
+            response.message = (<any>e).stack.toString();
+        }
+
         this.sendResponse(response);
     }
 

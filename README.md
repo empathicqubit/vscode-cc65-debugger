@@ -247,7 +247,7 @@ scary "no symbols for this file" window when you pause on a compiled DLL in VS p
 
 ## Building
 
-You will need node >=13, vscode >=1.42, pnpm >=5.5.
+You will need node >=13, vscode >=1.42, pnpm >=5.5. Mocha Test Explorer extension is also recommended.
 
 To build, run the following commands:
 

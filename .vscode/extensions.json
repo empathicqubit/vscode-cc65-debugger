@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "hbenl.vscode-mocha-test-adapter"
+    ],
+    "unwantedRecommendations": ["sharpninja.cc65", "tlgkccampbell.code-ca65"]
+}

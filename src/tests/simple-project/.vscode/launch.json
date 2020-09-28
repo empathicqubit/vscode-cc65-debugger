@@ -12,6 +12,7 @@
             "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
             "debugServer": 4711,
             "stopOnEntry": true,
+            "stopOnExit": true,
             "viceArgs": [
             ]
         }

@@ -3,5 +3,9 @@
     "workbench.colorCustomizations": {
         "activityBar.background": "#630",
 
-    }
+    },
+
+    "mochaExplorer.files": "src/tests/**/*.ts",
+    "mochaExplorer.require": "ts-node/register",
+    "mochaExplorer.timeout": 15000
 }

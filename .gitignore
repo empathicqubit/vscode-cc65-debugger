@@ -12,6 +12,7 @@ dist/
 *.js
 !webpack.*.config.js
 *.c64
+*.pet
 *.prg
 *.d81
 *.d64
@@ -19,3 +20,6 @@ dist/
 *.dbg
 *.map
 *~
+.nyc_output/
+coverage/
+vicedir

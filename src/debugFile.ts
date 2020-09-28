@@ -13,6 +13,7 @@ export interface Scope {
     size: number;
     spanIds: number[];
     spans: DebugSpan[];
+    codeSpan: DebugSpan | null;
 }
 
 export enum sc {
@@ -71,7 +72,9 @@ export interface DebugSpan {
     seg: CodeSeg | null;
     id: number;
     segId: number;
+    /** This is the address relative to the segment */
     start: number;
+    /** This is the address relative to the entire memory */
     absoluteAddress: number;
     size: number;
     type: number;
@@ -96,6 +99,7 @@ export interface SourceLine {
     file: SourceFile | null;
     span: DebugSpan | null;
     id: number;
+    /** From zero, to match VSCode's indices */
     num: number;
     fileId: number;
     spanId: number;
@@ -230,6 +234,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 spans: [],
                 csyms: [],
                 spanIds: [],
+                codeSpan: null,
                 size: 0,
                 name: "",
             };
@@ -442,7 +447,6 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                     line[key] = parseInt(val);
                 }
                 else if (key == "line") {
-                    // VSCode wants zero indexed lines so might as well fix it now.
                     line.num = parseInt(val) - 1;
                 }
                 else if (key == "span") {
@@ -521,6 +525,10 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         for(const span of dbgFile.spans) {
             if(scope.spanIds.includes(span.id)) {
                 scope.spans.push(span);
+                if(span.seg == dbgFile.codeSeg) {
+                    scope.codeSpan = span;
+                }
+
                 if(scope.spans.length == scope.spanIds.length) {
                     break;
                 }

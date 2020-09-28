@@ -141,6 +141,7 @@ export interface UndumpCommand extends Command {
 
 export interface UndumpResponse extends Response<UndumpCommand> {
     type: ResponseType.undump;
+    programCounter: number;
 }
 
 export enum ResourceType {
@@ -556,6 +557,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         const r : UndumpResponse = {
             ...res,
             type,
+            programCounter: body.readUInt16LE(0),
         }
 
         return r;

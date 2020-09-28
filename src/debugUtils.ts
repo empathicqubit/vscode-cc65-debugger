@@ -4,6 +4,12 @@ import * as dbgfile from './debugFile';
 import * as child_process from 'child_process';
 import * as path from 'path';
 
+export async function delay(ms: number) : Promise<void> {
+    return new Promise(function(res, rej) {
+        setTimeout(function() { res() }, ms)
+    });
+}
+
 export const programFiletypes = /\.((d[0-9]{2}|prg)|(vic20|c16|c64|c128|plus4|cbm510|cbm610|pet))$/i
 
 export interface ExecHandler {
