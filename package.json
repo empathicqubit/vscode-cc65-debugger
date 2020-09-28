@@ -46,7 +46,8 @@
         "tisk": "tsc -p src",
         "vscode:prepublish": "npm-run-all -p tisk webpack styles",
         "vscode:debug": "npm-run-all -p tisk webpack:debug styles",
-        "test": "npm-run-all tisk && mocha --timeout 60000 -u tdd ./out/tests/",
+        "mocha": "nyc --reporter=lcov mocha --timeout 30000 -u tdd ./out/tests/",
+        "test": "npm-run-all tisk mocha",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "package": "vsce package --packageManager pnpm",
         "publish": "vsce publish --packageManager pnpm"
