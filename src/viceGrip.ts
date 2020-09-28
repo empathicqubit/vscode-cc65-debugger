@@ -12,6 +12,7 @@ import * as hasbin from 'hasbin';
 import { DebugProtocol } from 'vscode-debugprotocol'
 import * as debugUtils from './debugUtils';
 import * as bin from './binary-dto';
+import { enable } from 'colors/safe';
 
 const waitPort = require('wait-port');
 
@@ -174,12 +175,22 @@ export class ViceGrip extends EventEmitter {
 
         this._binaryPort = binaryPort;
 
-        const textCommand : bin.ResourceGetCommand = {
-            type: bin.CommandType.resourceGet,
-            resourceName: 'MonitorServerAddress',
-        };
+        const resources : bin.ResourceGetCommand[] = [
+            {
+                type: bin.CommandType.resourceGet,
+                resourceName: 'MonitorServer',
+            },
+            {
+                type: bin.CommandType.resourceGet,
+                resourceName: 'MonitorServerAddress',
+            }
+        ];
 
-        const textRes : bin.ResourceGetResponse = await this.execBinary(textCommand);
+        const [enabledRes, textRes] : bin.ResourceGetResponse[] = await this.multiExecBinary(resources);
+
+        if(!enabledRes.intValue) {
+            return;
+        }
 
         this.textPort = parseInt(_.last(textRes.stringValue!.split(':'))!);
     }

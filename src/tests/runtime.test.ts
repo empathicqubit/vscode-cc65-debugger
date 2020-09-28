@@ -27,7 +27,7 @@ suite('Runtime', () => {
     const DEBUG_FILE = BUILD_CWD + '/simple-project.c64.dbg';
     const LABEL_FILE = BUILD_CWD + '/simple-project.c64.lbl';
     const PROGRAM = BUILD_CWD + '/simple-project.c64'
-    const VICE_DIRECTORY = BUILD_CWD + '/../vicedir';
+    const VICE_DIRECTORY = BUILD_CWD + '/../vicedir/src';
 
     let seq = 0;
     let request_seq = 0;
