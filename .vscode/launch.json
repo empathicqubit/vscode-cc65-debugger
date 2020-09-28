@@ -49,7 +49,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "-u", "tdd",
-                "--timeout", "999999",
+                "--timeout", "30000",
                 "--colors",
                 "./out/tests/"
             ],
@@ -79,13 +79,6 @@
             ],
             "preLaunchTask": "npm: vscode:debug",
             "internalConsoleOptions": "openOnSessionStart"
-        },
-        {
-            "name": "Mock Sample",
-            "type": "cc65-vice",
-            "request": "launch",
-            "program": "$HOME/c64-thepunchlineismachismo/build/machismo.d81",
-            "stopOnEntry": true
         }
     ],
     "compounds": [

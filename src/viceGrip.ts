@@ -355,6 +355,9 @@ export class ViceGrip extends EventEmitter {
                 }
             });
         }));
+        if(this._binaryConn.writableEnded) {
+            throw new Error('VICE is not running.');
+        }
         await util.promisify((d, cb) => conn.write(d, cb))(Buffer.concat(frags));
         return await results;
     }
