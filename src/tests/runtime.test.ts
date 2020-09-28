@@ -1,15 +1,18 @@
-import {setup, teardown, suite, test} from 'mocha'
+import {setup, teardown, suite, test} from 'mocha';
 import * as assert from 'assert';
-import * as bin from '../binary-dto'
-import * as mocha from 'mocha'
-import { CC65ViceRuntime } from '../cc65ViceRuntime'
-import * as child_process from 'child_process'
-import * as path from 'path'
+import * as bin from '../binary-dto';
+import * as mocha from 'mocha';
+import { CC65ViceRuntime } from '../cc65ViceRuntime';
+import * as child_process from 'child_process';
+import * as path from 'path';
+import * as net from 'net';
 import * as _ from 'lodash';
 import * as tmp from 'tmp';
 import * as util from 'util';
+import * as debugUtils from '../debugUtils';
 import * as TGA from 'tga';
 import * as fs from 'fs';
+import { negate } from 'lodash';
 
 const all = (...args) => Promise.all(args);
 
@@ -113,6 +116,67 @@ suite('Runtime', () => {
         test('Builds successfully', async() => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
         })
+    });
+
+    suite('Attach', () => {
+        const binaryPort = 1024 + Math.floor(Math.random() * 10000);
+        let proc : child_process.ChildProcessWithoutNullStreams;
+
+        setup(async () => {
+            const program = await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
+
+            proc = child_process.spawn(VICE_DIRECTORY + '/x64sc', ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
+                cwd: '/tmp',
+                shell: false,
+            });
+
+            proc.stdout.pipe(process.stdout);
+            proc.stderr.pipe(process.stderr);
+
+            await debugUtils.delay(1000);
+
+            const conn = net.connect(binaryPort, '127.0.0.1');
+            const buf = Buffer.from([
+                0x02, 0x01,
+                0xff, 0xff, 0xff, 0xff,
+                0xaf, 0xe9, 0x23, 0x3d,
+
+                0xdd,
+
+                0x01,
+                0x00, 0x00,
+
+                0xd2,
+                ..._.fill(new Array<number>(0xd2), 0x00)
+            ]);
+            buf.writeUInt32LE(buf.length - 11, 2);
+            buf.write(PROGRAM, buf.indexOf(0xd2) + 1, 'ascii');
+            await util.promisify((buf, cb) => conn.write(buf, cb))(buf);
+            await new Promise((res, rej) => (conn.once('data', res), conn.once('error', rej)));
+            await util.promisify(conn.end.bind(conn))();
+        });
+
+        test('Can attach to a running process', async() => {
+            await rt.attach(binaryPort, BUILD_CWD, false, false, false, undefined, PROGRAM, DEBUG_FILE, MAP_FILE);
+        });
+
+        teardown(async () => {
+            const conn = net.connect(binaryPort, '127.0.0.1');
+            const buf = Buffer.from([
+                0x02, 0x01,
+                0x00, 0x00, 0x00, 0x00,
+                0xaf, 0xe9, 0x23, 0x3d,
+
+                0xbb
+            ]);
+            buf.writeUInt32LE(buf.length - 11, 2);
+            await util.promisify((buf, cb) => conn.write(buf, cb))(buf);
+            try {
+                await new Promise((res, rej) => (conn.once('data', res), conn.once('error', rej)));
+                await util.promisify(conn.end.bind(conn))();
+            }
+            catch {}
+        });
     });
 
     suite('Launch', () => {
