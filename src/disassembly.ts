@@ -1,5 +1,5 @@
-import * as debugFile from './debugFile';
-import * as mapFile from './mapFile';
+import * as debugFile from './debug-file';
+import * as mapFile from './map-file';
 import * as _ from 'lodash';
 
 const opcodeSizes = [
@@ -66,8 +66,11 @@ export function verifyScope(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope, 
  * @param dbgFile The debug file object
  * @param scope The scope
  * @param mem The memory of the scope
+ * @param scopes All the scopes
+ * @param labs All the labels
+ * @param codeSeg The CODE segment
  */
-export function findStackExitsForScope(mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile, searchScope: debugFile.Scope, parentScope: debugFile.Scope, mem: Buffer) : { addresses: number[], descendants: debugFile.Scope[] } {
+export function findStackExitsForScope(mpFile: mapFile.MapRef[], searchScope: debugFile.Scope, parentScope: debugFile.Scope, mem: Buffer, scopes: debugFile.Scope[], labs: debugFile.Sym[], codeSeg?: debugFile.Segment) : { addresses: number[], descendants: debugFile.Scope[] } {
     const addresses : number[] = [];
     const descendants : debugFile.Scope[] = [];
     const begin = searchScope.codeSpan!.absoluteAddress;
@@ -84,14 +87,14 @@ export function findStackExitsForScope(mpFile: mapFile.MapRef[], dbgFile: debugF
                 addresses.push(begin + cursor)
             }
             else if(addr < begin || addr >= end) {
-                if(!(dbgFile.codeSeg && dbgFile.codeSeg.start <= addr && addr <= dbgFile.codeSeg.start + dbgFile.codeSeg.size)) {
+                if(!(codeSeg && codeSeg.start <= addr && addr <= codeSeg.start + codeSeg.size)) {
                     continue;
                 }
 
-                let nextScope = dbgFile.scopes.find(x => x.spans.find(x => x.absoluteAddress == addr)) || null;
+                let nextScope = scopes.find(x => x.spans.find(x => x.absoluteAddress == addr)) || undefined;
 
                 if(!nextScope) {
-                    const nextLabel = dbgFile.labs.find(x => x.val == addr && x.scope && x.scope != parentScope && x.scope != searchScope);
+                    const nextLabel = labs.find(x => x.val == addr && x.scope && x.scope != parentScope && x.scope != searchScope);
                     if(!nextLabel) {
                         continue;
                     }

@@ -54,7 +54,7 @@
         "vice:distclean": "cd ./src/tests/vicedir && make distclean",
         "vice:co": "svn checkout svn://svn.code.sf.net/p/vice-emu/code/trunk/vice ./src/tests/vicedir || svn cleanup ./src/tests/vicedir",
         "vice:build": "npm-run-all vice:co vice:configure vice:make",
-        "mocha": "nyc --reporter=lcov mocha --timeout 60000 -u tdd ./out/tests/",
+        "mocha": "nyc --reporter=lcov mocha --timeout 30000 -u tdd ./out/tests/",
         "test": "npm-run-all -p vice:build tisk && npm-run-all mocha",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "package": "vsce package --packageManager pnpm",
@@ -175,7 +175,7 @@
             {
                 "type": "cc65-vice",
                 "label": "CC65 VICE debugger",
-                "program": "./dist/debugAdapter.js",
+                "program": "./dist/debug-adapter.js",
                 "runtime": "node",
                 "configurationAttributes": {
                     "attach": {

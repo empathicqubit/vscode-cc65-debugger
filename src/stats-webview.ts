@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as dbgFile from './debugFile';
+import * as dbgFile from './debug-file';
 import * as fs from 'fs';
 import * as util from 'util';
 

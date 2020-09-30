@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as hasbin from 'hasbin';
 import { DebugProtocol } from 'vscode-debugprotocol'
-import * as debugUtils from './debugUtils';
+import * as debugUtils from './debug-utils';
 import * as bin from './binary-dto';
 import { enable } from 'colors/safe';
 
@@ -125,6 +125,24 @@ export class ViceGrip extends EventEmitter {
 
         return await this.execBinary(cmd);
     }
+
+    public async getMemory(addr: number, length: number) : Promise<Buffer> {
+        if(length <= 0) {
+            return Buffer.alloc(0);
+        }
+
+        const res = await this.execBinary<bin.MemoryGetCommand, bin.MemoryGetResponse>({
+            type: bin.CommandType.memoryGet,
+            sidefx: false,
+            startAddress: addr,
+            endAddress: addr + length - 1,
+            memspace: bin.ViceMemspace.main,
+            bankId: 0,
+        });
+
+        return Buffer.from(res.memory);
+    }
+
 
     public async connect(binaryPort: number) {
         let binaryConn : net.Socket | undefined;
@@ -360,6 +378,28 @@ export class ViceGrip extends EventEmitter {
         }
         await util.promisify((d, cb) => conn.write(d, cb))(Buffer.concat(frags));
         return await results;
+    }
+
+    public async withAllBreaksDisabled<T>(func: () => Promise<T>) : Promise<T> {
+        const preBrk = await this.checkpointList();
+        const tog : bin.CheckpointToggleCommand[] = preBrk.related.filter(x => x.stop && x.enabled).map(x => ({
+            type: bin.CommandType.checkpointToggle,
+            id: x.id,
+            enabled: false,
+        }));
+        await this.multiExecBinary(tog);
+
+        const res = await func();
+
+        for(const t of tog) {
+            t.enabled = true;
+        }
+
+        const postBrk = await this.checkpointList();
+        const remaining = _.intersectionBy(tog, postBrk.related, x => x.id);
+        await this.multiExecBinary(remaining);
+
+        return res;
     }
 
     public async disconnect() {

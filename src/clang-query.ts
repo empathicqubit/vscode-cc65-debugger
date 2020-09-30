@@ -1,4 +1,4 @@
-import * as dbgfile from './debugFile';
+import * as dbgfile from './debug-file';
 import * as util from 'util';
 import * as child_process from 'child_process';
 import * as readdir from 'recursive-readdir';

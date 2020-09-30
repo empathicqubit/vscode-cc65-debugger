@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <cbm.h>
 
-unsigned char steps(void);
+void steps(void);
 
 unsigned char main(void) {
     puts("Hello world!");
@@ -9,7 +9,7 @@ unsigned char main(void) {
     return 0;
 }
 
-unsigned char steps(void) {
+void steps(void) {
     puts("f is for friends who do stuff together");
     puts("u is for u and me");
     puts("n is for nywhere");
@@ -18,5 +18,10 @@ unsigned char steps(void) {
 }
 
 void open_a_thing(void) {
+    static unsigned char barg = 0;
+    unsigned char i = 0;
+    barg++;
+    i++;
+    printf("%d %d", barg, i);
     cbm_k_open();
 }

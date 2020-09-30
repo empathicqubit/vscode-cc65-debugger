@@ -1,6 +1,6 @@
 import * as util from 'util';
 import * as fs from 'fs';
-import * as dbgfile from './debugFile';
+import * as dbgfile from './debug-file';
 import * as child_process from 'child_process';
 import * as path from 'path';
 

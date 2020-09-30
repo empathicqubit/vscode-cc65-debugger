@@ -3,34 +3,29 @@ import * as _ from 'lodash';
 import * as TGA from 'tga';
 import * as pngjs from 'pngjs';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { CallStackManager } from './call-stack-manager';
 import * as tmp from 'tmp';
 import * as child_process from 'child_process'
 import * as disassembly from './disassembly'
 import { EventEmitter } from 'events';
 import * as compile from './compile';
 import * as path from 'path';
-import * as clangQuery from './clangQuery';
+import * as clangQuery from './clang-query';
 import * as util from 'util';
-import * as debugUtils from './debugUtils';
-import * as dbgfile from './debugFile'
-import { ViceGrip } from './viceGrip';
-import { CC65ViceDebugSession } from './cc65ViceDebug';
-import * as mapFile from './mapFile';
+import * as debugUtils from './debug-utils';
+import * as debugFile from './debug-file'
+import { ViceGrip } from './vice-grip';
+import { CC65ViceDebugSession } from './debug-session';
+import * as mapFile from './map-file';
 import * as bin from './binary-dto';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
+import { VariableManager, VariableData } from './variable-manager';
 
 export interface CC65ViceBreakpoint {
     id: number;
-    line: dbgfile.SourceLine;
+    line: debugFile.SourceLine;
     viceIndex: number;
     verified: boolean;
-}
-
-export interface VariableData {
-    name : string;
-    value: string;
-    addr: number;
-    type: string;
 }
 
 export interface Registers {
@@ -46,18 +41,16 @@ export interface Registers {
 
 /**
  * A CC65Vice runtime with debugging functionality.
+ * This could be considered the debugger's main "API" and should be kept free of
+ * too much VS UI-specific BS. The test harness needs to be able to utilize it
+ * easily.
  */
-export class CC65ViceRuntime extends EventEmitter {
-    private _dbgFile: dbgfile.Dbgfile;
+export class Runtime extends EventEmitter {
+    private _dbgFile: debugFile.Dbgfile;
+    private _mapFile: mapFile.MapRef[];
 
     public _currentAddress: number;
-
-    private _paramStackBottom: number = -1;
-    private _paramStackTop: number = -1;
-    private _paramStackPointer: number = -1;
-
-    private _cpuStackBottom: number = 0x1ff;
-    private _cpuStackTop: number = 0x1ff;
+    private _currentPosition: debugFile.SourceLine;
 
     // Monitors the code segment after initialization so that it doesn't accidentally get modified.
     private _codeSegGuardIndex: number = -1;
@@ -69,14 +62,10 @@ export class CC65ViceRuntime extends EventEmitter {
     private _stopOnExit: boolean = false;
     private _exitQueued: boolean = false;
 
+    private _callStackManager: CallStackManager;
+    private _variableManager : VariableManager;
+
     private _breakPoints : CC65ViceBreakpoint[] = [];
-
-    private _stackFrameStarts : { [index: string]: dbgfile.Scope } = {};
-    private _stackFrameEnds : { [index: string]: dbgfile.Scope } = {};
-
-    private _stackFrameBreakIndexes : number[] = [];
-
-    private _stackFrames : {line: dbgfile.SourceLine, scope: dbgfile.Scope}[] = [];
 
     private _registers : Registers;
 
@@ -88,10 +77,7 @@ export class CC65ViceRuntime extends EventEmitter {
     private _viceStarting : boolean = false;
     public _vice : ViceGrip;
 
-    private _currentPosition: dbgfile.SourceLine;
     private _consoleType?: string;
-    private _mapFile: mapFile.MapRef[];
-    private _localTypes: { [typename: string]: clangQuery.ClangTypeInfo[]; } | undefined;
     private _runInTerminalRequest: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void;
     private _colorTermPids: [number, number] = [-1, -1];
     private _usePreprocess: boolean;
@@ -107,22 +93,23 @@ export class CC65ViceRuntime extends EventEmitter {
     * Build the program using the command specified and try to find the output file with monitoring.
     * @returns The possible output files of types d81, prg, and d64.
     */
-    public async build(workspaceDir: string, buildCmd: string, preprocessCmd: string) : Promise<string[]> {
+    public async build(buildCwd: string, buildCmd: string, preprocessCmd: string) : Promise<string[]> {
         const opts = {
             shell: true,
-            cwd: workspaceDir,
         };
 
-        const [changedFilenames,] = await Promise.all([
-            compile.make(workspaceDir, buildCmd, this, opts),
-            compile.preProcess(preprocessCmd, opts),
+        const [changedFilenames, usePreprocess] = await Promise.all([
+            compile.make(buildCwd, buildCmd, this, opts),
+            compile.preProcess(buildCwd, preprocessCmd, opts),
         ]);
+
+        this._usePreprocess = usePreprocess;
 
         if(changedFilenames.length) {
             return changedFilenames;
         }
 
-        return await compile.guessProgramPath(workspaceDir);
+        return await compile.guessProgramPath(buildCwd);
     }
 
     /**
@@ -176,7 +163,7 @@ export class CC65ViceRuntime extends EventEmitter {
 
         if(!await this._validateLoad(firstLastScopes)) {
             this.sendEvent('output', 'console', 'Waiting for program to start...\n');
-            await this._withAllBreaksDisabled(async () => {
+            await this._vice.withAllBreaksDisabled(async () => {
                 const storeCmds = _(firstLastScopes)
                     .map(x => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1])
                     .flatten()
@@ -218,7 +205,7 @@ export class CC65ViceRuntime extends EventEmitter {
         this.sendEvent('output', 'console', 'Program started.\n')
     }
 
-    private async _validateLoad(scopes: dbgfile.Scope[]) : Promise<boolean> {
+    private async _validateLoad(scopes: debugFile.Scope[]) : Promise<boolean> {
         if(!this._dbgFile.codeSeg) {
             return true;
         }
@@ -228,7 +215,7 @@ export class CC65ViceRuntime extends EventEmitter {
         }
 
         for(const scope of scopes) {
-            const mem = await this.getMemory(scope.codeSpan!.absoluteAddress, scope.size);
+            const mem = await this._vice.getMemory(scope.codeSpan!.absoluteAddress, scope.size);
             if(!disassembly.verifyScope(this._dbgFile, scope, mem)) {
                 return false;
             }
@@ -279,14 +266,12 @@ export class CC65ViceRuntime extends EventEmitter {
             this._loadDebugFile(debugFilePath, buildCwd),
             this._loadMapFile(mapFilePath),
         ]);
-        await this._getLocalTypes(buildCwd);
 
         console.timeEnd('loadSource')
 
         console.time('preVice');
 
         this._resetRegisters();
-        this._setParamStackPointer();
 
         console.timeEnd('preVice');
 
@@ -294,7 +279,20 @@ export class CC65ViceRuntime extends EventEmitter {
             <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), 
         );
 
+        this._callStackManager = new CallStackManager(this._vice, this._mapFile, this._dbgFile);
+
+        const variableManager = new VariableManager(
+            this._vice,
+            this._dbgFile.codeSeg,
+            this._dbgFile.segs.find(x => x.name == "ZEROPAGE"),
+            this._dbgFile.labs
+        );
+
+        variableManager.preStart(buildCwd, this._dbgFile, this._usePreprocess)
+
         this._viceStarting = true;
+
+        this._variableManager = variableManager;
     }
 
     /**
@@ -359,9 +357,10 @@ export class CC65ViceRuntime extends EventEmitter {
         console.time('postStart')
 
         await Promise.all([
-            this._resetStackFrames(),
+            this._callStackManager.reset(this._currentAddress, this._currentPosition),
+            this._setExitGuard(),
             this._guardCodeSeg(),
-            this._setParamStackBottom(),
+            this._variableManager.postStart(),
         ]);
         // FIXME await this._setScreenUpdateCheckpoint();
 
@@ -387,6 +386,28 @@ export class CC65ViceRuntime extends EventEmitter {
         }
 
         console.timeEnd('postStart');
+    }
+
+    private async _setExitGuard() : Promise<void> {
+        const exitAddresses = await this._callStackManager.getExitAddresses();
+        if(!exitAddresses.length) {
+            return;
+        }
+
+        const exits : bin.CheckpointSetCommand[] = exitAddresses.map(x => ({
+            type: bin.CommandType.checkpointSet,
+            startAddress: x,
+            endAddress: x,
+            stop: true,
+            enabled: true,
+            temporary: false,
+            operation: bin.CpuOperation.exec,
+        }));
+        const resExits = await this._vice.multiExecBinary(exits) as bin.CheckpointInfoResponse[];
+
+        for(const exit of resExits) {
+            this._exitIndexes.push(exit.id);
+        }
     }
 
     private async _setScreenUpdateCheckpoint() {
@@ -444,96 +465,6 @@ or define the location manually with the launch.json->mapFile setting`
         }
     }
 
-    public async getTypeFields(addr: number, typeName: string) : Promise<VariableData[]> {
-        if(!this._localTypes) {
-            return [];
-        }
-
-        const arrayParts = /^([^\[]+)\[([0-9]+)\]$/gi.exec(typeName);
-        let typeParts : string[];
-        if(arrayParts) {
-            const itemCount = parseInt(arrayParts[2]);
-            const vars : VariableData[] = [];
-            const itemSize = clangQuery.recurseFieldSize([{
-                aliasOf: '',
-                type: arrayParts[1],
-                name: '',
-            }], this._localTypes)[0];
-            for(let i = 0; i < itemCount; i++) {
-                vars.push({
-                    type: arrayParts[1],
-                    name: i.toString(),
-                    value: arrayParts[1],
-                    addr: addr + i * itemSize,
-                });
-            }
-
-            return vars;
-        }
-        else {
-            typeParts = typeName.split(/\s+/g);
-        }
-
-        let isPointer = typeParts.length > 1 && _.last(typeParts) == '*';
-
-        if(isPointer) {
-            const pointerVal = await this.getMemory(addr, 2);
-            addr = pointerVal.readUInt16LE(0);
-        }
-
-        const fields = this._localTypes[typeParts[0]];
-        const vars : VariableData[] = [];
-
-        const fieldSizes = clangQuery.recurseFieldSize(fields, this._localTypes);
-
-        const totalSize = _.sum(fieldSizes);
-
-        const mem = await this.getMemory(addr, totalSize);
-
-        let currentPosition = 0;
-        for(const f in fieldSizes) {
-            const fieldSize = fieldSizes[f];
-            const field = fields[f];
-
-            let typename = field.type;
-            if(!this._localTypes[typename.split(/\s+/g)[0]]) {
-                typename = '';
-            }
-
-            let value = '';
-            if(fieldSize == 1) {
-                if(field.type.startsWith('signed')) {
-                    value = (<any>mem.readInt8(currentPosition).toString(16)).padStart(2, '0');
-                }
-                else {
-                    value = (<any>mem.readUInt8(currentPosition).toString(16)).padStart(2, '0');
-                }
-            }
-            else if(fieldSize == 2) {
-                if(field.type.startsWith('signed')) {
-                    value = (<any>mem.readInt16LE(currentPosition).toString(16)).padStart(4, '0');
-                }
-                else {
-                    value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
-                }
-            }
-            else {
-                value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
-            }
-
-            vars.push({
-                type: typename,
-                name: field.name,
-                value: "0x" + value,
-                addr: addr + currentPosition,
-            });
-
-            currentPosition += fieldSize;
-        }
-
-        return vars;
-    }
-
     public async monitorToConsole() {
         this.on('data', (d) => {
             console.log(d);
@@ -586,14 +517,14 @@ or define the location manually with the launch.json->mapFile setting`
         this.sendEvent(event, 'console')
     }
 
-    private _getNextLine() : dbgfile.SourceLine {
+    private _getNextLine() : debugFile.SourceLine {
         const currentFile = this._currentPosition.file;
         const currentIdx = currentFile!.lines.indexOf(this._currentPosition);
 
         return currentFile!.lines[currentIdx + 1];
     }
 
-    private async _setLineGuard(line: dbgfile.SourceLine, nextLine: dbgfile.SourceLine) : Promise<bin.CheckpointInfoResponse[] | null> {
+    private async _setLineGuard(line: debugFile.SourceLine, nextLine: debugFile.SourceLine) : Promise<bin.CheckpointInfoResponse[] | null> {
         if(!nextLine) {
             return null;
         }
@@ -632,56 +563,36 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
-        await this._stackFrameBreakToggle(true);
+        await this._callStackManager.withFrameBreaksEnabled(async () => {
+            const nextLine = this._getNextLine();
+            const breaks = await this._setLineGuard(this._currentPosition, nextLine);
 
-        const nextLine = this._getNextLine();
-        const breaks = await this._setLineGuard(this._currentPosition, nextLine);
+            await this.continue();
+            await this._vice.waitForStop();
 
-        await this.continue();
-        await this._vice.waitForStop();
+            if(breaks) {
+                const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
+                    type: bin.CommandType.checkpointDelete,
+                    id: x.id,
+                }));
 
-        await this._stackFrameBreakToggle(false);
-
-        if(breaks) {
-            const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
-                type: bin.CommandType.checkpointDelete,
-                id: x.id,
-            }));
-
-            await this._vice.multiExecBinary(delBrks);
-        }
+                await this._vice.multiExecBinary(delBrks);
+            }
+        });
 
         await this._doRunAhead();
 
         this.sendEvent('stopOnStep');
     }
 
-    public async stepOut(event = 'stopOnStep') {
-        const lastFrame = this._stackFrames[this._stackFrames.length - 2];
-        if(!lastFrame) {
+    public async stepOut(event = 'stopOnStep') : Promise<void> {
+        if(!await this._callStackManager.returnToLastStackFrame(this._vice)) {
             this.sendEvent('output', 'console', 'Can\'t step out here!\n')
             this.sendEvent('stopOnStep');
             return;
         }
 
-        const begin = lastFrame.scope.codeSpan!.absoluteAddress;
-        const end = lastFrame.scope.codeSpan!.absoluteAddress + lastFrame.scope.codeSpan!.size - 1;
-
-        await this._withAllBreaksDisabled(async() => {
-            const brk = await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
-                type: bin.CommandType.checkpointSet,
-                startAddress: begin,
-                endAddress: end,
-                enabled: true,
-                temporary: true,
-                stop: true,
-                operation: bin.CpuOperation.exec,
-            });
-
-            await this._vice.waitForStop(brk.startAddress, brk.endAddress);
-
-            await this._doRunAhead();
-        });
+        await this._doRunAhead();
 
         this.sendEvent(event, 'console')
     }
@@ -693,31 +604,13 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<any> {
-        const frames = new Array<any>();
-        let i = startFrame;
-
-        frames.push({
-            index: i,
-            name: '0x' + this._currentAddress.toString(16),
-            file: this._currentPosition.file!.name,
-            line: this._currentPosition.num
-        });
-        i++;
-
-        for(const frame of [...this._stackFrames].reverse()) {
-            frames.push({
-                index: i,
-                name: frame.scope.name.replace(/^_/g, ''),
-                file: frame.line.file!.name,
-                line: frame.line.num,
-            });
-            i++;
-        }
-
-        return {
-            frames: frames,
-            count: frames.length,
-        };
+        return await this._callStackManager.prettyStack(
+            this._currentAddress, 
+            (this._currentPosition.file || {}).name || '', 
+            this._currentPosition.num, 
+            startFrame, 
+            endFrame
+        );
     }
 
     // Clean up all the things
@@ -754,6 +647,10 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
+    }
+
+    public async getMemory(addr: number, length: number) : Promise<Buffer> {
+        return await this._vice.getMemory(addr, length);
     }
 
     // Breakpoints
@@ -852,7 +749,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async setBreakPoint(breakPath: string, line: number) : Promise<CC65ViceBreakpoint | null> {
-        let lineSym : dbgfile.SourceLine | undefined;
+        let lineSym : debugFile.SourceLine | undefined;
         if(this._dbgFile) {
             lineSym = this._dbgFile.lines.find(x => x.num == line && !path.relative(breakPath, x.file!.name));
             if(!lineSym){
@@ -861,7 +758,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
 
         if(!lineSym) {
-            const fil : dbgfile.SourceFile = {
+            const fil : debugFile.SourceFile = {
                 mtime: new Date(),
                 name: breakPath,
                 mod: "",
@@ -873,7 +770,7 @@ or define the location manually with the launch.json->mapFile setting`
                 count: 0,
                 id: 0,
                 num: line,
-                span: null,
+                span: undefined,
                 spanId: 0,
                 file: fil,
                 fileId: 0,
@@ -906,170 +803,30 @@ or define the location manually with the launch.json->mapFile setting`
     public clearAllDataBreakpoints(): void {
     }
 
-    // Memory access
-
-    public async getMemory(addr: number, length: number, ignoreRunBack?: boolean) : Promise<Buffer> {
-        if(length <= 0) {
-            return Buffer.alloc(0);
-        }
-
-        const res = await this._vice.execBinary<bin.MemoryGetCommand, bin.MemoryGetResponse>({
-            type: bin.CommandType.memoryGet,
-            sidefx: false,
-            startAddress: addr,
-            endAddress: addr + length - 1,
-            memspace: bin.ViceMemspace.main,
-            bankId: 0,
-        });
-
-        return Buffer.from(res.memory);
+    public getRegisters() : Registers {
+        return this._registers;
     }
 
-    private _getLocalVariableSyms(scope: dbgfile.Scope) : dbgfile.CSym[] {
-        return scope.csyms.filter(x => x.sc == dbgfile.sc.auto)
+    // Variables
+
+    public async getScopeVariables(currentScope?: debugFile.Scope) : Promise<any[]> {
+        return await this._variableManager.getScopeVariables(currentScope);
     }
 
-    private _getCurrentScope() : dbgfile.Scope | undefined {
+    public async getGlobalVariables() : Promise<VariableData[]> {
+        return await this._variableManager.getGlobalVariables();
+    }
+
+    public async getTypeFields(addr: number, typeName: string) : Promise<VariableData[]> {
+        return await this._variableManager.getTypeFields(addr, typeName);
+    }
+
+    private _getCurrentScope() : debugFile.Scope | undefined {
         return this._dbgFile.scopes
             .find(x => x.spans.length && x.spans.find(scopeSpan =>
                 scopeSpan.absoluteAddress <= this._currentPosition.span!.absoluteAddress
                 && this._currentPosition.span!.absoluteAddress <= scopeSpan.absoluteAddress + scopeSpan.size
                 ));
-    }
-
-    public async getScopeVariables() : Promise<any[]> {
-        const stack = await this.getParamStack();
-        if(!stack.length) {
-            return [];
-        }
-
-        const scope = this._getCurrentScope();
-
-        if(!scope) {
-            return [];
-        }
-
-        const vars : VariableData[] = [];
-        const locals = this._getLocalVariableSyms(scope)
-        const mostOffset = locals[0].offs;
-        for(let i = 0; i < locals.length; i++) {
-            const csym = locals[i];
-            const nextCsym = locals[i+1];
-
-            const seek = -mostOffset+csym.offs;
-            let seekNext = -mostOffset+csym.offs+2;
-            if(nextCsym) {
-                seekNext = -mostOffset+nextCsym.offs
-            }
-
-            const addr = this._paramStackTop + seek
-
-            let ptr : number | undefined;
-
-            let val;
-            if(seekNext - seek == 2 && stack.length > seek + 1) {
-                ptr = <any>stack.readUInt16LE(seek);
-                val = "0x" + (<any>ptr!.toString(16)).padStart(4, '0');
-            }
-            else {
-                val = "0x" + (<any>stack.readUInt8(seek).toString(16)).padStart(2, '0');
-            }
-
-            // FIXME Duplication with globals
-            let typename: string = '';
-            let clangTypeInfo: clangQuery.ClangTypeInfo[];
-            if(this._localTypes && (clangTypeInfo = this._localTypes[scope.name + '()'])) {
-                typename = (<any>(clangTypeInfo.find(x => x.name == csym.name) || {})).type || '';
-
-                if(ptr && /\bchar\s+\*/g.test(typename)) {
-                    const mem = await this.getMemory(ptr, 24);
-                    const nullIndex = mem.indexOf(0x00);
-                    const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
-                    val = `${str} (${debugUtils.rawBufferHex(mem)})`;
-                }
-
-                if(!this._localTypes[typename.split(/\s+/g)[0]]) {
-                    typename = '';
-                }
-            }
-
-            vars.push({
-                name: csym.name,
-                value: val,
-                addr: addr,
-                type: typename,
-            });
-        }
-
-        if(vars.length <= 1) {
-            const labs = this._dbgFile.labs.filter(x => x.seg && x.seg.name == "BSS" && x.scope == scope)
-            this.sendEvent('output', 'console', `Total labs: ${labs.length}\n`);
-            for(const lab of labs) {
-                vars.push(await this._varFromLab(lab));
-            }
-        }
-        else {
-            this.sendEvent('output', 'console', 'We had vars\n');
-        }
-
-        return vars;
-    }
-
-    public async getParamStack() : Promise<Buffer> {
-        await this._setParamStackTop();
-
-        return await this.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
-    }
-
-    private async _varFromLab(sym: dbgfile.Sym) : Promise<VariableData> {
-        const symName = sym.name.replace(/^_/g, '')
-
-        const buf = await this.getMemory(sym.val, 2);
-        const ptr = buf.readUInt16LE(0);
-
-        let val = debugUtils.rawBufferHex(buf);
-
-        let typename: string = '';
-        let clangTypeInfo: clangQuery.ClangTypeInfo[];
-        if(this._localTypes && (clangTypeInfo = this._localTypes['__GLOBAL__()'])) {
-            typename = (<any>(clangTypeInfo.find(x => x.name == symName) || {})).type || '';
-
-            if(/\bchar\s+\*/g.test(typename)) {
-                const mem = await this.getMemory(ptr, 24);
-                const nullIndex = mem.indexOf(0x00);
-                // FIXME PETSCII conversion
-                const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
-                val = `${str} (${debugUtils.rawBufferHex(mem)})`;
-            }
-
-            if(!this._localTypes[typename.split(/\s+/g)[0]]) {
-                typename = '';
-            }
-        }
-
-        return {
-            name: symName,
-            value: val,
-            addr: sym.val,
-            type: typename
-        };
-    }
-
-    public async getGlobalVariables() : Promise<VariableData[]> {
-        const vars: VariableData[] = [];
-        for(const sym of this._dbgFile.labs) {
-            if(!sym.name.startsWith("_") || (sym.seg == this._dbgFile.codeSeg)) {
-                continue;
-            }
-
-            vars.push(await this._varFromLab(sym));
-        }
-
-        return vars;
-    }
-
-    public getRegisters() : Registers {
-        return this._registers;
     }
 
     private _processExecHandler = <debugUtils.ExecHandler>((file, args, opts) => {
@@ -1161,28 +918,6 @@ or define the location manually with the launch.json->mapFile setting`
         }
     }
 
-    private _addStackFrame(brk: bin.CheckpointInfoResponse) {
-        if(brk.stop) {
-            return;
-        }
-
-        if(brk.operation != bin.CpuOperation.exec) {
-            return;
-        }
-
-        let scope: dbgfile.Scope;
-        if(scope = this._stackFrameStarts[brk.id]) {
-            const line = this._getLineFromAddress(brk.startAddress);
-            this._stackFrames.push({line: line, scope: scope });
-        }
-        else if(scope = this._stackFrameEnds[brk.id]) {
-            const idx = [...this._stackFrames].reverse().findIndex(x => x.scope.id == scope.id);
-            if(idx > -1) {
-                this._stackFrames.splice(this._stackFrames.length - 1 - idx, 1);
-            }
-        }
-    }
-
     private async _setupViceDataHandler() {
         let breakpointHit = false;
 
@@ -1213,7 +948,7 @@ or define the location manually with the launch.json->mapFile setting`
                     else if(meta['SP'].id == reg.id) {
                         r.sp = reg.value;
 
-                        this._cpuStackTop = 0x100 + r.sp;
+                        this._callStackManager.setCpuStackTop(0x100 + r.sp);
                     }
                     else if(meta['FL'].id == reg.id) {
                         r.fl = reg.value;
@@ -1260,7 +995,8 @@ or define the location manually with the launch.json->mapFile setting`
                     return;
                 }
 
-                this._addStackFrame(brk);
+                const line = this._getLineFromAddress(brk.startAddress);
+                this._callStackManager.addFrame(brk, line);
 
                 let index = brk.id;
 
@@ -1345,7 +1081,7 @@ or define the location manually with the launch.json->mapFile setting`
         const oldLine = this._registers.line;
         const oldPosition = this._currentPosition;
         this._bypassStatusUpdates = true;
-        await this._withAllBreaksDisabled(async() => {
+        await this._vice.withAllBreaksDisabled(async() => {
             const brkCmd : bin.CheckpointSetCommand = {
                 type: bin.CommandType.checkpointSet,
                 startAddress: 0x0000,
@@ -1421,7 +1157,7 @@ or define the location manually with the launch.json->mapFile setting`
         });
     }
 
-    private async _loadDebugFile(filename: string | undefined, buildDir: string) : Promise<dbgfile.Dbgfile> {
+    private async _loadDebugFile(filename: string | undefined, buildDir: string) : Promise<debugFile.Dbgfile> {
         try {
             if(!filename) {
                 throw new Error();
@@ -1447,31 +1183,9 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         return this._dbgFile;
     }
 
-    private async _getParamStackPos() : Promise<number> {
-        const res = await this.getMemory(this._paramStackPointer, 2);
-        return res.readUInt16LE(0);
-    }
-
-    private async _setParamStackBottom() {
-        this._paramStackBottom = await this._getParamStackPos();
-    }
-
-    private async _setParamStackTop() {
-        this._paramStackTop = await this._getParamStackPos();
-    }
-
-    private _setParamStackPointer() {
-        const zp = this._dbgFile.segs.find(x => x.name == 'ZEROPAGE');
-        if(!zp) {
-            return -1;
-        }
-
-        this._paramStackPointer = zp.start;
-    }
-
-    private _getLineFromAddress(addr: number) : dbgfile.SourceLine {
+    private _getLineFromAddress(addr: number) : debugFile.SourceLine {
         let maybeBreakpoint = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == addr);
-        let curSpan : dbgfile.DebugSpan;
+        let curSpan : debugFile.DebugSpan;
         if(maybeBreakpoint) {
             curSpan = maybeBreakpoint.line.span!;
         }
@@ -1501,226 +1215,6 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             pc: 0xffff,
             fl: 0xff,
         };
-    }
-
-    private async _getLocalTypes(buildCwd: string) {
-        try {
-            this._localTypes = await clangQuery.getLocalTypes(this._dbgFile, this._usePreprocess, buildCwd);
-        }
-        catch(e) {
-            console.error(e);
-            this.sendEvent('output', 'stderr', 'Not using Clang tools. Are they installed?');
-        }
-    }
-
-    private async _stackFrameBreakToggle(enabled: boolean) {
-        const cmd : bin.CheckpointToggleCommand[] =
-            this._stackFrameBreakIndexes
-            .map(id => ({
-                type: bin.CommandType.checkpointToggle,
-                enabled,
-                id,
-            }));
-
-        await this._vice.multiExecBinary(cmd);
-    }
-
-    private async _withAllBreaksDisabled<T>(func: () => Promise<T>) : Promise<T> {
-        const preBrk = await this._vice.checkpointList();
-        const tog : bin.CheckpointToggleCommand[] = preBrk.related.filter(x => x.stop && x.enabled).map(x => ({
-            type: bin.CommandType.checkpointToggle,
-            id: x.id,
-            enabled: false,
-        }));
-        await this._vice.multiExecBinary(tog);
-
-        const res = await func();
-
-        for(const t of tog) {
-            t.enabled = true;
-        }
-
-        const postBrk = await this._vice.checkpointList();
-        const remaining = _.intersectionBy(tog, postBrk.related, x => x.id);
-        await this._vice.multiExecBinary(remaining);
-
-        return res;
-    }
-
-    private async _getStackFramesForScope(searchScope: dbgfile.Scope, parentScope: dbgfile.Scope, codeSegMem: Buffer) : Promise<{
-    starts: { address: number, scope: dbgfile.Scope }[],
-    ends: { address: number, scope: dbgfile.Scope }[]
-    } | null> {
-        const scopeEndFrames : { address: number, scope: dbgfile.Scope }[] = [];
-
-        if(!parentScope.name.startsWith("_")) {
-            return null;
-        }
-
-        const span = searchScope.codeSpan;
-        if(!span) {
-            return null;
-        }
-
-        const begin = span.absoluteAddress;
-        const end = begin + span.size;
-
-        let finish = false;
-
-        const spanMem = codeSegMem.slice(span.start, span.start + span.size);
-
-        const res = await disassembly.findStackExitsForScope(this._mapFile, this._dbgFile, searchScope, parentScope, spanMem);
-        scopeEndFrames.push(...res.addresses.map(x => ({
-            scope: parentScope,
-            address: x, 
-        })));
-        for(const descendant of res.descendants) {
-            const desRes = await this._getStackFramesForScope(descendant, parentScope, codeSegMem);
-            if(!desRes) {
-                continue;
-            }
-
-            scopeEndFrames.push(...desRes.ends);
-        }
-
-        let start : dbgfile.SourceLine = this._dbgFile.lines[0];
-        for(const line of this._dbgFile.lines) {
-            if(!line.span) {
-                continue;
-            }
-
-            if(line.span.absoluteAddress < begin) {
-                break;
-            }
-
-            start = line;
-        }
-
-        return {
-            starts: [{
-                scope: parentScope,
-                address: start.span!.absoluteAddress,
-            }],
-            ends: _.uniqBy(scopeEndFrames, x => x.address),
-        }
-    }
-
-    private async _resetStackFrames() : Promise<void> {
-        this._stackFrameStarts = {};
-        this._stackFrameEnds = {};
-        this._stackFrameBreakIndexes = [];
-        this._stackFrames = [];
-
-        const startFrames : { address: number, scope: dbgfile.Scope }[] = [];
-        const endFrames : { address: number, scope: dbgfile.Scope }[] = [];
-        const exitAddresses : number[] = [];
-
-        const codeSeg = this._dbgFile.codeSeg;
-        if(!codeSeg) {
-            return;
-        }
-
-        const codeSegMem = await this.getMemory(codeSeg.start, codeSeg.size);
-        const reses = await Promise.all(this._dbgFile.scopes.map(x => this._getStackFramesForScope(x, x, codeSegMem)))
-        for(const res of reses) {
-            if(!res) {
-                continue;
-            }
-
-            startFrames.push(...res.starts);
-            endFrames.push(...res.ends);
-
-            if(res.ends[0] && res.ends[0].scope == this._dbgFile.mainScope) {
-                exitAddresses.push(...res.ends.map(x => x.address));
-            }
-        }
-
-        const [resExits, resStarts, resEnds, brks] = await Promise.all([
-            (async() => {
-                if(exitAddresses.length) {
-                    const exits : bin.CheckpointSetCommand[] = exitAddresses.map(x => ({
-                        type: bin.CommandType.checkpointSet,
-                        startAddress: x,
-                        endAddress: x,
-                        stop: true,
-                        enabled: true,
-                        temporary: false,
-                        operation: bin.CpuOperation.exec,
-                    }));
-                    return await this._vice.multiExecBinary(exits) as bin.CheckpointInfoResponse[];
-                }
-
-                return [];
-            })(),
-            (async() => {
-                const traceStarts : bin.CheckpointSetCommand[] =
-                    startFrames.map(frame => ({
-                        type: bin.CommandType.checkpointSet,
-                        operation: bin.CpuOperation.exec,
-                        startAddress: frame.address,
-                        endAddress: frame.address,
-                        temporary: false,
-                        stop: false,
-                        enabled: true,
-                    }));
-                return await this._vice.multiExecBinary(traceStarts) as bin.CheckpointInfoResponse[];
-            })(),
-            (async() => {
-                const traceEnds : bin.CheckpointSetCommand[] =
-                    endFrames.map(frame => ({
-                        type: bin.CommandType.checkpointSet,
-                        operation: bin.CpuOperation.exec,
-                        startAddress: frame.address,
-                        endAddress: frame.address,
-                        temporary: false,
-                        stop: false,
-                        enabled: true,
-                    }));
-
-                return await this._vice.multiExecBinary(traceEnds) as bin.CheckpointInfoResponse[];
-            })(),
-            (async() => {
-                const breakStarts : bin.CheckpointSetCommand[] =
-                    startFrames.map(frame => ({
-                        type: bin.CommandType.checkpointSet,
-                        operation: bin.CpuOperation.exec,
-                        startAddress: frame.address,
-                        endAddress: frame.address,
-                        temporary: false,
-                        stop: true,
-                        enabled: false,
-                    }));
-
-                return await this._vice.multiExecBinary(breakStarts) as bin.CheckpointInfoResponse[];
-            })()
-        ]);
-
-        for(const brk of brks) {
-            this._stackFrameBreakIndexes.push(brk.id);
-        }
-
-        for(const exit of resExits) {
-            this._exitIndexes.push(exit.id);
-        }
-
-        for(const start of resStarts) {
-            this._stackFrameStarts[start.id] = startFrames.find(x => x.address == start.startAddress)!.scope;
-        }
-
-        for(const end of resEnds) {
-            const endFrame = endFrames.find(x => x.address == end.startAddress)!;
-            this._stackFrameEnds[end.id] = endFrame.scope;
-            _.remove(endFrames, x => x == endFrame);
-        }
-
-        await this._stackFrameBreakToggle(false);
-
-        const current = resStarts.find(x => x.startAddress == this._currentAddress);
-        if(!current) {
-            return;
-        }
-
-        this._addStackFrame(current);
     }
 
     // Comm

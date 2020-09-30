@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import watch from 'node-watch';
-import * as debugUtils from './debugUtils';
+import * as debugUtils from './debug-utils';
 import * as util from 'util';
 import * as _ from 'lodash';
 import * as readdir from 'recursive-readdir';
@@ -45,7 +45,7 @@ export async function guessProgramPath(workspaceDir: string) {
     return orderedPrograms;
 }
 
-export async function preProcess(preprocessCmd: string, opts: {}) : Promise<boolean> {
+export async function preProcess(buildCwd: string, preprocessCmd: string, opts: {}) : Promise<boolean> {
     try {
         if(!(preprocessCmd && preprocessCmd.trim())) {
             return false;
@@ -53,19 +53,24 @@ export async function preProcess(preprocessCmd: string, opts: {}) : Promise<bool
 
         await util.promisify(child_process.exec)(preprocessCmd, {
             ...opts,
+            cwd: buildCwd,
             shell: undefined,
         }) 
 
         return true;
     }
-    catch {
+    catch(e) {
+        console.error(e);
         return false;
     }
 }
 
-export async function make(workspaceDir: string, buildCmd: string, status: EventEmitter, opts: {}) : Promise<string[]> {
+export async function make(buildCwd: string, buildCmd: string, status: EventEmitter, opts: {}) : Promise<string[]> {
     const builder = new Promise((res, rej) => {
-        const process = child_process.spawn(buildCmd, opts);
+        const process = child_process.spawn(buildCmd, {
+            ...opts,
+            cwd: buildCwd,
+        });
 
         // FIXME This is a little smelly
         process.stdout.on('data', (d) => {
@@ -87,7 +92,7 @@ export async function make(workspaceDir: string, buildCmd: string, status: Event
     });
 
     let filenames : string[] = [];
-    const watcher = watch(workspaceDir, {
+    const watcher = watch(buildCwd, {
         recursive: true,
         filter: f => debugUtils.programFiletypes.test(f),
     }, (evt, filename) => {

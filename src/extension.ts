@@ -3,12 +3,12 @@
 import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol'
-import { CC65ViceDebugSession } from './cc65ViceDebug';
+import { CC65ViceDebugSession } from './debug-session';
 import * as languageClient from 'vscode-languageclient';
 import * as Net from 'net';
 import * as util from 'util';
-import * as debugUtils from './debugUtils';
-import { StatsWebview } from './statsWebview';
+import * as debugUtils from './debug-utils';
+import { StatsWebview } from './stats-webview';
 import { DebugSession } from 'vscode-debugadapter';
 
 /*

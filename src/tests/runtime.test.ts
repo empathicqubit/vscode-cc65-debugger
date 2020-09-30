@@ -1,18 +1,14 @@
 import {setup, teardown, suite, test} from 'mocha';
 import * as assert from 'assert';
 import * as bin from '../binary-dto';
-import * as mocha from 'mocha';
-import { CC65ViceRuntime } from '../cc65ViceRuntime';
+import { Runtime } from '../runtime';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as net from 'net';
 import * as _ from 'lodash';
-import * as tmp from 'tmp';
 import * as util from 'util';
-import * as debugUtils from '../debugUtils';
+import * as debugUtils from '../debug-utils';
 import * as TGA from 'tga';
-import * as fs from 'fs';
-import { negate } from 'lodash';
 
 const all = (...args) => Promise.all(args);
 
@@ -22,20 +18,20 @@ suite('Runtime', () => {
         when testing the defaults */
     const BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
     const PREPROCESS_COMMAND = 'make preprocess-only';
-    const BUILD_CWD = __dirname + '/../../src/tests/simple-project';
+    const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/simple-project');
     const MAP_FILE = BUILD_CWD + '/simple-project.c64.map';
     const DEBUG_FILE = BUILD_CWD + '/simple-project.c64.dbg';
     const LABEL_FILE = BUILD_CWD + '/simple-project.c64.lbl';
     const PROGRAM = BUILD_CWD + '/simple-project.c64'
-    const VICE_DIRECTORY = BUILD_CWD + '/../vicedir/src';
+    const VICE_DIRECTORY = path.normalize(BUILD_CWD + '/../vicedir/src');
 
     let seq = 0;
     let request_seq = 0;
-    let rt : CC65ViceRuntime;
+    let rt : Runtime;
     let viceArgs : string[] = [];
     let pids : number[] = [];
 
-    const waitFor = async(rt: CC65ViceRuntime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> => {
+    const waitFor = async(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> => {
         await new Promise((res, rej) => {
             const listener = (...args) => {
                 try {
@@ -54,7 +50,7 @@ suite('Runtime', () => {
     }
 
     setup(async() => {
-        rt = new CC65ViceRuntime((args, timeout, cb) => {
+        rt = new Runtime((args, timeout, cb) => {
             const env : { [key: string]: string | undefined } = _.transform(args.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
             const proc = child_process.spawn(args.args[0], args.args.slice(1), {
                 cwd: args.cwd,
@@ -184,69 +180,136 @@ suite('Runtime', () => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
         });
 
-        test('Starts and terminates successfully without intervention', async() => {
-            await rt.start(
-                PROGRAM, 
-                BUILD_CWD, 
-                false,
-                false,
-                false, 
-                VICE_DIRECTORY,
-                viceArgs,
-                undefined, 
-                false,
-                DEBUG_FILE,
-                MAP_FILE,
-                LABEL_FILE
-            );
+        suite('Basic', () => {
+            test('Starts and terminates successfully without intervention', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    false,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs,
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
 
-            await new Promise((res, rej) => {
-                rt.once('end', () => {
-                    res();
+                await new Promise((res, rej) => {
+                    rt.once('end', () => {
+                        res();
+                    });
                 });
             });
-        });
 
-        test('Breaks at the entry point', async() => {
-            await rt.start(
-                PROGRAM, 
-                BUILD_CWD, 
-                true,
-                false,
-                false, 
-                VICE_DIRECTORY,
-                viceArgs, 
-                undefined, 
-                false,
-                DEBUG_FILE,
-                MAP_FILE,
-                LABEL_FILE
-            );
+            test('Breaks at the entry point', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
 
-            await waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, 2147));
-            await rt.continue();
-            await waitFor(rt, 'end');
-        });
+                await waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, 2147));
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
 
-        test('Breaks at the exit point', async() => {
-            await rt.start(
-                PROGRAM, 
-                BUILD_CWD, 
-                false,
-                true,
-                false, 
-                VICE_DIRECTORY,
-                viceArgs, 
-                undefined, 
-                false,
-                DEBUG_FILE,
-                MAP_FILE,
-                LABEL_FILE
-            );
+            test('Breaks at the exit point', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    false,
+                    true,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
 
-            await waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt.getRegisters().pc, 2160));
-            await rt.continue();
-            await waitFor(rt, 'end');
+                await waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt.getRegisters().pc, 2160));
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
+
+            test('Can step out', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+
+                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), 7);
+                await rt.continue();
+
+                await all(
+                    rt.stepIn(),
+                    waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt._currentAddress, 2112)),
+                );
+
+                await all(
+                    rt.stepOut(),
+                    waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt._currentAddress, 0x86d)),
+                );
+
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
+
+            test('Can step in', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+
+                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), 7);
+                await rt.continue();
+
+                await all(
+                    rt.stepIn(),
+                    waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt._currentAddress, 2112)),
+                );
+
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
         });
 
         suite('Headless', () => {
@@ -274,6 +337,57 @@ suite('Runtime', () => {
                 const res : bin.DisplayGetResponse = await rt._vice.execBinary(req);
                 const tga = new TGA(res.imageData);
             });
+        });
+
+        suite('Stack', () => {
+            test('Contains the frames plus the current position', async () => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+
+                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), 7);
+                await rt.continue();
+
+                await waitFor(rt, 'stopOnStep', (args) => assert.strictEqual(rt.getRegisters().pc, 2154));
+
+                const frames = await rt.stack(0, 1000);
+
+                assert.deepStrictEqual(
+                    frames,
+                    {
+                        frames: [
+                        {
+                            index: 0,
+                            name: '0x86a',
+                            file: BUILD_CWD + '/src/main.c',
+                            line: 7
+                        },
+                        {
+                            index: 1,
+                            name: 'main',
+                            file: BUILD_CWD + '/src/main.c',
+                            line: 6
+                        }
+                        ],
+                        count: 2
+                    }
+                );
+
+                await rt.continue();
+            })
         });
 
         suite('Runahead', () => {

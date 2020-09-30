@@ -10,10 +10,11 @@ export interface Scope {
     id: number;
     name: string;
     csyms: CSym[];
+    autos: CSym[];
     size: number;
     spanIds: number[];
     spans: DebugSpan[];
-    codeSpan: DebugSpan | null;
+    codeSpan: DebugSpan | undefined;
 }
 
 export enum sc {
@@ -26,8 +27,8 @@ export interface CSym {
     name: string;
     offs: number;
     scopeId: number;
-    scope: Scope | null;
-    sym: Sym | null;
+    scope: Scope | undefined;
+    sym: Sym | undefined;
     symId : number;
     sc: sc;
 }
@@ -36,9 +37,9 @@ export interface Sym {
     id: number;
     name: string;
     addrsize: Addrsize;
-    seg: CodeSeg | null;
+    seg: Segment | undefined;
     segId: number;
-    scope: Scope | null;
+    scope: Scope | undefined;
     scopeId: number;
     size: number;
     def: string;
@@ -57,7 +58,7 @@ export enum Segtype {
     rw = 1,
 }
 
-export interface CodeSeg {
+export interface Segment {
     name: string;
     oname: string;
     id: number;
@@ -69,7 +70,7 @@ export interface CodeSeg {
 }
 
 export interface DebugSpan {
-    seg: CodeSeg | null;
+    seg: Segment | undefined;
     id: number;
     segId: number;
     /** This is the address relative to the segment */
@@ -84,10 +85,10 @@ export interface DebugSpan {
 export interface Mod {
     id: number;
     name: string;
-    file: File | null;
+    file: File | undefined;
     fileId: number;
     libId: number;
-    lib: Lib | null;
+    lib: Lib | undefined;
 }
 
 export interface Lib {
@@ -96,8 +97,8 @@ export interface Lib {
 }
 
 export interface SourceLine {
-    file: SourceFile | null;
-    span: DebugSpan | null;
+    file: SourceFile | undefined;
+    span: DebugSpan | undefined;
     id: number;
     /** From zero, to match VSCode's indices */
     num: number;
@@ -117,18 +118,18 @@ export interface SourceFile {
 }
 
 export interface Dbgfile {
-    systemLib: Lib | null;
-    systemLibBaseName: string | null;
-    mainScope: Scope | null;
-    mainLab: Sym | null;
+    systemLib: Lib | undefined;
+    systemLibBaseName: string | undefined;
+    mainScope: Scope | undefined;
+    mainLab: Sym | undefined;
     libs: Lib[];
     mods: Mod[];
     csyms: CSym[];
     scopes: Scope[];
     files: SourceFile[];
     lines: SourceLine[];
-    segs: CodeSeg[];
-    codeSeg: CodeSeg | null;
+    segs: Segment[];
+    codeSeg: Segment | undefined;
     entryAddress: number;
     syms: Sym[];
     labs: Sym[];
@@ -138,12 +139,12 @@ export interface Dbgfile {
 
 export function parse(text: string, buildDir : string) : Dbgfile {
     const dbgFile : Dbgfile = {
-        systemLib: null,
-        systemLibBaseName: null,
+        systemLib: undefined,
+        systemLibBaseName: undefined,
         entryAddress: 0,
-        codeSeg: null,
-        mainScope: null,
-        mainLab: null,
+        codeSeg: undefined,
+        mainScope: undefined,
+        mainLab: undefined,
         libs: [],
         mods: [],
         scopes: [],
@@ -201,9 +202,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         else if(ots == "mod") {
             const mod : Mod = {
                 id: 0,
-                file: null,
+                file: undefined,
                 fileId: -1,
-                lib: null,
+                lib: undefined,
                 libId: -1,
                 name: "",
             }
@@ -233,8 +234,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 id: 0,
                 spans: [],
                 csyms: [],
+                autos: [],
                 spanIds: [],
-                codeSpan: null,
+                codeSpan: undefined,
                 size: 0,
                 name: "",
             };
@@ -261,8 +263,8 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 id: 0,
                 scopeId: -1,
                 sc: sc.auto,
-                scope: null,
-                sym: null,
+                scope: undefined,
+                sym: undefined,
                 symId: -1,
                 offs: 0,
                 name: "",
@@ -293,9 +295,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 addrsize: Addrsize.absolute,
                 size: 0,
                 name: "",
-                seg: null,
+                seg: undefined,
                 segId: -1,
-                scope: null,
+                scope: undefined,
                 scopeId: -1,
                 id: 0,
                 def: "",
@@ -366,7 +368,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
             dbgFile.files.push(fil);
         }
         else if (ots == "seg") {
-            const seg : CodeSeg = {
+            const seg : Segment = {
                 addrsize: Addrsize.relative,
                 id: 0,
                 name: "",
@@ -406,7 +408,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 id: 0,
                 start: 0,
                 size: 0,
-                seg: null,
+                seg: undefined,
                 type: 0,
                 segId: -1,
                 lines: [],
@@ -432,9 +434,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 count: 0,
                 id: 0,
                 num: 0,
-                span: null,
+                span: undefined,
                 spanId: -1,
-                file: null,
+                file: undefined,
                 fileId: -1,
                 type: 0,
             };
@@ -511,6 +513,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
             if(scope.id == csym.scopeId) {
                 csym.scope = scope;
                 scope.csyms.push(csym);
+                if(csym.sc = sc.auto) {
+                    scope.autos.push(csym);
+                }
                 break;
             }
         }
@@ -595,9 +600,8 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         }
     }
 
-    const spanSort = (a : DebugSpan | null, b : DebugSpan | null) => (b && b.absoluteAddress)! - (a && a.absoluteAddress)!;
-    dbgFile.scopes.sort((a, b) => spanSort(a.spans[0], b.spans[0]));
-    dbgFile.lines.sort((a, b) => spanSort(a.span, b.span))
+    dbgFile.scopes = _.sortBy(dbgFile.scopes, x => x.spans[0], x => x.spans[0] && -x.spans[0].absoluteAddress);
+    dbgFile.lines = _.sortBy(dbgFile.lines, x => x.span, x => x.span && -x.span.absoluteAddress);
 
     dbgFile.spans = _.sortBy(dbgFile.spans, x => -x.absoluteAddress, x => x.size);
 
@@ -605,8 +609,8 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     dbgFile.syms.sort(segSort)
     dbgFile.labs.sort(segSort);
 
-    dbgFile.mainLab = dbgFile.labs.find(x => x.name == "_main") || null;
-    dbgFile.mainScope = dbgFile.scopes.find(x => x.name == "_main") || null;
+    dbgFile.mainLab = dbgFile.labs.find(x => x.name == "_main") || undefined;
+    dbgFile.mainScope = dbgFile.scopes.find(x => x.name == "_main") || undefined;
 
     if(dbgFile.mainLab) {
         dbgFile.entryAddress = dbgFile.mainLab.val;

@@ -7,8 +7,8 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import * as child_process from 'child_process';
-import * as debugUtils from './debugUtils';
-import { CC65ViceRuntime, CC65ViceBreakpoint } from './cc65ViceRuntime';
+import * as debugUtils from './debug-utils';
+import { Runtime, CC65ViceBreakpoint } from './runtime';
 const { Subject } = require('await-notify');
 import * as colors from 'colors/safe';
 import { DebugAdapterExecutable } from 'vscode';
@@ -22,7 +22,7 @@ enum VariablesReferenceFlag {
 
     LOCAL =         0x200000,
     GLOBAL =        0x400000,
-    PARAM =         0x800000,
+    //PARAM =         0x800000,
     REGISTERS =    0x1000000,
 
     ADDR_MASK =     0x00FFFF,
@@ -66,12 +66,15 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     console?: 'integratedTerminal' | 'integratedConsole' | 'externalTerminal';
 }
 
+/**
+ * This class is designed to interface the debugger Runtime with Visual Studio's request model.
+ */
 export class CC65ViceDebugSession extends LoggingDebugSession {
 
     // we don't support multiple threads, so we can use a hardcoded ID for the default thread
     private static THREAD_ID = 1;
 
-    private _runtime: CC65ViceRuntime;
+    private _runtime: Runtime;
 
     private _configurationDone = new Subject();
     private _addressTypes: {[address:string]: string} = {};
@@ -87,7 +90,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.setDebuggerLinesStartAt1(false);
         this.setDebuggerColumnsStartAt1(false);
 
-        this._runtime = new CC65ViceRuntime((args, timeout, cb) => this.runInTerminalRequest(args, timeout, cb));
+        this._runtime = new Runtime((args, timeout, cb) => this.runInTerminalRequest(args, timeout, cb));
 
         // setup event handlers
         this._runtime.on('stopOnEntry', () => {
@@ -389,7 +392,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 new Scope("Registers", VariablesReferenceFlag.REGISTERS, false),
                 new Scope("Local", VariablesReferenceFlag.LOCAL, false),
                 new Scope("Global", VariablesReferenceFlag.GLOBAL, true),
-                // FIXME new Scope("Parameter Stack", VariablesReferenceFlag.PARAM, false),
             ]
         };
         this.sendResponse(response);
@@ -446,20 +448,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                         memoryReference: v.addr.toString(16),
                         variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
                     });
-                }
-            }
-            else if(ref & VariablesReferenceFlag.PARAM) {
-                const buf = await this._runtime.getParamStack(); // FIXME Make this number configurable.
-                for(let i = 0 ; i < buf.length ; i+=8) {
-                    const val = buf.slice(i, i + 8);
-                    variables.push({
-                        name: i.toString(16),
-                        value: debugUtils.rawBufferHex(val),
-                        variablesReference: 0,
-                        presentationHint: {
-                            kind: "data",
-                        }
-                    })
                 }
             }
             else if(ref & VariablesReferenceFlag.GLOBAL) {
