@@ -1,9 +1,45 @@
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 
+interface vscode {
+    postMessage(message: any): void;
+}
+
+declare const acquireVsCodeApi : () => vscode;
+
 export function _statsWebviewContent() {
+    const vscode = acquireVsCodeApi();
+
     const r = React.createElement;
     const content = document.querySelector("#content")!;
+
+    document.addEventListener('keydown', evt => {
+        evt.preventDefault();
+        evt.stopPropagation();
+        vscode.postMessage({
+            request: 'keydown',
+            key: evt.key,
+            ctrlKey: evt.ctrlKey,
+            shiftKey: evt.shiftKey,
+            location: evt.location,
+        });
+
+        return false;
+    });
+
+    document.addEventListener('keyup', evt => {
+        evt.preventDefault();
+        evt.stopPropagation();
+        vscode.postMessage({
+            request: 'keyup',
+            key: evt.key,
+            ctrlKey: evt.ctrlKey,
+            shiftKey: evt.shiftKey,
+            location: evt.location,
+        });
+
+        return false;
+    });
 
     interface renderData {
         runAheadBlobUrl: string,

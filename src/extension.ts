@@ -10,6 +10,7 @@ import * as util from 'util';
 import * as debugUtils from './debug-utils';
 import { StatsWebview } from './stats-webview';
 import { DebugSession } from 'vscode-debugadapter';
+import { ShowMessageNotification } from 'vscode-languageclient';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -18,6 +19,22 @@ import { DebugSession } from 'vscode-debugadapter';
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
 export function activate(context: vscode.ExtensionContext) {
+    StatsWebview.addEventListener('keydown', evt => {
+        const sesh = vscode.debug.activeDebugSession;
+        if(!sesh) {
+            return;
+        }
+        sesh.customRequest('keydown', evt);
+    });
+
+    StatsWebview.addEventListener('keyup', evt => {
+        const sesh = vscode.debug.activeDebugSession;
+        if(!sesh) {
+            return;
+        }
+        sesh.customRequest('keyup', evt);
+    });
+
     vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
         if(e.event == 'runahead') {
             StatsWebview.maybeCreate(context.extensionPath);

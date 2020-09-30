@@ -3,11 +3,13 @@ import * as path from 'path';
 import * as dbgFile from './debug-file';
 import * as fs from 'fs';
 import * as util from 'util';
+import { EventEmitter } from 'events';
 
 export class StatsWebview {
 	private static _currentPanel: StatsWebview | undefined;
 	private static _runAhead : ImageData;
 	private static _current: ImageData;
+	private static _emitter: EventEmitter = new EventEmitter();
 
 	public static readonly viewType = 'statsWebview';
 
@@ -24,7 +26,11 @@ export class StatsWebview {
 				current: StatsWebview._current,
 			});
         }
-    }
+	}
+	
+	public static addEventListener(event: string, cb: (...args: any[]) => void) {
+		StatsWebview._emitter.addListener(event, cb);
+	}
 
 	public static maybeCreate(extensionPath: string) {
 		if (StatsWebview._currentPanel) {
@@ -41,6 +47,16 @@ export class StatsWebview {
 				localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'dist'))]
 			}
 		);
+
+		panel.webview.onDidReceiveMessage((evt) => {
+			const r = evt.request;
+			if(r == 'keydown') {
+				StatsWebview._emitter.emit(r, evt);
+			}
+			else if(r == 'keyup') {
+				StatsWebview._emitter.emit(r, evt);
+			}
+		});
 
         StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
 

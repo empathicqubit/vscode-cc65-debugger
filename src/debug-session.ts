@@ -7,11 +7,11 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import * as child_process from 'child_process';
+import * as _ from 'lodash';
 import * as debugUtils from './debug-utils';
 import { Runtime, CC65ViceBreakpoint } from './runtime';
 const { Subject } = require('await-notify');
 import * as colors from 'colors/safe';
-import { DebugAdapterExecutable } from 'vscode';
 
 enum VariablesReferenceFlag {
     HAS_TYPE    =    0x10000,
@@ -66,6 +66,131 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     console?: 'integratedTerminal' | 'integratedConsole' | 'externalTerminal';
 }
 
+const keyMappings : { [key: string]: number } = {
+    "*": 42,
+    "+": 43,
+    "@": 64,
+    "ArrowDown": 17,
+    "ArrowLeft": 157,
+    "ArrowRight": 29,
+    "ArrowUp": 145,
+    "Clear": 19,
+    "Control+0": 146,
+    "Control+1": 144,
+    "Control+2": 5,
+    "Control+3": 28,
+    "Control+4": 159,
+    "Control+5": 156,
+    "Control+6": 30,
+    "Control+7": 31,
+    "Control+8": 158,
+    "Control+9": 18,
+    "Control+:": 27,
+    "Control+;": 29,
+    "Control+=": 31,
+    "Control+@": 0,
+    "Control+a": 1,
+    "Control+b": 2,
+    "Control+c": 3,
+    "Control+d": 4,
+    "Control+e": 5,
+    "Control+f": 6,
+    "Control+g": 7,
+    "Control+h": 8,
+    "Control+i": 9,
+    "Control+j": 10,
+    "Control+k": 11,
+    "Control+l": 12,
+    "Control+m": 13,
+    "Control+n": 14,
+    "Control+o": 15,
+    "Control+p": 16,
+    "Control+q": 17,
+    "Control+r": 18,
+    "Control+s": 19,
+    "Control+t": 20,
+    "Control+u": 21,
+    "Control+v": 22,
+    "Control+w": 23,
+    "Control+x": 24,
+    "Control+y": 25,
+    "Control+z": 26,
+    "Control+£": 28,
+    "Enter": 13,
+    "F1": 133,
+    "F3": 134,
+    "F5": 135,
+    "F7": 136,
+    "Backspace": 20,
+    "Shift+": 63,
+    "Shift+*": 192,
+    "Shift++": 219,
+    "Shift+-": 221,
+    "Shift+.": 62,
+    "Shift+1": 33,
+    "Shift+2": 34,
+    "Shift+3": 35,
+    "Shift+4": 36,
+    "Shift+5": 37,
+    "Shift+6": 38,
+    "Shift+7": 39,
+    "Shift+8": 40,
+    "Shift+9": 41,
+    "Shift+:": 91,
+    "Shift+;": 93,
+    //"Shift+Clear": 147,
+    "Shift+Enter": 141,
+    "F2": 137,
+    "F4": 138,
+    "F6": 139,
+    "F8": 140,
+    "Shift+Backspace": 148,
+    "Shift+ ": 160,
+    "Space": 32,
+    "Tab++": 166,
+    "Tab+-": 220,
+    "Tab+1": 129,
+    "Tab+2": 149,
+    "Tab+3": 150,
+    "Tab+4": 151,
+    "Tab+5": 152,
+    "Tab+6": 153,
+    "Tab+7": 154,
+    "Tab+8": 155,
+    "Tab+@": 164,
+    "Tab+a": 176,
+    "Tab+b": 191,
+    "Tab+c": 188,
+    "Tab+d": 172,
+    "Tab+e": 177,
+    "Tab+f": 187,
+    "Tab+g": 165,
+    "Tab+h": 180,
+    "Tab+i": 162,
+    "Tab+j": 181,
+    "Tab+k": 161,
+    "Tab+l": 182,
+    "Tab+m": 167,
+    "Tab+n": 170,
+    "Tab+o": 185,
+    "Tab+p": 175,
+    "Tab+q": 171,
+    "Tab+r": 178,
+    "Tab+s": 174,
+    "Tab+t": 163,
+    "Tab+u": 184,
+    "Tab+v": 190,
+    "Tab+w": 179,
+    "Tab+x": 189,
+    "Tab+y": 183,
+    "Tab+z": 173,
+    "Tab+£": 168,
+    "£": 92,
+    //"Control+↑ (up arrow)": 30,
+    //"← (left arrow)": 95
+    //"↑ (up arrow)": 94,
+};
+
 /**
  * This class is designed to interface the debugger Runtime with Visual Studio's request model.
  */
@@ -78,6 +203,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     private _configurationDone = new Subject();
     private _addressTypes: {[address:string]: string} = {};
+    private _tabby: boolean;
+    private _keybuf: string[] = [];
+
+    private _bounceBuf: () => void;
 
     /**
     * Creates a new debug adapter that is used for one debug session.
@@ -91,6 +220,17 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.setDebuggerColumnsStartAt1(false);
 
         this._runtime = new Runtime((args, timeout, cb) => this.runInTerminalRequest(args, timeout, cb));
+
+        this._bounceBuf = _.debounce(async () => {
+            const keybuf = this._keybuf;
+            this._keybuf = [];
+            try {
+                await this._runtime.keypress(keybuf.join(''));
+            }
+            catch(e) {
+                console.error(e);
+            }
+        }, 250);
 
         // setup event handlers
         this._runtime.on('stopOnEntry', () => {
@@ -141,6 +281,59 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._runtime.on('end', () => {
             this.sendEvent(new TerminatedEvent());
         });
+    }
+
+    protected async customRequest(command: string, response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments, request: DebugProtocol.Request): Promise<void> {
+
+        if(command == 'keyup') {
+            const evt : KeyboardEvent = request.arguments;
+            if(evt.key == "Tab") {
+                this._tabby = false;
+            }
+        }
+        else if(command == 'keydown') {
+            try {
+                const evt : KeyboardEvent = request.arguments;
+                if(evt.location !== 0) {
+                    return;
+                }
+
+                if(evt.key == "Tab") {
+                    this._tabby = true;
+                    return;
+                }
+
+                const mapped = keyMappings[
+                    [
+                        evt.ctrlKey ? 'Control' : '',
+                        evt.shiftKey ? 'Shift' : '',
+                        this._tabby ? 'Tab' : '',
+                        evt.key
+                    ].filter(x => x).join('+')
+                ];
+
+                const key = mapped
+                    ? `\\x${mapped.toString(16).padStart(2, '0')}`
+                    : (evt.shiftKey
+                        ? evt.key.toUpperCase()
+                        : evt.key
+                    );
+
+                this._keybuf.push(key);
+
+                this._bounceBuf();
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
+        else {
+            response.success = false;
+            response.message = 'Unknown command';
+        }
+
+        response.success = true;
+        this.sendResponse(response);
     }
 
     /**
@@ -329,6 +522,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         try {
             await this._runtime.terminate();
             this._addressTypes = {};
+            this._keybuf = [];
         }
         catch(e) {
             console.error(e);
@@ -673,6 +867,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.message = (<any>e).stack.toString();
         }
         this._addressTypes = {};
+        this._keybuf = [];
         this.sendResponse(response);
     }
 

@@ -55,9 +55,6 @@ export class Runtime extends EventEmitter {
     // Monitors the code segment after initialization so that it doesn't accidentally get modified.
     private _codeSegGuardIndex: number = -1;
 
-    // Updates the screen once a frame;
-    private _screenUpdateIndex: number = -1;
-
     private _exitIndexes: number[] = [];
     private _stopOnExit: boolean = false;
     private _exitQueued: boolean = false;
@@ -83,6 +80,7 @@ export class Runtime extends EventEmitter {
     private _usePreprocess: boolean;
     private _runAhead: boolean;
     private _bypassStatusUpdates: boolean = false;
+    private _screenUpdateTimer: NodeJS.Timeout;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -385,7 +383,70 @@ export class Runtime extends EventEmitter {
             this.sendEvent('output', 'console', 'Switch to the TERMINAL tab to access the monitor and VICE log output.\n');
         }
 
+        const updateLoop = async() => {
+            try {
+                await this._updateScreen();
+            }
+            catch(e) {
+                console.error(e);
+            }
+
+            this._screenUpdateTimer = setTimeout(updateLoop, 1000);
+        }
+        this._screenUpdateTimer = setTimeout(updateLoop, 1000);
+
         console.timeEnd('postStart');
+    }
+
+    private async _updateScreen() {
+        const wasRunning = this.viceRunning;
+
+        if(!wasRunning) {
+            return;
+        }
+
+        this._bypassStatusUpdates = true;
+        const displayCmd : bin.DisplayGetCommand = {
+            type: bin.CommandType.displayGet,
+            useVicII: false,
+            format: bin.DisplayGetFormat.BGRA,
+        };
+        const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
+
+        this._bypassStatusUpdates = false;
+
+        if(wasRunning) {
+            await this.continue();
+        }
+
+        const current = new TGA(currentRes.imageData);
+        const currentPng = new pngjs.PNG({
+            width: current.width,
+            height: current.height
+        });
+        currentPng.data = current.pixels;
+
+        this.sendEvent('current', {
+            current: {
+                data: Array.from(pngjs.PNG.sync.write(currentPng)),
+                width: current.width,
+                height: current.height,
+            },
+        });
+    }
+
+    public async keypress(key: string) : Promise<void> {
+        const wasRunning = this.viceRunning;
+        this._bypassStatusUpdates = true;
+        const cmd : bin.KeyboardFeedCommand = {
+            type: bin.CommandType.keyboardFeed,
+            text: key,
+        }
+        await this._vice.execBinary(cmd);
+        this._bypassStatusUpdates = false;
+        if(wasRunning) {
+            await this.continue();
+        }
     }
 
     private async _setExitGuard() : Promise<void> {
@@ -408,26 +469,6 @@ export class Runtime extends EventEmitter {
         for(const exit of resExits) {
             this._exitIndexes.push(exit.id);
         }
-    }
-
-    private async _setScreenUpdateCheckpoint() {
-        const cmd : bin.CheckpointSetCommand = {
-            type: bin.CommandType.checkpointSet,
-            operation: bin.CpuOperation.exec,
-            startAddress: 0x0000,
-            endAddress: 0xffff,
-            enabled: true,
-            stop: false,
-            temporary: false,
-        };
-        const brkRes : bin.CheckpointInfoResponse = await this._vice.execBinary(cmd);
-        const condCmd : bin.ConditionSetCommand = {
-            type: bin.CommandType.conditionSet,
-            condition: 'RL == $00 && CY == $00',
-            checkpointId: brkRes.id,
-        };
-        await this._vice.execBinary(condCmd);
-        this._screenUpdateIndex = brkRes.id;
     }
 
     private async _guardCodeSeg() : Promise<void> {
@@ -625,6 +666,8 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async disconnect() {
+        clearTimeout(this._screenUpdateTimer);
+
         const pids = this._colorTermPids;
         debugUtils.delay(1000).then(() => {
             try {
@@ -1031,28 +1074,6 @@ or define the location manually with the launch.json->mapFile setting`
                     this.viceRunning = false;
                     this.sendEvent('stopOnBreakpoint');
                 }
-                else if(this._screenUpdateIndex == brk.id) {
-                    const wasRunning = this.viceRunning;
-                    const displayCmd : bin.DisplayGetCommand = {
-                        type: bin.CommandType.displayGet,
-                        useVicII: false,
-                        format: bin.DisplayGetFormat.BGRA,
-                    };
-                    const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
-
-                    if(wasRunning) {
-                        await this.continue();
-                    }
-
-                    const current = new TGA(currentRes.imageData);
-                    this.sendEvent('current', {
-                        current: {
-                            data: current.pixels,
-                            width: current.width,
-                            height: current.height,
-                        },
-                    });
-                }
             }
         });
     }
@@ -1136,8 +1157,8 @@ or define the location manually with the launch.json->mapFile setting`
         });
         aheadPng.data = ahead.pixels;
         const currentPng = new pngjs.PNG({
-            width: ahead.width,
-            height: ahead.height
+            width: current.width,
+            height: current.height
         });
         currentPng.data = current.pixels;
 
