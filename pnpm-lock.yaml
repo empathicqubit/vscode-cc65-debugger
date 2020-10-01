@@ -38,6 +38,7 @@ devDependencies:
   vscode-debugprotocol: 1.41.0
   webpack: 4.44.2_93ca2875a658e9d1552850624e6b91c7
   webpack-cli: 3.3.12_webpack@4.44.2
+  why-is-node-running: 2.2.0
 lockfileVersion: 5.1
 packages:
   /@babel/code-frame/7.10.4:
@@ -3879,6 +3880,10 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-aS0mWtW3T2sHAenrSrip2XGv39O9dXIFUqxAEWHEOS1ePtGIBavdPJY1kE2IHl14V/4iCbUiNDPGdyYTtmhSoA==
+  /siginfo/2.0.0:
+    dev: true
+    resolution:
+      integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==
   /signal-exit/3.0.3:
     dev: true
     resolution:
@@ -4006,6 +4011,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-3Wge10hNcT1Kur4PDFwEieXSCMCJs/7WvSACcrMYrNp+b8kDL1/0wJch5Ni2WrtwEa2IO8OsVfeKIciKCDx/QA==
+  /stackback/0.0.2:
+    dev: true
+    resolution:
+      integrity: sha1-Gsig2Ug4SNFpXkGLbQMaPDzmjjs=
   /static-extend/0.1.2:
     dependencies:
       define-property: 0.2.5
@@ -4725,6 +4734,16 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==
+  /why-is-node-running/2.2.0:
+    dependencies:
+      siginfo: 2.0.0
+      stackback: 0.0.2
+    dev: true
+    engines:
+      node: '>=8'
+    hasBin: true
+    resolution:
+      integrity: sha512-rxtN9D0lJaYyP92BR5yoyWecK2txBKmBIuS7GRbOPP5bXsT37/hBqcmTrlrt25DBr9p4WJb6c9LuYSJd89vHRQ==
   /wide-align/1.1.3:
     dependencies:
       string-width: 2.1.1
@@ -4903,7 +4922,7 @@ specifiers:
   hasbin: ^1.2.3
   lodash: ^4.17.15
   mocha: ^8.1.3
-  node-watch: ^0.6.3
+  node-watch: ^0.6.4
   npm-run-all: ^4.1.5
   nyc: ^15.1.0
   performance-now: ^2.1.0
@@ -4929,3 +4948,4 @@ specifiers:
   wait-port: ^0.2.7
   webpack: ^4.44.2
   webpack-cli: ^3.3.12
+  why-is-node-running: ^2.2.0

@@ -60,6 +60,26 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
+            "name": "Mocha Basic",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "-u", "tdd",
+                "--timeout", "30000",
+                "--colors",
+                "--grep",
+                "^Runtime Launch Basic",
+                "./out/tests/"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "preLaunchTask": "npm: vscode:debug",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
             "name": "Mocha Attach",
             "type": "node",
             "request": "launch",

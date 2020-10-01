@@ -72,6 +72,7 @@ suite('Runtime', () => {
                 pids.splice(pids.indexOf(proc.pid), 1);
                 e && console.error(e)
             };
+            proc.on('disconnect', cleanup);
             proc.on('close', cleanup);
             proc.on('error', cleanup);
             proc.on('exit', cleanup);

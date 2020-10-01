@@ -1,7 +1,7 @@
 {
     "name": "cc65-vice",
     "displayName": "C64 CC65/VICE Debugger",
-    "version": "2.4.2",
+    "version": "2.4.3",
     "publisher": "entan-gl",
     "description": "An extension to unify VSCode, CC65, and VICE monitor.",
     "author": {
@@ -44,7 +44,7 @@
         "webpack": "webpack --mode production",
         "webpack:debug": "webpack --mode development",
         "tisk": "tsc -p src",
-        "vscode:prepublish": "npm-run-all -p tisk webpack styles",
+        "vscode:prepublish": "npm-run-all -p tisk webpack styles && npm-run-all test:prepublish",
         "vscode:debug": "npm-run-all -p tisk webpack:debug styles",
         "vice:make": "cd ./src/tests/vicedir && make -j8",
         "vice:configure:force": "bash ./autogen.sh && bash ./configure --enable-headlessui",
@@ -54,8 +54,10 @@
         "vice:distclean": "cd ./src/tests/vicedir && make distclean",
         "vice:co": "svn checkout svn://svn.code.sf.net/p/vice-emu/code/trunk/vice ./src/tests/vicedir || svn cleanup ./src/tests/vicedir",
         "vice:build": "npm-run-all vice:co vice:configure vice:make",
-        "mocha": "nyc --reporter=lcov mocha --timeout 30000 -u tdd ./out/tests/",
+        "mocha": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
+        "mocha:prepublish": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep '^Runtime Launch Basic' -u tdd ./out/tests/",
         "test": "npm-run-all -p vice:build tisk && npm-run-all mocha",
+        "test:prepublish": "npm-run-all -p vice:build tisk && npm-run-all mocha:prepublish",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "package": "vsce package --packageManager pnpm",
         "publish": "vsce publish --packageManager pnpm"
@@ -72,7 +74,7 @@
         "get-port": "^5.1.1",
         "hasbin": "^1.2.3",
         "lodash": "^4.17.15",
-        "node-watch": "^0.6.3",
+        "node-watch": "^0.6.4",
         "performance-now": "^2.1.0",
         "pngjs": "^5.0.0",
         "react": "^16.13.1",
@@ -105,7 +107,8 @@
         "vscode-debugadapter-testsupport": "1.40.1",
         "vscode-debugprotocol": "^1.41.0",
         "webpack": "^4.44.2",
-        "webpack-cli": "^3.3.12"
+        "webpack-cli": "^3.3.12",
+        "why-is-node-running": "^2.2.0"
     },
     "main": "./dist/extension",
     "activationEvents": [

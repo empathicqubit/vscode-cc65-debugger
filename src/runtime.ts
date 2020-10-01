@@ -81,6 +81,7 @@ export class Runtime extends EventEmitter {
     private _runAhead: boolean;
     private _bypassStatusUpdates: boolean = false;
     private _screenUpdateTimer: NodeJS.Timeout;
+    private _terminated: boolean;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -232,6 +233,7 @@ export class Runtime extends EventEmitter {
         mapFilePath?: string,
         labelFilePath?: string,
     ) : Promise<void> {
+        this._terminated = false;
         this._stopOnExit = stopOnExit;
 
         this.sendEvent('output', 'console', 'Make sure you\'re using the latest version of VICE or this extension won\'t work! You may need to build from source if you\'re having problems.');
@@ -656,6 +658,10 @@ or define the location manually with the launch.json->mapFile setting`
 
     // Clean up all the things
     public async terminate() : Promise<void> {
+        if(this._terminated) {
+            return;
+        }
+
         this._vice && await this._vice.terminate();
 
         this._vice = <any>null;
@@ -663,10 +669,12 @@ or define the location manually with the launch.json->mapFile setting`
         await this.disconnect();
 
         this.sendEvent('end');
+
+        this._terminated = true;
     }
 
     public async disconnect() {
-        clearTimeout(this._screenUpdateTimer);
+        this._screenUpdateTimer && clearTimeout(this._screenUpdateTimer);
 
         const pids = this._colorTermPids;
         debugUtils.delay(1000).then(() => {
