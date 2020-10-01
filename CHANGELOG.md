@@ -3,6 +3,7 @@
 ## 2.4.4
 
 * Fix an issue with stepping through breakpoints.
+* Step works in assembly files
 
 ## 2.4.3
 
