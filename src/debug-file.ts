@@ -573,11 +573,13 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     }
 
     for(const file of dbgFile.files) {
-        file.lines.sort((a, b) => a.num - b.num);
+        // Prefer C files if they exist.
+        file.lines = _.sortBy(file.lines, x => x.file && !/\.c$/gi.test(x.file.name), x => x.num);
     }
 
     for(const span of dbgFile.spans) {
-        span.lines.sort((a, b) => a.num - b.num);
+        // Prefer C files if they exist.
+        span.lines = _.sortBy(span.lines, x => x.file && !/\.c$/gi.test(x.file.name), x => x.num);
     }
 
     for(const sym of dbgFile.syms) {

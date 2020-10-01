@@ -518,56 +518,63 @@ or define the location manually with the launch.json->mapFile setting`
         await this._vice.exit();
     }
 
-    public async step(reverse = false, event = 'stopOnStep') {
-        // Find the next source line and continue to it.
-        const nextLine = this._getNextLine();
-        if(!nextLine) {
-            await this._vice.execBinary<bin.AdvanceInstructionsCommand, bin.AdvanceInstructionsResponse>({
-                type: bin.CommandType.advanceInstructions,
-                subroutines: false,
-                count: 1,
-            });
+    public async step(reverse = false, event = 'stopOnStep') : Promise<void> {
+        if(this.viceRunning) {
+            return;
         }
-        else {
-            const nextAddress = nextLine.span!.absoluteAddress;
-            let breaks : bin.CheckpointInfoResponse[] | null;
-            if(breaks = await this._setLineGuard(this._currentPosition, nextLine)) {
-                await this.continue();
-                await this._vice.waitForStop();
 
-                const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
-                    type: bin.CommandType.checkpointDelete,
-                    id: x.id,
-                }));
-
-                await this._vice.multiExecBinary(delBrks);
+        await this._vice.withAllBreaksDisabled(async () => {
+            // Find the next source line and continue to it.
+            const nextLine = this._getNextLine();
+            if(!nextLine) {
+                await this._vice.execBinary<bin.AdvanceInstructionsCommand, bin.AdvanceInstructionsResponse>({
+                    type: bin.CommandType.advanceInstructions,
+                    subroutines: false,
+                    count: 1,
+                });
             }
             else {
-                await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
-                    type: bin.CommandType.checkpointSet,
-                    startAddress: nextAddress,
-                    endAddress: nextAddress,
-                    stop: true,
-                    temporary: true,
-                    enabled: true,
-                    operation: bin.CpuOperation.exec,
-                })
+                const nextAddress = nextLine.span!.absoluteAddress;
+                let breaks : bin.CheckpointInfoResponse[] | null;
+                if(breaks = await this._setLineGuard(this._currentPosition, nextLine)) {
+                    await this.continue();
+                    await this._vice.waitForStop();
+
+                    const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
+                        type: bin.CommandType.checkpointDelete,
+                        id: x.id,
+                    }));
+
+                    await this._vice.multiExecBinary(delBrks);
+                }
+                else {
+                    await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
+                        type: bin.CommandType.checkpointSet,
+                        startAddress: nextAddress,
+                        endAddress: nextAddress,
+                        stop: true,
+                        temporary: true,
+                        enabled: true,
+                        operation: bin.CpuOperation.exec,
+                    })
+                }
             }
-        }
+
+        });
 
         await this._doRunAhead();
 
         this.sendEvent(event, 'console')
     }
 
-    private _getNextLine() : debugFile.SourceLine {
+    private _getNextLine() : debugFile.SourceLine | undefined {
         const currentFile = this._currentPosition.file;
         const currentIdx = currentFile!.lines.indexOf(this._currentPosition);
 
-        return currentFile!.lines[currentIdx + 1];
+        return currentFile!.lines.find((x, i) => i >= currentIdx + 1 && x.span);
     }
 
-    private async _setLineGuard(line: debugFile.SourceLine, nextLine: debugFile.SourceLine) : Promise<bin.CheckpointInfoResponse[] | null> {
+    private async _setLineGuard(line: debugFile.SourceLine, nextLine?: debugFile.SourceLine) : Promise<bin.CheckpointInfoResponse[] | null> {
         if(!nextLine) {
             return null;
         }
@@ -585,7 +592,7 @@ or define the location manually with the launch.json->mapFile setting`
             return null;
         }
 
-        const functionLines = currentFunction.spans.find(x => x.seg == this._dbgFile.codeSeg)!.lines.filter(x => x.file == this._currentPosition.file);
+        const functionLines = currentFunction.codeSpan!.lines.filter(x => x.file == this._currentPosition.file && x.span);
         const currentIdx = functionLines.findIndex(x => x.num == nextLine.num);
         const remainingLines = functionLines.slice(currentIdx);
         const setBreaks : bin.CheckpointSetCommand[] = remainingLines.map(x => ({
@@ -1223,13 +1230,12 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
                 .find(x =>
                     x.absoluteAddress <= addr
                     && x.lines.length
-                    && x.lines.find(l => l.file && /\.c$/gi.test(l.file.name))
+                    && x.lines.find(l => l.file)
                 )
                 || this._dbgFile.spans[0];
         }
 
-        return curSpan.lines
-            .find(x => x.file && /\.c$/gi.test(x.file.name))
+        return curSpan.lines.find(x => x.file)
             || curSpan.lines[0];
     }
 

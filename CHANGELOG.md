@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.4.4
+
+* Fix an issue with stepping through breakpoints.
+
+## 2.4.3
+
+* Added basic keyboard support to run window. Tab key is C=
+
 ## 2.4.2
 
 * Added stop on exit

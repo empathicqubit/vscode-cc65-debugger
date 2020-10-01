@@ -74,6 +74,14 @@ export class CallStackManager {
             start = line;
         }
 
+        if(!scopeEndFrames.length && parentScope.codeSpan) {
+            const codeSpan = parentScope.codeSpan;
+            scopeEndFrames.push({
+                scope: parentScope,
+                address: this._dbgFile.spans.find(x => codeSpan.absoluteAddress <= x.absoluteAddress && x.absoluteAddress < codeSpan.absoluteAddress + codeSpan.size)!.absoluteAddress,
+            });
+        }
+
         return {
             starts: [{
                 scope: parentScope,

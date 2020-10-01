@@ -346,8 +346,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         response.body = response.body || {};
 
         // the adapter implements the configurationDoneRequest.
-        response.body.supportsConfigurationDoneRequest = true;
-
+        response.body.supportsConfigurationDoneRequest = true;            
 
         // make VS Code to use 'evaluate' when hovering over source
         response.body.supportsEvaluateForHovers = false;
@@ -763,8 +762,14 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
-        this._runtime.step();
+    protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
+        try {
+            await this._runtime.step();
+        }
+        catch(e) {
+            console.error(e);
+        }
+
         this.sendResponse(response);
     }
 
