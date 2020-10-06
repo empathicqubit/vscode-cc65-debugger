@@ -119,8 +119,10 @@ export class CallStackManager {
         };
     }
 
-    public setCpuStackTop(value: number) {
+    public async setCpuStackTop(value: number) {
         this._cpuStackTop = value;
+
+        const stack = await this._vice.getMemory(this._cpuStackTop + 1, this._cpuStackBottom - this._cpuStackTop);
     }
 
     public async getExitAddresses() : Promise<number[]> {

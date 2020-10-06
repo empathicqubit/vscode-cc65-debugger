@@ -155,13 +155,12 @@ export class Runtime extends EventEmitter {
         }
 
         const mainLab = this._dbgFile.mainLab;
-        this.sendEvent('output', 'console', 'Checking if the program is started...\n');
 
         const scopes = this._dbgFile.scopes.filter(x => x.codeSpan && x.name.startsWith("_") && x.size > disassembly.maxOpCodeSize);
         const firstLastScopes = _.uniq([_.first(scopes)!, _.last(scopes)!]);
 
         if(!await this._validateLoad(firstLastScopes)) {
-            this.sendEvent('output', 'console', 'Waiting for program to start...\n');
+            this.sendEvent('message', 'warning', 'Waiting for program to start...\n');
             await this._vice.withAllBreaksDisabled(async () => {
                 const storeCmds = _(firstLastScopes)
                     .map(x => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1])
@@ -196,12 +195,12 @@ export class Runtime extends EventEmitter {
                     }));
                 await this._vice.multiExecBinary(delCmds);
             });
+
+            this.sendEvent('message', 'information', 'Program started.\n')
         }
 
         await this.continue();
         await this._vice.ping();
-
-        this.sendEvent('output', 'console', 'Program started.\n')
     }
 
     private async _validateLoad(scopes: debugFile.Scope[]) : Promise<boolean> {
@@ -233,10 +232,12 @@ export class Runtime extends EventEmitter {
         mapFilePath?: string,
         labelFilePath?: string,
     ) : Promise<void> {
+        console.time('preStart');
+
         this._terminated = false;
         this._stopOnExit = stopOnExit;
 
-        this.sendEvent('output', 'console', 'Make sure you\'re using the latest version of VICE or this extension won\'t work! You may need to build from source if you\'re having problems.');
+        this.sendEvent('message', 'warning', `Any problems? Make sure you're using the version of VICE mentioned in the extension download page.`);
 
         this._runAhead = !!runAhead;
         this._consoleType = consoleType;
@@ -281,6 +282,8 @@ export class Runtime extends EventEmitter {
 
         this._callStackManager = new CallStackManager(this._vice, this._mapFile, this._dbgFile);
 
+        console.time('variableManager');
+
         const variableManager = new VariableManager(
             this._vice,
             this._dbgFile.codeSeg,
@@ -290,9 +293,13 @@ export class Runtime extends EventEmitter {
 
         variableManager.preStart(buildCwd, this._dbgFile, this._usePreprocess)
 
+        console.timeEnd('variableManager');
+
         this._viceStarting = true;
 
         this._variableManager = variableManager;
+
+        console.timeEnd('preStart');
     }
 
     /**
@@ -343,7 +350,6 @@ export class Runtime extends EventEmitter {
 
         await this._setupViceDataHandler();
         await this._vice.autostart(program);
-        await this.continue();
         await this._vice.waitForStop();
         await this.continue();
         await this._vice.waitForStop(this._dbgFile.entryAddress);
@@ -380,9 +386,9 @@ export class Runtime extends EventEmitter {
         }
 
         if(this._vice.textPort) {
-            this._colorTermPids = await this._processExecHandler(process.execPath, [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`], {});
-
-            this.sendEvent('output', 'console', 'Switch to the TERMINAL tab to access the monitor and VICE log output.\n');
+            this._colorTermPids = await this._processExecHandler(process.execPath, [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`], {
+                title: 'VICE Monitor',
+            });
         }
 
         const updateLoop = async() => {
@@ -396,6 +402,8 @@ export class Runtime extends EventEmitter {
             this._screenUpdateTimer = setTimeout(updateLoop, 1000);
         }
         this._screenUpdateTimer = setTimeout(updateLoop, 1000);
+
+        this.sendEvent('started');
 
         console.timeEnd('postStart');
     }
@@ -637,7 +645,7 @@ or define the location manually with the launch.json->mapFile setting`
 
     public async stepOut(event = 'stopOnStep') : Promise<void> {
         if(!await this._callStackManager.returnToLastStackFrame(this._vice)) {
-            this.sendEvent('output', 'console', 'Can\'t step out here!\n')
+            this.sendEvent('message', 'warning', 'Can\'t step out here!\n')
             this.sendEvent('stopOnStep');
             return;
         }
@@ -887,7 +895,7 @@ or define the location manually with the launch.json->mapFile setting`
                 ));
     }
 
-    private _processExecHandler = <debugUtils.ExecHandler>((file, args, opts) => {
+    private _processExecHandler : debugUtils.ExecHandler = ((file, args, opts) => {
         const promise = new Promise<[number, number]>((res, rej) => {
             if(!path.isAbsolute(file) && path.dirname(file) != '.') {
                 file = path.join(__dirname, file);
@@ -897,6 +905,7 @@ or define the location manually with the launch.json->mapFile setting`
                 args: [file, ...args],
                 cwd: opts.cwd || __dirname,
                 env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
+                title: opts.title || undefined,
                 kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'
             }, 10000, (response) => {
                 if(!response.success) {
@@ -1067,7 +1076,7 @@ or define the location manually with the launch.json->mapFile setting`
                             type: bin.CommandType.checkpointDelete,
                             id: guard,
                         });
-                        this.sendEvent('output', 'console', 'CODE segment was modified. Your program may be broken!');
+                        this.sendEvent('message', 'error', 'CODE segment was modified. Your program may be broken!\n');
                     }
                     else if (this._exitIndexes.includes(brk.id)) {
                         if(!this._stopOnExit) {
@@ -1210,7 +1219,7 @@ Alternatively, define the location with the launch.json->debugFile setting`
         }
 
         if(!this._dbgFile.csyms.length) {
-            this.sendEvent('output', 'stderr', `
+            this.sendEvent('message', 'error', `
 csyms are missing from your debug file. Did you add the -g switch to your linker
 and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
 `);

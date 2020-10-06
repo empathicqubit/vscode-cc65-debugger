@@ -12,6 +12,8 @@ import * as debugUtils from './debug-utils';
 import { Runtime, CC65ViceBreakpoint } from './runtime';
 const { Subject } = require('await-notify');
 import * as colors from 'colors/safe';
+import {keyMappings} from './key-mappings';
+import {LaunchRequestArguments} from './launch-arguments';
 
 enum VariablesReferenceFlag {
     HAS_TYPE    =    0x10000,
@@ -28,168 +30,6 @@ enum VariablesReferenceFlag {
     ADDR_MASK =     0x00FFFF,
 }
 // MAX = 0x8000000000000
-
-/**
- * Settings for launch.json
- */
-export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-    /** launch or attach */
-    request?: 'launch' | 'attach';
-    /** Port of the binary monitor to connect to */
-    attachPort: number;
-    /** When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately. */
-    runAhead?: boolean;
-    /** Use X64 instead of X64SC when appropriate. */
-    preferX64OverX64sc?: boolean;
-    /** The directory of VICE emulator. */
-    viceDirectory?: string;
-    /** The arguments to use for starting VICE. No environment variables are allowed. */
-    viceArgs?: string[];
-    /** The command to run before launching. This is a shell command so you can put arguments and variables in here too. */
-    buildCommand?: string;
-    /** The command to run to generate preprocessor `.i` files. This is a shell command so you can put arguments and variables in here too. */
-    preprocessCommand?: string;
-    /** The full absolute path to run your build command in */
-    buildCwd: string;
-    /** The d64, d81, or prg file to run, if automatic detection doesn't work */
-    program?: string;
-    /** The debug file path, if automatic detection doesn't work */
-    debugFile?: string;
-    /** The map file path, if automatic detection doesn't work */
-    mapFile?: string;
-    /** Automatically stop target after hitting the beginning of main(). If not specified, target does not stop. */
-    stopOnEntry?: boolean;
-    /** Automatically stop target after hitting the end of main(). */
-    stopOnExit?: boolean;
-    /** enable logging the Debug Adapter Protocol */
-    trace?: boolean;
-    console?: 'integratedTerminal' | 'integratedConsole' | 'externalTerminal';
-}
-
-const keyMappings : { [key: string]: number } = {
-    "*": 42,
-    "+": 43,
-    "@": 64,
-    "ArrowDown": 17,
-    "ArrowLeft": 157,
-    "ArrowRight": 29,
-    "ArrowUp": 145,
-    "Clear": 19,
-    "Control+0": 146,
-    "Control+1": 144,
-    "Control+2": 5,
-    "Control+3": 28,
-    "Control+4": 159,
-    "Control+5": 156,
-    "Control+6": 30,
-    "Control+7": 31,
-    "Control+8": 158,
-    "Control+9": 18,
-    "Control+:": 27,
-    "Control+;": 29,
-    "Control+=": 31,
-    "Control+@": 0,
-    "Control+a": 1,
-    "Control+b": 2,
-    "Control+c": 3,
-    "Control+d": 4,
-    "Control+e": 5,
-    "Control+f": 6,
-    "Control+g": 7,
-    "Control+h": 8,
-    "Control+i": 9,
-    "Control+j": 10,
-    "Control+k": 11,
-    "Control+l": 12,
-    "Control+m": 13,
-    "Control+n": 14,
-    "Control+o": 15,
-    "Control+p": 16,
-    "Control+q": 17,
-    "Control+r": 18,
-    "Control+s": 19,
-    "Control+t": 20,
-    "Control+u": 21,
-    "Control+v": 22,
-    "Control+w": 23,
-    "Control+x": 24,
-    "Control+y": 25,
-    "Control+z": 26,
-    "Control+£": 28,
-    "Enter": 13,
-    "F1": 133,
-    "F3": 134,
-    "F5": 135,
-    "F7": 136,
-    "Backspace": 20,
-    "Shift+": 63,
-    "Shift+*": 192,
-    "Shift++": 219,
-    "Shift+-": 221,
-    "Shift+.": 62,
-    "Shift+1": 33,
-    "Shift+2": 34,
-    "Shift+3": 35,
-    "Shift+4": 36,
-    "Shift+5": 37,
-    "Shift+6": 38,
-    "Shift+7": 39,
-    "Shift+8": 40,
-    "Shift+9": 41,
-    "Shift+:": 91,
-    "Shift+;": 93,
-    //"Shift+Clear": 147,
-    "Shift+Enter": 141,
-    "F2": 137,
-    "F4": 138,
-    "F6": 139,
-    "F8": 140,
-    "Shift+Backspace": 148,
-    "Shift+ ": 160,
-    "Space": 32,
-    "Tab++": 166,
-    "Tab+-": 220,
-    "Tab+1": 129,
-    "Tab+2": 149,
-    "Tab+3": 150,
-    "Tab+4": 151,
-    "Tab+5": 152,
-    "Tab+6": 153,
-    "Tab+7": 154,
-    "Tab+8": 155,
-    "Tab+@": 164,
-    "Tab+a": 176,
-    "Tab+b": 191,
-    "Tab+c": 188,
-    "Tab+d": 172,
-    "Tab+e": 177,
-    "Tab+f": 187,
-    "Tab+g": 165,
-    "Tab+h": 180,
-    "Tab+i": 162,
-    "Tab+j": 181,
-    "Tab+k": 161,
-    "Tab+l": 182,
-    "Tab+m": 167,
-    "Tab+n": 170,
-    "Tab+o": 185,
-    "Tab+p": 175,
-    "Tab+q": 171,
-    "Tab+r": 178,
-    "Tab+s": 174,
-    "Tab+t": 163,
-    "Tab+u": 184,
-    "Tab+v": 190,
-    "Tab+w": 179,
-    "Tab+x": 189,
-    "Tab+y": 183,
-    "Tab+z": 173,
-    "Tab+£": 168,
-    "£": 92,
-    //"Control+↑ (up arrow)": 30,
-    //"← (left arrow)": 95
-    //"↑ (up arrow)": 94,
-};
 
 /**
  * This class is designed to interface the debugger Runtime with Visual Studio's request model.
@@ -257,6 +97,16 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         });
         this._runtime.on('current', data => {
             const e = new Event('current', data);
+            this.sendEvent(e);
+        });
+        this._runtime.on('started', () => {
+            this.sendEvent(new Event('started'));
+        });
+        this._runtime.on('message', (level, content) => {
+            const e = new Event('message', {
+                level,
+                content,
+            });
             this.sendEvent(e);
         });
         this._runtime.on('output', (category, text, filePath, line, column) => {

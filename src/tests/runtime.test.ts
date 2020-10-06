@@ -97,6 +97,10 @@ suite('Runtime', () => {
                 console.log(args[1]);
             }
         });
+
+        rt.on('message', (...args) => {
+            console.log(args);
+        });
     });
 
     teardown(async () => {

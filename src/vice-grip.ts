@@ -163,11 +163,17 @@ export class ViceGrip extends EventEmitter {
                     interval: 100,
                 });
 
-                binaryConn.connect({
-                    host: '127.0.0.1',
-                    port: binaryPort,
-                });
+                await new Promise((res, rej) => {
+                    binaryConn!.connect({
+                        host: '127.0.0.1',
+                        port: binaryPort,
+                    }, () => {
+                        binaryConn!.off('error', rej);
+                        res();
+                    });
 
+                    binaryConn!.once('error', rej);
+                });
             } catch(e) {
                 if(binaryConn) {
                     try {
@@ -278,9 +284,10 @@ export class ViceGrip extends EventEmitter {
             args = [...args];
         }
 
-        const opts = {
+        const opts : debugUtils.ExecFileOptions = {
             shell: false,
             cwd: cwd,
+            title: 'VICE',
         };
 
         try {
@@ -292,7 +299,9 @@ export class ViceGrip extends EventEmitter {
 
         // Windows only, for debugging
         if(logfile) {
-            await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {})
+            await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {
+                title: 'Log Output'
+            })
         }
 
         await this.connect(binaryPort);

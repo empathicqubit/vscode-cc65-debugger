@@ -44,6 +44,29 @@ export function activate(context: vscode.ExtensionContext) {
             StatsWebview.maybeCreate(context.extensionPath);
             StatsWebview.update(undefined, e.body.current);
         }
+        else if(e.event == 'started') {
+            const terminal = 
+                vscode.window.terminals.find(x => x.name.includes('VICE Monitor')) 
+                || vscode.window.terminals.find(x => x.name.includes('VICE'))
+                || vscode.window.terminals[0];
+            terminal && terminal.show();
+        }
+        else if(e.event == 'message') {
+            const l = e.body.level;
+            if(l == 'information') {
+                vscode.window.showInformationMessage(e.body.content);
+            }
+            else if(l == 'warning') {
+                vscode.window.showWarningMessage(e.body.content);
+            }
+            else if(l == 'error') {
+                vscode.window.showErrorMessage(e.body.content);
+            }
+            else {
+                console.error('invalid user message');
+                console.error(e);
+            }
+        }
     });
 
     const provider = new CC65ViceConfigurationProvider();

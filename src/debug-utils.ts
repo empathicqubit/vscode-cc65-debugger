@@ -12,8 +12,12 @@ export async function delay(ms: number) : Promise<void> {
 
 export const programFiletypes = /\.((d[0-9]{2}|prg)|(vic20|c16|c64|c128|plus4|cbm510|cbm610|pet))$/i
 
+export interface ExecFileOptions extends child_process.ExecFileOptions {
+    title?: string;
+}
+
 export interface ExecHandler {
-    (file: string, args: string[], opts: child_process.ExecFileOptions): Promise<[number, number]>;
+    (file: string, args: string[], opts: ExecFileOptions): Promise<[number, number]>;
 }
 
 export function rawBufferHex(buf: Buffer) {
