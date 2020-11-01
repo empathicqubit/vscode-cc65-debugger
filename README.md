@@ -7,7 +7,7 @@
 Dependencies and date last changed:
 
 
-[![VICE](https://img.shields.io/badge/VICE-r38902%202020%2f10%2f06-blue)](https://chocolatey.org/packages/winvice-nightly/3.4.0-r38902)
+[![VICE](https://img.shields.io/badge/VICE-r38902%202020%2f11%2f01-blue)](https://chocolatey.org/packages/winvice-nightly/3.4.0-r38902)
 [![CC65](https://img.shields.io/badge/CC65-2.17%202020%2f09%2f27-blue)](https://chocolatey.org/packages/cc65-compiler/2.17)
 
 This is an extension to let you debug CC65 code made for the Commodore platforms, including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
