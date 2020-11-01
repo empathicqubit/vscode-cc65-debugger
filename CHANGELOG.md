@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.6
+* Use popups for a lot of messages so it's easier to notice them.
+* Focus the monitor terminal after startup
+* Name all the terminals
+* Match the exact line when a new function is entered in the stack instead of the top of the function.
+
 ## 2.4.4
 
 * Fix an issue with stepping through breakpoints.
