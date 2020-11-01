@@ -376,7 +376,7 @@ suite('Runtime', () => {
                         frames: [
                         {
                             index: 0,
-                            name: '0x86a',
+                            name: '0x086a',
                             file: BUILD_CWD + '/src/main.c',
                             line: 7
                         },
@@ -384,7 +384,7 @@ suite('Runtime', () => {
                             index: 1,
                             name: 'main',
                             file: BUILD_CWD + '/src/main.c',
-                            line: 6
+                            line: 7
                         }
                         ],
                         count: 2
@@ -392,7 +392,66 @@ suite('Runtime', () => {
                 );
 
                 await rt.continue();
-            })
+            });
+
+            test('Step in', async () => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+
+                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), 7);
+                await rt.continue();
+
+                await all(
+                    rt.stepIn(),
+                    waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt._currentAddress, 2112)),
+                );
+
+                const frames = await rt.stack(0, 1000);
+
+                assert.deepStrictEqual(
+                    frames,
+                    {
+                        frames: [
+                        {
+                            index: 0,
+                            name: '0x0840',
+                            file: BUILD_CWD + '/src/main.c',
+                            line: 12, 
+                        },
+                        {
+                            index: 1,
+                            name: 'steps',
+                            file: BUILD_CWD + '/src/main.c',
+                            line: 12 
+                        },
+                        {
+                            index: 2,
+                            name: 'main',
+                            file: BUILD_CWD + '/src/main.c',
+                            line: 7
+                        }
+                        ],
+                        count: 3
+                    }
+                );
+
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
         });
 
         suite('Runahead', () => {

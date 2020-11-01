@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as dbgfile from './debug-file';
 import * as child_process from 'child_process';
 import * as path from 'path';
+import * as runtime from './runtime';
+import * as debugFile from './debug-file';
 
 export async function delay(ms: number) : Promise<void> {
     return new Promise(function(res, rej) {
@@ -46,4 +48,24 @@ export async function getDebugFilePath(programName?: string, buildDir?: string) 
 export async function loadDebugFile(filename: string, buildDir: string) {
     const dbgFileData = await util.promisify(fs.readFile)(filename, 'ascii');
     return dbgfile.parse(dbgFileData, buildDir);
+}
+
+export function getLineFromAddress(breakPoints: runtime.CC65ViceBreakpoint[], dbgFile: debugFile.Dbgfile, addr: number) : debugFile.SourceLine {
+    let maybeBreakpoint = breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == addr);
+    let curSpan : debugFile.DebugSpan;
+    if(maybeBreakpoint) {
+        curSpan = maybeBreakpoint.line.span!;
+    }
+    else {
+        curSpan = dbgFile.spans
+            .find(x =>
+                x.absoluteAddress <= addr
+                && x.lines.length
+                && x.lines.find(l => l.file)
+            )
+            || dbgFile.spans[0];
+    }
+
+    return curSpan.lines.find(x => x.file)
+        || curSpan.lines[0];
 }

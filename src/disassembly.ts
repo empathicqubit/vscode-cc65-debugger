@@ -48,16 +48,38 @@ export function verifyScope(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope, 
     const instructionSpans = getInstructionSpans(dbgFile, scope);
         
     let i = 0;
-    let cmd = 0x100;
-    for(let cursor = 0; cursor < scope.size; cursor += opcodeSizes[cmd] || 0) {
-        cmd = mem.readUInt8(cursor);
+    const nonMatch = opCodeFind(mem, (cmd, rest, pos) => {
         if(instructionSpans[i].size != opcodeSizes[cmd]) {
-            return false;
+            return true;
         }
         i++;
+    });
+
+    return !nonMatch;
+}
+
+export function opCodeFind<T>(mem: Buffer, handler: (cmd: number, rest: Buffer, index: number) => T) : T | undefined {
+    let cmd = 0x100;
+    for(let cursor = 0; cursor < mem.length; cursor += opcodeSizes[cmd] || 0) {
+        cmd = mem.readUInt8(cursor);
+        const res = handler(cmd, mem.slice(cursor + 1, cursor + opcodeSizes[cmd]), cursor);
+        if(res) {
+            return res;
+        }
     }
 
-    return true;
+    return undefined;
+}
+
+interface StackChanges {
+    exitAddresses: ScopeAddress[], 
+    jumpAddresses: ScopeAddress[], 
+    descendants: debugFile.Scope[],
+}
+
+export interface ScopeAddress {
+    scope: debugFile.Scope, 
+    address: number,
 }
 
 /**
@@ -70,25 +92,24 @@ export function verifyScope(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope, 
  * @param labs All the labels
  * @param codeSeg The CODE segment
  */
-export function findStackExitsForScope(mpFile: mapFile.MapRef[], searchScope: debugFile.Scope, parentScope: debugFile.Scope, mem: Buffer, scopes: debugFile.Scope[], labs: debugFile.Sym[], codeSeg?: debugFile.Segment) : { addresses: number[], descendants: debugFile.Scope[] } {
-    const addresses : number[] = [];
+export function findStackChangesForScope(mpFile: mapFile.MapRef[], searchScope: debugFile.Scope, parentScope: debugFile.Scope, mem: Buffer, scopes: debugFile.Scope[], labs: debugFile.Sym[], codeSeg?: debugFile.Segment) : StackChanges {
+    const exitAddresses : ScopeAddress[] = [];
+    const jumpAddresses : ScopeAddress[] = [];
     const descendants : debugFile.Scope[] = [];
     const begin = searchScope.codeSpan!.absoluteAddress;
     const end = begin + searchScope.codeSpan!.size;
     const stackManipulations = mpFile.filter(x => /^[^_].*sp[0-9]?$/i.test(x.functionName));
-    let cmd = 0x100;
-    for(let cursor = 0; cursor < mem.length; cursor += opcodeSizes[cmd] || 0) {
-        cmd = mem.readUInt8(cursor);
+    opCodeFind(mem, (cmd, rest, pos) => {
         if(cmd == 0x4c) { // JMP
-            const addr = mem.readUInt16LE(cursor + 1);
+            const addr = rest.readUInt16LE(0);
 
             const builtin = stackManipulations.find(x => x.functionAddress == addr);
             if(builtin) {
-                addresses.push(begin + cursor)
+                exitAddresses.push({address: begin + pos, scope: parentScope});
             }
             else if(addr < begin || addr >= end) {
                 if(!(codeSeg && codeSeg.start <= addr && addr <= codeSeg.start + codeSeg.size)) {
-                    continue;
+                    return;
                 }
 
                 let nextScope = scopes.find(x => x.spans.find(x => x.absoluteAddress == addr)) || undefined;
@@ -96,13 +117,13 @@ export function findStackExitsForScope(mpFile: mapFile.MapRef[], searchScope: de
                 if(!nextScope) {
                     const nextLabel = labs.find(x => x.val == addr && x.scope && x.scope != parentScope && x.scope != searchScope);
                     if(!nextLabel) {
-                        continue;
+                        return;
                     }
 
                     nextScope = nextLabel.scope;
 
                     if(!nextScope) {
-                        continue;
+                        return;
                     }
                 }
 
@@ -110,12 +131,22 @@ export function findStackExitsForScope(mpFile: mapFile.MapRef[], searchScope: de
             }
         }
         else if(cmd == 0x60) { // RTS
-            addresses.push(begin + cursor);
+            exitAddresses.push({address: begin + pos, scope: parentScope});
         }
-    }
+        else if(cmd == 0x20) { // JSR
+            const addr = rest.readUInt16LE(0);
+            const scope = scopes.find(x => x.codeSpan && x.codeSpan.absoluteAddress == addr);
+            if(!scope) {
+                return;
+            }
+
+            jumpAddresses.push({scope, address: begin + pos});
+        }
+    });
 
     return {
-        addresses,
-        descendants
+        exitAddresses,
+        jumpAddresses,
+        descendants,
     }
 }

@@ -4,17 +4,23 @@ import {ViceGrip} from './vice-grip';
 import * as bin from './binary-dto';
 import * as _ from 'lodash';
 import * as disassembly from './disassembly';
+import * as runtime from './runtime';
+import * as debugUtils from './debug-utils';
+import * as util from 'util';
+import { Runtime } from './runtime';
 
 export class CallStackManager {
     private _cpuStackBottom: number = 0x1ff;
     private _cpuStackTop: number = 0x1ff;
 
-    private _stackFrameStarts : { [index: string]: debugFile.Scope } = {};
-    private _stackFrameEnds : { [index: string]: debugFile.Scope } = {};
+    private _stackFrameJumps: { [index: string]: debugFile.Scope } = {};
+    private _stackFrameStarts: { [index: string]: debugFile.Scope } = {};
+    private _stackFrameEnds: { [index: string]: debugFile.Scope } = {};
 
     private _stackFrameBreakIndexes : number[] = [];
+    private _lastJump?: {line: debugFile.SourceLine, scope: debugFile.Scope};
 
-    private _stackFrames : {line: debugFile.SourceLine, scope: debugFile.Scope}[] = [];
+    private _stackFrames: {line: debugFile.SourceLine, scope: debugFile.Scope}[] = [];
     private _vice: ViceGrip;
     private _mapFile: mapFile.MapRef[];
     private _dbgFile: debugFile.Dbgfile;
@@ -26,10 +32,12 @@ export class CallStackManager {
     }
 
     private async _getStackFramesForScope(searchScope: debugFile.Scope, parentScope: debugFile.Scope, codeSegMem: Buffer) : Promise<{
-    starts: { address: number, scope: debugFile.Scope }[],
-    ends: { address: number, scope: debugFile.Scope }[]
+        starts: disassembly.ScopeAddress[],
+        ends: disassembly.ScopeAddress[],
+        jumps: disassembly.ScopeAddress[],
     } | null> {
-        const scopeEndFrames : { address: number, scope: debugFile.Scope }[] = [];
+        const scopeEndFrames : disassembly.ScopeAddress[] = [];
+        const scopeStackJumps : disassembly.ScopeAddress[] = [];
 
         if(!parentScope.name.startsWith("_")) {
             return null;
@@ -47,11 +55,16 @@ export class CallStackManager {
 
         const spanMem = codeSegMem.slice(span.start, span.start + span.size);
 
-        const res = await disassembly.findStackExitsForScope(this._mapFile, searchScope, parentScope, spanMem, this._dbgFile.scopes, this._dbgFile.labs, this._dbgFile.codeSeg);
-        scopeEndFrames.push(...res.addresses.map(x => ({
-            scope: parentScope,
-            address: x, 
-        })));
+        const res = await disassembly.findStackChangesForScope(this._mapFile, searchScope, parentScope, spanMem, this._dbgFile.scopes, this._dbgFile.labs, this._dbgFile.codeSeg);
+        scopeEndFrames.push(...res.exitAddresses);
+        for(const jumpAddress of res.jumpAddresses) {
+            const cSpan = this._dbgFile.spans
+                .find(x => x.absoluteAddress <= jumpAddress.address && x.lines.find(x => x.file && /.c$/.test(x.file.name)));
+            if(cSpan) {
+                jumpAddress.address = cSpan.absoluteAddress;
+            }
+        }
+        scopeStackJumps.push(...res.jumpAddresses);
         for(const descendant of res.descendants) {
             const desRes = await this._getStackFramesForScope(descendant, parentScope, codeSegMem);
             if(!desRes) {
@@ -88,6 +101,7 @@ export class CallStackManager {
                 address: start.span!.absoluteAddress,
             }],
             ends: _.uniqBy(scopeEndFrames, x => x.address),
+            jumps: _.uniqBy(scopeStackJumps, x => x.address),
         }
     }
 
@@ -97,11 +111,24 @@ export class CallStackManager {
 
         frames.push({
             index: i,
-            name: '0x' + currentAddress.toString(16),
+            name: '0x' + currentAddress.toString(16).padStart(4, '0'),
             file: currentFile,
             line: currentLine
         });
         i++;
+
+        if(/\.s$/i.test(currentFile)) {
+            const cLine = this._dbgFile.lines.find(x => x.file && /\.c$/i.test(x.file.name) && x.span && x.span.absoluteAddress <= currentAddress && currentAddress < x.span.absoluteAddress + x.span.size)
+            if(cLine) {
+                frames.push({
+                    index: i,
+                    name: '0x' + currentAddress.toString(16).padStart(4, '0'),
+                    file: cLine.file && cLine.file.name,
+                    line: cLine.num
+                });
+                i++;
+            }
+        }
 
         for(const frame of [...this._stackFrames].reverse()) {
             frames.push({
@@ -119,10 +146,8 @@ export class CallStackManager {
         };
     }
 
-    public async setCpuStackTop(value: number) {
+    public setCpuStackTop(value: number) {
         this._cpuStackTop = value;
-
-        const stack = await this._vice.getMemory(this._cpuStackTop + 1, this._cpuStackBottom - this._cpuStackTop);
     }
 
     public async getExitAddresses() : Promise<number[]> {
@@ -141,14 +166,17 @@ export class CallStackManager {
         return exitAddresses;
     }
 
-    public async reset(currentAddress: number, currentLine: debugFile.SourceLine) : Promise<void> {
+    public async reset(currentAddress: number, currentLine: debugFile.SourceLine, breakPoints: runtime.CC65ViceBreakpoint[]) : Promise<void> {
         this._stackFrameStarts = {};
         this._stackFrameEnds = {};
         this._stackFrameBreakIndexes = [];
         this._stackFrames = [];
+        this._stackFrameJumps = {};
+        this._lastJump = undefined;
 
-        const startFrames : { address: number, scope: debugFile.Scope }[] = [];
-        const endFrames : { address: number, scope: debugFile.Scope }[] = [];
+        const startFrames : disassembly.ScopeAddress[] = [];
+        const endFrames : disassembly.ScopeAddress[] = [];
+        const jumpFrames : disassembly.ScopeAddress[] = [];
 
         const codeSeg = this._dbgFile.codeSeg;
         if(!codeSeg) {
@@ -164,9 +192,10 @@ export class CallStackManager {
 
             startFrames.push(...res.starts);
             endFrames.push(...res.ends);
+            jumpFrames.push(...res.jumps);
         }
 
-        const [resStarts, resEnds, brks] = await Promise.all([
+        const [resStarts, resEnds, jumps, brks] = await Promise.all([
             (async() => {
                 const traceStarts : bin.CheckpointSetCommand[] =
                     startFrames.map(frame => ({
@@ -195,6 +224,19 @@ export class CallStackManager {
                 return await this._vice.multiExecBinary(traceEnds) as bin.CheckpointInfoResponse[];
             })(),
             (async() => {
+                const traceJumps : bin.CheckpointSetCommand[] =
+                    jumpFrames.map(frame => ({
+                        type: bin.CommandType.checkpointSet,
+                        operation: bin.CpuOperation.exec,
+                        startAddress: frame.address,
+                        endAddress: frame.address,
+                        temporary: false,
+                        stop: false,
+                        enabled: true,
+                    }));
+                return await this._vice.multiExecBinary(traceJumps) as bin.CheckpointInfoResponse[];
+            })(),
+            (async() => {
                 const breakStarts : bin.CheckpointSetCommand[] =
                     startFrames.map(frame => ({
                         type: bin.CommandType.checkpointSet,
@@ -212,6 +254,10 @@ export class CallStackManager {
 
         for(const brk of brks) {
             this._stackFrameBreakIndexes.push(brk.id);
+        }
+
+        for(const jump of jumps) {
+            this._stackFrameJumps[jump.id] = jumpFrames.find(x => x.address == jump.startAddress)!.scope;
         }
 
         for(const start of resStarts) {
@@ -232,6 +278,15 @@ export class CallStackManager {
         }
 
         this.addFrame(current, currentLine);
+
+        /*
+        for(const all of [...startFrames, ...endFrames, ...jumpFrames]) {
+            this._stackFrames.push({
+                line: debugUtils.getLineFromAddress(breakPoints, this._dbgFile, all.address),
+                scope: all.scope,
+            });
+        }
+        */
     }
 
     public addFrame(brk: bin.CheckpointInfoResponse, line: debugFile.SourceLine) {
@@ -243,15 +298,39 @@ export class CallStackManager {
             return;
         }
 
+        const reverseFrames = [...this._stackFrames].reverse();
         let scope: debugFile.Scope;
         if(scope = this._stackFrameStarts[brk.id]) {
             this._stackFrames.push({line: line, scope: scope });
         }
         else if(scope = this._stackFrameEnds[brk.id]) {
-            const idx = [...this._stackFrames].reverse().findIndex(x => x.scope.id == scope.id);
+            const idx = reverseFrames.findIndex(x => x.scope.id == scope.id);
             if(idx > -1) {
                 this._stackFrames.splice(this._stackFrames.length - 1 - idx, 1);
             }
+            else {
+                console.error("SCOPE ERROR", scope);
+            }
+        }
+        else if(scope = this._stackFrameJumps[brk.id]) {
+            for(const f in reverseFrames) {
+                const frame = reverseFrames[f];
+                const span = frame.scope.codeSpan;
+                if(span && span.absoluteAddress <= brk.startAddress && brk.startAddress < span.absoluteAddress + span.size) {
+                    frame.line = line;
+                    const before = [...this._stackFrames];
+                    this._stackFrames.splice(this._stackFrames.length - parseInt(f));
+                    const after = [...this._stackFrames];
+                    if(before.length != after.length) {
+                        console.log("JUMP", brk, scope);
+                        console.log("CHANGE", before, after);
+                    }
+                    break;
+                }
+            }
+        }
+        else {
+            console.error("SCOPE ERROR", scope);
         }
     }
 

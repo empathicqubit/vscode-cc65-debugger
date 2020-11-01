@@ -363,7 +363,7 @@ export class Runtime extends EventEmitter {
         console.time('postStart')
 
         await Promise.all([
-            this._callStackManager.reset(this._currentAddress, this._currentPosition),
+            this._callStackManager.reset(this._currentAddress, this._currentPosition, this._breakPoints),
             this._setExitGuard(),
             this._guardCodeSeg(),
             this._variableManager.postStart(),
@@ -1034,7 +1034,7 @@ or define the location manually with the launch.json->mapFile setting`
             else if(e.type == bin.ResponseType.stopped) {
                 this.viceRunning = false;
                 this._currentAddress = (<bin.StoppedResponse>e).programCounter;
-                this._currentPosition = this._getLineFromAddress(this._currentAddress);
+                this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
 
                 if(!this._viceStarting) {
                     this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
@@ -1049,7 +1049,7 @@ or define the location manually with the launch.json->mapFile setting`
 
                 this.viceRunning = true;
                 this._currentAddress = (<bin.ResumedResponse>e).programCounter;
-                this._currentPosition = this._getLineFromAddress(this._currentAddress);
+                this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
 
                 if(!this._viceStarting) {
                     this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
@@ -1062,7 +1062,7 @@ or define the location manually with the launch.json->mapFile setting`
                     return;
                 }
 
-                const line = this._getLineFromAddress(brk.startAddress);
+                const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
                 this._callStackManager.addFrame(brk, line);
 
                 let index = brk.id;
@@ -1169,7 +1169,7 @@ or define the location manually with the launch.json->mapFile setting`
         };
         const undumpRes : bin.UndumpResponse = await this._vice.execBinary(undumpCmd);
         this._currentAddress = undumpRes.programCounter;
-        this._currentPosition = this._getLineFromAddress(this._currentAddress);
+        this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
 
         await util.promisify(fs.unlink)(dumpFileName);
 
@@ -1226,26 +1226,6 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
         }
 
         return this._dbgFile;
-    }
-
-    private _getLineFromAddress(addr: number) : debugFile.SourceLine {
-        let maybeBreakpoint = this._breakPoints.find(x => x.line.span && x.line.span.absoluteAddress == addr);
-        let curSpan : debugFile.DebugSpan;
-        if(maybeBreakpoint) {
-            curSpan = maybeBreakpoint.line.span!;
-        }
-        else {
-            curSpan = this._dbgFile.spans
-                .find(x =>
-                    x.absoluteAddress <= addr
-                    && x.lines.length
-                    && x.lines.find(l => l.file)
-                )
-                || this._dbgFile.spans[0];
-        }
-
-        return curSpan.lines.find(x => x.file)
-            || curSpan.lines[0];
     }
 
     private _resetRegisters() {
