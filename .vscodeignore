@@ -8,3 +8,5 @@ out/**/*
 **/*.js.map
 *.log
 webpack*.config*
+coverage/**/*
+.nyc_output/**/*
