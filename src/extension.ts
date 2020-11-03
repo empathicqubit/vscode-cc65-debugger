@@ -11,6 +11,7 @@ import * as debugUtils from './debug-utils';
 import { StatsWebview } from './stats-webview';
 import { DebugSession } from 'vscode-debugadapter';
 import { ShowMessageNotification } from 'vscode-languageclient';
+import * as metrics from './metrics';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -19,6 +20,20 @@ import { ShowMessageNotification } from 'vscode-languageclient';
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
 export function activate(context: vscode.ExtensionContext) {
+    const disableMetrics : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('disableMetrics');
+    metrics.options.disabled = disableMetrics;
+
+    vscode.workspace.onDidChangeConfiguration(e => {
+        if(!e.affectsConfiguration('cc65vice')) {
+            return;
+        }
+
+        const disableMetrics : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('disableMetrics');
+        metrics.options.disabled = disableMetrics;
+    }) ;
+
+    metrics.event('extension', 'activated');
+
     StatsWebview.addEventListener('keydown', evt => {
         const sesh = vscode.debug.activeDebugSession;
         if(!sesh) {
@@ -72,6 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
     const provider = new CC65ViceConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('cc65-vice', provider));
 
+    console.log('Running as ', runMode);
     let factory: vscode.DebugAdapterDescriptorFactory;
     // Do I need this or will it be broken?
     switch (runMode) {

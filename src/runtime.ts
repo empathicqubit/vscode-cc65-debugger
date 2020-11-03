@@ -20,6 +20,7 @@ import * as mapFile from './map-file';
 import * as bin from './binary-dto';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
 import { VariableManager, VariableData } from './variable-manager';
+import * as metrics from './metrics';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -131,6 +132,8 @@ export class Runtime extends EventEmitter {
         debugFilePath?: string,
         mapFilePath?: string
     ) {
+        metrics.event('runtime', 'attach');
+
         await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath, undefined);
 
         console.time('vice')
@@ -330,6 +333,8 @@ export class Runtime extends EventEmitter {
         mapFilePath?: string,
         labelFilePath?: string
     ) : Promise<void> {
+        metrics.event('runtime', 'start');
+
         await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath, labelFilePath)
 
         console.time('vice');

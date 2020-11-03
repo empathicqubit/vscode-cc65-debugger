@@ -14,6 +14,7 @@ const { Subject } = require('await-notify');
 import * as colors from 'colors/safe';
 import {keyMappings} from './key-mappings';
 import {LaunchRequestArguments} from './launch-arguments';
+import * as metrics from './metrics';
 
 enum VariablesReferenceFlag {
     HAS_TYPE    =    0x10000,
@@ -196,7 +197,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         response.body = response.body || {};
 
         // the adapter implements the configurationDoneRequest.
-        response.body.supportsConfigurationDoneRequest = true;            
+        response.body.supportsConfigurationDoneRequest = true;
 
         // make VS Code to use 'evaluate' when hovering over source
         response.body.supportsEvaluateForHovers = false;
@@ -281,6 +282,8 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             await this._runtime.attach(args.attachPort, args.buildCwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.console, args.program, args.debugFile, args.mapFile);
         }
         catch (e) {
+            metrics.event('session', 'attach-error');
+
             console.error(e);
             response.success = false;
             response.message = (<any>e).stack.toString();
@@ -300,6 +303,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 possibles = await this._runtime.build(args.buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile", args.preprocessCommand || "make preprocess-only");
             }
             catch {
+                metrics.event('session', 'build-error');
                 throw new Error("Couldn't finish the build successfully. Check the console for details.");
             }
 
@@ -310,18 +314,20 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
             // start the program in the runtime
             await this._runtime.start(
-                program, 
-                args.buildCwd, 
-                !!args.stopOnEntry, 
-                !!args.stopOnExit, 
-                !!args.runAhead, 
-                args.viceDirectory, 
-                args.viceArgs, 
-                args.console, 
+                program,
+                args.buildCwd,
+                !!args.stopOnEntry,
+                !!args.stopOnExit,
+                !!args.runAhead,
+                args.viceDirectory,
+                args.viceArgs,
+                args.console,
                 args.preferX64OverX64sc
             );
         }
         catch (e) {
+            metrics.event('session', 'launch-error');
+
             console.error(e);
             response.success = false;
             response.message = (<any>e).stack.toString();
