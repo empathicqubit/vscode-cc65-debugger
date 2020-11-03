@@ -107,7 +107,7 @@ const newSession = () : DebugSession => {
 
 class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFactory {
     createDebugAdapterDescriptor(_session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): ProviderResult<vscode.DebugAdapterDescriptor> {
-           return executable;
+        return executable;
     }
 }
 

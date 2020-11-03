@@ -259,3 +259,4 @@ pnpm package
 ## Additional Credits (see also LICENSE.md)
 
 * **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
+* **Icon**: Based on a character that appears on the box art for **Bug Blaster**.

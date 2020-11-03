@@ -692,18 +692,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
         response.body = {
             targets: [
-                {
-                    label: "item 10",
-                    sortText: "10"
-                },
-                {
-                    label: "item 1",
-                    sortText: "01"
-                },
-                {
-                    label: "item 2",
-                    sortText: "02"
-                }
             ]
         };
         this.sendResponse(response);
