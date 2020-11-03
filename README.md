@@ -149,6 +149,8 @@ There are also some user settings to note:
 VICE executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
 - **cc65.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
+- **cc65.disableMetrics**: This disables metric reporting, which tracks when the
+extension is activated or a debug session is requested or fails.
 - **cc65.runAhead**: When hitting a breakpoint, step ahead by one frame so that
 any screen updates that may have been made become visible immediately.
 
