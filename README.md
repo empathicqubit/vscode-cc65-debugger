@@ -14,6 +14,8 @@ This is an extension to let you debug CC65 code made for the Commodore platforms
 
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 
+If you're having trouble understanding how this extension is supposed to be used, or any other issues setting it up, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-vice-debug/issues) or [messaging me on Twitter](https://twitter.com/intent/tweet?screen_name=empathicqubit).
+
 <img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.png?raw=true" />
 
 <a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
