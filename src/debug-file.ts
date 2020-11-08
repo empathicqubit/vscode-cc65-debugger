@@ -513,7 +513,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
             if(scope.id == csym.scopeId) {
                 csym.scope = scope;
                 scope.csyms.push(csym);
-                if(csym.sc = sc.auto) {
+                if(csym.sc == sc.auto) {
                     scope.autos.push(csym);
                 }
                 break;
@@ -523,6 +523,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
 
     for(const scope of dbgFile.scopes) {
         scope.csyms.sort((a, b) => a.offs - b.offs);
+        scope.autos.sort((a, b) => a.offs - b.offs);
         if(!scope.spanIds.length) {
             continue;
         }
@@ -602,7 +603,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         }
     }
 
-    dbgFile.scopes = _.sortBy(dbgFile.scopes, x => x.spans[0], x => x.spans[0] && -x.spans[0].absoluteAddress);
+    dbgFile.scopes = _.sortBy(dbgFile.scopes, x => x.codeSpan, x => x.codeSpan && -x.codeSpan.absoluteAddress, x => x.codeSpan && x.codeSpan.size);
     dbgFile.lines = _.sortBy(dbgFile.lines, x => x.span, x => x.span && -x.span.absoluteAddress);
 
     dbgFile.spans = _.sortBy(dbgFile.spans, x => -x.absoluteAddress, x => x.size);

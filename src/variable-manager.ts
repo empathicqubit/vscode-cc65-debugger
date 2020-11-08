@@ -201,7 +201,7 @@ export class VariableManager {
         return await Promise.all(this._globalLabs.map(x => this._varFromLab(x)));
     }
 
-    public async getScopeVariables(currentScope?: debugFile.Scope) : Promise<any[]> {
+    public async getScopeVariables(currentScope: debugFile.Scope | undefined) : Promise<any[]> {
         let stack: Buffer;
         try {
             stack = await this._getParamStack();

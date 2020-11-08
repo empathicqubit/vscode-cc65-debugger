@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.0
+* Fix serious regression with local variables. Add test to assert variables
+are working properly.
+
 ## 2.4.6
 * Use popups for a lot of messages so it's easier to notice them.
 * Focus the monitor terminal after startup

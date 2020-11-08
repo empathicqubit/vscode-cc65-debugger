@@ -10,11 +10,15 @@ unsigned char main(void) {
 }
 
 void steps(void) {
+    unsigned char i = 0xf0;
+    unsigned char j = 0xff;
     puts("f is for friends who do stuff together");
     puts("u is for u and me");
     puts("n is for nywhere");
     puts("and nytime at alll");
     puts("down here in the deep blue sea!");
+    i--;
+    printf("%d", j - i);
 }
 
 void open_a_thing(void) {

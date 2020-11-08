@@ -10,15 +10,12 @@ import * as disassembly from './disassembly'
 import { EventEmitter } from 'events';
 import * as compile from './compile';
 import * as path from 'path';
-import * as clangQuery from './clang-query';
 import * as util from 'util';
 import * as debugUtils from './debug-utils';
 import * as debugFile from './debug-file'
 import { ViceGrip } from './vice-grip';
-import { CC65ViceDebugSession } from './debug-session';
 import * as mapFile from './map-file';
 import * as bin from './binary-dto';
-import { ExecuteCommandRequest } from 'vscode-languageclient';
 import { VariableManager, VariableData } from './variable-manager';
 import * as metrics from './metrics';
 
@@ -367,6 +364,12 @@ export class Runtime extends EventEmitter {
     private async _postStart(stopOnEntry: boolean) : Promise<void> {
         console.time('postStart')
 
+        if(this._vice.textPort) {
+            this._colorTermPids = await this._processExecHandler(process.execPath, [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`], {
+                title: 'VICE Monitor',
+            });
+        }
+
         await Promise.all([
             this._callStackManager.reset(this._currentAddress, this._currentPosition, this._breakPoints),
             this._setExitGuard(),
@@ -388,12 +391,6 @@ export class Runtime extends EventEmitter {
         } else {
             // we just start to run until we hit a breakpoint or an exception
             await this.continue();
-        }
-
-        if(this._vice.textPort) {
-            this._colorTermPids = await this._processExecHandler(process.execPath, [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`], {
-                title: 'VICE Monitor',
-            });
         }
 
         const updateLoop = async() => {
@@ -880,7 +877,8 @@ or define the location manually with the launch.json->mapFile setting`
 
     // Variables
 
-    public async getScopeVariables(currentScope?: debugFile.Scope) : Promise<any[]> {
+    public async getScopeVariables() : Promise<any[]> {
+        const currentScope = this._getCurrentScope()
         return await this._variableManager.getScopeVariables(currentScope);
     }
 
@@ -894,10 +892,10 @@ or define the location manually with the launch.json->mapFile setting`
 
     private _getCurrentScope() : debugFile.Scope | undefined {
         return this._dbgFile.scopes
-            .find(x => x.spans.length && x.spans.find(scopeSpan =>
-                scopeSpan.absoluteAddress <= this._currentPosition.span!.absoluteAddress
-                && this._currentPosition.span!.absoluteAddress <= scopeSpan.absoluteAddress + scopeSpan.size
-                ));
+            .find(x => x.codeSpan && 
+                x.codeSpan.absoluteAddress <= this._currentPosition.span!.absoluteAddress
+                && this._currentPosition.span!.absoluteAddress < x.codeSpan.absoluteAddress + x.codeSpan.size
+            );
     }
 
     private _processExecHandler : debugUtils.ExecHandler = ((file, args, opts) => {

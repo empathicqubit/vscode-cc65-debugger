@@ -225,7 +225,7 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, 2147));
+                await waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, 2192));
                 await rt.continue();
                 await waitFor(rt, 'end');
             });
@@ -246,7 +246,12 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt.getRegisters().pc, 2160));
+                await waitFor(rt, 'output', (type, __, file, line, col) => {
+                    assert.strictEqual(file, path.join(BUILD_CWD, "src/main.c"))
+                    assert.strictEqual(line, 9)
+                });
+                await waitFor(rt, 'stopOnStep');
+
                 await rt.continue();
                 await waitFor(rt, 'end');
             });
@@ -272,15 +277,27 @@ suite('Runtime', () => {
                 await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), 7);
                 await rt.continue();
 
+                await waitFor(rt, 'stopOnStep');
+
                 await all(
                     rt.stepIn(),
-                    waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt._currentAddress, 2112)),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, path.join(BUILD_CWD, "src/main.c"))
+                        assert.strictEqual(line, 12)
+                    }),
                 );
+
+                await waitFor(rt, 'stopOnStep');
 
                 await all(
                     rt.stepOut(),
-                    waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt._currentAddress, 0x86d)),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, path.join(BUILD_CWD, "src/main.c"))
+                        assert.strictEqual(line, 8)
+                    }),
                 );
+
+                await waitFor(rt, 'stopOnStep');
 
                 await rt.continue();
                 await waitFor(rt, 'end');
@@ -307,10 +324,50 @@ suite('Runtime', () => {
                 await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), 7);
                 await rt.continue();
 
+                await waitFor(rt, 'stopOnStep');
+
                 await all(
                     rt.stepIn(),
-                    waitFor(rt, 'stopOnStep', () => assert.strictEqual(rt._currentAddress, 2112)),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, path.join(BUILD_CWD, "src/main.c"))
+                        assert.strictEqual(line, 12)
+                    }),
                 );
+
+                await waitFor(rt, 'stopOnStep');
+
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
+
+            test('Contains the correct local variables', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+
+                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), 20);
+                await rt.continue();
+
+                await waitFor(rt, 'stopOnStep');
+
+                const locals = await rt.getScopeVariables();
+
+                assert.strictEqual(locals.length, 2);
+                assert.strictEqual(_.difference(locals.map(x => x.name), ['i', 'j']).length, 0);
+                assert.strictEqual(_.difference(locals.map(x => x.value), ['0xff', '0xef']).length, 0);
 
                 await rt.continue();
                 await waitFor(rt, 'end');
