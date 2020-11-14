@@ -103,10 +103,11 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._runtime.on('started', () => {
             this.sendEvent(new Event('started'));
         });
-        this._runtime.on('message', (level, content) => {
+        this._runtime.on('message', (level, content, items) => {
             const e = new Event('message', {
                 level,
                 content,
+                items,
             });
             this.sendEvent(e);
         });
@@ -177,6 +178,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             catch (e) {
                 console.error(e);
             }
+        }
+        else if(command == 'messageActioned') {
+            this._runtime.action(request.arguments.name);
         }
         else {
             response.success = false;

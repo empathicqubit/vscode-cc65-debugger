@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
         sesh.customRequest('keyup', evt);
     });
 
-    vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
+    vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
         if(e.event == 'runahead') {
             StatsWebview.maybeCreate(context.extensionPath);
             StatsWebview.update(e.body.runAhead, e.body.current);
@@ -68,18 +68,29 @@ export function activate(context: vscode.ExtensionContext) {
         }
         else if(e.event == 'message') {
             const l = e.body.level;
+            const items : string[] = e.body.items || [];
+            const content : string = e.body.content;
+            let promise : Thenable<string | undefined>;
             if(l == 'information') {
-                vscode.window.showInformationMessage(e.body.content);
+                promise = vscode.window.showInformationMessage(content, ...items);
             }
             else if(l == 'warning') {
-                vscode.window.showWarningMessage(e.body.content);
+                promise = vscode.window.showWarningMessage(content, ...items);
             }
             else if(l == 'error') {
-                vscode.window.showErrorMessage(e.body.content);
+                promise = vscode.window.showErrorMessage(content, ...items);
             }
             else {
                 console.error('invalid user message');
                 console.error(e);
+                return;
+            }
+
+            const action = await promise;
+            if(action) {
+                e.session.customRequest('messageActioned', {
+                    name: action
+                });
             }
         }
     });

@@ -290,6 +290,8 @@ export class ViceGrip extends EventEmitter {
             title: 'VICE',
         };
 
+        console.log('Starting VICE', vicePath, args, opts);
+
         try {
             this._pids = await this._handler(vicePath, args, opts)
         }
@@ -315,14 +317,17 @@ export class ViceGrip extends EventEmitter {
         return await this.execBinary(cmd);
     }
 
-    public async waitForStop(startAddress?: number, endAddress?: number) : Promise<bin.StoppedResponse> {
+    public async waitForStop(startAddress?: number, endAddress?: number, continueIfUnmatched?: boolean) : Promise<bin.StoppedResponse> {
         return await new Promise<bin.StoppedResponse>((res, rej) => {
-            const handle = (r: bin.StoppedResponse) => {
+            const handle = async (r: bin.StoppedResponse) => {
                 if(!endAddress
                     ? (!startAddress || r.programCounter == startAddress)
                     : (startAddress! <= r.programCounter && r.programCounter <= endAddress)) {
                     res(r);
                     this._responseEmitter.off('stopped', handle);
+                }
+                else if(continueIfUnmatched) {
+                    await this.exit();
                 }
             }
             this._responseEmitter.on('stopped', handle);

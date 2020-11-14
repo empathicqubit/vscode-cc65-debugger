@@ -48,7 +48,11 @@ export class Runtime extends EventEmitter {
 
     private _dbgFileResolved: (fil: debugFile.Dbgfile) => void;
     private _dbgFileRejected: (err: Error) => void;
-    private _dbgFilePromise: Promise<debugFile.Dbgfile> 
+    private _dbgFilePromise: Promise<debugFile.Dbgfile> = new Promise((res, rej) => {
+        this._dbgFileResolved = res;
+        this._dbgFileRejected = rej;
+    });
+
     private _mapFile: mapFile.MapRef[];
 
     public _currentAddress: number;
@@ -84,6 +88,7 @@ export class Runtime extends EventEmitter {
     private _bypassStatusUpdates: boolean = false;
     private _screenUpdateTimer: NodeJS.Timeout;
     private _terminated: boolean;
+    private _attachProgram: string | undefined;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -135,7 +140,9 @@ export class Runtime extends EventEmitter {
     ) {
         metrics.event('runtime', 'attach');
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath, undefined);
+        this._attachProgram = program;
+
+        await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath);
 
         console.time('vice')
 
@@ -164,7 +171,7 @@ export class Runtime extends EventEmitter {
         const firstLastScopes = _.uniq([_.first(scopes)!, _.last(scopes)!]);
 
         if(!await this._validateLoad(firstLastScopes)) {
-            this.sendEvent('message', 'warning', 'Waiting for program to start...\n');
+            this.sendEvent('message', 'warning', 'Waiting for program to start...\n', this._attachProgram ? ['Autostart'] : []);
             await this._vice.withAllBreaksDisabled(async () => {
                 const storeCmds = _(firstLastScopes)
                     .map(x => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1])
@@ -233,15 +240,9 @@ export class Runtime extends EventEmitter {
         consoleType?: string,
         program?: string,
         debugFilePath?: string,
-        mapFilePath?: string,
-        labelFilePath?: string,
+        mapFilePath?: string
     ) : Promise<void> {
         console.time('preStart');
-
-        this._dbgFilePromise = new Promise((res, rej) => {
-            this._dbgFileResolved = res;
-            this._dbgFileRejected = rej;
-        });
 
         this._terminated = false;
         this._stopOnExit = stopOnExit;
@@ -264,10 +265,6 @@ export class Runtime extends EventEmitter {
 
         if(!mapFilePath) {
             promises.push(mapFile.getMapFilePath(program).then(x => mapFilePath = x));
-        }
-
-        if(!labelFilePath) {
-            promises.push(this._getLabelsPath(program).then(x => labelFilePath = x));
         }
 
         await Promise.all(promises);
@@ -341,9 +338,13 @@ export class Runtime extends EventEmitter {
     ) : Promise<void> {
         metrics.event('runtime', 'start');
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath, labelFilePath)
+        await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath)
 
         console.time('vice');
+
+        if(!labelFilePath) {
+            labelFilePath = await this._getLabelsPath(program);
+        }
 
         await this._vice.start(
             this._dbgFile.entryAddress, 
@@ -361,9 +362,8 @@ export class Runtime extends EventEmitter {
 
         await this._setupViceDataHandler();
         await this._vice.autostart(program);
-        await this._vice.waitForStop();
         await this.continue();
-        await this._vice.waitForStop(this._dbgFile.entryAddress);
+        await this._vice.waitForStop(this._dbgFile.entryAddress, undefined, true);
 
         console.timeEnd('vice')
 
@@ -380,7 +380,7 @@ export class Runtime extends EventEmitter {
         }
 
         await Promise.all([
-            this._callStackManager.reset(this._currentAddress, this._currentPosition, this._breakPoints),
+            this._callStackManager.reset(this._currentAddress, this._currentPosition),
             this._setExitGuard(),
             this._guardCodeSeg(),
             this._variableManager.postStart(),
@@ -454,6 +454,16 @@ export class Runtime extends EventEmitter {
                 height: current.height,
             },
         });
+    }
+
+    public async action(name: string) {
+        if(name == 'Autostart' && this._attachProgram) {
+            await this._vice.autostart(this._attachProgram);
+            await this._vice.waitForStop(this._dbgFile.entryAddress, undefined, true);
+        }
+        else {
+            throw new Error('Invalid action ' + name);
+        }
     }
 
     public async keypress(key: string) : Promise<void> {
@@ -724,6 +734,10 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
+        this._dbgFilePromise = new Promise((res, rej) => {
+            this._dbgFileResolved = res;
+            this._dbgFileRejected = rej;
+        });
     }
 
     public async getMemory(addr: number, length: number) : Promise<Buffer> {
@@ -795,7 +809,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async setBreakPoint(breakPath: string, ...lines: number[]) : Promise<{[key:string]:CC65ViceBreakpoint}> {
-        await this._dbgFilePromise
+        await this._dbgFilePromise;
 
         let lineSyms : { [key:string]: debugFile.SourceLine | null } = {};
         for(const line of lines) {
@@ -1240,7 +1254,7 @@ or define the location manually with the launch.json->mapFile setting`
             dbgFilePromise
                 .then(x => {
                     this._dbgFile = x;
-                    this._dbgFileResolved(x)
+                    this._dbgFileResolved(x);
                 })
                 .catch(this._dbgFileRejected);
             await this._dbgFilePromise;

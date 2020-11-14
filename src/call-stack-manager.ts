@@ -166,7 +166,7 @@ export class CallStackManager {
         return exitAddresses;
     }
 
-    public async reset(currentAddress: number, currentLine: debugFile.SourceLine, breakPoints: runtime.CC65ViceBreakpoint[]) : Promise<void> {
+    public async reset(currentAddress: number, currentLine: debugFile.SourceLine) : Promise<void> {
         this._stackFrameStarts = {};
         this._stackFrameEnds = {};
         this._stackFrameBreakIndexes = [];
@@ -278,15 +278,6 @@ export class CallStackManager {
         }
 
         this.addFrame(current, currentLine);
-
-        /*
-        for(const all of [...startFrames, ...endFrames, ...jumpFrames]) {
-            this._stackFrames.push({
-                line: debugUtils.getLineFromAddress(breakPoints, this._dbgFile, all.address),
-                scope: all.scope,
-            });
-        }
-        */
     }
 
     public addFrame(brk: bin.CheckpointInfoResponse, line: debugFile.SourceLine) {
