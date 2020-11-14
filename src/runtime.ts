@@ -812,8 +812,12 @@ or define the location manually with the launch.json->mapFile setting`
         return bp;
     }
 
-    public getBreakpoints(path: string, line: number): number[] {
-        return [];
+    public getBreakpointLength() : number {
+        return this._breakPoints.length;
+    }
+
+    public getBreakpoints(p: string, line: number): number[] {
+        return this._breakPoints.filter(x => x.line.num == line && x.line.file && !path.relative(x.line.file.name, p)).map(x => x.line.num);
     }
 
     public async setBreakPoint(breakPath: string, line: number) : Promise<CC65ViceBreakpoint | null> {

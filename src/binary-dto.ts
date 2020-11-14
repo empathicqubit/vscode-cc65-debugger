@@ -2,6 +2,87 @@ import * as _ from "lodash";
 import { BreakpointEvent } from "vscode-debugadapter";
 import { Color } from "vscode";
 
+export enum ResponseType {
+    unknown = -1,
+
+    invalid = 0x00,
+
+    memoryGet = 0x01,
+    memorySet = 0x02,
+
+    checkpointInfo = 0x11,
+    checkpointDelete = 0x13,
+    checkpointList = 0x14,
+    checkpointToggle = 0x15,
+
+    conditionSet = 0x22,
+
+    registerInfo = 0x31,
+
+    dump = 0x41,
+    undump = 0x42,
+
+    resourceGet = 0x51,
+    resourceSet = 0x52,
+
+    jam = 0x61,
+    stopped = 0x62,
+    resumed = 0x63,
+
+    advanceInstructions = 0x71,
+    keyboardFeed = 0x72,
+    executeUntilReturn = 0x73,
+
+    ping = 0x81,
+    banksAvailable = 0x82,
+    registersAvailable = 0x83,
+    displayGet = 0x84,
+
+    exit = 0xaa,
+    quit = 0xbb,
+    reset = 0xcc,
+    autostart = 0xdd
+}
+
+export enum CommandType {
+    invalid = 0x00,
+
+    memoryGet = 0x01,
+    memorySet = 0x02,
+
+    checkpointGet = 0x11,
+    checkpointSet = 0x12,
+    checkpointDelete = 0x13,
+    checkpointList = 0x14,
+    checkpointToggle = 0x15,
+
+    conditionSet = 0x22,
+
+    registersGet = 0x31,
+    registersSet = 0x32,
+
+    dump = 0x41,
+    undump = 0x42,
+
+    resourceGet = 0x51,
+    resourceSet = 0x52,
+
+    advanceInstructions = 0x71,
+    keyboardFeed = 0x72,
+    executeUntilReturn = 0x73,
+
+    ping = 0x81,
+    banksAvailable = 0x82,
+    registersAvailable = 0x83,
+    displayGet = 0x84,
+
+    exit = 0xaa,
+    quit = 0xbb,
+    reset = 0xcc,
+    autostart = 0xdd,
+}
+
+
 export interface Command {
     type: CommandType
     /** The type of the response. If included the handler will collect
@@ -360,86 +441,6 @@ export enum ViceMemspace {
     drive9 = 0x02,
     drive10 = 0x03,
     drive11 = 0x04
-}
-
-export enum ResponseType {
-    unknown = -1,
-
-    invalid = 0x00,
-
-    memoryGet = 0x01,
-    memorySet = 0x02,
-
-    checkpointInfo = 0x11,
-    checkpointDelete = 0x13,
-    checkpointList = 0x14,
-    checkpointToggle = 0x15,
-
-    conditionSet = 0x22,
-
-    registerInfo = 0x31,
-
-    dump = 0x41,
-    undump = 0x42,
-
-    resourceGet = 0x51,
-    resourceSet = 0x52,
-
-    jam = 0x61,
-    stopped = 0x62,
-    resumed = 0x63,
-
-    advanceInstructions = 0x71,
-    keyboardFeed = 0x72,
-    executeUntilReturn = 0x73,
-
-    ping = 0x81,
-    banksAvailable = 0x82,
-    registersAvailable = 0x83,
-    displayGet = 0x84,
-
-    exit = 0xaa,
-    quit = 0xbb,
-    reset = 0xcc,
-    autostart = 0xdd
-}
-
-export enum CommandType {
-    invalid = 0x00,
-
-    memoryGet = 0x01,
-    memorySet = 0x02,
-
-    checkpointGet = 0x11,
-    checkpointSet = 0x12,
-    checkpointDelete = 0x13,
-    checkpointList = 0x14,
-    checkpointToggle = 0x15,
-
-    conditionSet = 0x22,
-
-    registersGet = 0x31,
-    registersSet = 0x32,
-
-    dump = 0x41,
-    undump = 0x42,
-
-    resourceGet = 0x51,
-    resourceSet = 0x52,
-
-    advanceInstructions = 0x71,
-    keyboardFeed = 0x72,
-    executeUntilReturn = 0x73,
-
-    ping = 0x81,
-    banksAvailable = 0x82,
-    registersAvailable = 0x83,
-    displayGet = 0x84,
-
-    exit = 0xaa,
-    quit = 0xbb,
-    reset = 0xcc,
-    autostart = 0xdd,
 }
 
 export function responseBufferToObject(buf: Buffer, responseLength: number) : AbstractResponse {

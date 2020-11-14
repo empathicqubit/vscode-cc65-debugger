@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <cbm.h>
+#include <stdlib.h>
 
 void steps(void);
 
@@ -28,4 +29,21 @@ void open_a_thing(void) {
     i++;
     printf("%d %d", barg, i);
     cbm_k_open();
+    for(i = 0; i < 100; i++) {
+        if(i % 3 == 0) {
+            printf("Fizz");
+        }
+        if(i % 5 == 0) {
+            printf("Buzz");
+        }
+
+        if(
+            i % 5 != 0 
+            && i % 3 != 0
+            ) {
+            printf("%d", i);
+        }
+
+        puts("");
+    }
 }
