@@ -346,17 +346,16 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             await this._runtime.clearBreakpoints(path);
 
             // set and verify breakpoint locations
-            const actualBreakpoints = <any>(await Promise.all(clientLines.map(async l => {
-                const brk = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(l));
-                if(!brk) {
-                    return null;
-                }
+            const brks = await this._runtime.setBreakPoint(path, ...clientLines.map(l => this.convertClientLineToDebugger(l)));
 
+            const actualBreakpoints : DebugProtocol.Breakpoint[] = [];
+            for(const b in brks) {
+                const brk = brks[b];
                 let { verified, line, id } = brk;
                 const bp = <DebugProtocol.Breakpoint> new Breakpoint(verified, this.convertDebuggerLineToClient(line.num));
                 bp.id = id;
-                return bp;
-            }))).filter(x => x);
+                actualBreakpoints.push(bp);
+            }
 
             if(wasRunning) {
                 this._runtime.continue();
@@ -370,6 +369,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         }
         catch(e) {
             console.error(e);
+            response.success = false
+            response.message = e
+            this.sendResponse(response);
         }
     }
 

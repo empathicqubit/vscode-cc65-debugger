@@ -45,6 +45,10 @@ export interface Registers {
  */
 export class Runtime extends EventEmitter {
     private _dbgFile: debugFile.Dbgfile;
+
+    private _dbgFileResolved: (fil: debugFile.Dbgfile) => void;
+    private _dbgFileRejected: (err: Error) => void;
+    private _dbgFilePromise: Promise<debugFile.Dbgfile> 
     private _mapFile: mapFile.MapRef[];
 
     public _currentAddress: number;
@@ -233,6 +237,11 @@ export class Runtime extends EventEmitter {
         labelFilePath?: string,
     ) : Promise<void> {
         console.time('preStart');
+
+        this._dbgFilePromise = new Promise((res, rej) => {
+            this._dbgFileResolved = res;
+            this._dbgFileRejected = rej;
+        });
 
         this._terminated = false;
         this._stopOnExit = stopOnExit;
@@ -777,41 +786,6 @@ or define the location manually with the launch.json->mapFile setting`
         await this._vice.multiExecBinary(condCmds);
     }
 
-
-    private async _clearBreakPoint(bp: CC65ViceBreakpoint) : Promise<CC65ViceBreakpoint | undefined> {
-        const index = this._breakPoints.indexOf(bp);
-        this._breakPoints.splice(index, 1);
-
-        if(bp.viceIndex <= 0) {
-            return bp;
-        }
-
-        let dels : bin.CheckpointDeleteCommand[] = [];
-
-        dels.push({
-            type: bin.CommandType.checkpointDelete,
-            id: bp.viceIndex,
-        })
-
-        // Also clean up breakpoints with the same address.
-        // FIXME: This smells weird. Reassess and document reasoning.
-        const bks = await this._vice.checkpointList();
-        for(const bk of bks.related) {
-            if(bk.startAddress == bp.line.span!.absoluteAddress) {
-                dels.push({
-                    type: bin.CommandType.checkpointDelete,
-                    id: bk.id,
-                });
-            }
-        }
-
-        dels = _.uniqBy(dels, x => x.id);
-
-        await this._vice.multiExecBinary(dels)
-
-        return bp;
-    }
-
     public getBreakpointLength() : number {
         return this._breakPoints.length;
     }
@@ -820,51 +794,98 @@ or define the location manually with the launch.json->mapFile setting`
         return this._breakPoints.filter(x => x.line.num == line && x.line.file && !path.relative(x.line.file.name, p)).map(x => x.line.num);
     }
 
-    public async setBreakPoint(breakPath: string, line: number) : Promise<CC65ViceBreakpoint | null> {
-        let lineSym : debugFile.SourceLine | undefined;
-        if(this._dbgFile) {
-            lineSym = this._dbgFile.lines.find(x => x.num == line && !path.relative(breakPath, x.file!.name));
+    public async setBreakPoint(breakPath: string, ...lines: number[]) : Promise<{[key:string]:CC65ViceBreakpoint}> {
+        await this._dbgFilePromise
+
+        let lineSyms : { [key:string]: debugFile.SourceLine | null } = {};
+        for(const line of lines) {
+            const lineSym = this._dbgFile.lines.find(x => x.num == line && !path.relative(breakPath, x.file!.name));
             if(!lineSym){
-                return null;
+                lineSyms[line] = null;
+                continue;
             }
+            lineSyms[line] = lineSym;
         }
 
-        if(!lineSym) {
-            const fil : debugFile.SourceFile = {
-                mtime: new Date(),
-                name: breakPath,
-                mod: "",
-                lines: [],
-                id: 0,
-                size: 0,
-            };
-            lineSym = {
-                count: 0,
-                id: 0,
-                num: line,
-                span: undefined,
-                spanId: 0,
-                file: fil,
-                fileId: 0,
-                type: 0,
-            };
+        if(!Object.keys(lineSyms).length) {
+            return {};
         }
 
-        const bp = <CC65ViceBreakpoint> { verified: false, line: lineSym, viceIndex: -1, id: this._breakpointId++ };
-        this._breakPoints.push(bp);
+        const bps : {[key:string]:CC65ViceBreakpoint} = {};
+        for(const line in lineSyms) {
+            let lineSym = lineSyms[line];
+
+            if(!lineSym) {
+                const fil : debugFile.SourceFile = {
+                    mtime: new Date(),
+                    name: breakPath,
+                    mod: "",
+                    lines: [],
+                    id: 0,
+                    size: 0,
+                };
+                lineSym = {
+                    count: 0,
+                    id: 0,
+                    num: parseInt(line),
+                    span: undefined,
+                    spanId: 0,
+                    file: fil,
+                    fileId: 0,
+                    type: 0,
+                };
+            }
+
+            const bp = <CC65ViceBreakpoint> { verified: false, line: lineSym, viceIndex: -1, id: this._breakpointId++ };
+            bps[line] = bp;
+        }
+        this._breakPoints.push(...Object.values(bps))
 
         await this._verifyBreakpoints();
 
-        return bp;
+        return bps;
     }
 
     public async clearBreakpoints(p : string): Promise<void> {
+        let dels : bin.CheckpointDeleteCommand[] = [];
         for(const bp of [...this._breakPoints]) {
             if(path.relative(p, bp.line.file!.name)) {
                 continue;
             }
 
-            await this._clearBreakPoint(bp);
+            const index = this._breakPoints.indexOf(bp);
+            if(index == -1) {
+                continue;
+            }
+            this._breakPoints.splice(index, 1);
+
+            if(bp.viceIndex <= 0) {
+                continue;
+            }
+
+            dels.push({
+                type: bin.CommandType.checkpointDelete,
+                id: bp.viceIndex,
+            })
+
+            // Also clean up breakpoints with the same address.
+            // FIXME: This smells weird. Reassess and document reasoning.
+            const bks = await this._vice.checkpointList();
+            for(const bk of bks.related) {
+                if(bk.startAddress == bp.line.span!.absoluteAddress) {
+                    dels.push({
+                        type: bin.CommandType.checkpointDelete,
+                        id: bk.id,
+                    });
+                }
+            }
+
+        }
+
+        dels = _.uniqBy(dels, x => x.id);
+
+        if(dels.length) {
+            await this._vice.multiExecBinary(dels);
         }
     }
 
@@ -1215,7 +1236,14 @@ or define the location manually with the launch.json->mapFile setting`
                 throw new Error();
             }
 
-            this._dbgFile = await debugUtils.loadDebugFile(filename, buildDir);
+            const dbgFilePromise = debugUtils.loadDebugFile(filename, buildDir);
+            dbgFilePromise
+                .then(x => {
+                    this._dbgFile = x;
+                    this._dbgFileResolved(x)
+                })
+                .catch(this._dbgFileRejected);
+            await this._dbgFilePromise;
         }
         catch {
             throw new Error(
