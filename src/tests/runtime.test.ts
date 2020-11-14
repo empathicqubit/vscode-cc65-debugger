@@ -432,7 +432,7 @@ suite('Runtime', () => {
 
                 await waitFor(rt, 'stopOnEntry');
 
-                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), stepsOffset + 9);
+                await rt.setBreakPoint(MAIN_C, stepsOffset + 9);
                 await rt.continue();
 
                 await waitFor(rt, 'stopOnStep');
