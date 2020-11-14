@@ -3,6 +3,7 @@
 ## 2.5.1
 * Better breakpoint handling. Fix some issues with breakpoints disappearing
 and batch the deletions / adds.
+* Fix autoloading labels with -moncommands
 
 ## 2.5.0
 * Fix serious regression with local variables. Add test to assert variables
