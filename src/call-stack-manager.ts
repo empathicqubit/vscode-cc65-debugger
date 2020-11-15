@@ -289,36 +289,28 @@ export class CallStackManager {
             return;
         }
 
-        const reverseFrames = [...this._stackFrames].reverse();
         let scope: debugFile.Scope;
         if(scope = this._stackFrameStarts[brk.id]) {
             this._stackFrames.push({line: line, scope: scope });
         }
         else if(scope = this._stackFrameEnds[brk.id]) {
-            const idx = reverseFrames.findIndex(x => x.scope.id == scope.id);
+            const idx = _.findLastIndex(this._stackFrames, x => x.scope.id == scope.id);
             if(idx > -1) {
-                this._stackFrames.splice(this._stackFrames.length - 1 - idx, 1);
+                this._stackFrames.splice(idx, 1);
             }
             else {
                 console.error("SCOPE ERROR", scope);
             }
         }
         else if(scope = this._stackFrameJumps[brk.id]) {
-            for(const f in reverseFrames) {
-                const frame = reverseFrames[f];
+            _.eachRight(this._stackFrames, (frame, f) => {
                 const span = frame.scope.codeSpan;
                 if(span && span.absoluteAddress <= brk.startAddress && brk.startAddress < span.absoluteAddress + span.size) {
                     frame.line = line;
-                    const before = [...this._stackFrames];
-                    this._stackFrames.splice(this._stackFrames.length - parseInt(f));
-                    const after = [...this._stackFrames];
-                    if(before.length != after.length) {
-                        console.log("JUMP", brk, scope);
-                        console.log("CHANGE", before, after);
-                    }
-                    break;
+                    this._stackFrames.splice(f + 1);
+                    return false;
                 }
-            }
+            });
         }
         else {
             console.error("SCOPE ERROR", scope);

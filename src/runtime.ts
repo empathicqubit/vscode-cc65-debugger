@@ -1038,8 +1038,54 @@ or define the location manually with the launch.json->mapFile setting`
         avail.registers.map(x => meta[x.name] = x);
 
         this._vice.on(0xffffffff.toString(16), async e => {
+            const rnd = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+            console.time('viceEvent' + rnd);
             if(this._bypassStatusUpdates) {
                 return;
+            }
+            else if(e.type == bin.ResponseType.checkpointInfo) {
+                const brk = <bin.CheckpointInfoResponse>e;
+
+                if(!brk.hit) {
+                    return;
+                }
+
+                const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
+                this._callStackManager.addFrame(brk, line);
+
+                let index = brk.id;
+
+                // Is a breakpoint
+                if(brk.stop) {
+                    if(this._codeSegGuardIndex == index) {
+                        const guard = this._codeSegGuardIndex;
+                        this._codeSegGuardIndex = -1;
+                        await this._vice.checkpointDelete({
+                            type: bin.CommandType.checkpointDelete,
+                            id: guard,
+                        });
+                        this.sendEvent('message', 'error', 'CODE segment was modified. Your program may be broken!\n');
+                    }
+                    else if (this._exitIndexes.includes(brk.id)) {
+                        if(!this._stopOnExit) {
+                            await this.terminate();
+                            return;
+                        }
+                        else {
+                            await this._doRunAhead();
+                            this._exitQueued = true;
+                        }
+                    }
+                    else {
+                        const userBreak = this._breakPoints.find(x => x.viceIndex == brk.id);
+                        if(userBreak) {
+                            await this._doRunAhead();
+                        }
+                    }
+
+                    this.viceRunning = false;
+                    this.sendEvent('stopOnBreakpoint');
+                }
             }
             else if(e.type == bin.ResponseType.registerInfo) {
                 const rr = (<bin.RegisterInfoResponse>e).registers;
@@ -1097,50 +1143,7 @@ or define the location manually with the launch.json->mapFile setting`
                     this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
                 }
             }
-            else if(e.type == bin.ResponseType.checkpointInfo) {
-                const brk = <bin.CheckpointInfoResponse>e;
-
-                if(!brk.hit) {
-                    return;
-                }
-
-                const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
-                this._callStackManager.addFrame(brk, line);
-
-                let index = brk.id;
-
-                // Is a breakpoint
-                if(brk.stop) {
-                    if(this._codeSegGuardIndex == index) {
-                        const guard = this._codeSegGuardIndex;
-                        this._codeSegGuardIndex = -1;
-                        await this._vice.checkpointDelete({
-                            type: bin.CommandType.checkpointDelete,
-                            id: guard,
-                        });
-                        this.sendEvent('message', 'error', 'CODE segment was modified. Your program may be broken!\n');
-                    }
-                    else if (this._exitIndexes.includes(brk.id)) {
-                        if(!this._stopOnExit) {
-                            await this.terminate();
-                            return;
-                        }
-                        else {
-                            await this._doRunAhead();
-                            this._exitQueued = true;
-                        }
-                    }
-                    else {
-                        const userBreak = this._breakPoints.find(x => x.viceIndex == brk.id);
-                        if(userBreak) {
-                            await this._doRunAhead();
-                        }
-                    }
-
-                    this.viceRunning = false;
-                    this.sendEvent('stopOnBreakpoint');
-                }
-            }
+            console.timeEnd('viceEvent' + rnd);
         });
     }
 

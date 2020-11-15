@@ -21,7 +21,7 @@ export class ViceGrip extends EventEmitter {
     private _binaryPort : number = -1;
     private _binaryConn: Readable & Writable;
 
-    private _responseBytes : Buffer[] = [];
+    private _responseBytes : Buffer = Buffer.alloc(0);
     private _responseByteCount : number = 0;
     private _nextResponseLength : number = -1;
     private _responseEmitter : EventEmitter = new EventEmitter();
@@ -32,14 +32,22 @@ export class ViceGrip extends EventEmitter {
             if(this._nextResponseLength == -1) {
                 this._responseByteCount = 0;
                 this._nextResponseLength = d.readUInt32LE(2) + header_size;
+                if(this._responseBytes.length < this._nextResponseLength) {
+                    this._responseBytes = Buffer.alloc(this._nextResponseLength);
+                }
             }
 
-            this._responseBytes.push(d);
+            if(d.length + this._responseByteCount > this._responseBytes.length) {
+                this._responseBytes = Buffer.concat([this._responseBytes.slice(0, this._responseByteCount), d]);
+            }
+            else {
+                d.copy(this._responseBytes, this._responseByteCount);
+            }
+
             this._responseByteCount += d.length;
 
-            if(this._responseBytes[0] &&
-                this._responseBytes[0].length &&
-                this._responseBytes[0].readUInt8(0) != 0x02) {
+            if(this._responseBytes.length &&
+                this._responseBytes.readUInt8(0) != 0x02) {
                 const res : bin.AbstractResponse = {
                     type: 0,
                     apiVersion: 0,
@@ -52,9 +60,7 @@ export class ViceGrip extends EventEmitter {
             }
 
             if(this._responseByteCount >= this._nextResponseLength) {
-                const buf = Buffer.concat(this._responseBytes);
-
-                const res = bin.responseBufferToObject(buf, this._nextResponseLength);
+                const res = bin.responseBufferToObject(this._responseBytes, this._nextResponseLength);
 
                 if(res.type == bin.ResponseType.stopped) {
                     this._responseEmitter.emit('stopped', res);
@@ -62,18 +68,19 @@ export class ViceGrip extends EventEmitter {
 
                 this._responseEmitter.emit(res.requestId.toString(16), res);
 
-                this._responseBytes = [];
+                const oldResponseByteCount = this._responseByteCount;
                 this._responseByteCount = 0;
 
                 const oldResponseLength = this._nextResponseLength;
                 this._nextResponseLength = -1;
 
-                const sliced = buf.slice(oldResponseLength, buf.length);
-                if(buf.length - oldResponseLength >= header_size) {
+                const sliced = this._responseBytes.slice(oldResponseLength, oldResponseByteCount);
+                if(sliced.length >= header_size) {
                     this._binaryDataHandler(sliced);
                 }
                 else {
-                    this._responseBytes = [sliced];
+                    sliced.copy(this._responseBytes, this._responseByteCount);
+                    this._responseByteCount += sliced.length;
                 }
             }
 
