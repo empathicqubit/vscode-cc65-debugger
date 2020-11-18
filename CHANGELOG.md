@@ -1,4 +1,6 @@
 # Changelog
+## 2.5.2
+* Various memory and performance optimizations.
 
 ## 2.5.1
 * Better breakpoint handling. Fix some issues with breakpoints disappearing

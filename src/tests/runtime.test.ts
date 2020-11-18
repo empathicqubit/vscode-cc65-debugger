@@ -348,7 +348,7 @@ suite('Runtime', () => {
 
                 await waitFor(rt, 'stopOnEntry');
 
-                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), mainOffset + 2);
+                await rt.setBreakPoint(MAIN_C, mainOffset + 2);
                 await rt.continue();
 
                 await waitFor(rt, 'stopOnStep');
@@ -433,7 +433,14 @@ suite('Runtime', () => {
                 await waitFor(rt, 'stopOnEntry');
 
                 await rt.setBreakPoint(MAIN_C, stepsOffset + 9);
-                await rt.continue();
+
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_C)
+                        assert.strictEqual(line, stepsOffset + 9)
+                    }),
+                );
 
                 await waitFor(rt, 'stopOnStep');
 

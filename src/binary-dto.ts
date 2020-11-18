@@ -443,16 +443,46 @@ export enum ViceMemspace {
     drive11 = 0x04
 }
 
+interface cache {
+    abstract: AbstractResponse;
+    checkpointInfo: CheckpointInfoResponse;
+}
+
+const abs : AbstractResponse = {
+    apiVersion: 0x00,
+    type: 0x00,
+    error: 0xff,
+    requestId: 0xff,
+    related: [],
+};
+
+const cache : cache = {
+    abstract: abs,
+    checkpointInfo: {
+        ...abs,
+        type: ResponseType.checkpointInfo,
+        id: -1,
+        hit: false,
+        startAddress: 0x00,
+        endAddress: 0x00,
+        stop: false,
+        enabled: false,
+        operation: CpuOperation.load,
+        temporary: true,
+        hitCount: 0,
+        ignoreCount: 0,
+        condition: false,
+    }
+};
+
 export function responseBufferToObject(buf: Buffer, responseLength: number) : AbstractResponse {
     const header_size = 12; // FIXME
     const body = buf.slice(header_size, responseLength);
-    const res : AbstractResponse = {
-        apiVersion: buf.readUInt8(0),
-        type: buf.readUInt8(6),
-        error: buf.readUInt8(7),
-        requestId: buf.readUInt32LE(8),
-        related: [],
-    };
+    const res = cache.abstract;
+    res.apiVersion = buf.readUInt8(1);
+    res.type = buf.readUInt8(6);
+    res.error = buf.readUInt8(7);
+    res.requestId = buf.readUInt32LE(8);
     const type = res.type;
 
     if(type == ResponseType.memoryGet) {
@@ -473,23 +503,45 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         return r;
     }
     else if(type == ResponseType.checkpointInfo) {
-        const r : CheckpointInfoResponse = {
-            ...res,
-            type,
-            id: body.readUInt32LE(0),
-            hit: !!body.readUInt8(4),
-            startAddress: body.readUInt16LE(5),
-            endAddress: body.readUInt16LE(7),
-            stop: !!body.readUInt8(9),
-            enabled: !!body.readUInt8(10),
-            operation: body.readUInt8(11),
-            temporary: !!body.readUInt8(12),
-            hitCount: body.readUInt32LE(13),
-            ignoreCount: body.readUInt32LE(17),
-            condition: !!body.readUInt8(21),
-        }
+        // Special case for checkpoint info since we use it a lot
+        // This will break if not carefully handled in async situations
+        if(res.requestId == 0xffffffff) {
+            const r = cache.checkpointInfo;
+            Object.assign(r, res);
+            r.type = ResponseType.checkpointInfo;
+            r.id = body.readUInt32LE(0);
+            r.hit = !!body.readUInt8(4);
+            r.startAddress = body.readUInt16LE(5);
+            r.endAddress = body.readUInt16LE(7);
+            r.stop = !!body.readUInt8(9);
+            r.enabled = !!body.readUInt8(10);
+            r.operation = body.readUInt8(11);
+            r.temporary = !!body.readUInt8(12);
+            r.hitCount = body.readUInt32LE(13);
+            r.ignoreCount = body.readUInt32LE(17);
+            r.condition = !!body.readUInt8(21);
 
-        return r;
+            return r;
+        }
+        else {
+            const r = {
+                ...res,
+                type: ResponseType.checkpointInfo,
+                id: body.readUInt32LE(0),
+                hit: !!body.readUInt8(4),
+                startAddress: body.readUInt16LE(5),
+                endAddress: body.readUInt16LE(7),
+                stop: !!body.readUInt8(9),
+                enabled: !!body.readUInt8(10),
+                operation: body.readUInt8(11),
+                temporary: !!body.readUInt8(12),
+                hitCount: body.readUInt32LE(13),
+                ignoreCount: body.readUInt32LE(17),
+                condition:  !!body.readUInt8(21),
+            };
+
+            return r;
+        }
     }
     else if(type == ResponseType.checkpointDelete) {
         const r : CheckpointDeleteResponse = {

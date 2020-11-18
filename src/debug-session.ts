@@ -131,6 +131,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             this.sendEvent(e);
         });
         this._runtime.on('end', () => {
+            this._runtime = <any>undefined;
             this.sendEvent(new TerminatedEvent());
         });
     }

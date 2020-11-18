@@ -5,9 +5,7 @@ import * as bin from './binary-dto';
 import * as _ from 'lodash';
 import * as disassembly from './disassembly';
 import * as runtime from './runtime';
-import * as debugUtils from './debug-utils';
-import * as util from 'util';
-import { Runtime } from './runtime';
+import { Breakpoint } from 'vscode-debugadapter';
 
 export class CallStackManager {
     private _cpuStackBottom: number = 0x1ff;
@@ -24,6 +22,9 @@ export class CallStackManager {
     private _vice: ViceGrip;
     private _mapFile: mapFile.MapRef[];
     private _dbgFile: debugFile.Dbgfile;
+
+    private _queuedFrames: ({id: number, startAddress: number, line: debugFile.SourceLine | undefined })[] = new Array(1000).fill(undefined).map(x => ({id: -1, startAddress: -1, line: undefined }));
+    private _queuedFramesCount = 0;
 
     constructor(vice: ViceGrip, mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile) {
         this._vice = vice;
@@ -49,9 +50,6 @@ export class CallStackManager {
         }
 
         const begin = span.absoluteAddress;
-        const end = begin + span.size;
-
-        let finish = false;
 
         const spanMem = codeSegMem.slice(span.start, span.start + span.size);
 
@@ -279,41 +277,83 @@ export class CallStackManager {
 
         this.addFrame(current, currentLine);
     }
+    
+    public flushFrames() {
+        outer: for(let f = 0; f < this._queuedFramesCount; f++) {
+            const item = this._queuedFrames[f];
 
-    public addFrame(brk: bin.CheckpointInfoResponse, line: debugFile.SourceLine) {
-        if(brk.stop) {
-            return;
-        }
+            if(item.id == -1 || item.startAddress == -1 || !item.line) {
+                continue;
+            }
 
-        if(brk.operation != bin.CpuOperation.exec) {
-            return;
-        }
-
-        let scope: debugFile.Scope;
-        if(scope = this._stackFrameStarts[brk.id]) {
-            this._stackFrames.push({line: line, scope: scope });
-        }
-        else if(scope = this._stackFrameEnds[brk.id]) {
-            const idx = _.findLastIndex(this._stackFrames, x => x.scope.id == scope.id);
-            if(idx > -1) {
-                this._stackFrames.splice(idx, 1);
+            let scope: debugFile.Scope;
+            if(scope = this._stackFrameStarts[item.id]) {
+                // Check to see if we've already stepped back out of this function
+                let nesting = 1;
+                for(let e = f + 1; e < this._queuedFramesCount; e++) {
+                    const end = this._queuedFrames[e];
+                    if(end.id == -1 || end.startAddress == -1 || !end.line) {
+                        continue;
+                    }
+                    if(this._stackFrameStarts[end.id] == scope) {
+                        nesting++;
+                    }
+                    const endScope = this._stackFrameEnds[end.id];
+                    if(endScope == scope) {
+                        nesting--;
+                        if(!nesting) {
+                            end.id = -1;
+                            end.startAddress = -1;
+                            end.line = undefined;
+                            continue outer;
+                        }
+                    }
+                }
+                this._stackFrames.push({line: item.line, scope: scope });
+            }
+            else if(scope = this._stackFrameEnds[item.id]) {
+                const idx = _.findLastIndex(this._stackFrames, x => x.scope.id == scope.id);
+                if(idx > -1) {
+                    this._stackFrames.splice(idx, 1);
+                }
+                else {
+                    console.error("SCOPE ERROR", scope);
+                }
+            }
+            else if(scope = this._stackFrameJumps[item.id]) {
+                _.eachRight(this._stackFrames, (frame, f) => {
+                    const span = frame.scope.codeSpan;
+                    if(span && span.absoluteAddress <= item.startAddress && item.startAddress < span.absoluteAddress + span.size) {
+                        frame.line = item.line!;
+                        this._stackFrames.splice(f + 1);
+                        return false;
+                    }
+                });
             }
             else {
                 console.error("SCOPE ERROR", scope);
             }
         }
-        else if(scope = this._stackFrameJumps[brk.id]) {
-            _.eachRight(this._stackFrames, (frame, f) => {
-                const span = frame.scope.codeSpan;
-                if(span && span.absoluteAddress <= brk.startAddress && brk.startAddress < span.absoluteAddress + span.size) {
-                    frame.line = line;
-                    this._stackFrames.splice(f + 1);
-                    return false;
-                }
-            });
+
+        this._queuedFramesCount = 0;
+    }
+
+    public addFrame(info: bin.CheckpointInfoResponse, line: debugFile.SourceLine) {
+        if(info.stop) {
+            return;
         }
-        else {
-            console.error("SCOPE ERROR", scope);
+
+        if(info.operation != bin.CpuOperation.exec) {
+            return;
+        }
+
+        const frame = this._queuedFrames[this._queuedFramesCount++];
+        frame.id = info.id;
+        frame.startAddress = info.startAddress;
+        frame.line = line;
+
+        if(this._queuedFramesCount == this._queuedFrames.length) {
+            this.flushFrames();
         }
     }
 
@@ -340,6 +380,8 @@ export class CallStackManager {
     }
     
     public async returnToLastStackFrame(vice: ViceGrip) : Promise<boolean> {
+        this.flushFrames();
+
         const lastFrame = this._stackFrames[this._stackFrames.length - 2];
         if(!lastFrame) {
             return false;

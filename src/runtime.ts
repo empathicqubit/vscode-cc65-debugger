@@ -90,8 +90,14 @@ export class Runtime extends EventEmitter {
     private _terminated: boolean;
     private _attachProgram: string | undefined;
 
+    private _currentPng: any;
+    private _runAheadPng: any;
+
+    private _registerMeta : {[key: string]: bin.SingleRegisterMeta };
+
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
+
         this._runInTerminalRequest = ritr;
     }
 
@@ -441,15 +447,18 @@ export class Runtime extends EventEmitter {
         }
 
         const current = new TGA(currentRes.imageData);
-        const currentPng = new pngjs.PNG({
-            width: current.width,
-            height: current.height
-        });
-        currentPng.data = current.pixels;
+        if(!this._currentPng) {
+            this._currentPng = new pngjs.PNG({
+                width: current.width,
+                height: current.height
+            });
+        }
+
+        this._currentPng.data = current.pixels;
 
         this.sendEvent('current', {
             current: {
-                data: Array.from(pngjs.PNG.sync.write(currentPng)),
+                data: Array.from(pngjs.PNG.sync.write(this._currentPng)),
                 width: current.width,
                 height: current.height,
             },
@@ -683,6 +692,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<any> {
+        this._callStackManager.flushFrames();
         return await this._callStackManager.prettyStack(
             this._currentAddress, 
             (this._currentPosition.file || {}).name || '', 
@@ -725,12 +735,18 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._vice && await this._vice.disconnect();
 
-        this._vice = <any>null;
+        this._vice = <any>undefined;
 
         this.viceRunning = false;
 
         this._stopOnExit = false;
         this._exitQueued = false;
+
+        this._callStackManager = <any>undefined;
+        this._variableManager = <any>undefined;
+
+        this._currentPng = undefined;
+        this._runAheadPng = undefined;
 
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
@@ -1027,124 +1043,126 @@ or define the location manually with the launch.json->mapFile setting`
         }
     }
 
-    private async _setupViceDataHandler() {
-        let breakpointHit = false;
+    private async _dataHandler(e: bin.AbstractResponse) : Promise<void> {
+        if(this._bypassStatusUpdates) {
+            return;
+        }
+        else if(e.type == bin.ResponseType.checkpointInfo) {
+            // Important note: For performance reasons, brk is a shared object.
+            // If you add any references to it after 
+            // an async call you MUST duplicate it before,
+            // otherwise it will be overwritten.
+            const brk = <bin.CheckpointInfoResponse>e;
 
+            if(!brk.hit) {
+                return;
+            }
+
+            const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
+            this._callStackManager.addFrame(brk, line);
+
+            let index = brk.id;
+
+            // Is a breakpoint
+            if(brk.stop) {
+                if(this._codeSegGuardIndex == index) {
+                    const guard = this._codeSegGuardIndex;
+                    this._codeSegGuardIndex = -1;
+                    await this._vice.checkpointDelete({
+                        type: bin.CommandType.checkpointDelete,
+                        id: guard,
+                    });
+                    this.sendEvent('message', 'error', 'CODE segment was modified. Your program may be broken!\n');
+                }
+                else if (this._exitIndexes.includes(brk.id)) {
+                    if(!this._stopOnExit) {
+                        await this.terminate();
+                        return;
+                    }
+                    else {
+                        await this._doRunAhead();
+                        this._exitQueued = true;
+                    }
+                }
+                else {
+                    const userBreak = this._breakPoints.find(x => x.viceIndex == brk.id);
+                    if(userBreak) {
+                        await this._doRunAhead();
+                    }
+                }
+
+                this.viceRunning = false;
+                this.sendEvent('stopOnBreakpoint');
+            }
+        }
+        else if(e.type == bin.ResponseType.registerInfo) {
+            const rr = (<bin.RegisterInfoResponse>e).registers;
+            const r = this._registers;
+            const meta = this._registerMeta;
+            for(const reg of rr) {
+                if(meta['A'].id == reg.id) {
+                    r.a = reg.value;
+                }
+                else if(meta['X'].id == reg.id) {
+                    r.x = reg.value;
+                }
+                else if(meta['Y'].id == reg.id) {
+                    r.y = reg.value;
+                }
+                else if(meta['SP'].id == reg.id) {
+                    r.sp = reg.value;
+
+                    this._callStackManager.setCpuStackTop(0x100 + r.sp);
+                }
+                else if(meta['FL'].id == reg.id) {
+                    r.fl = reg.value;
+                }
+                else if(meta['LIN'].id == reg.id) {
+                    r.line = reg.value;
+                }
+                else if(meta['CYC'].id == reg.id) {
+                    r.cycle = reg.value;
+                }
+                else if(meta['PC'].id == reg.id) {
+                    r.pc = reg.value;
+                }
+            }
+        }
+        else if(e.type == bin.ResponseType.stopped) {
+            this.viceRunning = false;
+            this._currentAddress = (<bin.StoppedResponse>e).programCounter;
+            this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
+
+            if(!this._viceStarting) {
+                this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+                this.sendEvent('stopOnStep');
+            }
+        }
+        else if(e.type == bin.ResponseType.resumed) {
+            if(this._exitQueued) {
+                await this.terminate();
+                return;
+            }
+
+            this.viceRunning = true;
+            this._currentAddress = (<bin.ResumedResponse>e).programCounter;
+            this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
+
+            if(!this._viceStarting) {
+                this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+            }
+        }
+    }
+
+    private async _setupViceDataHandler() {
         const avail = await this._vice.execBinary<bin.RegistersAvailableCommand, bin.RegistersAvailableResponse>({
             type: bin.CommandType.registersAvailable,
         });
 
-        const meta : {[key: string]: bin.SingleRegisterMeta } = {};
-        avail.registers.map(x => meta[x.name] = x);
+        this._registerMeta = {};
+        avail.registers.map(x => this._registerMeta[x.name] = x);
 
-        this._vice.on(0xffffffff.toString(16), async e => {
-            const rnd = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-            console.time('viceEvent' + rnd);
-            if(this._bypassStatusUpdates) {
-                return;
-            }
-            else if(e.type == bin.ResponseType.checkpointInfo) {
-                const brk = <bin.CheckpointInfoResponse>e;
-
-                if(!brk.hit) {
-                    return;
-                }
-
-                const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
-                this._callStackManager.addFrame(brk, line);
-
-                let index = brk.id;
-
-                // Is a breakpoint
-                if(brk.stop) {
-                    if(this._codeSegGuardIndex == index) {
-                        const guard = this._codeSegGuardIndex;
-                        this._codeSegGuardIndex = -1;
-                        await this._vice.checkpointDelete({
-                            type: bin.CommandType.checkpointDelete,
-                            id: guard,
-                        });
-                        this.sendEvent('message', 'error', 'CODE segment was modified. Your program may be broken!\n');
-                    }
-                    else if (this._exitIndexes.includes(brk.id)) {
-                        if(!this._stopOnExit) {
-                            await this.terminate();
-                            return;
-                        }
-                        else {
-                            await this._doRunAhead();
-                            this._exitQueued = true;
-                        }
-                    }
-                    else {
-                        const userBreak = this._breakPoints.find(x => x.viceIndex == brk.id);
-                        if(userBreak) {
-                            await this._doRunAhead();
-                        }
-                    }
-
-                    this.viceRunning = false;
-                    this.sendEvent('stopOnBreakpoint');
-                }
-            }
-            else if(e.type == bin.ResponseType.registerInfo) {
-                const rr = (<bin.RegisterInfoResponse>e).registers;
-                const r = this._registers;
-                for(const reg of rr) {
-                    if(meta['A'].id == reg.id) {
-                        r.a = reg.value;
-                    }
-                    else if(meta['X'].id == reg.id) {
-                        r.x = reg.value;
-                    }
-                    else if(meta['Y'].id == reg.id) {
-                        r.y = reg.value;
-                    }
-                    else if(meta['SP'].id == reg.id) {
-                        r.sp = reg.value;
-
-                        this._callStackManager.setCpuStackTop(0x100 + r.sp);
-                    }
-                    else if(meta['FL'].id == reg.id) {
-                        r.fl = reg.value;
-                    }
-                    else if(meta['LIN'].id == reg.id) {
-                        r.line = reg.value;
-                    }
-                    else if(meta['CYC'].id == reg.id) {
-                        r.cycle = reg.value;
-                    }
-                    else if(meta['PC'].id == reg.id) {
-                        r.pc = reg.value;
-                    }
-                }
-            }
-            else if(e.type == bin.ResponseType.stopped) {
-                this.viceRunning = false;
-                this._currentAddress = (<bin.StoppedResponse>e).programCounter;
-                this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
-
-                if(!this._viceStarting) {
-                    this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-                    this.sendEvent('stopOnStep');
-                }
-            }
-            else if(e.type == bin.ResponseType.resumed) {
-                if(this._exitQueued) {
-                    await this.terminate();
-                    return;
-                }
-
-                this.viceRunning = true;
-                this._currentAddress = (<bin.ResumedResponse>e).programCounter;
-                this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
-
-                if(!this._viceStarting) {
-                    this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-                }
-            }
-            console.timeEnd('viceEvent' + rnd);
-        });
+        this._vice.on(0xffffffff.toString(16), async e => this._dataHandler(e));
     }
 
     private async _doRunAhead() : Promise<void>{
@@ -1220,27 +1238,31 @@ or define the location manually with the launch.json->mapFile setting`
 
         const ahead = new TGA(aheadRes.imageData);
         const current = new TGA(currentRes.imageData);
-        const aheadPng = new pngjs.PNG({
-            width: ahead.width,
-            height: ahead.height
-        });
-        aheadPng.data = ahead.pixels;
-        const currentPng = new pngjs.PNG({
-            width: current.width,
-            height: current.height
-        });
-        currentPng.data = current.pixels;
+        if(!this._runAheadPng) {
+            this._runAheadPng = new pngjs.PNG({
+                width: ahead.width,
+                height: ahead.height
+            });
+        }
+        this._runAheadPng.data = ahead.pixels;
+        if(!this._currentPng) {
+            this._currentPng = new pngjs.PNG({
+                width: current.width,
+                height: current.height
+            });
+        }
+        this._currentPng.data = current.pixels;
 
         this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 
         this.sendEvent('runahead', {
             runAhead: {
-                data: Array.from(pngjs.PNG.sync.write(aheadPng)),
+                data: Array.from(pngjs.PNG.sync.write(this._runAheadPng)),
                 width: ahead.width,
                 height: ahead.height,
             },
             current: {
-                data: Array.from(pngjs.PNG.sync.write(currentPng)),
+                data: Array.from(pngjs.PNG.sync.write(this._currentPng)),
                 width: current.width,
                 height: current.height,
             },
