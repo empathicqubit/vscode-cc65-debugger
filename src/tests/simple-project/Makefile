@@ -27,7 +27,7 @@ CONFIG  :=
 
 # Additional C compiler flags and options.
 # Default: none
-CFLAGS  = -g -Or
+CFLAGS  = -g
 
 # Additional assembler flags and options.
 # Default: none

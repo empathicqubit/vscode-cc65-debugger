@@ -21,6 +21,7 @@ export class ViceGrip extends EventEmitter {
     private _binaryPort : number = -1;
     private _binaryConn: Readable & Writable;
 
+    private _commandBytes : Buffer = Buffer.alloc(1024);
     private _responseBytes : Buffer = Buffer.alloc(0);
     private _responseByteCount : number = 0;
     private _nextResponseLength : number = -1;
@@ -356,16 +357,21 @@ export class ViceGrip extends EventEmitter {
 
         const frags : Uint8Array[] = [];
         const results = Promise.all(commands.map(command => {
-            const body = bin.commandObjectToBytes(command);
+            const body = bin.commandObjectToBytes(command, this._commandBytes);
             const requestId = _.random(0, 0xffffffff);
-            const buf = Buffer.alloc(11);
+            const buf = Buffer.alloc(11 + body.length);
             buf.writeUInt8(0x02, 0); // start
             buf.writeUInt8(0x01, 1); // version
             buf.writeUInt32LE(body.length, 2);
             buf.writeUInt32LE(requestId, 6);
             buf.writeUInt8(command.type, 10);
+            body.copy(buf, 11);
             frags.push(buf);
-            frags.push(body);
+
+            if(body.length > this._commandBytes.length) {
+                this._commandBytes = body;
+            }
+
             return new Promise<U>((res, rej) => {
                 try {
                     const rid = requestId.toString(16);

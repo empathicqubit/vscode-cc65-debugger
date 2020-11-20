@@ -23,7 +23,7 @@ export class CallStackManager {
     private _mapFile: mapFile.MapRef[];
     private _dbgFile: debugFile.Dbgfile;
 
-    private _queuedFrames: ({id: number, startAddress: number, line: debugFile.SourceLine | undefined })[] = new Array(1000).fill(undefined).map(x => ({id: -1, startAddress: -1, line: undefined }));
+    private _queuedFrames: ({id: number, startAddress: number, line: (() => debugFile.SourceLine) | undefined })[] = new Array(1000).fill(undefined).map(x => ({id: -1, startAddress: -1, line: undefined }));
     private _queuedFramesCount = 0;
 
     constructor(vice: ViceGrip, mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile) {
@@ -275,7 +275,7 @@ export class CallStackManager {
             return;
         }
 
-        this.addFrame(current, currentLine);
+        this.addFrame(current, () => currentLine);
     }
     
     public flushFrames() {
@@ -309,7 +309,7 @@ export class CallStackManager {
                         }
                     }
                 }
-                this._stackFrames.push({line: item.line, scope: scope });
+                this._stackFrames.push({line: item.line(), scope: scope });
             }
             else if(scope = this._stackFrameEnds[item.id]) {
                 const idx = _.findLastIndex(this._stackFrames, x => x.scope.id == scope.id);
@@ -324,7 +324,7 @@ export class CallStackManager {
                 _.eachRight(this._stackFrames, (frame, f) => {
                     const span = frame.scope.codeSpan;
                     if(span && span.absoluteAddress <= item.startAddress && item.startAddress < span.absoluteAddress + span.size) {
-                        frame.line = item.line!;
+                        frame.line = item.line!();
                         this._stackFrames.splice(f + 1);
                         return false;
                     }
@@ -338,7 +338,7 @@ export class CallStackManager {
         this._queuedFramesCount = 0;
     }
 
-    public addFrame(info: bin.CheckpointInfoResponse, line: debugFile.SourceLine) {
+    public addFrame(info: bin.CheckpointInfoResponse, line: () => debugFile.SourceLine) {
         if(info.stop) {
             return;
         }

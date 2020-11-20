@@ -384,7 +384,7 @@ export class Runtime extends EventEmitter {
                 title: 'VICE Monitor',
             });
         }
-
+        
         await Promise.all([
             this._callStackManager.reset(this._currentAddress, this._currentPosition),
             this._setExitGuard(),
@@ -1035,7 +1035,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
 
         try {
-            const fileStats = await util.promisify(fs.stat)(filename);
+            await util.promisify(fs.stat)(filename);
             return filename;
         }
         catch {
@@ -1058,7 +1058,7 @@ or define the location manually with the launch.json->mapFile setting`
                 return;
             }
 
-            const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
+            const line = () => debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
             this._callStackManager.addFrame(brk, line);
 
             let index = brk.id;

@@ -52,6 +52,22 @@ suite('Runtime', () => {
 
     setup(async() => {
         rt = new Runtime((args, timeout, cb) => {
+            if(args.args.find(x => x.includes("monitor.js"))) {
+                console.log(args);
+                cb({
+                    command: 'runInTerminal',
+                    seq: seq++,
+                    success: true,
+                    type: 'response',
+                    request_seq: request_seq++,
+                    body: {
+                        processId: -1,
+                        shellProcessId: -1,
+                    }
+                });
+                return;
+            }
+
             const env : { [key: string]: string | undefined } = _.transform(args.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
             const proc = child_process.spawn(args.args[0], args.args.slice(1), {
                 cwd: args.cwd,
@@ -189,6 +205,7 @@ suite('Runtime', () => {
         let thingOffset = -1;
         let stepsOffset = -1;
         let mainContents = '';
+        const labels : { [key:string]:number } = {};
         setup(async () => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
 
@@ -211,6 +228,12 @@ suite('Runtime', () => {
 
                 thingOffset = thingMatch[0].match(/[\r\n]/g)!.length
             }
+
+            const labelFile = await util.promisify(fs.readFile)(LABEL_FILE, "ascii");
+            labelFile.split(/[\r\n]+/gim).forEach(x => {
+                const spl = x.split(/\s+/gim);
+                labels[spl[2]] = parseInt(spl[1], 16);
+            });
         });
 
         suite('Basic', () => {
@@ -253,7 +276,7 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, 2192));
+                await waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, labels['._main']));
                 await rt.continue();
                 await waitFor(rt, 'end');
             });
@@ -478,6 +501,7 @@ suite('Runtime', () => {
                     format: bin.DisplayGetFormat.BGRA,
                 };
                 const res : bin.DisplayGetResponse = await rt._vice.execBinary(req);
+                assert.strictEqual(res.imageData.readUInt8(2), 2);
                 const tga = new TGA(res.imageData);
             });
         });

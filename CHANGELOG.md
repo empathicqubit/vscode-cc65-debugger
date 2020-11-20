@@ -1,4 +1,7 @@
 # Changelog
+## 2.5.3
+* More memory optimizations.
+
 ## 2.5.2
 * Various memory and performance optimizations.
 

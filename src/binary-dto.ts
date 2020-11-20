@@ -330,7 +330,6 @@ export interface DisplayGetResponse extends Response<DisplayGetCommand> {
     innerHeight: number;
     bpp: number;
     imageData: Buffer;
-    displayBuffer: Buffer;
 }
 
 export interface ExitCommand extends Command {
@@ -485,11 +484,36 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
     res.requestId = buf.readUInt32LE(8);
     const type = res.type;
 
-    if(type == ResponseType.memoryGet) {
+    // Special case for checkpoint info since we use it a lot
+    // This will break if not carefully handled in async situations
+    if(res.requestId == 0xffffffff && type == ResponseType.checkpointInfo) {
+        const r = cache.checkpointInfo;
+        r.apiVersion = res.apiVersion;
+        r.error = res.error;
+        r.requestId = res.requestId;
+
+        r.type = ResponseType.checkpointInfo;
+        r.id = body.readUInt32LE(0);
+        r.hit = !!body.readUInt8(4);
+        r.startAddress = body.readUInt16LE(5);
+        r.endAddress = body.readUInt16LE(7);
+        r.stop = !!body.readUInt8(9);
+        r.enabled = !!body.readUInt8(10);
+        r.operation = body.readUInt8(11);
+        r.temporary = !!body.readUInt8(12);
+        r.hitCount = body.readUInt32LE(13);
+        r.ignoreCount = body.readUInt32LE(17);
+        r.condition = !!body.readUInt8(21);
+
+        return r;
+    }
+    else if(type == ResponseType.memoryGet) {
+        const mem = Buffer.alloc(body.readUInt16LE(0));
+        body.copy(mem, 0, 2);
         const r : MemoryGetResponse = {
             ...res,
             type,
-            memory: body.slice(2, 2 + body.readUInt16LE(0)),
+            memory: mem,
         }
 
         return r;
@@ -503,45 +527,23 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         return r;
     }
     else if(type == ResponseType.checkpointInfo) {
-        // Special case for checkpoint info since we use it a lot
-        // This will break if not carefully handled in async situations
-        if(res.requestId == 0xffffffff) {
-            const r = cache.checkpointInfo;
-            Object.assign(r, res);
-            r.type = ResponseType.checkpointInfo;
-            r.id = body.readUInt32LE(0);
-            r.hit = !!body.readUInt8(4);
-            r.startAddress = body.readUInt16LE(5);
-            r.endAddress = body.readUInt16LE(7);
-            r.stop = !!body.readUInt8(9);
-            r.enabled = !!body.readUInt8(10);
-            r.operation = body.readUInt8(11);
-            r.temporary = !!body.readUInt8(12);
-            r.hitCount = body.readUInt32LE(13);
-            r.ignoreCount = body.readUInt32LE(17);
-            r.condition = !!body.readUInt8(21);
+        const r = {
+            ...res,
+            type: ResponseType.checkpointInfo,
+            id: body.readUInt32LE(0),
+            hit: !!body.readUInt8(4),
+            startAddress: body.readUInt16LE(5),
+            endAddress: body.readUInt16LE(7),
+            stop: !!body.readUInt8(9),
+            enabled: !!body.readUInt8(10),
+            operation: body.readUInt8(11),
+            temporary: !!body.readUInt8(12),
+            hitCount: body.readUInt32LE(13),
+            ignoreCount: body.readUInt32LE(17),
+            condition:  !!body.readUInt8(21),
+        };
 
-            return r;
-        }
-        else {
-            const r = {
-                ...res,
-                type: ResponseType.checkpointInfo,
-                id: body.readUInt32LE(0),
-                hit: !!body.readUInt8(4),
-                startAddress: body.readUInt16LE(5),
-                endAddress: body.readUInt16LE(7),
-                stop: !!body.readUInt8(9),
-                enabled: !!body.readUInt8(10),
-                operation: body.readUInt8(11),
-                temporary: !!body.readUInt8(12),
-                hitCount: body.readUInt32LE(13),
-                ignoreCount: body.readUInt32LE(17),
-                condition:  !!body.readUInt8(21),
-            };
-
-            return r;
-        }
+        return r;
     }
     else if(type == ResponseType.checkpointDelete) {
         const r : CheckpointDeleteResponse = {
@@ -732,6 +734,8 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         return r;
     }
     else if(type == ResponseType.displayGet) {
+        const imageData = Buffer.alloc(body.length - (12 + body.readUInt32LE(4)));
+        body.copy(imageData, 0, 12 + body.readUInt32LE(4));
         const r : DisplayGetResponse = {
             ...res,
             type,
@@ -742,8 +746,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
             innerWidth: body.readUInt16LE(20),
             innerHeight: body.readUInt16LE(22),
             bpp: body.readUInt16LE(23),
-            displayBuffer: body.slice(4 + body.readUInt32LE(0), body.length),
-            imageData: body.slice(12 + body.readUInt32LE(4), body.length),
+            imageData: imageData,
         };
 
         return r;
@@ -817,209 +820,195 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
     }
 }
 
-export function commandObjectToBytes(command: Command) : Uint8Array {
+export function commandObjectToBytes(command: Command, buf: Buffer) : Buffer {
     const type = (<any>command).type;
+    let length = 0;
     if(type == CommandType.memoryGet) {
         const cmd = <MemoryGetCommand>command;
-        const buf = Buffer.alloc(8);
+        length = 8;
         buf.writeUInt8(Number(cmd.sidefx), 0);
         buf.writeUInt16LE(cmd.startAddress, 1);
         buf.writeUInt16LE(cmd.endAddress, 3);
         buf.writeUInt8(cmd.memspace, 5);
         buf.writeUInt16LE(cmd.bankId, 6);
-
-        return buf;
     }
     else if(type == CommandType.memorySet) {
         const cmd = <MemorySetCommand>command;
-        const buf = Buffer.alloc(8);
+        length = 8 + cmd.memory.length;
+        if(buf.length < length) {
+            buf = Buffer.alloc(length)
+        }
         buf.writeUInt8(Number(cmd.sidefx), 0);
         buf.writeUInt16LE(cmd.startAddress, 1);
         buf.writeUInt16LE(cmd.endAddress, 3);
         buf.writeUInt8(cmd.memspace, 5);
         buf.writeUInt16LE(cmd.bankId, 6);
 
-        return Buffer.concat([buf, cmd.memory]);
+        Buffer.from(cmd.memory).copy(buf, 8);
     }
     else if(type == CommandType.checkpointGet) {
         const cmd = <CheckpointGetCommand>command;
-        const buf = Buffer.alloc(4);
+        length = 4;
         buf.writeUInt32LE(cmd.id, 0);
-
-        return buf;
     }
     else if(type == CommandType.checkpointSet) {
         const cmd = <CheckpointSetCommand>command;
-        const buf = Buffer.alloc(8);
+        length = 8;
         buf.writeUInt16LE(cmd.startAddress, 0);
         buf.writeUInt16LE(cmd.endAddress, 2);
         buf.writeUInt8(Number(cmd.stop), 4);
         buf.writeUInt8(Number(cmd.enabled), 5);
         buf.writeUInt8(cmd.operation, 6);
         buf.writeUInt8(Number(cmd.temporary), 7);
-
-        return buf;
     }
     else if(type == CommandType.checkpointDelete) {
         const cmd = <CheckpointDeleteCommand>command;
-        const buf = Buffer.alloc(4);
+        length = 4;
         buf.writeUInt32LE(cmd.id, 0);
-
-        return buf;
     }
     else if(type == CommandType.checkpointList) {
         const cmd = <CheckpointListCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.checkpointToggle) {
         const cmd = <CheckpointToggleCommand>command;
-        const buf = Buffer.alloc(5);
+        length = 5;
         buf.writeUInt32LE(cmd.id, 0);
         buf.writeUInt8(Number(cmd.enabled), 4);
-
-        return buf;
     }
     else if(type == CommandType.conditionSet) {
         const cmd = <ConditionSetCommand>command;
-        const buf = Buffer.alloc(5);
+        length = 5 + cmd.condition.length;
         buf.writeUInt32LE(cmd.checkpointId, 0);
         buf.writeUInt8(cmd.condition.length, 4);
 
-        return Buffer.concat([buf, Buffer.from(cmd.condition, "ascii")]);
+        buf.write(cmd.condition, 5, "ascii");
     }
     else if(type == CommandType.registersGet) {
         const cmd = <RegistersGetCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.registersSet) {
         const cmd = <RegistersSetCommand>command;
-        const buf = Buffer.alloc(2);
+        length = 4 * cmd.registers.length + 2;
+        if(buf.length < length) {
+            buf = Buffer.alloc(4 * cmd.registers.length + 2);
+        }
+
         buf.writeUInt16LE(cmd.registers.length, 0);
-        const items : Buffer[] = [];
-        for(const reg of cmd.registers) {
-            const item = Buffer.alloc(4);
+        const itemsBuf = buf.slice(2);
+        cmd.registers.forEach((reg, r) => {
+            const item = itemsBuf.slice(r * 4);
             item.writeUInt8(3, 0);
             item.writeUInt8(reg.id, 1);
             item.writeUInt16LE(reg.value, 2);
-            items.push(item);
-        }
-
-        return Buffer.concat([buf, ...items]);
+        });
     }
     else if(type == CommandType.dump) {
         const cmd = <DumpCommand>command;
-        const buf = Buffer.alloc(3);
+        length = 3 + cmd.filename.length;
         buf.writeUInt8(Number(cmd.saveRoms), 0);
         buf.writeUInt8(Number(cmd.saveDisks), 1);
         buf.writeUInt8(cmd.filename.length, 2);
 
-        return Buffer.concat([buf, Buffer.from(cmd.filename, "ascii")]);
+        buf.write(cmd.filename, 3, "ascii");
     }
     else if(type == CommandType.undump) {
         const cmd = <UndumpCommand>command;
-        const buf = Buffer.alloc(1);
+        length = 1 + cmd.filename.length;
         buf.writeUInt8(cmd.filename.length, 0);
 
-        return Buffer.concat([buf, Buffer.from(cmd.filename, "ascii")])
+        buf.write(cmd.filename, 1, "ascii");
     }
     else if(type == CommandType.resourceGet) {
         const cmd = <ResourceGetCommand>command;
-        const buf = Buffer.alloc(1);
-        buf.writeUInt8(Number(cmd.resourceName.length), 0);
+        length = 1 + cmd.resourceName.length;
+        buf.writeUInt8(cmd.resourceName.length, 0);
 
-        return Buffer.concat([buf, Buffer.from(cmd.resourceName, "ascii")]);
+        buf.write(cmd.resourceName, 1, "ascii");
     }
     else if(type == CommandType.resourceSet) {
         const cmd = <ResourceSetCommand>command;
         const valueLength = _.isString(cmd.resourceValue) ? cmd.resourceValue.length : 4;
-        const buf = Buffer.alloc(1 + cmd.resourceName.length + 1 + valueLength);
+        length = 3 + cmd.resourceName.length + valueLength;
         buf.writeUInt8(cmd.resourceType, 0);
         buf.writeUInt8(cmd.resourceName.length, 1);
+
         buf.write(cmd.resourceName, 2, "ascii");
+
         buf.writeUInt8(valueLength, 2 + cmd.resourceName.length);
         if(cmd.resourceType == ResourceType.int) {
             buf.writeUInt32LE(<number>cmd.resourceValue, 3 + cmd.resourceName.length)
         }
         else if(type == ResourceType.string) {
+
             buf.write(<string>cmd.resourceValue, 3 + cmd.resourceName.length, "ascii")
+
         }
         else {
             throw new Error("Invalid Type");
         }
-
-        return Buffer.concat([buf, Buffer.from(cmd.resourceName, "ascii")]);
     }
     else if(type == CommandType.advanceInstructions) {
         const cmd = <AdvanceInstructionsCommand>command;
-        const buf = Buffer.alloc(3);
+        length = 3;
         buf.writeUInt8(Number(cmd.subroutines), 0);
         buf.writeUInt16LE(cmd.count, 1);
-
-        return buf;
     }
     else if(type == CommandType.keyboardFeed) {
         const cmd = <KeyboardFeedCommand>command;
-        const buf = Buffer.alloc(1);
+        length = 1 + cmd.text.length;
         buf.writeUInt8(cmd.text.length, 0);
 
-        return Buffer.concat([buf, Buffer.from(cmd.text, "ascii")]);
+        buf.write(cmd.text, 1, "ascii");
     }
     else if(type == CommandType.executeUntilReturn) {
         const cmd = <ExecuteUntilReturnCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.ping) {
         const cmd = <PingCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.banksAvailable) {
         const cmd = <BanksAvailableCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.registersAvailable) {
         const cmd = <RegistersAvailableCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.displayGet) {
         const cmd = <DisplayGetCommand>command;
-        const buf = Buffer.alloc(2);
+        length = 2;
         buf.writeUInt8(Number(cmd.useVicII), 0);
         buf.writeUInt8(cmd.format, 1);
-        return buf;
     }
     else if(type == CommandType.exit) {
         const cmd = <ExitCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.quit) {
         const cmd = <QuitCommand>command;
-        const buf = Buffer.alloc(0);
-        return buf;
+        length = 0;
     }
     else if(type == CommandType.reset) {
         const cmd = <ResetCommand>command;
-        const buf = Buffer.alloc(1);
+        length = 1;
         buf.writeUInt8(cmd.resetMethod, 0);
-
-        return buf;
     }
     else if(type == CommandType.autostart) {
         const cmd = <AutostartCommand>command;
-        const buf = Buffer.alloc(4);
+        length = 4 + cmd.filename.length;
         buf.writeUInt8(Number(cmd.run), 0);
         buf.writeUInt16LE(cmd.index, 1);
         buf.writeUInt8(cmd.filename.length, 3);
 
-        return Buffer.concat([buf, Buffer.from(cmd.filename, "ascii")]);
+        buf.write(cmd.filename, 4, "ascii");
     }
     else {
         throw new Error("Invalid VICE monitor command");
     }
+
+    return buf.slice(0, length);
 }
