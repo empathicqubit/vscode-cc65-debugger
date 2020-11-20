@@ -297,6 +297,7 @@ export class CallStackManager {
                     }
                     if(this._stackFrameStarts[end.id] == scope) {
                         nesting++;
+                        continue;
                     }
                     const endScope = this._stackFrameEnds[end.id];
                     if(endScope == scope) {
