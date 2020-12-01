@@ -1157,6 +1157,7 @@ or define the location manually with the launch.json->mapFile setting`
     private async _setupViceDataHandler() {
         const avail = await this._vice.execBinary<bin.RegistersAvailableCommand, bin.RegistersAvailableResponse>({
             type: bin.CommandType.registersAvailable,
+            memspace: bin.ViceMemspace.main,
         });
 
         this._registerMeta = {};

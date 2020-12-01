@@ -197,10 +197,12 @@ export interface ConditionSetResponse extends Response<ConditionSetCommand> {
 
 export interface RegistersGetCommand extends RegisterCommand {
     type: CommandType.registersGet;
+    memspace: ViceMemspace;
 }
 
 export interface RegistersSetCommand extends RegisterCommand {
     type: CommandType.registersSet;
+    memspace: ViceMemspace;
     registers: SingleRegisterInfo[];
 }
 
@@ -299,6 +301,7 @@ export interface BanksAvailableResponse extends Response<BanksAvailableCommand> 
 
 export interface RegistersAvailableCommand extends Command {
     type: CommandType.registersAvailable;
+    memspace: ViceMemspace;
 }
 
 export interface RegistersAvailableResponse extends Response<RegistersAvailableCommand> {
@@ -976,7 +979,8 @@ export function commandObjectToBytes(command: Command, buf: Buffer) : Buffer {
     }
     else if(type == CommandType.registersAvailable) {
         const cmd = <RegistersAvailableCommand>command;
-        length = 0;
+        buf.writeUInt8(cmd.memspace, 0);
+        length = 1;
     }
     else if(type == CommandType.displayGet) {
         const cmd = <DisplayGetCommand>command;
