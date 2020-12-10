@@ -128,6 +128,8 @@ Other shared settings:
 
 - **stopOnEntry**: This will break at the beginning of the program. Otherwise
 it will continue automatically after the debugger connects.
+- **stopOnExit**: This will break at the end of the program. Otherwise
+it will terminate automatically.
 
 Optional shared settings which may be helpful if things aren't working:
 
