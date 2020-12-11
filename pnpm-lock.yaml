@@ -1,5 +1,5 @@
 dependencies:
-  '@entan.gl/vice-rainbow-monitor': 1.0.5
+  '@entan.gl/vice-rainbow-monitor': 1.0.6
   await-notify: 1.0.1
   colors: 1.4.0
   get-port: 5.1.1
@@ -203,13 +203,14 @@ packages:
     dev: true
     resolution:
       integrity: sha512-bvM7Qz6eKnJVFIn+1LPtjlBFPVN5jNDc1XmN15vWe7Q3DPBufWWsLiIvUu7xW87uTG6QoggpIDnUgLQvPheU+Q==
-  /@entan.gl/vice-rainbow-monitor/1.0.5:
+  /@entan.gl/vice-rainbow-monitor/1.0.6:
     dependencies:
       colors: 1.4.0
+      death: 1.1.0
     dev: false
     hasBin: true
     resolution:
-      integrity: sha512-ZqiN5BZDlbSBEAGZAPOM5At0l5kedkDGzaWpkuhi1q9BgxqQbi+LHVys2igXyYIi29imHwSWCKUM9e/Mff/37Q==
+      integrity: sha512-q1SLUnsgmwiBDdBp5qdmX3X2fYE1nGDJSDTmTHtj2gFe2kObGieh6UdrWmD/K/lav4MQtFCv0sXkISSRzP5yPg==
   /@entan.gl/vsce/1.79.6:
     dependencies:
       azure-devops-node-api: 7.2.0
@@ -1268,6 +1269,10 @@ packages:
       node: '>=0.10'
     resolution:
       integrity: sha1-hTz6D3y+L+1d4gMmuN1YEDX24vA=
+  /death/1.1.0:
+    dev: false
+    resolution:
+      integrity: sha1-AaqcQB7dknUFFEcLgmY5DGbGcxg=
   /debug/2.6.9:
     dependencies:
       ms: 2.0.0
@@ -5185,7 +5190,7 @@ packages:
     resolution:
       integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==
 specifiers:
-  '@entan.gl/vice-rainbow-monitor': ^1.0.5
+  '@entan.gl/vice-rainbow-monitor': ^1.0.6
   '@entan.gl/vsce': ^1.79.6
   '@types/lodash': ^4.14.149
   '@types/mocha': ^8.0.3

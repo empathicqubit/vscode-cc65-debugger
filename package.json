@@ -69,7 +69,7 @@
         }
     },
     "dependencies": {
-        "@entan.gl/vice-rainbow-monitor": "^1.0.5",
+        "@entan.gl/vice-rainbow-monitor": "^1.0.6",
         "await-notify": "1.0.1",
         "colors": "^1.4.0",
         "get-port": "^5.1.1",
