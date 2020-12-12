@@ -211,150 +211,152 @@ suite('Runtime', () => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
         });
 
-        test('Starts and terminates successfully with intervention', async() => {
-            await rt.start(
-                PROGRAM, 
-                BUILD_CWD, 
-                true,
-                false,
-                false, 
-                VICE_DIRECTORY,
-                viceArgs, 
-                undefined, 
-                false,
-                DEBUG_FILE,
-                MAP_FILE,
-                LABEL_FILE
-            );
+        suite('Essential', () => {
+            test('Starts and terminates successfully with intervention', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
 
-            await waitFor(rt, 'stopOnEntry');
-            await rt.continue();
-            await debugUtils.delay(2000);
-            await rt.terminate();
-        });
+                await waitFor(rt, 'stopOnEntry');
+                await rt.continue();
+                await debugUtils.delay(2000);
+                await rt.terminate();
+            });
 
-        test('Can set a breakpoint', async() => {
-            await rt.start(
-                PROGRAM, 
-                BUILD_CWD, 
-                true,
-                false,
-                false, 
-                VICE_DIRECTORY,
-                viceArgs, 
-                undefined, 
-                false,
-                DEBUG_FILE,
-                MAP_FILE,
-                LABEL_FILE
-            );
+            test('Can set a breakpoint', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
 
-            await waitFor(rt, 'stopOnEntry');
+                await waitFor(rt, 'stopOnEntry');
 
-            await rt.setBreakPoint(MAIN_S, 12);
-            await all(
-                rt.continue(),
-                waitFor(rt, 'output', (type, __, file, line, col) => {
-                    assert.strictEqual(file, MAIN_S)
-                    assert.strictEqual(line, 12)
-                }),
-            );
+                await rt.setBreakPoint(MAIN_S, 12);
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_S)
+                        assert.strictEqual(line, 12)
+                    }),
+                );
 
-            await rt.terminate();
-        });
+                await rt.terminate();
+            });
 
-        test('Can step in', async() => {
-            await rt.start(
-                PROGRAM, 
-                BUILD_CWD, 
-                true,
-                false,
-                false, 
-                VICE_DIRECTORY,
-                viceArgs, 
-                undefined, 
-                false,
-                DEBUG_FILE,
-                MAP_FILE,
-                LABEL_FILE
-            );
+            test('Can step in', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
 
-            await waitFor(rt, 'stopOnEntry');
+                await waitFor(rt, 'stopOnEntry');
 
-            await rt.setBreakPoint(MAIN_S, 7);
-            await all(
-                rt.continue(),
-                waitFor(rt, 'output', (type, __, file, line, col) => {
-                    assert.strictEqual(file, MAIN_S)
-                    assert.strictEqual(line, 7)
-                }),
-            );
+                await rt.setBreakPoint(MAIN_S, 7);
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_S)
+                        assert.strictEqual(line, 7)
+                    }),
+                );
 
-            await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
-            await all(
-                rt.stepIn(),
-                waitFor(rt, 'output', (type, __, file, line, col) => {
-                    assert.strictEqual(file, MAIN_S)
-                    assert.strictEqual(line, 18)
-                }),
-            );
+                await all(
+                    rt.stepIn(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_S)
+                        assert.strictEqual(line, 18)
+                    }),
+                );
 
-            await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
-            await rt.terminate();
-        });
+                await rt.terminate();
+            });
 
-        test('Can step out', async() => {
-            await rt.start(
-                PROGRAM, 
-                BUILD_CWD, 
-                true,
-                false,
-                false, 
-                VICE_DIRECTORY,
-                viceArgs, 
-                undefined, 
-                false,
-                DEBUG_FILE,
-                MAP_FILE,
-                LABEL_FILE
-            );
+            test('Can step out', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
 
-            await waitFor(rt, 'stopOnEntry');
+                await waitFor(rt, 'stopOnEntry');
 
-            await rt.setBreakPoint(MAIN_S, 7);
-            await all(
-                rt.continue(),
-                waitFor(rt, 'output', (type, __, file, line, col) => {
-                    assert.strictEqual(file, MAIN_S)
-                    assert.strictEqual(line, 7)
-                }),
-            );
+                await rt.setBreakPoint(MAIN_S, 7);
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_S)
+                        assert.strictEqual(line, 7)
+                    }),
+                );
 
-            await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
-            await all(
-                rt.stepIn(),
-                waitFor(rt, 'output', (type, __, file, line, col) => {
-                    assert.strictEqual(file, MAIN_S)
-                    assert.strictEqual(line, 18)
-                }),
-            );
+                await all(
+                    rt.stepIn(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_S)
+                        assert.strictEqual(line, 18)
+                    }),
+                );
 
-            await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
-            await all(
-                rt.stepOut(),
-                waitFor(rt, 'output', (type, __, file, line, col) => {
-                    assert.strictEqual(file, MAIN_S)
-                    assert.strictEqual(line, 9)
-                }),
-            );
+                await all(
+                    rt.stepOut(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_S)
+                        assert.strictEqual(line, 9)
+                    }),
+                );
 
-            await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
-            await rt.terminate();
+                await rt.terminate();
+            });
         });
     });
 
@@ -397,7 +399,7 @@ suite('Runtime', () => {
             });
         });
 
-        suite('Basic', () => {
+        suite('Essential', () => {
             test('Starts and terminates successfully without intervention', async() => {
                 await rt.start(
                     PROGRAM, 

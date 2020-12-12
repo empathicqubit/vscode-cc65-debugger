@@ -56,7 +56,7 @@
         "vice:co": "svn checkout svn://svn.code.sf.net/p/vice-emu/code/trunk/vice ./src/tests/vicedir || svn cleanup ./src/tests/vicedir",
         "vice:build": "npm-run-all vice:co vice:configure vice:make",
         "mocha": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
-        "mocha:prepublish": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep '^Runtime Launch Basic' -u tdd ./out/tests/",
+        "mocha:prepublish": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep '\\bEssential\\b' -u tdd ./out/tests/",
         "test": "npm-run-all -p vice:build tisk && npm-run-all mocha",
         "test:prepublish": "npm-run-all -p vice:build tisk && npm-run-all mocha:prepublish",
         "postinstall": "node ./node_modules/vscode/bin/install",
