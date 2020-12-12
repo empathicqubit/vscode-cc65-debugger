@@ -4,13 +4,11 @@ import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol'
 import { CC65ViceDebugSession } from './debug-session';
-import * as languageClient from 'vscode-languageclient';
 import * as Net from 'net';
 import * as util from 'util';
 import * as debugUtils from './debug-utils';
 import { StatsWebview } from './stats-webview';
 import { DebugSession } from 'vscode-debugadapter';
-import { ShowMessageNotification } from 'vscode-languageclient';
 import * as metrics from './metrics';
 
 /*
@@ -60,8 +58,8 @@ export function activate(context: vscode.ExtensionContext) {
             StatsWebview.update(undefined, e.body.current);
         }
         else if(e.event == 'started') {
-            const terminal = 
-                vscode.window.terminals.find(x => x.name.includes('VICE Monitor')) 
+            const terminal =
+                vscode.window.terminals.find(x => x.name.includes('VICE Monitor'))
                 || vscode.window.terminals.find(x => x.name.includes('VICE'))
                 || vscode.window.terminals[0];
             terminal && terminal.show();
