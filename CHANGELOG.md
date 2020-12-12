@@ -1,4 +1,18 @@
 # Changelog
+## [2.7.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v2.6.0...v2.7.0) (2020-12-12)
+
+
+### Features
+
+* Feature test again ([dc3bb6d](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/dc3bb6dc88c9c6e1ed8125076e4d6eaf54d575ac))
+
+
+### Bug Fixes
+
+* Add release path ([3448519](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/34485190754660cc75d0ff5718a8a7c10c584d94))
+* Another fix test ([03a1eb9](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/03a1eb95329dd6d0fe8088fd70835f41266fa310))
+* major minor patch ([828c040](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/828c040f46af57f13d3168ff0c8c5c36ee05ee2c))
+
 ## [2.6.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v2.5.3...v2.6.0) (2020-12-12)
 
 
