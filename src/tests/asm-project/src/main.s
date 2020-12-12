@@ -16,6 +16,10 @@ end:
 RTS
 
 sub:
+JSR subsub
+RTS
+
+subsub:
 RTS
 
 helloworld: .byte "hello world", 0
