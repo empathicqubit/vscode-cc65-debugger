@@ -12,17 +12,14 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    container: node:13
 
     strategy:
       matrix:
-        node-version: [13.x]
+        testerson: [1.0, 3.5, 78.39]
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: pnpm package
