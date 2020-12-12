@@ -30,7 +30,12 @@ jobs:
         package-name: cc65-vice
         # what type of release is this, one of (ruby, python, node, terraform-module)
         release-type: node
-        #path: ./cc65-vice-${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}.vsix
-    - run: echo VERSION ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}
+    - uses: actions/upload-release-asset@v1
       env:
-        CI: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: ${{ steps.release.outputs.release_created }}
+      with:
+        upload_url: ${{ steps.release.outputs.upload_url }}
+        asset_path: ./cc65-vice.*.vsix
+        asset_name: ./cc65-vice-${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}.vsix
+        asset_content_type: application/zip
