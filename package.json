@@ -48,7 +48,7 @@
         "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all styles test:prepublish",
         "vscode:debug": "npm-run-all -p tisk webpack:debug styles",
         "vice:make": "cd ./src/tests/vicedir && make -j8",
-        "vice:configure:force": "cd ./src/tests/vicedir && bash ./autogen.sh && bash ./configure --enable-headlessui",
+        "vice:configure:force": "cd ./src/tests/vicedir && bash ./autogen.sh && bash ./configure --enable-headlessui --disable-pdf-docs",
         "vice:autogen:force": "cd ./src/tests/vicedir && bash ./autogen.sh && bash ./configure --enable-headlessui",
         "vice:autogen": "shx ls ./src/tests/vicedir/Makefile.in || npm-run-all vice:autogen:force",
         "vice:configure": "shx ls ./src/tests/vicedir/Makefile || npm-run-all vice:autogen vice:configure:force",
