@@ -167,6 +167,11 @@ export class Runtime extends EventEmitter {
         await this._postStart(stopOnEntry);
     }
 
+    private _updateCurrentAddress(address: number) : void {
+        this._currentAddress = address;
+        this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, address);
+    }
+
     private async _attachWait() : Promise<void> {
         if(!this._dbgFile.codeSeg) {
             return;
@@ -1099,7 +1104,7 @@ or define the location manually with the launch.json->mapFile setting`
                     });
                     this.sendEvent('message', 'error', 'CODE segment was modified. Your program may be broken!\n');
                 }
-                else if (this._exitIndexes.includes(brk.id)) {
+                else if (this._exitIndexes.includes(index)) {
                     if(!this._stopOnExit) {
                         await this.terminate();
                         return;
@@ -1111,7 +1116,7 @@ or define the location manually with the launch.json->mapFile setting`
                     }
                 }
                 else {
-                    const userBreak = this._breakPoints.find(x => x.viceIndex == brk.id);
+                    const userBreak = this._breakPoints.find(x => x.viceIndex == index);
                     if(userBreak) {
                         await this._doRunAhead();
                     }
@@ -1156,8 +1161,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
         else if(e.type == bin.ResponseType.stopped) {
             this.viceRunning = false;
-            this._currentAddress = (<bin.StoppedResponse>e).programCounter;
-            this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
+            this._updateCurrentAddress((<bin.StoppedResponse>e).programCounter);
 
             if(!this._viceStarting) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
@@ -1171,8 +1175,7 @@ or define the location manually with the launch.json->mapFile setting`
             }
 
             this.viceRunning = true;
-            this._currentAddress = (<bin.ResumedResponse>e).programCounter;
-            this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
+            this._updateCurrentAddress((<bin.ResumedResponse>e).programCounter);
 
             if(!this._viceStarting) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
@@ -1258,8 +1261,7 @@ or define the location manually with the launch.json->mapFile setting`
             filename: dumpFileName,
         };
         const undumpRes : bin.UndumpResponse = await this._vice.execBinary(undumpCmd);
-        this._currentAddress = undumpRes.programCounter;
-        this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, this._currentAddress);
+        this._updateCurrentAddress(undumpRes.programCounter);
 
         await util.promisify(fs.unlink)(dumpFileName);
 
