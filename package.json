@@ -1,330 +1,330 @@
 {
-    "name": "cc65-vice",
-    "displayName": "C64 CC65/VICE Debugger",
-    "version": "2.5.3",
-    "publisher": "entan-gl",
-    "description": "An extension to unify VSCode, CC65, and VICE monitor.",
-    "author": {
-        "name": "empathicqubit",
-        "email": "empathicqubit@entan.gl"
-    },
-    "license": "MIT",
-    "keywords": [
-        "cc65",
-        "vice",
-        "c64",
-        "commodore",
-        "debug"
-    ],
-    "engines": {
-        "vscode": "^1.42.0"
-    },
-    "icon": "images/icon.png",
-    "categories": [
-        "Debuggers"
-    ],
-    "private": true,
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug"
-    },
-    "bugs": {
-        "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
-    },
-    "scripts": {
-        "adapter": "webpack --config webpack.adapter.config.js --mode production",
-        "monitor": "webpack --config webpack.monitor.config.js --mode production",
-        "webviews": "webpack --config webpack.webviews.config.js --mode production",
-        "styles": "shx cp src/styles.css dist/styles.css",
-        "adapter:debug": "webpack --config webpack.adapter.config.js --mode development",
-        "monitor:debug": "webpack --config webpack.monitor.config.js --mode development",
-        "webviews:debug": "webpack --config webpack.webviews.config.js --mode development",
-        "extension": "webpack --config webpack.extension.config.js --mode production",
-        "extension:debug": "webpack --config webpack.extension.config.js --mode development",
-        "webpack": "webpack --mode production",
-        "webpack:debug": "webpack --mode development",
-        "tisk": "tsc -p src",
-        "inspect": "npm-run-all tisk && node --inspect-brk ./out/debug-adapter.js --server=4711",
-        "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all styles test:prepublish",
-        "vscode:debug": "npm-run-all -p tisk webpack:debug styles",
-        "vice:make": "cd ./src/tests/vicedir && make -j8",
-        "vice:configure:force": "cd ./src/tests/vicedir && bash ./configure --enable-headlessui --disable-pdf-docs",
-        "vice:autogen:force": "cd ./src/tests/vicedir && bash ./autogen.sh",
-        "vice:autogen": "shx ls ./src/tests/vicedir/Makefile.in || npm-run-all vice:autogen:force",
-        "vice:configure": "shx ls ./src/tests/vicedir/Makefile || npm-run-all vice:autogen vice:configure:force",
-        "vice:distclean": "cd ./src/tests/vicedir && make distclean",
-        "vice:co": "svn checkout svn://svn.code.sf.net/p/vice-emu/code/trunk/vice ./src/tests/vicedir || svn cleanup ./src/tests/vicedir",
-        "vice:build": "npm-run-all vice:co vice:configure vice:make",
-        "mocha": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
-        "mocha:prepublish": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep '\\bEssential\\b' -u tdd ./out/tests/",
-        "test": "npm-run-all -p vice:build tisk && npm-run-all mocha",
-        "test:prepublish": "npm-run-all -p vice:build tisk && npm-run-all mocha:prepublish",
-        "package": "vsce package --packageManager pnpm",
-        "publish": "vsce publish --packageManager pnpm"
-    },
-    "fork-ts-checker": {
-        "typescript": {
-            "configFile": "src/tsconfig.json"
-        }
-    },
-    "dependencies": {
-        "@entan.gl/vice-rainbow-monitor": "^1.0.6",
-        "await-notify": "1.0.1",
-        "colors": "^1.4.0",
-        "get-port": "^5.1.1",
-        "hasbin": "^1.2.3",
-        "lodash": "^4.17.15",
-        "node-watch": "^0.6.4",
-        "performance-now": "^2.1.0",
-        "pngjs": "^5.0.0",
-        "react": "^16.13.1",
-        "react-canvas-wrapper": "^0.5.1",
-        "react-dom": "^16.13.1",
-        "recursive-readdir": "^2.2.2",
-        "tga": "^1.0.4",
-        "tga-js": "^1.1.0",
-        "tmp": "^0.1.0",
-        "universal-analytics": "^0.4.23",
-        "vscode-debugadapter": "1.38.0",
-        "wait-port": "^0.2.7"
-    },
-    "devDependencies": {
-        "@entan.gl/vsce": "^1.79.6",
-        "@types/lodash": "^4.14.149",
-        "@types/mocha": "^8.0.3",
-        "@types/node": "^14.6.4",
-        "@types/react": "^16.9.49",
-        "@types/universal-analytics": "^0.4.4",
-        "@types/vscode": "1.42",
-        "mocha": "^8.1.3",
-        "npm-run-all": "^4.1.5",
-        "nyc": "^15.1.0",
-        "shebang-loader": "^0.0.1",
-        "shx": "^0.3.2",
-        "ts-loader": "^6.2.1",
-        "ts-node": "^8.10.2",
-        "tslint": "5.18.0",
-        "typescript": "^3.7.5",
-        "vscode-debugadapter-testsupport": "1.40.1",
-        "vscode-debugprotocol": "^1.41.0",
-        "webpack": "^4.44.2",
-        "webpack-cli": "^3.3.12",
-        "why-is-node-running": "^2.2.0"
-    },
-    "main": "./dist/extension",
-    "activationEvents": [
-        "onDebug",
-        "onLanguage:c",
-        "onLanguage:cpp",
-        "onLanguage:ca65",
-        "onCommand:cc65-vice.stats"
-    ],
-    "contributes": {
-        "configuration": {
-            "title": "CC65 VICE Debugger",
-            "properties": {
-                "cc65vice.viceDirectory": {
-                    "type": [
-                        "string",
-                        "null"
-                    ],
-                    "default": null,
-                    "description": "The directory containing VICE Emulator. Set this if you're on Windows."
-                },
-                "cc65vice.preferX64OverX64sc": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Use X64, which is not recommended."
-                },
-                "cc65vice.disableMetrics": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Turn off extension metric tracking."
-                },
-                "cc65vice.runAhead": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately."
-                }
-            }
-        },
-        "commands": [],
-        "breakpoints": [
-            {
-                "language": "c"
-            },
-            {
-                "language": "ca65"
-            }
-        ],
-        "languages": [
-            {
-                "id": "ca65",
-                "aliases": [
-                    "6502/65816 Assembly",
-                    "ca65"
-                ],
-                "extensions": [
-                    ".asm",
-                    ".inc",
-                    ".s",
-                    ".a65"
-                ],
-                "configuration": "./language-configuration.json"
-            }
-        ],
-        "grammars": [
-            {
-                "language": "ca65",
-                "scopeName": "source.ca65",
-                "path": "./syntaxes/ca65.tmLanguage.json"
-            }
-        ],
-        "debuggers": [
-            {
-                "type": "cc65-vice",
-                "label": "CC65 VICE debugger",
-                "program": "./dist/debug-adapter.js",
-                "runtime": "node",
-                "configurationAttributes": {
-                    "attach": {
-                        "required": [
-                            "buildCwd"
-                        ],
-                        "properties": {
-                            "stopOnEntry": {
-                                "type": "boolean",
-                                "description": "Automatically stop after hitting the beginning of main().",
-                                "default": true
-                            },
-                            "stopOnExit": {
-                                "type": "boolean",
-                                "description": "Automatically stop after hitting the end of main().",
-                                "default": true
-                            },
-                            "buildCwd": {
-                                "type": "string",
-                                "description": "The full absolute path where the source was built. Default is '${workspaceFolder}'",
-                                "default": "${workspaceFolder}"
-                            },
-                            "program": {
-                                "type": "string",
-                                "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
-                            },
-                            "debugFile": {
-                                "type": "string",
-                                "description": "The debug file path. Use this if autodetection fails."
-                            },
-                            "mapFile": {
-                                "type": "string",
-                                "description": "The map file path. Use this if autodetection fails."
-                            },
-                            "attachPort": {
-                                "type": "number",
-                                "description": "The port number to attach to in attach mode. This is the port configured with VICE's -binarymonitoraddress option.",
-                                "default": 6502
-                            },
-                            "trace": {
-                                "type": "boolean",
-                                "description": "Enable logging of the Debug Adapter Protocol.",
-                                "default": true
-                            }
-                        }
-                    },
-                    "launch": {
-                        "required": [
-                            "buildCwd"
-                        ],
-                        "properties": {
-                            "buildCommand": {
-                                "type": "string",
-                                "description": "The command to use to build before execution. Default is 'make'",
-                                "default": "make OPTIONS=debugfile,makefile,labelfile"
-                            },
-                            "preprocessCommand": {
-                                "type": "string",
-                                "description": "The command to use to generate preprocessor .i files before execution. Default is 'make preprocess-only'",
-                                "default": "make OPTIONS=debugfile,makefile,labelfile preprocess-only"
-                            },
-                            "stopOnEntry": {
-                                "type": "boolean",
-                                "description": "Automatically stop after hitting the beginning of main().",
-                                "default": true
-                            },
-                            "stopOnExit": {
-                                "type": "boolean",
-                                "description": "Automatically stop after hitting the end of main().",
-                                "default": true
-                            },
-                            "buildCwd": {
-                                "type": "string",
-                                "description": "The full absolute path to run the build command in. Default is '${workspaceFolder}'",
-                                "default": "${workspaceFolder}"
-                            },
-                            "program": {
-                                "type": "string",
-                                "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
-                            },
-                            "debugFile": {
-                                "type": "string",
-                                "description": "The debug file path. Use this if autodetection fails."
-                            },
-                            "mapFile": {
-                                "type": "string",
-                                "description": "The map file path. Use this if autodetection fails."
-                            },
-                            "viceArgs": {
-                                "type": "array",
-                                "description": "The arguments to pass to the VICE command line. You should at the very least set your model type here, since that is specific to the project."
-                            },
-                            "trace": {
-                                "type": "boolean",
-                                "description": "Enable logging of the Debug Adapter Protocol.",
-                                "default": true
-                            }
-                        }
-                    }
-                },
-                "initialConfigurations": [
-                    {
-                        "type": "cc65-vice",
-                        "request": "launch",
-                        "name": "CC65 Vice Launch",
-                        "buildCwd": "${workspaceFolder}",
-                        "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
-                        "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
-                        "stopOnEntry": true,
-                        "stopOnExit": true,
-                        "viceArgs": [
-                            "-model",
-                            "ntsc"
-                        ]
-                    }
-                ],
-                "configurationSnippets": [
-                    {
-                        "label": "C64: CC65 VICE Debug",
-                        "description": "A configuration to debug a C64 CC65 project with VICE.",
-                        "body": {
-                            "type": "cc65-vice",
-                            "request": "launch",
-                            "name": "CC65 Vice Launch",
-                            "buildCwd": "^\"\\${workspaceFolder}\"",
-                            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
-                            "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
-                            "stopOnEntry": true,
-                            "stopOnExit": true,
-                            "viceArgs": [
-                                "-model",
-                                "ntsc"
-                            ]
-                        }
-                    }
-                ],
-                "variables": {
-                    "AskForProgramName": "extension.cc65-vice.getProgramName"
-                }
-            }
-        ]
+  "name": "cc65-vice",
+  "displayName": "C64 CC65/VICE Debugger",
+  "version": "2.6.0",
+  "publisher": "entan-gl",
+  "description": "An extension to unify VSCode, CC65, and VICE monitor.",
+  "author": {
+    "name": "empathicqubit",
+    "email": "empathicqubit@entan.gl"
+  },
+  "license": "MIT",
+  "keywords": [
+    "cc65",
+    "vice",
+    "c64",
+    "commodore",
+    "debug"
+  ],
+  "engines": {
+    "vscode": "^1.42.0"
+  },
+  "icon": "images/icon.png",
+  "categories": [
+    "Debuggers"
+  ],
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug"
+  },
+  "bugs": {
+    "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
+  },
+  "scripts": {
+    "adapter": "webpack --config webpack.adapter.config.js --mode production",
+    "monitor": "webpack --config webpack.monitor.config.js --mode production",
+    "webviews": "webpack --config webpack.webviews.config.js --mode production",
+    "styles": "shx cp src/styles.css dist/styles.css",
+    "adapter:debug": "webpack --config webpack.adapter.config.js --mode development",
+    "monitor:debug": "webpack --config webpack.monitor.config.js --mode development",
+    "webviews:debug": "webpack --config webpack.webviews.config.js --mode development",
+    "extension": "webpack --config webpack.extension.config.js --mode production",
+    "extension:debug": "webpack --config webpack.extension.config.js --mode development",
+    "webpack": "webpack --mode production",
+    "webpack:debug": "webpack --mode development",
+    "tisk": "tsc -p src",
+    "inspect": "npm-run-all tisk && node --inspect-brk ./out/debug-adapter.js --server=4711",
+    "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all styles test:prepublish",
+    "vscode:debug": "npm-run-all -p tisk webpack:debug styles",
+    "vice:make": "cd ./src/tests/vicedir && make -j8",
+    "vice:configure:force": "cd ./src/tests/vicedir && bash ./configure --enable-headlessui --disable-pdf-docs",
+    "vice:autogen:force": "cd ./src/tests/vicedir && bash ./autogen.sh",
+    "vice:autogen": "shx ls ./src/tests/vicedir/Makefile.in || npm-run-all vice:autogen:force",
+    "vice:configure": "shx ls ./src/tests/vicedir/Makefile || npm-run-all vice:autogen vice:configure:force",
+    "vice:distclean": "cd ./src/tests/vicedir && make distclean",
+    "vice:co": "svn checkout svn://svn.code.sf.net/p/vice-emu/code/trunk/vice ./src/tests/vicedir || svn cleanup ./src/tests/vicedir",
+    "vice:build": "npm-run-all vice:co vice:configure vice:make",
+    "mocha": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
+    "mocha:prepublish": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep '\\bEssential\\b' -u tdd ./out/tests/",
+    "test": "npm-run-all -p vice:build tisk && npm-run-all mocha",
+    "test:prepublish": "npm-run-all -p vice:build tisk && npm-run-all mocha:prepublish",
+    "package": "vsce package --packageManager pnpm",
+    "publish": "vsce publish --packageManager pnpm"
+  },
+  "fork-ts-checker": {
+    "typescript": {
+      "configFile": "src/tsconfig.json"
     }
+  },
+  "dependencies": {
+    "@entan.gl/vice-rainbow-monitor": "^1.0.6",
+    "await-notify": "1.0.1",
+    "colors": "^1.4.0",
+    "get-port": "^5.1.1",
+    "hasbin": "^1.2.3",
+    "lodash": "^4.17.15",
+    "node-watch": "^0.6.4",
+    "performance-now": "^2.1.0",
+    "pngjs": "^5.0.0",
+    "react": "^16.13.1",
+    "react-canvas-wrapper": "^0.5.1",
+    "react-dom": "^16.13.1",
+    "recursive-readdir": "^2.2.2",
+    "tga": "^1.0.4",
+    "tga-js": "^1.1.0",
+    "tmp": "^0.1.0",
+    "universal-analytics": "^0.4.23",
+    "vscode-debugadapter": "1.38.0",
+    "wait-port": "^0.2.7"
+  },
+  "devDependencies": {
+    "@entan.gl/vsce": "^1.79.6",
+    "@types/lodash": "^4.14.149",
+    "@types/mocha": "^8.0.3",
+    "@types/node": "^14.6.4",
+    "@types/react": "^16.9.49",
+    "@types/universal-analytics": "^0.4.4",
+    "@types/vscode": "1.42",
+    "mocha": "^8.1.3",
+    "npm-run-all": "^4.1.5",
+    "nyc": "^15.1.0",
+    "shebang-loader": "^0.0.1",
+    "shx": "^0.3.2",
+    "ts-loader": "^6.2.1",
+    "ts-node": "^8.10.2",
+    "tslint": "5.18.0",
+    "typescript": "^3.7.5",
+    "vscode-debugadapter-testsupport": "1.40.1",
+    "vscode-debugprotocol": "^1.41.0",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12",
+    "why-is-node-running": "^2.2.0"
+  },
+  "main": "./dist/extension",
+  "activationEvents": [
+    "onDebug",
+    "onLanguage:c",
+    "onLanguage:cpp",
+    "onLanguage:ca65",
+    "onCommand:cc65-vice.stats"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "CC65 VICE Debugger",
+      "properties": {
+        "cc65vice.viceDirectory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "The directory containing VICE Emulator. Set this if you're on Windows."
+        },
+        "cc65vice.preferX64OverX64sc": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use X64, which is not recommended."
+        },
+        "cc65vice.disableMetrics": {
+          "type": "boolean",
+          "default": false,
+          "description": "Turn off extension metric tracking."
+        },
+        "cc65vice.runAhead": {
+          "type": "boolean",
+          "default": true,
+          "description": "When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately."
+        }
+      }
+    },
+    "commands": [],
+    "breakpoints": [
+      {
+        "language": "c"
+      },
+      {
+        "language": "ca65"
+      }
+    ],
+    "languages": [
+      {
+        "id": "ca65",
+        "aliases": [
+          "6502/65816 Assembly",
+          "ca65"
+        ],
+        "extensions": [
+          ".asm",
+          ".inc",
+          ".s",
+          ".a65"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ca65",
+        "scopeName": "source.ca65",
+        "path": "./syntaxes/ca65.tmLanguage.json"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "cc65-vice",
+        "label": "CC65 VICE debugger",
+        "program": "./dist/debug-adapter.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "attach": {
+            "required": [
+              "buildCwd"
+            ],
+            "properties": {
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after hitting the beginning of main().",
+                "default": true
+              },
+              "stopOnExit": {
+                "type": "boolean",
+                "description": "Automatically stop after hitting the end of main().",
+                "default": true
+              },
+              "buildCwd": {
+                "type": "string",
+                "description": "The full absolute path where the source was built. Default is '${workspaceFolder}'",
+                "default": "${workspaceFolder}"
+              },
+              "program": {
+                "type": "string",
+                "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
+              },
+              "debugFile": {
+                "type": "string",
+                "description": "The debug file path. Use this if autodetection fails."
+              },
+              "mapFile": {
+                "type": "string",
+                "description": "The map file path. Use this if autodetection fails."
+              },
+              "attachPort": {
+                "type": "number",
+                "description": "The port number to attach to in attach mode. This is the port configured with VICE's -binarymonitoraddress option.",
+                "default": 6502
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              }
+            }
+          },
+          "launch": {
+            "required": [
+              "buildCwd"
+            ],
+            "properties": {
+              "buildCommand": {
+                "type": "string",
+                "description": "The command to use to build before execution. Default is 'make'",
+                "default": "make OPTIONS=debugfile,makefile,labelfile"
+              },
+              "preprocessCommand": {
+                "type": "string",
+                "description": "The command to use to generate preprocessor .i files before execution. Default is 'make preprocess-only'",
+                "default": "make OPTIONS=debugfile,makefile,labelfile preprocess-only"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after hitting the beginning of main().",
+                "default": true
+              },
+              "stopOnExit": {
+                "type": "boolean",
+                "description": "Automatically stop after hitting the end of main().",
+                "default": true
+              },
+              "buildCwd": {
+                "type": "string",
+                "description": "The full absolute path to run the build command in. Default is '${workspaceFolder}'",
+                "default": "${workspaceFolder}"
+              },
+              "program": {
+                "type": "string",
+                "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
+              },
+              "debugFile": {
+                "type": "string",
+                "description": "The debug file path. Use this if autodetection fails."
+              },
+              "mapFile": {
+                "type": "string",
+                "description": "The map file path. Use this if autodetection fails."
+              },
+              "viceArgs": {
+                "type": "array",
+                "description": "The arguments to pass to the VICE command line. You should at the very least set your model type here, since that is specific to the project."
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch",
+            "buildCwd": "${workspaceFolder}",
+            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+            "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "viceArgs": [
+              "-model",
+              "ntsc"
+            ]
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "C64: CC65 VICE Debug",
+            "description": "A configuration to debug a C64 CC65 project with VICE.",
+            "body": {
+              "type": "cc65-vice",
+              "request": "launch",
+              "name": "CC65 Vice Launch",
+              "buildCwd": "^\"\\${workspaceFolder}\"",
+              "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+              "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
+              "stopOnEntry": true,
+              "stopOnExit": true,
+              "viceArgs": [
+                "-model",
+                "ntsc"
+              ]
+            }
+          }
+        ],
+        "variables": {
+          "AskForProgramName": "extension.cc65-vice.getProgramName"
+        }
+      }
+    ]
+  }
 }

@@ -1,4 +1,11 @@
 # Changelog
+## [2.6.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v2.5.3...v2.6.0) (2020-12-12)
+
+
+### Features
+
+* This is a feature test ([00fc3e0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/00fc3e06fcb7928fab3a9dca6bd8d58c0d8a9036))
+
 ## 2.5.3
 * More memory optimizations.
 
