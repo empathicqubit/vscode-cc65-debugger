@@ -1082,6 +1082,7 @@ or define the location manually with the launch.json->mapFile setting`
                     else {
                         await this._doRunAhead();
                         this._exitQueued = true;
+                        this.sendEvent('stopOnExit');
                     }
                 }
                 else {

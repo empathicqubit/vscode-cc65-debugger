@@ -150,11 +150,16 @@ export class CallStackManager {
 
     public async getExitAddresses() : Promise<number[]> {
         const codeSeg = this._dbgFile.codeSeg;
-        if(!this._dbgFile.mainScope || !codeSeg) {
+        if(!codeSeg) {
             return [];
         }
 
         const codeSegMem = await this._vice.getMemory(codeSeg.start, codeSeg.size);
+
+        if(!this._dbgFile.mainScope) {
+            return [];
+        }
+
         const mainFrames = await this._getStackFramesForScope(this._dbgFile.mainScope, this._dbgFile.mainScope, codeSegMem);
         if(!mainFrames) {
             return [];

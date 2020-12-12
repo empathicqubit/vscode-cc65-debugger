@@ -236,6 +236,37 @@ suite('Runtime', () => {
             });
         });
 
+        suite('Assembly', () => {
+            const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/asm-project');
+            const MAP_FILE = BUILD_CWD + '/asm-project.c64.map';
+            const DEBUG_FILE = BUILD_CWD + '/asm-project.c64.dbg';
+            const LABEL_FILE = BUILD_CWD + '/asm-project.c64.lbl';
+            const PROGRAM = BUILD_CWD + '/asm-project.c64'
+            const VICE_DIRECTORY = path.normalize(BUILD_CWD + '/../vicedir/src');
+
+            test('Starts and terminates successfully with intervention', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+                await rt.continue();
+                await debugUtils.delay(2000);
+                await rt.terminate();
+            });
+        });
+
         suite('Basic', () => {
             test('Starts and terminates successfully without intervention', async() => {
                 await rt.start(
