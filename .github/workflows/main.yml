@@ -20,6 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - run: apt update
     - run: apt build-dep --no-install-recommends -y vice
     - run: npm install -g pnpm@5.5.10
     - run: pnpm install --shamefully-hoist
