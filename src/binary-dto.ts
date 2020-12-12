@@ -257,7 +257,7 @@ export interface ResourceSetResponse extends Response<ResourceSetCommand> {
 
 export interface AdvanceInstructionsCommand extends Command {
     type: CommandType.advanceInstructions;
-    subroutines: boolean;
+    stepOverSubroutines: boolean;
     count: number;
 }
 
@@ -955,7 +955,7 @@ export function commandObjectToBytes(command: Command, buf: Buffer) : Buffer {
     else if(type == CommandType.advanceInstructions) {
         const cmd = <AdvanceInstructionsCommand>command;
         length = 3;
-        buf.writeUInt8(Number(cmd.subroutines), 0);
+        buf.writeUInt8(Number(cmd.stepOverSubroutines), 0);
         buf.writeUInt16LE(cmd.count, 1);
     }
     else if(type == CommandType.keyboardFeed) {

@@ -115,8 +115,8 @@ export class CallStackManager {
         });
         i++;
 
-        if(/\.s$/i.test(currentFile)) {
-            const cLine = this._dbgFile.lines.find(x => x.file && /\.c$/i.test(x.file.name) && x.span && x.span.absoluteAddress <= currentAddress && currentAddress < x.span.absoluteAddress + x.span.size)
+        if(/\.s$/gi.test(currentFile)) {
+            const cLine = this._dbgFile.lines.find(x => x.file && /\.c$/gi.test(x.file.name) && x.span && x.span.absoluteAddress <= currentAddress && currentAddress < x.span.absoluteAddress + x.span.size)
             if(cLine) {
                 frames.push({
                     index: i,

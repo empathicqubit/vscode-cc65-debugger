@@ -567,7 +567,7 @@ or define the location manually with the launch.json->mapFile setting`
             if(!nextLine) {
                 await this._vice.execBinary<bin.AdvanceInstructionsCommand, bin.AdvanceInstructionsResponse>({
                     type: bin.CommandType.advanceInstructions,
-                    subroutines: false,
+                    stepOverSubroutines: false,
                     count: 1,
                 });
             }
@@ -651,22 +651,33 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
-        await this._callStackManager.withFrameBreaksEnabled(async () => {
-            const nextLine = this._getNextLine();
-            const breaks = await this._setLineGuard(this._currentPosition, nextLine);
+        if(this._currentPosition.file && /\.s$/gi.test(this._currentPosition.file.name)) {
+            const stepCmd : bin.AdvanceInstructionsCommand = {
+                type: bin.CommandType.advanceInstructions,
+                stepOverSubroutines: false,
+                count: 1,
+            };
 
-            await this.continue();
-            await this._vice.waitForStop();
+            await this._vice.execBinary(stepCmd);
+        }
+        else {
+            await this._callStackManager.withFrameBreaksEnabled(async () => {
+                const nextLine = this._getNextLine();
+                const breaks = await this._setLineGuard(this._currentPosition, nextLine);
 
-            if(breaks) {
-                const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
-                    type: bin.CommandType.checkpointDelete,
-                    id: x.id,
-                }));
+                await this.continue();
+                await this._vice.waitForStop();
 
-                await this._vice.multiExecBinary(delBrks);
-            }
-        });
+                if(breaks) {
+                    const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
+                        type: bin.CommandType.checkpointDelete,
+                        id: x.id,
+                    }));
+
+                    await this._vice.multiExecBinary(delBrks);
+                }
+            });
+        }
 
         await this._doRunAhead();
 
