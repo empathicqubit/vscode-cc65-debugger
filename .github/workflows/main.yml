@@ -30,7 +30,7 @@ jobs:
         package-name: cc65-vice
         # what type of release is this, one of (ruby, python, node, terraform-module)
         release-type: node
-        path: ./cc65-vice-${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}.vsix
+        #path: ./cc65-vice-${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}.vsix
     - run: echo VERSION ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}
       env:
         CI: true
