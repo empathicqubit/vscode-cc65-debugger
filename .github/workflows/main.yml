@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: npm install -g pnpm
+    - run: npm install -g pnpm@5.5.10
     - run: pnpm install --shamefully-hoist
     - run: pnpm package
       env:
