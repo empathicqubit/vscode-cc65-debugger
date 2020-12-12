@@ -244,6 +244,8 @@ suite('Runtime', () => {
             const PROGRAM = BUILD_CWD + '/asm-project.c64'
             const VICE_DIRECTORY = path.normalize(BUILD_CWD + '/../vicedir/src');
 
+            const MAIN_S = path.join(BUILD_CWD, "src/main.s")
+
             test('Starts and terminates successfully with intervention', async() => {
                 await rt.start(
                     PROGRAM, 
@@ -263,6 +265,36 @@ suite('Runtime', () => {
                 await waitFor(rt, 'stopOnEntry');
                 await rt.continue();
                 await debugUtils.delay(2000);
+                await rt.terminate();
+            });
+
+            test('Can set a breakpoint', async() => {
+                await rt.start(
+                    PROGRAM, 
+                    BUILD_CWD, 
+                    true,
+                    false,
+                    false, 
+                    VICE_DIRECTORY,
+                    viceArgs, 
+                    undefined, 
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+
+                await rt.setBreakPoint(MAIN_S, 12);
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_S)
+                        assert.strictEqual(line, 12)
+                    }),
+                );
+
                 await rt.terminate();
             });
         });
