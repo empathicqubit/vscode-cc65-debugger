@@ -59,7 +59,6 @@
         "mocha:prepublish": "nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep '\\bEssential\\b' -u tdd ./out/tests/",
         "test": "npm-run-all -p vice:build tisk && npm-run-all mocha",
         "test:prepublish": "npm-run-all -p vice:build tisk && npm-run-all mocha:prepublish",
-        "postinstall": "node ./node_modules/vscode/bin/install",
         "package": "vsce package --packageManager pnpm",
         "publish": "vsce publish --packageManager pnpm"
     },

@@ -29,7 +29,7 @@ suite('Runtime', () => {
     let seq = 0;
     let request_seq = 0;
     let rt : Runtime;
-    let viceArgs : string[] = [];
+    let viceArgs : string[] = ['-sounddev', 'dummy'];
     let pids : number[] = [];
 
     const waitFor = async(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> => {
@@ -214,14 +214,14 @@ suite('Runtime', () => {
         suite('Essential', () => {
             test('Starts and terminates successfully with intervention', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -236,14 +236,14 @@ suite('Runtime', () => {
 
             test('Can set a breakpoint', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -266,14 +266,14 @@ suite('Runtime', () => {
 
             test('Can step in', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -308,14 +308,14 @@ suite('Runtime', () => {
 
             test('Can step out', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -402,14 +402,14 @@ suite('Runtime', () => {
         suite('Essential', () => {
             test('Starts and terminates successfully without intervention', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     false,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined, 
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -425,14 +425,14 @@ suite('Runtime', () => {
 
             test('Breaks at the entry point', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -446,14 +446,14 @@ suite('Runtime', () => {
 
             test('Breaks at the exit point', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     false,
                     true,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -472,14 +472,14 @@ suite('Runtime', () => {
 
             test('Can set a shitton of breakpoints without them clearing', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     false,
                     true,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -518,14 +518,14 @@ suite('Runtime', () => {
 
             test('Can step out', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -565,14 +565,14 @@ suite('Runtime', () => {
 
             test('Can step in', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -602,14 +602,14 @@ suite('Runtime', () => {
 
             test('Contains the correct local variables', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -644,14 +644,14 @@ suite('Runtime', () => {
         suite('Headless', () => {
             test('Image grab works', async() => {
                 await rt.start(
-                    PROGRAM, 
+                    PROGRAM,
                     BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -672,14 +672,14 @@ suite('Runtime', () => {
         suite('Stack', () => {
             test('Contains the frames plus the current position', async () => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -729,14 +729,14 @@ suite('Runtime', () => {
 
             test('Step in', async () => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    false, 
+                    false,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -775,19 +775,19 @@ suite('Runtime', () => {
                             index: 0,
                             name: '0x0840',
                             file: MAIN_C,
-                            line: stepsOffset + 1, 
+                            line: stepsOffset + 1,
                         },
                         {
                             index: 1,
                             name: 'steps',
                             file: MAIN_C,
-                            line: stepsOffset + 1 
+                            line: stepsOffset + 1
                         },
                         {
                             index: 2,
                             name: 'main',
                             file: MAIN_C,
-                            line: mainOffset + 2 
+                            line: mainOffset + 2
                         }
                         ],
                         count: 3
@@ -802,14 +802,14 @@ suite('Runtime', () => {
         suite('Runahead', () => {
             test('Restores the original location', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    true, 
+                    true,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -823,14 +823,14 @@ suite('Runtime', () => {
 
             test('Triggered by breakpoint', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    true, 
+                    true,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -849,14 +849,14 @@ suite('Runtime', () => {
 
             test('Triggered by step', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    true, 
+                    true,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -874,14 +874,14 @@ suite('Runtime', () => {
 
             test('Triggered by pause', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    true, 
+                    true,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -901,14 +901,14 @@ suite('Runtime', () => {
 
             test('Triggered by step in', async() => {
                 await rt.start(
-                    PROGRAM, 
-                    BUILD_CWD, 
+                    PROGRAM,
+                    BUILD_CWD,
                     true,
                     false,
-                    true, 
+                    true,
                     VICE_DIRECTORY,
-                    viceArgs, 
-                    undefined, 
+                    viceArgs,
+                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,

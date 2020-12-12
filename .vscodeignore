@@ -1,5 +1,6 @@
 .vscode/**/*
 .gitignore
+.pnpm-store/**/*
 .travis.yml
 appveyor.yml
 node_modules/**/*
