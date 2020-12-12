@@ -24,6 +24,7 @@ jobs:
     - run: grep 'debian.org/debian [[:alpha:]]* main' /etc/apt/sources.list | grep -v '#' | sed -e 's/^deb/deb-src/g' >> /etc/apt/sources.list
     - run: apt-get update
     - run: apt-get build-dep --no-install-recommends -y vice
+    - run: apt-get install dos2unix
     - run: npm install -g pnpm@5.5.10
     - run: pnpm install --shamefully-hoist
     - run: pnpm package
