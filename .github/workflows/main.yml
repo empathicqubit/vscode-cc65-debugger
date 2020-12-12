@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-    - "[0-9].[0-9].[0-9]"
+    branches:
+      - master
 
 jobs:
   build:
@@ -17,7 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: npm --no-git-tag-version version $(basename "${{github.ref}}")
     - run: bash ./docker.sh
     - run: pnpm package
     - name: release-please-action
@@ -31,5 +30,6 @@ jobs:
         package-name: cc65-vice
         # what type of release is this, one of (ruby, python, node, terraform-module)
         release-type: node
+    - run: echo VERSION ${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}
       env:
         CI: true
