@@ -5,21 +5,22 @@ on:
     branches:
       - master
   pull_request:
-    branches: 
+    branches:
       - master
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: node:13
+    container: node:13-buster
 
     strategy:
       matrix:
-        testerson: [1] #Add versions here
+          vice-version: [3.5] #Add versions here
 
     steps:
     - uses: actions/checkout@v2
+    - run: apt build-dep --no-install-recommends -y vice
     - run: npm install -g pnpm@5.5.10
     - run: pnpm install --shamefully-hoist
     - run: pnpm package
