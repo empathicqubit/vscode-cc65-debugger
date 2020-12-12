@@ -1,3 +1,4 @@
+set -x -e
 sed -i 's@debian.org/debian [[:alpha:]]* main@& contrib@g' /etc/apt/sources.list
 grep 'debian.org/debian [[:alpha:]]* main' /etc/apt/sources.list | grep -v '#' | sed -e 's/^deb/deb-src/g' >> /etc/apt/sources.list
 apt-get update
