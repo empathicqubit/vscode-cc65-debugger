@@ -57,7 +57,7 @@ export class CallStackManager {
         scopeEndFrames.push(...res.exitAddresses);
         for(const jumpAddress of res.jumpAddresses) {
             const cSpan = this._dbgFile.spans
-                .find(x => x.absoluteAddress <= jumpAddress.address && x.lines.find(x => x.file && /.c$/.test(x.file.name)));
+                .find(x => x.absoluteAddress <= jumpAddress.address && x.lines.find(x => x.file && x.file.type == debugFile.SourceFileType.C));
             if(cSpan) {
                 jumpAddress.address = cSpan.absoluteAddress;
             }
@@ -116,7 +116,7 @@ export class CallStackManager {
         i++;
 
         if(/\.s$/gi.test(currentFile)) {
-            const cLine = this._dbgFile.lines.find(x => x.file && /\.c$/gi.test(x.file.name) && x.span && x.span.absoluteAddress <= currentAddress && currentAddress < x.span.absoluteAddress + x.span.size)
+            const cLine = this._dbgFile.lines.find(x => x.file && x.file.type == debugFile.SourceFileType.C && x.span && x.span.absoluteAddress <= currentAddress && currentAddress < x.span.absoluteAddress + x.span.size)
             if(cLine) {
                 frames.push({
                     index: i,
@@ -385,7 +385,7 @@ export class CallStackManager {
         return res;
     }
     
-    public async returnToLastStackFrame(vice: ViceGrip) : Promise<boolean> {
+    public async returnToLastStackFrame() : Promise<boolean> {
         this.flushFrames();
 
         const lastFrame = this._stackFrames[this._stackFrames.length - 2];
@@ -396,8 +396,8 @@ export class CallStackManager {
         const begin = lastFrame.scope.codeSpan!.absoluteAddress;
         const end = lastFrame.scope.codeSpan!.absoluteAddress + lastFrame.scope.codeSpan!.size - 1;
 
-        await vice.withAllBreaksDisabled(async() => {
-            const brk = await vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
+        await this._vice.withAllBreaksDisabled(async() => {
+            const brk = await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
                 type: bin.CommandType.checkpointSet,
                 startAddress: begin,
                 endAddress: end,
@@ -407,7 +407,7 @@ export class CallStackManager {
                 operation: bin.CpuOperation.exec,
             });
 
-            await vice.waitForStop(brk.startAddress, brk.endAddress);
+            await this._vice.waitForStop(brk.startAddress, brk.endAddress);
 
         });
 

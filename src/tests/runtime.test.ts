@@ -304,6 +304,58 @@ suite('Runtime', () => {
 
             await rt.terminate();
         });
+
+        test('Can step out', async() => {
+            await rt.start(
+                PROGRAM, 
+                BUILD_CWD, 
+                true,
+                false,
+                false, 
+                VICE_DIRECTORY,
+                viceArgs, 
+                undefined, 
+                false,
+                DEBUG_FILE,
+                MAP_FILE,
+                LABEL_FILE
+            );
+
+            await waitFor(rt, 'stopOnEntry');
+
+            await rt.setBreakPoint(MAIN_S, 7);
+            await all(
+                rt.continue(),
+                waitFor(rt, 'output', (type, __, file, line, col) => {
+                    assert.strictEqual(file, MAIN_S)
+                    assert.strictEqual(line, 7)
+                }),
+            );
+
+            await waitFor(rt, 'stopOnStep');
+
+            await all(
+                rt.stepIn(),
+                waitFor(rt, 'output', (type, __, file, line, col) => {
+                    assert.strictEqual(file, MAIN_S)
+                    assert.strictEqual(line, 18)
+                }),
+            );
+
+            await waitFor(rt, 'stopOnStep');
+
+            await all(
+                rt.stepOut(),
+                waitFor(rt, 'output', (type, __, file, line, col) => {
+                    assert.strictEqual(file, MAIN_S)
+                    assert.strictEqual(line, 9)
+                }),
+            );
+
+            await waitFor(rt, 'stopOnStep');
+
+            await rt.terminate();
+        });
     });
 
     suite('Launch', () => {

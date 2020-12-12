@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as _ from 'lodash';
+import { StackFrame } from 'vscode-debugadapter';
 
 export interface Version {
     major: number;
@@ -108,8 +109,14 @@ export interface SourceLine {
     count: number;
 }
 
+export enum SourceFileType {
+    Assembly,
+    C,
+}
+
 export interface SourceFile {
     mtime: Date;
+    type: SourceFileType;
     mod: string;
     name: string;
     id: number;
@@ -340,6 +347,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 lines: [],
                 id: 0,
                 size: 0,
+                type: SourceFileType.C,
             };
 
             do {
@@ -358,6 +366,13 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                     }
                     else {
                         fil.name = path.normalize(val);
+                    }
+
+                    if(/\.(s|asm|inc|a65)$/gi.test(fil.name)) {
+                        fil.type = SourceFileType.Assembly;
+                    }
+                    else {
+                        fil.type = SourceFileType.C;
                     }
                 }
                 else if (key == "mod") {
@@ -575,12 +590,12 @@ export function parse(text: string, buildDir : string) : Dbgfile {
 
     for(const file of dbgFile.files) {
         // Prefer C files if they exist.
-        file.lines = _.sortBy(file.lines, x => x.file && !/\.c$/gi.test(x.file.name), x => x.num);
+        file.lines = _.sortBy(file.lines, x => x.file && x.file.type != SourceFileType.C, x => x.num);
     }
 
     for(const span of dbgFile.spans) {
         // Prefer C files if they exist.
-        span.lines = _.sortBy(span.lines, x => x.file && !/\.c$/gi.test(x.file.name), x => x.num);
+        span.lines = _.sortBy(span.lines, x => x.file && x.file.type != SourceFileType.C, x => x.num);
     }
 
     for(const sym of dbgFile.syms) {

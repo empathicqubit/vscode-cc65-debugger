@@ -18,6 +18,7 @@ import * as mapFile from './map-file';
 import * as bin from './binary-dto';
 import { VariableManager, VariableData } from './variable-manager';
 import * as metrics from './metrics';
+import { debug } from 'vscode';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -651,7 +652,7 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
-        if(this._currentPosition.file && /\.s$/gi.test(this._currentPosition.file.name)) {
+        if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
             const stepCmd : bin.AdvanceInstructionsCommand = {
                 type: bin.CommandType.advanceInstructions,
                 stepOverSubroutines: false,
@@ -685,9 +686,19 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async stepOut(event = 'stopOnStep') : Promise<void> {
-        if(!await this._callStackManager.returnToLastStackFrame(this._vice)) {
-            this.sendEvent('message', 'warning', 'Can\'t step out here!\n')
-            this.sendEvent('stopOnStep');
+        if(!await this._callStackManager.returnToLastStackFrame()) {
+            if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
+                const retCmd : bin.ExecuteUntilReturnCommand = {
+                    type: bin.CommandType.executeUntilReturn,
+                };
+
+                await this._vice.execBinary(retCmd);
+            }
+            else {
+                this.sendEvent('message', 'warning', 'Can\'t step out here!\n')
+                this.sendEvent('stopOnStep');
+            }
+
             return;
         }
 
@@ -864,6 +875,7 @@ or define the location manually with the launch.json->mapFile setting`
                     lines: [],
                     id: 0,
                     size: 0,
+                    type: debugFile.SourceFileType.C
                 };
                 lineSym = {
                     count: 0,
