@@ -6,4 +6,3 @@ apt-get build-dep --no-install-recommends -y vice
 apt-get install -y --no-install-recommends dos2unix cc65
 npm install -g pnpm@5.5.10
 pnpm install --shamefully-hoist
-pnpm package
