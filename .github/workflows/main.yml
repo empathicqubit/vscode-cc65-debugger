@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        testerson: [1.0, 3.5, 78.39]
+        testerson: [] #Add versions here
 
     steps:
     - uses: actions/checkout@v2
