@@ -1,9 +1,10 @@
-name: Release
+name: Check
 
 on:
   push:
     branches:
-      - master
+      - **
+      - !master
 
 jobs:
   build:
