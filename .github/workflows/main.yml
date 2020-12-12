@@ -37,5 +37,5 @@ jobs:
       with:
         upload_url: ${{ steps.release.outputs.upload_url }}
         asset_path: ./cc65-vice.*.vsix
-        asset_name: ./cc65-vice-${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}.vsix
+        asset_name: cc65-vice-${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}.vsix
         asset_content_type: application/zip
