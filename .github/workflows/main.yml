@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: sed -i 's@debian.org/debian [[:alpha::]]* main@& contrib@g' /etc/apt/sources.list
+    - run: sed -i 's@debian.org/debian [[:alpha:]]* main@& contrib@g' /etc/apt/sources.list
     - run: grep 'debian.org/debian [[:alpha:]]* main' /etc/apt/sources.list | grep -v '#' | sed -e 's/^deb/deb-src/g' >> /etc/apt/sources.list
     - run: apt-get update
     - run: apt-get build-dep --no-install-recommends -y vice
