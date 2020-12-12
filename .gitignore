@@ -8,8 +8,10 @@ obj/
 *.vsix
 *.zip
 dist/
+
 *.orig
 *.rej
+
 *.js
 !webpack.*.config.js
 *.c64
