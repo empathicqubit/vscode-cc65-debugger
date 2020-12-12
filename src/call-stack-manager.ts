@@ -281,9 +281,10 @@ export class CallStackManager {
         }
 
         this.addFrame(current, () => currentLine);
+        this.flushFrames();
     }
     
-    public flushFrames() {
+    public flushFrames() : void {
         outer: for(let f = 0; f < this._queuedFramesCount; f++) {
             const item = this._queuedFrames[f];
 

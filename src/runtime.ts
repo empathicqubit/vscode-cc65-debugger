@@ -1081,7 +1081,9 @@ or define the location manually with the launch.json->mapFile setting`
                 return;
             }
 
-            const line = () => debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, brk.startAddress);
+            const startAddress = brk.startAddress;
+
+            const line = () => debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, startAddress);
             this._callStackManager.addFrame(brk, line);
 
             let index = brk.id;
