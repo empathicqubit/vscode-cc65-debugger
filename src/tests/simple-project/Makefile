@@ -31,7 +31,7 @@ CFLAGS  = -g
 
 # Additional assembler flags and options.
 # Default: none
-ASFLAGS =
+ASFLAGS = -g
 
 # Additional linker flags and options.
 # Default: none
