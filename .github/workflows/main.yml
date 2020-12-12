@@ -20,6 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - run: sed -i 's/# deb-src/deb-src/g' /etc/apt/sources.list
     - run: apt-get update
     - run: apt-get build-dep --no-install-recommends -y vice
     - run: npm install -g pnpm@5.5.10
