@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.0.0...v3.1.0) (2020-12-13)
+
+
+### Features
+
+* Better Assembly file handling ([f8c2415](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f8c2415a4ebb6302b121d0170b06106142d0c337))
+
 ## [3.0.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v2.8.0...v3.0.0) (2020-12-13)
 
 
