@@ -23,12 +23,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - run: bash ./docker.sh
     - run: pnpm package
+    - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
+      id: get_filename
     - uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: ./cc65-vice.*.vsix
-        asset_name: cc65-vice.vsix
+        asset_path: ${{ steps.get_filename.outputs.filename }}
+        asset_name: ${{ steps.get_filename.outputs.filename }}
         asset_content_type: application/zip
     - run: pnpm run publish -- --packagePath ./cc65-vice-*.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
