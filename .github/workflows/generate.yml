@@ -18,7 +18,7 @@ jobs:
       uses: google-github-actions/release-please-action@v2.6.0
       with:
         # GitHub token for creating and grooming release PRs, e.g., secrets.GITHUB_TOKEN
-        token: ${{secrets.GITHUB_TOKEN}}
+        token: ${{secrets.REPO_GITHUB_TOKEN}}
         # name of the distributions releases are being created for, e.g., "name" in package.json, or "setup.py"
         package-name: cc65-vice
         # what type of release is this, one of (ruby, python, node, terraform-module)
