@@ -13,18 +13,21 @@ jobs:
 
     strategy:
       matrix:
-          vice-version: [3.5] #Add versions here
+       jvice-version: [3.5] #Add versions here
 
     steps:
     - uses: actions/checkout@v2
+    - uses: bruceadams/get-release@v1.2.2
+      id: get_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - run: bash ./docker.sh
     - run: pnpm package
     - uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      if: ${{ steps.release.outputs.release_created }}
       with:
-        upload_url: ${{ steps.release.outputs.upload_url }}
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
         asset_path: ./cc65-vice.*.vsix
         asset_name: cc65-vice.vsix
         asset_content_type: application/zip
