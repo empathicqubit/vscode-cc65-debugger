@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v2.8.0...v3.0.0) (2020-12-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Update API calls to work with latest VICE nightly
+
+### Features
+
+* Update API calls to work with latest VICE nightly ([c22d5b2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/c22d5b282dc00e1d6837e87189cf825a6cc482e9))
+
 ## 2.5.3
 * More memory optimizations.
 
