@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-       jvice-version: [3.5] #Add versions here
+        vice-version: [3.5] #Add versions here
 
     steps:
     - uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - run: bash ./docker.sh
-    - run: pnpm package
+    - run: pnpm run publish -- -p ${{ secrets.MARKETPLACE_TOKEN }}
     - uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
