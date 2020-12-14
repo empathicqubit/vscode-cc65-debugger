@@ -9,7 +9,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: node:13-buster
+    container: empathicqubit/vscode-cc65-vice-debug-build
 
     strategy:
       matrix:
@@ -17,5 +17,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: bash ./docker.sh
+    - run: pnpm install --shamefully-hoist
     - run: pnpm package

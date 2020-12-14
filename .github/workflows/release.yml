@@ -9,7 +9,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: node:13-buster
+    container: empathicqubit/vscode-cc65-vice-debug-build
 
     strategy:
       matrix:
@@ -17,14 +17,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - run: pnpm install --shamefully-hoist
+    - run: pnpm package
+
+    - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
+      id: get_filename
     - uses: bruceadams/get-release@v1.2.2
       id: get_release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - run: bash ./docker.sh
-    - run: pnpm package
-    - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
-      id: get_filename
+
     - uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,4 +35,5 @@ jobs:
         asset_path: ${{ steps.get_filename.outputs.filename }}
         asset_name: ${{ steps.get_filename.outputs.filename }}
         asset_content_type: application/zip
+
     - run: pnpm run publish -- --packagePath ./cc65-vice-*.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
