@@ -37,3 +37,4 @@ jobs:
         asset_content_type: application/zip
 
     - run: pnpm run publish -- --packagePath ./cc65-vice-*.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
+    - run: pnpx ovsx publish ./cc65-vice-*.vsix -p ${{ secrets.OPENVSX_TOKEN }}
