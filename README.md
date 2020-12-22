@@ -18,8 +18,6 @@ If you're having trouble understanding how this extension is supposed to be used
 
 <img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.png?raw=true" />
 
-<a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
-
 - [vscode-cc65-vice-debug](#vscode-cc65-vice-debug)
   * [Setup](#setup)
     + [Windows-specific instructions](#windows-specific-instructions)
@@ -31,6 +29,8 @@ If you're having trouble understanding how this extension is supposed to be used
   * [What's weird](#what-s-weird)
   * [Building](#building)
   * [Additional Credits (see also LICENSE.md)](#additional-credits--see-also-licensemd-)
+
+<a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
 
 ## Setup
 
