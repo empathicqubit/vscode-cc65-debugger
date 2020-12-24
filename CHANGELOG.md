@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.2.0...v3.3.0) (2020-12-24)
+
+
+### Features
+
+* Publish releases automatically ([f6ddead](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f6ddead0b874bf1a951f7dadbefabb8023764fc5))
+
 ## [3.2.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.1.0...v3.2.0) (2020-12-24)
 
 
