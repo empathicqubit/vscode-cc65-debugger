@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.1.0...v3.2.0) (2020-12-24)
+
+
+### Features
+
+* Update to VICE 3.5 ([bcc5cac](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/bcc5cace5cee7a56d5966806a8db7681fe6b0e44))
+
 ## [3.1.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.0.0...v3.1.0) (2020-12-13)
 
 
