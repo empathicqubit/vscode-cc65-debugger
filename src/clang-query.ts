@@ -15,7 +15,7 @@ export interface ClangTypeInfo {
 }
 
 export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boolean, cwd: string) : Promise<{[typename: string]:ClangTypeInfo[]}> {
-    const clangExecPath : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
+    const clangExecPath : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-12', 'clang-query-11', 'clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
     const baseArgs = ['-c=set output dump'];
 
     let codeFiles : string[];
