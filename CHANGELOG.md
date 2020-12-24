@@ -2,34 +2,15 @@
 
 ## [3.3.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.2.0...v3.3.0) (2020-12-24)
 
-
-### Features
-
-* Publish releases automatically ([f6ddead](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f6ddead0b874bf1a951f7dadbefabb8023764fc5))
-
-## [3.2.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.1.0...v3.2.0) (2020-12-24)
-
-
-### Features
-
-* Update to VICE 3.5 ([bcc5cac](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/bcc5cace5cee7a56d5966806a8db7681fe6b0e44))
-
-## [3.1.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.0.0...v3.1.0) (2020-12-13)
-
-
-### Features
-
-* Better Assembly file handling ([f8c2415](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f8c2415a4ebb6302b121d0170b06106142d0c337))
-
-## [3.0.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v2.8.0...v3.0.0) (2020-12-13)
-
-
 ### ⚠ BREAKING CHANGES
 
 * Update API calls to work with latest VICE nightly
 
 ### Features
 
+* Publish releases automatically ([f6ddead](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f6ddead0b874bf1a951f7dadbefabb8023764fc5))
+* Update to VICE 3.5 ([bcc5cac](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/bcc5cace5cee7a56d5966806a8db7681fe6b0e44))
+* Better Assembly file handling ([f8c2415](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f8c2415a4ebb6302b121d0170b06106142d0c337))
 * Update API calls to work with latest VICE nightly ([c22d5b2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/c22d5b282dc00e1d6837e87189cf825a6cc482e9))
 
 ## 2.5.3
