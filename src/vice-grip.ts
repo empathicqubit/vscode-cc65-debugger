@@ -435,7 +435,6 @@ export class ViceGrip extends EventEmitter {
     public async disconnect() : Promise<void> {
         try {
             this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
-            throw new Error('Disconnect');
         }
         catch(e) {
             console.error(e);

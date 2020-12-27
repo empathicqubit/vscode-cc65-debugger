@@ -6,7 +6,7 @@ import _last from 'lodash/fp/last';
 import _flow from 'lodash/fp/flow';
 import _map from 'lodash/fp/map';
 import _flatten from 'lodash/fp/flatten';
-import * as TGA from 'tga';
+import TGA from 'tga';
 import * as pngjs from 'pngjs';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { CallStackManager } from './call-stack-manager';

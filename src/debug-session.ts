@@ -212,6 +212,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         // make VS Code to support data breakpoints
         response.body.supportsDataBreakpoints = false;
 
+        response.body.supportTerminateDebuggee = true;
+        response.body.supportsTerminateRequest = true;
+
         // make VS Code to support completion in REPL
         response.body.supportsCompletionsRequest = false;
         response.body.completionTriggerCharacters = [ ".", "[" ];
@@ -715,13 +718,19 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request) : Promise<void> {
         try {
-            await this._runtime.disconnect();
+            if(args.terminateDebuggee) {
+                await this._runtime.terminate();
+            }
+            else {
+                await this._runtime.disconnect();
+            }
         }
         catch(e) {
             console.error(e);
             response.success = false;
             response.message = (<any>e).stack.toString();
         }
+
         this._addressTypes = {};
         this._keybuf = [];
         this.sendResponse(response);

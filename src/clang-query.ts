@@ -1,7 +1,7 @@
 import * as dbgfile from './debug-file';
 import * as util from 'util';
 import * as child_process from 'child_process';
-import * as readdir from 'recursive-readdir';
+import readdir from 'recursive-readdir';
 import * as path from 'path';
 import _sum from 'lodash/fp/sum';
 import _flow from 'lodash/fp/flow';
