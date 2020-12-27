@@ -481,7 +481,7 @@ export class Runtime extends EventEmitter {
     public async action(name: string) {
         if(name == 'Autostart' && this._attachProgram) {
             await this._vice.autostart(this._attachProgram);
-            await this._vice.waitForStop(this._dbgFile.entryAddress, undefined, true);
+            await this.continue();
         }
         else {
             throw new Error('Invalid action ' + name);

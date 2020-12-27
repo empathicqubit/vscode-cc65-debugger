@@ -4,7 +4,6 @@ import _max from 'lodash/fp/max';
 import _flow from 'lodash/fp/flow';
 import _dropWhile from 'lodash/fp/dropWhile';
 import _takeWhile from 'lodash/fp/takeWhile';
-import _filter from 'lodash/fp/filter';
 import _reverse from 'lodash/fp/reverse';
 
 const opcodeSizes = [
@@ -36,12 +35,13 @@ export const maxOpCodeSize = _max(opcodeSizes)!;
 export function getInstructionSpans(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope) : debugFile.DebugSpan[] {
     const scopeSpan = scope.spans[0];
     const span = dbgFile.spans[0];
-    return _flow(
+    const range = _flow(
         _dropWhile((x : typeof span) => x.absoluteAddress >= scopeSpan.absoluteAddress + scopeSpan.size),
-        _filter<any>((x : typeof span, i, c: (typeof x)[]) => x.size <= maxOpCodeSize && (!c[i - 1] || c[i - 1].absoluteAddress != x.absoluteAddress)),
         _takeWhile((x : typeof span) => x.absoluteAddress >= scopeSpan.absoluteAddress),
-        _reverse
     )(dbgFile.spans);
+
+    const spans = _reverse(range.filter((x, i, c) => x.size <= maxOpCodeSize && (!c[i - 1] || c[i - 1].absoluteAddress != x.absoluteAddress)))
+    return spans;
 }
 
 /**
