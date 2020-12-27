@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.4.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.3.0...v3.4.0) (2020-12-27)
+
+
+### Features
+
+* Recognize Clang 11/12 if installed ([6f5c71e](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/6f5c71e360a5f66c4f8eb6ab6def73405fc6860c))
+
+
+### Bug Fixes
+
+* Autostart works correctly again ([ec7a5bc](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/ec7a5bcc7abbece4d668e5a50894f1dc302126ea))
+* Terminate actually closes window again ([52567d2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/52567d25864c63439dbbea276dd1ed6f09e4face))
+
 ## [3.3.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.2.0...v3.3.0) (2020-12-24)
 
 ### ⚠ BREAKING CHANGES
