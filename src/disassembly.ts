@@ -1,6 +1,11 @@
 import * as debugFile from './debug-file';
 import * as mapFile from './map-file';
-import * as _ from 'lodash';
+import _max from 'lodash/fp/max';
+import _flow from 'lodash/fp/flow';
+import _dropWhile from 'lodash/fp/dropWhile';
+import _takeWhile from 'lodash/fp/takeWhile';
+import _filter from 'lodash/fp/filter';
+import _reverse from 'lodash/fp/reverse';
 
 const opcodeSizes = [
     1, 6, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
@@ -21,7 +26,7 @@ const opcodeSizes = [
     2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
 ];
 
-export const maxOpCodeSize = _.max(opcodeSizes)!;
+export const maxOpCodeSize = _max(opcodeSizes)!;
 
 /**
  * Get the spans that are likely pointing to individual assembly instructions.
@@ -30,12 +35,13 @@ export const maxOpCodeSize = _.max(opcodeSizes)!;
  */
 export function getInstructionSpans(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope) : debugFile.DebugSpan[] {
     const scopeSpan = scope.spans[0];
-    return _(dbgFile.spans)
-        .dropWhile(x => x.absoluteAddress >= scopeSpan.absoluteAddress + scopeSpan.size)
-        .filter((x, i, c) => x.size <= maxOpCodeSize && (!c[i - 1] || c[i - 1].absoluteAddress != x.absoluteAddress))
-        .takeWhile(x => x.absoluteAddress >= scopeSpan.absoluteAddress)
-        .reverse()
-        .value();
+    const span = dbgFile.spans[0];
+    return _flow(
+        _dropWhile((x : typeof span) => x.absoluteAddress >= scopeSpan.absoluteAddress + scopeSpan.size),
+        _filter<any>((x : typeof span, i, c: (typeof x)[]) => x.size <= maxOpCodeSize && (!c[i - 1] || c[i - 1].absoluteAddress != x.absoluteAddress)),
+        _takeWhile((x : typeof span) => x.absoluteAddress >= scopeSpan.absoluteAddress),
+        _reverse
+    )(dbgFile.spans);
 }
 
 /**

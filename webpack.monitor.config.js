@@ -32,6 +32,7 @@ const config = async() => {
         'spdx-license-ids/deprecated': 'commonjs spdx-license-ids/deprecated',
       },
       resolve: {
+        modules: [path.join(__dirname, 'stubbed_modules'), 'node_modules'],
         extensions: ['.js']
       },
       module: {

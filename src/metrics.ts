@@ -1,4 +1,4 @@
-import * as ua from 'universal-analytics';
+import ua from 'universal-analytics';
 
 const metrics : ua.Visitor = ua('UA-181859507-1');
 

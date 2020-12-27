@@ -1,5 +1,11 @@
 import * as fs from 'fs';
-import * as _ from 'lodash';
+import _uniq from 'lodash/fp/uniq';
+import _uniqBy from 'lodash/fp/uniqBy';
+import _first from 'lodash/fp/first';
+import _last from 'lodash/fp/last';
+import _flow from 'lodash/fp/flow';
+import _map from 'lodash/fp/map';
+import _flatten from 'lodash/fp/flatten';
 import * as TGA from 'tga';
 import * as pngjs from 'pngjs';
 import { DebugProtocol } from 'vscode-debugprotocol';
@@ -19,6 +25,7 @@ import * as bin from './binary-dto';
 import { VariableManager, VariableData } from './variable-manager';
 import * as metrics from './metrics';
 import { debug } from 'vscode';
+import first from 'lodash/fp/first';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -180,15 +187,15 @@ export class Runtime extends EventEmitter {
         const mainLab = this._dbgFile.mainLab;
 
         const scopes = this._dbgFile.scopes.filter(x => x.codeSpan && x.name.startsWith("_") && x.size > disassembly.maxOpCodeSize);
-        const firstLastScopes = _.uniq([_.first(scopes)!, _.last(scopes)!]);
+        const firstLastScopes = _uniq([_first(scopes)!, _last(scopes)!]);
 
         if(!await this._validateLoad(firstLastScopes)) {
             this.sendEvent('message', 'warning', 'Waiting for program to start...\n', this._attachProgram ? ['Autostart'] : []);
             await this._vice.withAllBreaksDisabled(async () => {
-                const storeCmds = _(firstLastScopes)
-                    .map(x => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1])
-                    .flatten()
-                    .map(x => {
+                const storeCmds = _flow(
+                    _map((x: typeof firstLastScopes[0]) => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1]),
+                    _flatten,
+                    _map((x: number) => {
                         const val : bin.CheckpointSetCommand = {
                             type: bin.CommandType.checkpointSet,
                             startAddress: x,
@@ -200,7 +207,7 @@ export class Runtime extends EventEmitter {
                         };
                         return val;
                     })
-                    .value();
+                )(firstLastScopes);
 
                 const storeReses : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(storeCmds);
 
@@ -752,7 +759,7 @@ or define the location manually with the launch.json->mapFile setting`
         const pids = this._colorTermPids;
         debugUtils.delay(1000).then(() => {
             try {
-                for(const pid of _.uniq(pids)) {
+                for(const pid of _uniq(pids)) {
                     pid > -1 && process.kill(pid, 0) && process.kill(pid, "SIGKILL");
                 }
             }
@@ -940,7 +947,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         }
 
-        dels = _.uniqBy(dels, x => x.id);
+        dels = _uniqBy(x => x.id, dels);
 
         if(dels.length) {
             await this._vice.multiExecBinary(dels);

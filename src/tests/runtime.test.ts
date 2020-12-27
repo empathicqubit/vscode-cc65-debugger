@@ -5,7 +5,8 @@ import { Runtime } from '../runtime';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as net from 'net';
-import * as _ from 'lodash';
+import _difference from 'lodash/fp/difference';
+import _transform from 'lodash/transform';
 import * as util from 'util';
 import * as fs from 'fs';
 import * as debugUtils from '../debug-utils';
@@ -33,7 +34,7 @@ suite('Runtime', () => {
     let pids : number[] = [];
 
     const waitFor = async(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> => {
-        await new Promise((res, rej) => {
+        await new Promise<void>((res, rej) => {
             const listener = (...args) => {
                 try {
                     assertion && assertion(...args);
@@ -68,7 +69,8 @@ suite('Runtime', () => {
                 return;
             }
 
-            const env : { [key: string]: string | undefined } = _.transform(args.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
+            const env : { [key: string]: string | undefined } = 
+                _transform(args.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
             const proc = child_process.spawn(args.args[0], args.args.slice(1), {
                 cwd: args.cwd,
                 stdio: "pipe",
@@ -165,7 +167,7 @@ suite('Runtime', () => {
                 0x00, 0x00,
 
                 0xd2,
-                ..._.fill(new Array<number>(0xd2), 0x00)
+                ...new Array<number>(0xd2).fill(0x00)
             ]);
             buf.writeUInt32LE(buf.length - 11, 2);
             buf.write(PROGRAM, buf.indexOf(0xd2) + 1, 'ascii');
@@ -416,7 +418,7 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await new Promise((res, rej) => {
+                await new Promise<void>((res, rej) => {
                     rt.once('end', () => {
                         res();
                     });
@@ -633,8 +635,8 @@ suite('Runtime', () => {
                 const locals = await rt.getScopeVariables();
 
                 assert.strictEqual(locals.length, 2);
-                assert.strictEqual(_.difference(locals.map(x => x.name), ['i', 'j']).length, 0);
-                assert.strictEqual(_.difference(locals.map(x => x.value), ['0xff', '0xef']).length, 0);
+                assert.strictEqual(_difference(locals.map(x => x.name), ['i', 'j']).length, 0);
+                assert.strictEqual(_difference(locals.map(x => x.value), ['0xff', '0xef']).length, 0);
 
                 await rt.continue();
                 await waitFor(rt, 'end');

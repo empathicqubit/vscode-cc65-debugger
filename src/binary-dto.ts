@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import _isString from "lodash/fp/isString";
 import { BreakpointEvent } from "vscode-debugadapter";
 import { Color } from "vscode";
 
@@ -932,7 +932,7 @@ export function commandObjectToBytes(command: Command, buf: Buffer) : Buffer {
     }
     else if(type == CommandType.resourceSet) {
         const cmd = <ResourceSetCommand>command;
-        const valueLength = _.isString(cmd.resourceValue) ? cmd.resourceValue.length : 4;
+        const valueLength = _isString(cmd.resourceValue) ? cmd.resourceValue.length : 4;
         length = 3 + cmd.resourceName.length + valueLength;
         buf.writeUInt8(cmd.resourceType, 0);
         buf.writeUInt8(cmd.resourceName.length, 1);

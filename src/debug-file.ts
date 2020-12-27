@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as _ from 'lodash';
+import _sortBy from 'lodash/fp/sortBy';
 import { StackFrame } from 'vscode-debugadapter';
 
 export interface Version {
@@ -590,12 +590,12 @@ export function parse(text: string, buildDir : string) : Dbgfile {
 
     for(const file of dbgFile.files) {
         // Prefer C files if they exist.
-        file.lines = _.sortBy(file.lines, x => x.file && x.file.type != SourceFileType.C, x => x.num);
+        file.lines = _sortBy([x => x.file && x.file.type != SourceFileType.C, x => x.num], file.lines);
     }
 
     for(const span of dbgFile.spans) {
         // Prefer C files if they exist.
-        span.lines = _.sortBy(span.lines, x => x.file && x.file.type != SourceFileType.C, x => x.num);
+        span.lines = _sortBy([x => x.file && x.file.type != SourceFileType.C, x => x.num], span.lines);
     }
 
     for(const sym of dbgFile.syms) {
@@ -618,10 +618,10 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         }
     }
 
-    dbgFile.scopes = _.sortBy(dbgFile.scopes, x => x.codeSpan, x => x.codeSpan && -x.codeSpan.absoluteAddress, x => x.codeSpan && x.codeSpan.size);
-    dbgFile.lines = _.sortBy(dbgFile.lines, x => x.span, x => x.span && -x.span.absoluteAddress);
+    dbgFile.scopes = _sortBy([x => x.codeSpan, x => x.codeSpan && -x.codeSpan.absoluteAddress, x => x.codeSpan && x.codeSpan.size], dbgFile.scopes);
+    dbgFile.lines = _sortBy([x => x.span, x => x.span && -x.span.absoluteAddress], dbgFile.lines);
 
-    dbgFile.spans = _.sortBy(dbgFile.spans, x => -x.absoluteAddress, x => x.size);
+    dbgFile.spans = _sortBy([x => -x.absoluteAddress, x => x.size], dbgFile.spans);
 
     const segSort = (a, b) => b.segId - a.segId;
     dbgFile.syms.sort(segSort)

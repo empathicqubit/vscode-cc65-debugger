@@ -13,6 +13,7 @@
         "outDir": "../out",
         "preserveConstEnums": true,
         "strictNullChecks": true,
-        "noUnusedParameters": false
+        "noUnusedParameters": false,
+        "esModuleInterop": true
     }
 }

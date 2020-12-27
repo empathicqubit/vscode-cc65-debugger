@@ -1,8 +1,11 @@
 import * as child_process from 'child_process'
 import * as net from 'net'
-import * as _ from 'lodash'
+import _last from 'lodash/fp/last'
+import _intersectionBy from 'lodash/fp/intersectionBy'
+import _random from 'lodash/fp/random'
+import _uniq from 'lodash/fp/uniq'
 import * as path from 'path'
-import * as getPort from 'get-port';
+import getPort from 'get-port';
 import * as tmp from 'tmp';
 import { EventEmitter } from 'events'
 import { Readable, Writable } from 'stream';
@@ -171,7 +174,7 @@ export class ViceGrip extends EventEmitter {
                     interval: 100,
                 });
 
-                await new Promise((res, rej) => {
+                await new Promise<void>((res, rej) => {
                     binaryConn!.connect({
                         host: '127.0.0.1',
                         port: binaryPort,
@@ -224,12 +227,12 @@ export class ViceGrip extends EventEmitter {
             return;
         }
 
-        this.textPort = parseInt(_.last(textRes.stringValue!.split(':'))!);
+        this.textPort = parseInt(_last(textRes.stringValue!.split(':'))!);
     }
 
     public async start(initBreak: number, cwd: string, vicePath: string, viceArgs?: string[], labelFile?: string) {
-        const startText = _.random(29170, 29400);
-        const startBinary = _.random(29700, 30000);
+        const startText = _random(29170, 29400);
+        const startBinary = _random(29700, 30000);
         const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
         const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
 
@@ -358,7 +361,7 @@ export class ViceGrip extends EventEmitter {
         const frags : Uint8Array[] = [];
         const results = Promise.all(commands.map(command => {
             const body = bin.commandObjectToBytes(command, this._commandBytes);
-            const requestId = _.random(0, 0xffffffff);
+            const requestId = _random(0, 0xffffffff);
             const buf = Buffer.alloc(11 + body.length);
             buf.writeUInt8(0x02, 0); // start
             buf.writeUInt8(0x01, 1); // version
@@ -423,15 +426,16 @@ export class ViceGrip extends EventEmitter {
         }
 
         const postBrk = await this.checkpointList();
-        const remaining = _.intersectionBy(tog, postBrk.related, x => x.id);
+        const remaining = _intersectionBy(x => x.id, tog, postBrk.related);
         await this.multiExecBinary(remaining);
 
         return res;
     }
 
-    public async disconnect() {
+    public async disconnect() : Promise<void> {
         try {
             this._binaryConn && await util.promisify((cb) => this._binaryConn.end(cb))();
+            throw new Error('Disconnect');
         }
         catch(e) {
             console.error(e);
@@ -440,13 +444,12 @@ export class ViceGrip extends EventEmitter {
         this._binaryConn = <any>null;
     }
 
-    public async terminate() {
+    public async terminate() : Promise<void> {
         try {
             const cmd : bin.QuitCommand = {
                 type: bin.CommandType.quit,
-            }
+            };
             this._binaryConn && await this.execBinary(cmd);
-
         }
         catch(e) {
             console.error(e);
@@ -457,12 +460,12 @@ export class ViceGrip extends EventEmitter {
         // awaited.
         const pids = this._pids;
         debugUtils.delay(1000).then(() => {
-            try {
-                for(const pid of _.uniq(pids)) {
+            for(const pid of _uniq(pids)) {
+                try {
                     pid > -1 && process.kill(pid, 0) && process.kill(pid, "SIGKILL");
                 }
+                catch {}
             }
-            catch {}
         })
         this._pids = [-1, -1];
 

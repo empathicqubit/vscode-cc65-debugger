@@ -20,6 +20,7 @@ const config = {
   },
   devtool: 'source-map',
   resolve: {
+    modules: [path.join(__dirname, 'stubbed_modules'), 'node_modules'],
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
     extensions: ['.ts', '.js']
   },

@@ -7,7 +7,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import * as child_process from 'child_process';
-import * as _ from 'lodash';
+import _debounce from 'lodash/fp/debounce';
 import * as debugUtils from './debug-utils';
 import { Runtime, CC65ViceBreakpoint } from './runtime';
 const { Subject } = require('await-notify');
@@ -62,7 +62,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
         this._runtime = new Runtime((args, timeout, cb) => this.runInTerminalRequest(args, timeout, cb));
 
-        this._bounceBuf = _.debounce(async () => {
+        this._bounceBuf = _debounce(250, async () => {
             const keybuf = this._keybuf;
             this._keybuf = [];
             try {
@@ -71,7 +71,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             catch(e) {
                 console.error(e);
             }
-        }, 250);
+        });
 
         // setup event handlers
         this._runtime.on('stopOnEntry', () => {

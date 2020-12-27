@@ -2,10 +2,12 @@ import { EventEmitter } from "events";
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import watch from 'node-watch';
+import _flow from 'lodash/fp/flow';
+import _orderBy from 'lodash/fp/orderBy';
+import _map from 'lodash/fp/map';
 import * as debugUtils from './debug-utils';
 import * as util from 'util';
-import * as _ from 'lodash';
-import * as readdir from 'recursive-readdir';
+import readdir from 'recursive-readdir';
 import * as path from 'path';
 
 export async function guessProgramPath(workspaceDir: string) {
@@ -36,11 +38,10 @@ export async function guessProgramPath(workspaceDir: string) {
             listingLength,
         };
     }));
-
-    const orderedPrograms = _(fileMeta)
-        .orderBy([x => x.fileStats.mtime, x => x.listingLength], ['desc', 'desc'])
-        .map(x => x.filename)
-        .value();
+    const orderedPrograms = _flow(
+        _orderBy<typeof fileMeta[0]>([x => x.fileStats.mtime, x => x.listingLength], ['desc', 'desc']),
+        _map((x: typeof fileMeta[0]) => x.filename)
+    )(fileMeta);
 
     return orderedPrograms;
 }

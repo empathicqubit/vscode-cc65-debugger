@@ -3,7 +3,11 @@ import * as util from 'util';
 import * as child_process from 'child_process';
 import * as readdir from 'recursive-readdir';
 import * as path from 'path';
-import * as _ from 'lodash';
+import _sum from 'lodash/fp/sum';
+import _flow from 'lodash/fp/flow';
+import _filter from 'lodash/fp/filter';
+import _map from 'lodash/fp/map';
+import _sortBy from 'lodash/fp/sortBy';
 import * as hotel from 'hasbin';
 
 const execFile = util.promisify(child_process.execFile);
@@ -24,11 +28,11 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boo
         codeFiles = (await util.promisify(readdir)(cwd) as string[]).filter(x => /\.i$/gi.test(x));
     }
     else {
-        codeFiles = _(dbgFile.files)
-            .filter(x => /\.(c|h)$/gi.test(x.name))
-            .map(x => x.name)
-            .sortBy(x => !/\.h$/gi.test(x), (x, i) => i)
-            .value();
+        codeFiles = _flow(
+            _filter((x: typeof dbgFile.files[0]) => /\.(c|h)$/gi.test(x.name)),
+            _map(x => x.name),
+            _sortBy((x : string) => !/\.h$/gi.test(x), (_, i) => i)
+        )(dbgFile.files);
     }
 
     // Try to find the path of CC65, in case it's nonstandard.
@@ -263,7 +267,7 @@ export function recurseFieldSize(fields: ClangTypeInfo[], allTypes: {[typename:s
                 break; // We can't determine the rest of the fields if one is missing
             }
 
-            dataSizes.push(_.sum(recurseFieldSize(type, allTypes)));
+            dataSizes.push(_sum(recurseFieldSize(type, allTypes)));
         }
     }
 

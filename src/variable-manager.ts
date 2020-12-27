@@ -2,7 +2,8 @@ import * as debugFile from './debug-file'
 import {ViceGrip} from './vice-grip'
 import * as clangQuery from './clang-query'
 import * as debugUtils from './debug-utils'
-import * as _ from 'lodash'
+import _sum from 'lodash/fp/sum'
+import _last from 'lodash/fp/last'
 
 export interface VariableData {
     name : string;
@@ -137,7 +138,7 @@ export class VariableManager {
             typeParts = typeName.split(/\s+/g);
         }
 
-        let isPointer = typeParts.length > 1 && _.last(typeParts) == '*';
+        let isPointer = typeParts.length > 1 && _last(typeParts) == '*';
 
         if(isPointer) {
             const pointerVal = await this._vice.getMemory(addr, 2);
@@ -149,7 +150,7 @@ export class VariableManager {
 
         const fieldSizes = clangQuery.recurseFieldSize(fields, this._localTypes);
 
-        const totalSize = _.sum(fieldSizes);
+        const totalSize = _sum(fieldSizes);
 
         const mem = await this._vice.getMemory(addr, totalSize);
 

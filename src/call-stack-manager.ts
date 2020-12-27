@@ -2,7 +2,10 @@ import * as debugFile from './debug-file';
 import * as mapFile from './map-file';
 import {ViceGrip} from './vice-grip';
 import * as bin from './binary-dto';
-import * as _ from 'lodash';
+import _uniqBy from 'lodash/fp/uniqBy';
+import _remove from 'lodash/fp/remove';
+import _findLastIndex from 'lodash/fp/findLastIndex';
+import _eachRight from 'lodash/eachRight';
 import * as disassembly from './disassembly';
 import * as runtime from './runtime';
 import { Breakpoint } from 'vscode-debugadapter';
@@ -98,8 +101,8 @@ export class CallStackManager {
                 scope: parentScope,
                 address: start.span!.absoluteAddress,
             }],
-            ends: _.uniqBy(scopeEndFrames, x => x.address),
-            jumps: _.uniqBy(scopeStackJumps, x => x.address),
+            ends: _uniqBy(x => x.address, scopeEndFrames),
+            jumps: _uniqBy(x => x.address, scopeStackJumps),
         }
     }
 
@@ -270,7 +273,7 @@ export class CallStackManager {
         for(const end of resEnds) {
             const endFrame = endFrames.find(x => x.address == end.startAddress)!;
             this._stackFrameEnds[end.id] = endFrame.scope;
-            _.remove(endFrames, x => x == endFrame);
+            _remove(x => x == endFrame, endFrames);
         }
 
         await this._stackFrameBreakToggle(false);
@@ -319,7 +322,7 @@ export class CallStackManager {
                 this._stackFrames.push({line: item.line(), scope: scope });
             }
             else if(scope = this._stackFrameEnds[item.id]) {
-                const idx = _.findLastIndex(this._stackFrames, x => x.scope.id == scope.id);
+                const idx = _findLastIndex(x => x.scope.id == scope.id, this._stackFrames);
                 if(idx > -1) {
                     this._stackFrames.splice(idx, 1);
                 }
@@ -328,7 +331,7 @@ export class CallStackManager {
                 }
             }
             else if(scope = this._stackFrameJumps[item.id]) {
-                _.eachRight(this._stackFrames, (frame, f) => {
+                _eachRight(this._stackFrames, (frame, f) => {
                     const span = frame.scope.codeSpan;
                     if(span && span.absoluteAddress <= item.startAddress && item.startAddress < span.absoluteAddress + span.size) {
                         frame.line = item.line!();
