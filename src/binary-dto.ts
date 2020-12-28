@@ -123,7 +123,7 @@ export interface MemoryGetCommand extends Command {
 
 export interface MemoryGetResponse extends Response<MemoryGetCommand> {
     type: ResponseType.memoryGet;
-    memory: Uint8Array;
+    memory: Buffer;
 }
 
 export interface MemorySetCommand extends Command {
@@ -133,7 +133,7 @@ export interface MemorySetCommand extends Command {
     endAddress: number;
     memspace: ViceMemspace;
     bankId: number;
-    memory: Uint8Array;
+    memory: Buffer;
 }
 
 export interface MemorySetResponse extends Response<MemorySetCommand> {
@@ -332,7 +332,8 @@ export interface DisplayGetResponse extends Response<DisplayGetCommand> {
     innerWidth: number;
     innerHeight: number;
     bpp: number;
-    imageData: Buffer;
+    targaImageData: Buffer;
+    rawImageData: Buffer;
 }
 
 export interface ExitCommand extends Command {
@@ -737,8 +738,9 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         return r;
     }
     else if(type == ResponseType.displayGet) {
-        const imageData = Buffer.alloc(body.length - (12 + body.readUInt32LE(4)));
-        body.copy(imageData, 0, 12 + body.readUInt32LE(4));
+        const targaImageData = Buffer.alloc(body.length - (12 + body.readUInt32LE(4)));
+        body.copy(targaImageData, 0, 12 + body.readUInt32LE(4));
+        const rawImageData = targaImageData.slice(targaImageData.length - body.readUInt32LE(8));
         const r : DisplayGetResponse = {
             ...res,
             type,
@@ -749,7 +751,8 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
             innerWidth: body.readUInt16LE(20),
             innerHeight: body.readUInt16LE(22),
             bpp: body.readUInt16LE(23),
-            imageData: imageData,
+            targaImageData: targaImageData,
+            rawImageData: rawImageData,
         };
 
         return r;

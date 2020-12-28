@@ -1,3 +1,7 @@
 .current-frame, .next-frame {
 	display: table-cell;
 }
+
+.sprites img {
+	height: 5em;
+}

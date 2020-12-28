@@ -666,8 +666,8 @@ suite('Runtime', () => {
                     format: bin.DisplayGetFormat.BGRA,
                 };
                 const res : bin.DisplayGetResponse = await rt._vice.execBinary(req);
-                assert.strictEqual(res.imageData.readUInt8(2), 2);
-                const tga = new TGA(res.imageData);
+                assert.strictEqual(res.targaImageData.readUInt8(2), 2);
+                const tga = new TGA(res.targaImageData);
             });
         });
 

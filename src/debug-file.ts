@@ -124,9 +124,20 @@ export interface SourceFile {
     lines: SourceLine[];
 }
 
+export enum MachineType {
+    unknown = 0x00,
+    c128,
+    cbm5x0,
+    pet,
+    plus4,
+    vic20,
+    c64,
+}
+
 export interface Dbgfile {
     systemLib: Lib | undefined;
     systemLibBaseName: string | undefined;
+    machineType: MachineType;
     mainScope: Scope | undefined;
     mainLab: Sym | undefined;
     libs: Lib[];
@@ -148,6 +159,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     const dbgFile : Dbgfile = {
         systemLib: undefined,
         systemLibBaseName: undefined,
+        machineType: MachineType.unknown,
         entryAddress: 0,
         codeSeg: undefined,
         mainScope: undefined,
@@ -488,6 +500,26 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         const libPath = lib.name;
         dbgFile.systemLib = lib;
         dbgFile.systemLibBaseName = path.basename(libPath).replace(/\.lib$/gi, '');
+
+        const ln = dbgFile.systemLibBaseName;
+        if(ln == 'c128') {
+            dbgFile.machineType = MachineType.c128;
+        }
+        else if(ln == 'cbm510') {
+            dbgFile.machineType = MachineType.cbm5x0;
+        }
+        else if(ln == 'pet') {
+            dbgFile.machineType = MachineType.pet;
+        }
+        else if(ln == 'plus4') {
+            dbgFile.machineType = MachineType.plus4;
+        }
+        else if(ln == 'vic20') {
+            dbgFile.machineType = MachineType.vic20;
+        }
+        else {
+            dbgFile.machineType = MachineType.c64;
+        }
     }
 
     for(const mod of dbgFile.mods) {

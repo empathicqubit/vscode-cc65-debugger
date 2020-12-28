@@ -6,10 +6,9 @@ import _last from 'lodash/fp/last';
 import _flow from 'lodash/fp/flow';
 import _map from 'lodash/fp/map';
 import _flatten from 'lodash/fp/flatten';
-import TGA from 'tga';
-import * as pngjs from 'pngjs';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { CallStackManager } from './call-stack-manager';
+import { GraphicsManager } from './graphics-manager';
 import * as tmp from 'tmp';
 import * as child_process from 'child_process'
 import * as disassembly from './disassembly'
@@ -75,6 +74,7 @@ export class Runtime extends EventEmitter {
 
     private _callStackManager: CallStackManager;
     private _variableManager : VariableManager;
+    private _graphicsManager : GraphicsManager;
 
     private _breakPoints : CC65ViceBreakpoint[] = [];
 
@@ -98,10 +98,8 @@ export class Runtime extends EventEmitter {
     private _terminated: boolean;
     private _attachProgram: string | undefined;
 
-    private _currentPng: any;
-    private _runAheadPng: any;
-
     private _registerMeta : {[key: string]: bin.SingleRegisterMeta };
+    private _bankMeta : {[key: string]: bin.SingleBankMeta };
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -305,9 +303,12 @@ export class Runtime extends EventEmitter {
             <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), 
         );
 
+        this._registerMeta = {};
+        this._bankMeta = {};
+
         this._callStackManager = new CallStackManager(this._vice, this._mapFile, this._dbgFile);
 
-        console.time('variableManager');
+        const graphicsManager = new GraphicsManager(this._vice, this._dbgFile.machineType);
 
         const variableManager = new VariableManager(
             this._vice,
@@ -316,13 +317,16 @@ export class Runtime extends EventEmitter {
             this._dbgFile.labs
         );
 
-        variableManager.preStart(buildCwd, this._dbgFile, this._usePreprocess)
+        console.time('graphics+variables');
 
-        console.timeEnd('variableManager');
+        await variableManager.preStart(buildCwd, this._dbgFile, this._usePreprocess),
+
+        console.timeEnd('graphics+variables');
 
         this._viceStarting = true;
 
         this._variableManager = variableManager;
+        this._graphicsManager = graphicsManager;
 
         console.timeEnd('preStart');
     }
@@ -397,12 +401,26 @@ export class Runtime extends EventEmitter {
                 title: 'VICE Monitor',
             });
         }
+
+        const [registersAvailable, banksAvailable] = await Promise.all([
+            this._vice.execBinary<bin.RegistersAvailableCommand, bin.RegistersAvailableResponse>({
+                type: bin.CommandType.registersAvailable,
+                memspace: bin.ViceMemspace.main,
+            }),
+            this._vice.execBinary<bin.BanksAvailableCommand, bin.BanksAvailableResponse>({
+                type: bin.CommandType.banksAvailable,
+            })
+        ]);
+
+        registersAvailable.registers.forEach(x => this._registerMeta[x.name] = x);
+        banksAvailable.banks.forEach(x => this._bankMeta[x.name] = x);
         
         await Promise.all([
             this._callStackManager.reset(this._currentAddress, this._currentPosition),
             this._setExitGuard(),
             this._guardCodeSeg(),
             this._variableManager.postStart(),
+            this._graphicsManager.postStart(this._bankMeta['io'], this._bankMeta['ram']),
         ]);
         // FIXME await this._setScreenUpdateCheckpoint();
 
@@ -438,7 +456,7 @@ export class Runtime extends EventEmitter {
         console.timeEnd('postStart');
     }
 
-    private async _updateScreen() {
+    private async _updateScreen() : Promise<void> {
         const wasRunning = this.viceRunning;
 
         if(!wasRunning) {
@@ -446,36 +464,12 @@ export class Runtime extends EventEmitter {
         }
 
         this._bypassStatusUpdates = true;
-        const displayCmd : bin.DisplayGetCommand = {
-            type: bin.CommandType.displayGet,
-            useVicII: false,
-            format: bin.DisplayGetFormat.BGRA,
-        };
-        const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
-
+        await this._graphicsManager.updateScreen(this);
         this._bypassStatusUpdates = false;
 
         if(wasRunning) {
             await this.continue();
         }
-
-        const current = new TGA(currentRes.imageData);
-        if(!this._currentPng) {
-            this._currentPng = new pngjs.PNG({
-                width: current.width,
-                height: current.height
-            });
-        }
-
-        this._currentPng.data = current.pixels;
-
-        this.sendEvent('current', {
-            current: {
-                data: Array.from(pngjs.PNG.sync.write(this._currentPng)),
-                width: current.width,
-                height: current.height,
-            },
-        });
     }
 
     public async action(name: string) {
@@ -778,9 +772,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._callStackManager = <any>undefined;
         this._variableManager = <any>undefined;
-
-        this._currentPng = undefined;
-        this._runAheadPng = undefined;
+        this._graphicsManager = <any>undefined;
 
         this._dbgFile = <any>null;
         this._mapFile = <any>null;
@@ -1015,20 +1007,20 @@ or define the location manually with the launch.json->mapFile setting`
 
     private async _getVicePath(viceDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
         let viceBaseName : string;
-        const ln = this._dbgFile.systemLibBaseName;
-        if(ln == 'c128') {
+        const mt = this._dbgFile.machineType;
+        if(mt == debugFile.MachineType.c128) {
             viceBaseName = 'x128';
         }
-        else if(ln == 'cbm510') {
+        else if(mt == debugFile.MachineType.cbm5x0) {
             viceBaseName = 'xcbm5x0';
         }
-        else if(ln == 'pet') {
+        else if(mt == debugFile.MachineType.pet) {
             viceBaseName = 'xpet';
         }
-        else if(ln == 'plus4') {
+        else if(mt == debugFile.MachineType.plus4) {
             viceBaseName = 'xplus4';
         }
-        else if(ln == 'vic20') {
+        else if(mt == debugFile.MachineType.vic20) {
             viceBaseName = 'xvic';
         }
         else {
@@ -1137,6 +1129,9 @@ or define the location manually with the launch.json->mapFile setting`
             const rr = (<bin.RegisterInfoResponse>e).registers;
             const r = this._registers;
             const meta = this._registerMeta;
+            if(!Object.keys(meta).length) {
+                return;
+            }
             for(const reg of rr) {
                 if(meta['A'].id == reg.id) {
                     r.a = reg.value;
@@ -1191,14 +1186,6 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     private async _setupViceDataHandler() {
-        const avail = await this._vice.execBinary<bin.RegistersAvailableCommand, bin.RegistersAvailableResponse>({
-            type: bin.CommandType.registersAvailable,
-            memspace: bin.ViceMemspace.main,
-        });
-
-        this._registerMeta = {};
-        avail.registers.map(x => this._registerMeta[x.name] = x);
-
         this._vice.on(0xffffffff.toString(16), async e => this._dataHandler(e));
     }
 
@@ -1207,12 +1194,7 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
-        const displayCmd : bin.DisplayGetCommand = {
-            type: bin.CommandType.displayGet,
-            useVicII: false,
-            format: bin.DisplayGetFormat.BGRA,
-        }
-        const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
+        await this._graphicsManager.updateCurrent(this);
 
         const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
         const dumpCmd : bin.DumpCommand =  {
@@ -1261,7 +1243,7 @@ or define the location manually with the launch.json->mapFile setting`
         });
         this._bypassStatusUpdates = false;
 
-        const aheadRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
+        await this._graphicsManager.updateRunAhead(this);
 
         const undumpCmd : bin.UndumpCommand = {
             type: bin.CommandType.undump,
@@ -1272,37 +1254,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         await util.promisify(fs.unlink)(dumpFileName);
 
-        const ahead = new TGA(aheadRes.imageData);
-        const current = new TGA(currentRes.imageData);
-        if(!this._runAheadPng) {
-            this._runAheadPng = new pngjs.PNG({
-                width: ahead.width,
-                height: ahead.height
-            });
-        }
-        this._runAheadPng.data = ahead.pixels;
-        if(!this._currentPng) {
-            this._currentPng = new pngjs.PNG({
-                width: current.width,
-                height: current.height
-            });
-        }
-        this._currentPng.data = current.pixels;
-
         this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-
-        this.sendEvent('runahead', {
-            runAhead: {
-                data: Array.from(pngjs.PNG.sync.write(this._runAheadPng)),
-                width: ahead.width,
-                height: ahead.height,
-            },
-            current: {
-                data: Array.from(pngjs.PNG.sync.write(this._currentPng)),
-                width: current.width,
-                height: current.height,
-            },
-        });
     }
 
     private async _loadDebugFile(filename: string | undefined, buildDir: string) : Promise<debugFile.Dbgfile> {

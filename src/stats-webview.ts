@@ -9,6 +9,7 @@ export class StatsWebview {
 	private static _currentPanel: StatsWebview | undefined;
 	private static _runAhead : ImageData;
 	private static _current: ImageData;
+	private static _sprites: ImageData[];
 	private static _emitter: EventEmitter = new EventEmitter();
 
 	public static readonly viewType = 'statsWebview';
@@ -17,13 +18,15 @@ export class StatsWebview {
 	private readonly _extensionPath: string;
     private _disposables: vscode.Disposable[] = [];
 
-    public static update(runAhead?: ImageData, current?: ImageData) {
+    public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[]) {
         StatsWebview._runAhead = runAhead || StatsWebview._runAhead;
         StatsWebview._current = current || StatsWebview._current;
+        StatsWebview._sprites = sprites || StatsWebview._sprites;
         if(StatsWebview._currentPanel && StatsWebview._runAhead) {
             StatsWebview._currentPanel._panel.webview.postMessage({
 				runAhead: StatsWebview._runAhead,
 				current: StatsWebview._current,
+				sprites: StatsWebview._sprites,
 			});
         }
 	}
@@ -60,7 +63,7 @@ export class StatsWebview {
 
         StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
 
-        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current);
+        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current, StatsWebview._sprites);
 	}
 
 	public static revive(panel: vscode.WebviewPanel, extensionPath: string) {

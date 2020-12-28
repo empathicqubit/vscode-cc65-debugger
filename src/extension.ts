@@ -51,11 +51,15 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
         if(e.event == 'runahead') {
             StatsWebview.maybeCreate(context.extensionPath);
-            StatsWebview.update(e.body.runAhead, e.body.current);
+            StatsWebview.update(e.body.runAhead);
         }
         else if(e.event == 'current') {
             StatsWebview.maybeCreate(context.extensionPath);
             StatsWebview.update(undefined, e.body.current);
+        }
+        else if(e.event == 'sprites') {
+            StatsWebview.maybeCreate(context.extensionPath);
+            StatsWebview.update(undefined, undefined, e.body.sprites);
         }
         else if(e.event == 'started') {
             const terminal =
