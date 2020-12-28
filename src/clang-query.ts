@@ -35,6 +35,11 @@ export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boo
         )(dbgFile.files);
     }
 
+    if(!codeFiles.length) {
+        console.log('No code files found. Not running Clang');
+        return {};
+    }
+
     // Try to find the path of CC65, in case it's nonstandard.
     let cpath = `/usr/share/cc65/include`;
     if(dbgFile.systemLib) {

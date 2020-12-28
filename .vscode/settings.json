@@ -5,7 +5,10 @@
 
     },
 
-    "mochaExplorer.files": "src/tests/**/*.ts",
+    "mochaExplorer.cwd": "src",
+    "mochaExplorer.files": [
+        "src/tests/**/*.ts",
+    ],
     "mochaExplorer.require": [
         "ts-node/register",
     ],
