@@ -3,5 +3,6 @@
 }
 
 .sprites img {
+	margin: .25em;
 	height: 5em;
 }

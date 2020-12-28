@@ -136,6 +136,7 @@ export function _statsWebviewContent() {
                 }
 
                 // Remove
+                /*
                 for(const s in data.sprites) {
                     const sprite = data.sprites[s];
                     const old = msgData.sprites.find(x => x.key == sprite.key);
@@ -143,6 +144,7 @@ export function _statsWebviewContent() {
                         data.sprites.splice(parseInt(s), 1);
                     }
                 }
+                */
             }
         }
         catch(e) {

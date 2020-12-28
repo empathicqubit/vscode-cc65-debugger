@@ -327,7 +327,7 @@ export class CallStackManager {
                     this._stackFrames.splice(idx, 1);
                 }
                 else {
-                    console.error("SCOPE ERROR", scope);
+                    //console.error("SCOPE ERROR", scope);
                 }
             }
             else if(scope = this._stackFrameJumps[item.id]) {
@@ -341,7 +341,7 @@ export class CallStackManager {
                 });
             }
             else {
-                console.error("SCOPE ERROR", scope);
+                //console.error("SCOPE ERROR", scope);
             }
         }
 
