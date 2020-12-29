@@ -188,7 +188,11 @@ export class Runtime extends EventEmitter {
         const firstLastScopes = _uniq([_first(scopes)!, _last(scopes)!]);
 
         if(!await this._validateLoad(firstLastScopes)) {
-            this.sendEvent('message', 'warning', 'Waiting for program to start...\n', this._attachProgram ? ['Autostart'] : []);
+            this.sendMessage({
+                level: debugUtils.ExtensionMessageLevel.information, 
+                content: 'Waiting for program to start...', 
+                items: this._attachProgram ? ['Autostart'] : [],
+            });
             await this._vice.withAllBreaksDisabled(async () => {
                 const storeCmds = _flow(
                     _map((x: typeof firstLastScopes[0]) => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1]),
@@ -224,7 +228,10 @@ export class Runtime extends EventEmitter {
                 await this._vice.multiExecBinary(delCmds);
             });
 
-            this.sendEvent('message', 'information', 'Program started.\n')
+            this.sendMessage({
+                level: debugUtils.ExtensionMessageLevel.information, 
+                content: 'Program started.',
+            })
         }
 
         await this.continue();
@@ -264,7 +271,10 @@ export class Runtime extends EventEmitter {
         this._terminated = false;
         this._stopOnExit = stopOnExit;
 
-        this.sendEvent('message', 'warning', `Any problems? Make sure you're using the version of VICE mentioned in the extension download page.`);
+        this.sendMessage({
+            level: debugUtils.ExtensionMessageLevel.warning, 
+            content: `To avoid problems, make sure you're using VICE 3.5 or later.`
+        });
 
         this._runAhead = !!runAhead;
         this._consoleType = consoleType;
@@ -319,7 +329,10 @@ export class Runtime extends EventEmitter {
 
         console.time('graphics+variables');
 
-        await variableManager.preStart(buildCwd, this._dbgFile, this._usePreprocess),
+        const messages = await variableManager.preStart(buildCwd, this._dbgFile, this._usePreprocess);
+        for(const msg of messages) {
+            this.sendMessage(msg);
+        }
 
         console.timeEnd('graphics+variables');
 
@@ -701,7 +714,10 @@ or define the location manually with the launch.json->mapFile setting`
                 await this._vice.execBinary(retCmd);
             }
             else {
-                this.sendEvent('message', 'warning', 'Can\'t step out here!\n')
+                this.sendMessage({
+                    level: debugUtils.ExtensionMessageLevel.warning, 
+                    content: 'Can\'t step out here!'
+                });
                 this.sendEvent('stopOnStep');
             }
 
@@ -1101,7 +1117,10 @@ or define the location manually with the launch.json->mapFile setting`
                         type: bin.CommandType.checkpointDelete,
                         id: guard,
                     });
-                    this.sendEvent('message', 'error', 'CODE segment was modified. Your program may be broken!\n');
+                    this.sendMessage({
+                        level: debugUtils.ExtensionMessageLevel.error, 
+                        content: 'CODE segment was modified. Your program may be broken!'
+                    });
                 }
                 else if (this._exitIndexes.includes(index)) {
                     if(!this._stopOnExit) {
@@ -1281,10 +1300,13 @@ Alternatively, define the location with the launch.json->debugFile setting`
         }
 
         if(!this._dbgFile.csyms.length) {
-            this.sendEvent('message', 'error', `
+            this.sendMessage({
+                level: debugUtils.ExtensionMessageLevel.error, 
+                content: `
 csyms are missing from your debug file. Did you add the -g switch to your linker
 and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
-`);
+`
+            });
         }
 
         return this._dbgFile;
@@ -1304,6 +1326,9 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
     }
 
     // Comm
+    public sendMessage(msg: debugUtils.ExtensionMessage) {
+        this.sendEvent('message', msg);
+    }
 
     public sendEvent(event: string, ... args: any[]) {
         setImmediate(_ => {

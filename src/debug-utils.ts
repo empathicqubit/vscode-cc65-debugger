@@ -6,6 +6,18 @@ import * as path from 'path';
 import * as runtime from './runtime';
 import * as debugFile from './debug-file';
 
+export interface ExtensionMessage {
+    level: ExtensionMessageLevel,
+    content: string,
+    items?: string[],
+}
+
+export enum ExtensionMessageLevel {
+    information,
+    warning,
+    error,
+}
+
 export async function delay(ms: number) : Promise<void> {
     return new Promise(function(res, rej) {
         setTimeout(function() { res() }, ms)

@@ -108,11 +108,12 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             this.sendEvent(new Event('started'));
         });
         this._runtime.on('message', (level, content, items) => {
-            const e = new Event('message', {
+            const msg : debugUtils.ExtensionMessage = {
                 level,
                 content,
                 items,
-            });
+            };
+            const e = new Event('message', msg);
             this.sendEvent(e);
         });
         this._runtime.on('output', (category, text, filePath, line, column) => {

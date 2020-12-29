@@ -43,8 +43,18 @@ export class VariableManager {
         return await this._vice.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
     }
 
-    public async preStart(buildCwd: string, dbgFile: debugFile.Dbgfile, usePreprocess: boolean) : Promise<void> {
-        await this._getLocalTypes(buildCwd, dbgFile, usePreprocess);
+    public async preStart(buildCwd: string, dbgFile: debugFile.Dbgfile, usePreprocess: boolean) : Promise<debugUtils.ExtensionMessage[]> {
+        try {
+            await this._getLocalTypes(buildCwd, dbgFile, usePreprocess);
+        }
+        catch(e) {
+            return [{
+                level: debugUtils.ExtensionMessageLevel.warning,
+                content: e.message,
+            }]
+        }
+
+        return [];
     }
 
     public async postStart() {

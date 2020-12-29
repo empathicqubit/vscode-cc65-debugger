@@ -89,18 +89,18 @@ export function activate(context: vscode.ExtensionContext) {
             terminal && terminal.show();
         }
         else if(e.event == 'message') {
-            const l = e.body.level;
-            const items : string[] = e.body.items || [];
-            const content : string = e.body.content;
+            const body : debugUtils.ExtensionMessage = e.body;
+            const l = body.level;
+            const items : string[] = body.items || [];
             let promise : Thenable<string | undefined>;
-            if(l == 'information') {
-                promise = vscode.window.showInformationMessage(content, ...items);
+            if(l == debugUtils.ExtensionMessageLevel.information) {
+                promise = vscode.window.showInformationMessage(body.content, ...items);
             }
-            else if(l == 'warning') {
-                promise = vscode.window.showWarningMessage(content, ...items);
+            else if(l == debugUtils.ExtensionMessageLevel.warning) {
+                promise = vscode.window.showWarningMessage(body.content, ...items);
             }
-            else if(l == 'error') {
-                promise = vscode.window.showErrorMessage(content, ...items);
+            else if(l == debugUtils.ExtensionMessageLevel.error) {
+                promise = vscode.window.showErrorMessage(body.content, ...items);
             }
             else {
                 console.error('invalid user message');
