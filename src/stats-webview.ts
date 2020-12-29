@@ -16,13 +16,24 @@ export class StatsWebview {
 
 	private readonly _panel: vscode.WebviewPanel;
 	private readonly _extensionPath: string;
-    private _disposables: vscode.Disposable[] = [];
+	private _disposables: vscode.Disposable[] = [];
+	
+	public static reset() {
+		StatsWebview._runAhead = <any>null;
+		StatsWebview._current = <any>null;
+		StatsWebview._sprites = [];
+		if(StatsWebview._currentPanel) {
+			StatsWebview._currentPanel._panel.webview.postMessage({
+				reset: true,
+			});
+		}
+	}
 
     public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[]) {
         StatsWebview._runAhead = runAhead || StatsWebview._runAhead;
         StatsWebview._current = current || StatsWebview._current;
         StatsWebview._sprites = sprites || StatsWebview._sprites;
-        if(StatsWebview._currentPanel && StatsWebview._runAhead) {
+        if(StatsWebview._currentPanel) {
             StatsWebview._currentPanel._panel.webview.postMessage({
 				runAhead: StatsWebview._runAhead,
 				current: StatsWebview._current,

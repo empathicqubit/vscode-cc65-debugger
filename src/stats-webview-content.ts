@@ -41,9 +41,9 @@ export function _statsWebviewContent() {
                             r('img', { src: props.current.blobUrl }),
                         ),
                     ),
-                    r('div', { className: 'sprites' }, 
+                    r('div', { className: 'sprites' },
                         r('h1', null, 'Sprites'),
-                        props.sprites.map(x => 
+                        props.sprites.map(x =>
                             r('img', { key: x.key, alt: x.key,  src: x.blobUrl })
                         )
                     )
@@ -95,9 +95,16 @@ export function _statsWebviewContent() {
     window.addEventListener('message', async e => {
         try {
             const msgData : renderProps = e.data;
+            if((msgData as any).reset) {
+                data.current = null;
+                data.runAhead = null;
+                data.sprites = [];
+                return;
+            }
+
             if(msgData.current) {
                 const c = msgData.current;
-                if(!data.current || !data.current.data.every((x, i) => c.data[i] == x)) {
+                if(!data.current || data.current.data.length != c.data.length || !data.current.data.every((x, i) => c.data[i] == x)) {
                     data.current = {
                         ...c,
                         blobUrl: URL.createObjectURL(new Blob([new Uint8Array(c.data)], {type: 'image/png' })),
@@ -106,7 +113,7 @@ export function _statsWebviewContent() {
             }
             if(msgData.runAhead) {
                 const r = msgData.runAhead;
-                if(!data.runAhead || !data.runAhead.data.every((x, i) => r.data[i] == x)) {
+                if(!data.runAhead || data.runAhead.data.length != r.data.length || !data.runAhead.data.every((x, i) => r.data[i] == x)) {
                     data.runAhead = {
                         ...r,
                         blobUrl: URL.createObjectURL(new Blob([new Uint8Array(r.data)], {type: 'image/png' })),
@@ -130,7 +137,7 @@ export function _statsWebviewContent() {
                         continue;
                     }
 
-                    if(!existing.data.every((x, i) => sprite.data[i] == x)) {
+                    if(existing.data.length != sprite.data.length || !existing.data.every((x, i) => sprite.data[i] == x)) {
                         data.sprites[existingIndex] = newSprite();
                     }
                 }
