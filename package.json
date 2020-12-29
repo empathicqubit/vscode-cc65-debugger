@@ -32,11 +32,9 @@
     "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
   },
   "scripts": {
-    "adapter": "webpack --config webpack.adapter.config.js --mode production",
     "monitor": "webpack --config webpack.monitor.config.js --mode production",
     "webviews": "webpack --config webpack.webviews.config.js --mode production",
     "styles": "shx cp src/styles.css dist/styles.css",
-    "adapter:debug": "webpack --config webpack.adapter.config.js --mode development",
     "monitor:debug": "webpack --config webpack.monitor.config.js --mode development",
     "webviews:debug": "webpack --config webpack.webviews.config.js --mode development",
     "extension": "webpack --config webpack.extension.config.js --mode production",
@@ -75,6 +73,7 @@
     "get-port": "^5.1.1",
     "hasbin": "^1.2.3",
     "lodash": "^4.17.15",
+    "marked": "^1.2.7",
     "node-watch": "^0.6.4",
     "performance-now": "^2.1.0",
     "pngjs": "^5.0.0",
@@ -108,8 +107,8 @@
     "typescript": "^3.7.5",
     "vscode-debugadapter-testsupport": "1.40.1",
     "vscode-debugprotocol": "^1.41.0",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12",
+    "webpack": "^5.11.1",
+    "webpack-cli": "^4.3.0",
     "why-is-node-running": "^2.2.0"
   },
   "main": "./dist/extension",

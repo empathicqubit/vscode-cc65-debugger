@@ -8,7 +8,6 @@ import * as pngjs from 'pngjs';
 import _min from 'lodash/fp/min';
 import _max from 'lodash/fp/max';
 import { ViceGrip } from './vice-grip';
-import { debug } from 'vscode';
 
 export class GraphicsManager {
     private _currentPng: any;
@@ -57,9 +56,26 @@ export class GraphicsManager {
     }
 
     public async updateScreen(emitter: events.EventEmitter) : Promise<void> {
+        await this.updateCurrent(emitter);
+
+        if(this._machineType != debugFile.MachineType.c64) {
+            return;
+        }
+
+        const ioCmd : bin.MemoryGetCommand = {
+            type: bin.CommandType.memoryGet,
+            bankId: this._ioBank.id,
+            memspace: bin.ViceMemspace.main,
+            sidefx: false,
+            startAddress: 0xd000,
+            endAddress: 0xdfff,
+        };
+        const ioRes : bin.MemoryGetResponse = await this._vice.execBinary(ioCmd);
+        const ioMemory = ioRes.memory;
+
         await Promise.all([
-            this.updateCurrent(emitter),
-            this.updateSprites(emitter),
+            this._updateSprites(ioMemory, emitter),
+            this._updateText(ioMemory, emitter),
         ]);
     }
 
@@ -117,34 +133,31 @@ export class GraphicsManager {
 
     private _spritePixels: Buffer;
 
-    public async updateSprites(emitter: events.EventEmitter) : Promise<void> {
-        if(this._machineType != debugFile.MachineType.c64) {
-            return;
-        }
+    private async _updateText(ioMemory: Buffer, emitter: events.EventEmitter) : Promise<void> {
+        const vicSetup = ioMemory.readUInt8(0x018);
+        const vicBankMult = ~ioMemory.readUInt8(0xd00) & 0b11;
+        const vicBankStart = vicBankMult * 0x4000;
+        const screenMult = (vicSetup >>> 4) & 0b1111;
+        const screenStart = vicBankStart + screenMult * 0x400;
+        const screenMemory = this._vice.getMemory(screenStart, 40 * 25);
+        console.log(screenMemory);
+    }
 
-        const ioCmd : bin.MemoryGetCommand = {
-            type: bin.CommandType.memoryGet,
-            bankId: this._ioBank.id,
-            memspace: bin.ViceMemspace.main,
-            sidefx: false,
-            startAddress: 0xd000,
-            endAddress: 0xdd00,
-        };
+    private async _updateSprites(ioMemory: Buffer, emitter: events.EventEmitter) : Promise<void> {
         const SPRITE_COUNT = 8;
-        const res : bin.MemoryGetResponse = await this._vice.execBinary(ioCmd);
-        const vicSetup = res.memory.readUInt8(0x018);
-        const vicBankMult = ~res.memory.readUInt8(0xd00) & 0b11;
+        const vicSetup = ioMemory.readUInt8(0x018);
+        const vicBankMult = ~ioMemory.readUInt8(0xd00) & 0b11;
         const vicBankStart = vicBankMult * 0x4000;
         const screenMult = (vicSetup >>> 4) & 0b1111;
         const screenStart = vicBankStart + screenMult * 0x400;
         const spriteMultsStart = screenStart + 0x3f8;
         const spriteMults = await this._vice.getMemory(spriteMultsStart, SPRITE_COUNT);
-        const spriteMulticolorFlags = res.memory.readUInt8(0x01c);
-        const spriteEnableFlags = res.memory.readUInt8(0x015);
+        const spriteMulticolorFlags = ioMemory.readUInt8(0x01c);
+        const spriteEnableFlags = ioMemory.readUInt8(0x015);
         const enabledMults = spriteMults.filter((x, i, a) => spriteEnableFlags & (1 << i));
-        const color1 = res.memory.readUInt8(0x025) & 0xf;
-        const color3 = res.memory.readUInt8(0x026) & 0xf;
-        const spriteColors = res.memory.slice(0x027, 0x27 + SPRITE_COUNT);
+        const color1 = ioMemory.readUInt8(0x025) & 0xf;
+        const color3 = ioMemory.readUInt8(0x026) & 0xf;
+        const spriteColors = ioMemory.slice(0x027, 0x27 + SPRITE_COUNT);
         const minMult = _min(enabledMults) || 0x00;
 
         const spriteDataCmd : bin.MemoryGetCommand = {
@@ -162,19 +175,19 @@ export class GraphicsManager {
         }
 
         const sprites : any[] = [];
-        for(let s = 0; s < spriteDatas.length; s++) {
-            let m = spriteMults.indexOf(minMult + s);
-            const mask = m == -1 
-                ? 1 << (s % SPRITE_COUNT) 
-                : 1 << m;
-            const isMulticolor = m == -1 
-                ? spriteDatas[s].readUInt8(63) & 0x80 
+        for(let idx = 0; idx < spriteDatas.length; idx++) {
+            let slot = spriteMults.indexOf(minMult + idx);
+            const mask = slot == -1 
+                ? 1 << (idx % SPRITE_COUNT) 
+                : 1 << slot;
+            const isMulticolor = slot == -1 
+                ? spriteDatas[idx].readUInt8(63) & 0x80 
                 : !!(spriteMulticolorFlags & mask);
-            const isEnabled = !!(spriteEnableFlags & mask);
+            const isEnabled = slot != -1 && !!(spriteEnableFlags & mask);
             const palette = this._palette;
-            const spriteColor = m == -1 
-                ? palette[spriteDatas[s].readUInt8(63) & 0xf] 
-                : palette[spriteColors[m] & 0xf];
+            const spriteColor = slot == -1 
+                ? palette[spriteDatas[idx].readUInt8(63) & 0xf] 
+                : palette[spriteColors[slot] & 0xf];
             const spriteImage = this._spritesPng;
             let offset = 0;
 
@@ -195,14 +208,8 @@ export class GraphicsManager {
                 ];
             }
 
-            if(!isEnabled) {
-                for(const c in colors) {
-                    colors[c] = (colors[c] & 0xf0f0f0ff) >>> 0;
-                }
-            }
-
             if(isMulticolor) {
-                for(let b of spriteDatas[s].slice(0, 63)) {
+                for(let b of spriteDatas[idx].slice(0, 63)) {
                     for(let i = 0; i < 4; i++) {
                         const colorIndex = b >>> 6;
                         this._spritePixels.writeUInt32BE(colors[colorIndex], offset);
@@ -214,7 +221,7 @@ export class GraphicsManager {
                 }
             }
             else {
-                for(let b of spriteDatas[s].slice(0, 63)) {
+                for(let b of spriteDatas[idx].slice(0, 63)) {
                     for(let i = 0; i < 8; i++) {
                         const colorIndex = b >>> 7;
                         this._spritePixels.writeUInt32BE(colors[colorIndex], offset);
@@ -239,7 +246,8 @@ export class GraphicsManager {
                 data: Array.from(pngjs.PNG.sync.write(spriteImage)),
                 width: spriteImage.width,
                 height: spriteImage.height,
-                key: minMult + s,
+                key: minMult + idx,
+                isEnabled,
             };
 
             sprites.push(sprite);

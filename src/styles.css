@@ -46,6 +46,10 @@ h1, h2, h3, h4, h5, h6 {
 	height: 5em;
 }
 
+.sprites img.disabled {
+    opacity: 0.70;
+}
+
 .all-tabs {
 	width: 100%;
 	height: 100vh; 
