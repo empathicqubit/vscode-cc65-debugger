@@ -1,3 +1,42 @@
+/* Generic */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: .1em;
+}
+
+/* Tabs */
+.react-tabs__tab-list {
+    display: flex;
+    background-color: var(--vscode-editorGroupHeader-tabsBackground);
+    margin: 0;
+    padding: .1em .5em;
+}
+
+.react-tabs__tab {
+    display: block;
+    padding: 1em;
+    border-radius: .25em .25em 0 0;
+    border: 2px solid var(--vscode-tab-border);
+	background-color: var(--vscode-tab-inactiveBackground);
+    color: var(--vscode-tab-inactiveForeground);
+    border-bottom: none;
+}
+
+.react-tabs__tab--selected {
+	background-color: var(--vscode-tab-activeBackground);
+    color: var(--vscode-tab-activeForeground);
+}
+
+.react-tabs__tab-panel--selected {
+    margin: 1em;
+}
+
+/* Everything else */
+
 .current-frame, .next-frame {
 	display: table-cell;
 }
@@ -5,4 +44,9 @@
 .sprites img {
 	margin: .25em;
 	height: 5em;
+}
+
+.all-tabs {
+	width: 100%;
+	height: 100vh; 
 }

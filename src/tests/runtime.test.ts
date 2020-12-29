@@ -10,7 +10,6 @@ import _transform from 'lodash/transform';
 import * as util from 'util';
 import * as fs from 'fs';
 import * as debugUtils from '../debug-utils';
-import TGA from 'tga';
 
 const all = (...args) => Promise.all(args);
 
@@ -667,7 +666,6 @@ suite('Runtime', () => {
                 };
                 const res : bin.DisplayGetResponse = await rt._vice.execBinary(req);
                 assert.strictEqual(res.targaImageData.readUInt8(2), 2);
-                const tga = new TGA(res.targaImageData);
             });
         });
 

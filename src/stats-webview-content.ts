@@ -1,5 +1,6 @@
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
+import * as reactTabs from 'react-tabs';
 import _sortBy from 'lodash/fp/sortBy';
 
 interface vscode {
@@ -26,8 +27,12 @@ export function _statsWebviewContent() {
         render() {
             const props = this.props as renderProps;
             return r('div', null,
-                [
-                    r('div', { className: 'display-frames' },
+                r(reactTabs.Tabs, { className: 'all-tabs'}, 
+                    r(reactTabs.TabList, null,
+                        r(reactTabs.Tab, null, 'Display'),
+                        r(reactTabs.Tab, null, 'Sprites'),
+                    ),
+                    r(reactTabs.TabPanel, { className: 'display-frames' },
                         !props.runAhead
                         ? r('h1', 'Loading...')
                         : r('div', {className: 'next-frame'},
@@ -41,13 +46,14 @@ export function _statsWebviewContent() {
                             r('img', { src: props.current.blobUrl }),
                         ),
                     ),
-                    r('div', { className: 'sprites' },
-                        r('h1', null, 'Sprites'),
-                        props.sprites.map(x =>
+                    r(reactTabs.TabPanel, { className: 'sprites' },
+                        !props.sprites || !props.sprites.length
+                        ? r('h1', null, 'Loading...')
+                        : props.sprites.map(x =>
                             r('img', { key: x.key, alt: x.key,  src: x.blobUrl })
-                        )
-                    )
-                ]
+                        ),
+                    ),
+                ),
             );
         }
     }
