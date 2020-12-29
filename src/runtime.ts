@@ -100,6 +100,7 @@ export class Runtime extends EventEmitter {
 
     private _registerMeta : {[key: string]: bin.SingleRegisterMeta };
     private _bankMeta : {[key: string]: bin.SingleBankMeta };
+    private _startupRegisters: bin.SingleRegisterInfo[] | undefined;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -427,6 +428,10 @@ export class Runtime extends EventEmitter {
 
         registersAvailable.registers.forEach(x => this._registerMeta[x.name] = x);
         banksAvailable.banks.forEach(x => this._bankMeta[x.name] = x);
+        if(this._startupRegisters) {
+            this._updateRegisters(this._startupRegisters);
+            this._startupRegisters = undefined;
+        }
         
         await Promise.all([
             this._callStackManager.reset(this._currentAddress, this._currentPosition),
@@ -1146,39 +1151,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
         else if(e.type == bin.ResponseType.registerInfo) {
             const rr = (<bin.RegisterInfoResponse>e).registers;
-            const r = this._registers;
-            const meta = this._registerMeta;
-            if(!Object.keys(meta).length) {
-                return;
-            }
-            for(const reg of rr) {
-                if(meta['A'].id == reg.id) {
-                    r.a = reg.value;
-                }
-                else if(meta['X'].id == reg.id) {
-                    r.x = reg.value;
-                }
-                else if(meta['Y'].id == reg.id) {
-                    r.y = reg.value;
-                }
-                else if(meta['SP'].id == reg.id) {
-                    r.sp = reg.value;
-
-                    this._callStackManager.setCpuStackTop(0x100 + r.sp);
-                }
-                else if(meta['FL'].id == reg.id) {
-                    r.fl = reg.value;
-                }
-                else if(meta['LIN'].id == reg.id) {
-                    r.line = reg.value;
-                }
-                else if(meta['CYC'].id == reg.id) {
-                    r.cycle = reg.value;
-                }
-                else if(meta['PC'].id == reg.id) {
-                    r.pc = reg.value;
-                }
-            }
+            this._updateRegisters(rr);
         }
         else if(e.type == bin.ResponseType.stopped) {
             this.viceRunning = false;
@@ -1200,6 +1173,43 @@ or define the location manually with the launch.json->mapFile setting`
 
             if(!this._viceStarting) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+            }
+        }
+    }
+
+    private _updateRegisters(rr: bin.SingleRegisterInfo[]) : void {
+        const meta = this._registerMeta;
+        if(!Object.keys(meta).length) {
+            this._startupRegisters = rr;
+            return;
+        }
+        const r = this._registers;
+        for(const reg of rr) {
+            if(meta['A'].id == reg.id) {
+                r.a = reg.value;
+            }
+            else if(meta['X'].id == reg.id) {
+                r.x = reg.value;
+            }
+            else if(meta['Y'].id == reg.id) {
+                r.y = reg.value;
+            }
+            else if(meta['SP'].id == reg.id) {
+                r.sp = reg.value;
+
+                this._callStackManager.setCpuStackTop(0x100 + r.sp);
+            }
+            else if(meta['FL'].id == reg.id) {
+                r.fl = reg.value;
+            }
+            else if(meta['LIN'].id == reg.id) {
+                r.line = reg.value;
+            }
+            else if(meta['CYC'].id == reg.id) {
+                r.cycle = reg.value;
+            }
+            else if(meta['PC'].id == reg.id) {
+                r.pc = reg.value;
             }
         }
     }
