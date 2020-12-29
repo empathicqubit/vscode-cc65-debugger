@@ -265,6 +265,10 @@ pnpm install --shamefully-hoist
 pnpm package
 ```
 
+## Contributing
+
+All work happens on `master`, and releases are merged from pull requests using Google's Release Please. Commit messages should contain `fix:` for bug fixes or `feat:` for new features, which will appear as bullet points in the changelogs. You can only have one `fix:` or `feat:` per commit message, and it must be on the first line. Do not manually edit the version or the CHANGELOG, unless your name is `empathicqubit`. **Breaking changes** should use `fix!:` and `feat!:`. Force pushes occassionally happen on `master` because I forget to add the tags to my commit messages.
+
 ## Additional Credits (see also LICENSE.md)
 
 * **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
