@@ -158,7 +158,7 @@ export class ViceGrip extends EventEmitter {
     public async connect(binaryPort: number) {
         let binaryConn : net.Socket | undefined;
 
-        while(binaryPort == await getPort({port: getPort.makeRange(binaryPort, binaryPort + 256)}));
+        while(binaryPort == await getPort({port: getPort.makeRange(binaryPort, binaryPort + 256)})) {};
 
         let binaryTries = 0;
         do {
@@ -465,7 +465,7 @@ export class ViceGrip extends EventEmitter {
                 }
                 catch {}
             }
-        })
+        }).catch(() => {});
         this._pids = [-1, -1];
 
         await this.disconnect();

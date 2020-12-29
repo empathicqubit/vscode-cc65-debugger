@@ -774,7 +774,7 @@ or define the location manually with the launch.json->mapFile setting`
                 }
             }
             catch {}
-        });
+        }).catch(() => {});
         this._colorTermPids = [-1, -1];
 
         this._vice && await this._vice.disconnect();

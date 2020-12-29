@@ -107,12 +107,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._runtime.on('started', () => {
             this.sendEvent(new Event('started'));
         });
-        this._runtime.on('message', (level, content, items) => {
-            const msg : debugUtils.ExtensionMessage = {
-                level,
-                content,
-                items,
-            };
+        this._runtime.on('message', (msg: debugUtils.ExtensionMessage) => {
             const e = new Event('message', msg);
             this.sendEvent(e);
         });
@@ -142,15 +137,16 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     }
 
     protected async customRequest(command: string, response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments, request: DebugProtocol.Request): Promise<void> {
+        response.success = true;
 
-        if(command == 'keyup') {
-            const evt : KeyboardEvent = request.arguments;
-            if(evt.key == "Tab") {
-                this._tabby = false;
+        try {
+            if(command == 'keyup') {
+                const evt : KeyboardEvent = request.arguments;
+                if(evt.key == "Tab") {
+                    this._tabby = false;
+                }
             }
-        }
-        else if(command == 'keydown') {
-            try {
+            else if(command == 'keydown') {
                 const evt : KeyboardEvent = request.arguments;
                 if(evt.location !== 0) {
                     return;
@@ -181,19 +177,19 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
                 this._bounceBuf();
             }
-            catch (e) {
-                console.error(e);
+            else if(command == 'messageActioned') {
+                await this._runtime.action(request.arguments.name);
+            }
+            else {
+                response.success = false;
+                response.message = 'Unknown command';
             }
         }
-        else if(command == 'messageActioned') {
-            this._runtime.action(request.arguments.name);
-        }
-        else {
-            response.success = false;
-            response.message = 'Unknown command';
+        catch(e) {
+            response.success = false
+            response.message = e.message;
         }
 
-        response.success = true;
         this.sendResponse(response);
     }
 
@@ -371,7 +367,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
 
             if(wasRunning) {
-                this._runtime.continue();
+                await this._runtime.continue();
             }
 
             // send back the actual breakpoint positions
@@ -623,34 +619,55 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-        this._runtime.continue();
-        this.sendResponse(response);
-    }
+    protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): Promise<void> {
+        response.success = true;
+        try {
+            await this._runtime.continue();
+        }
+        catch(e) {
+            response.success = false;
+            response.message = e.message;
+        }
 
-    protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments) : void {
-        this._runtime.continue(true);
         this.sendResponse(response);
     }
 
     protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
+        response.success = true;
         try {
             await this._runtime.step();
         }
         catch(e) {
-            console.error(e);
+            response.success = false;
+            response.message = e.message;
         }
 
         this.sendResponse(response);
     }
 
-    protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request) {
-        this._runtime.stepIn();
+    protected async stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request) : Promise<void> {
+        response.success = true;
+        try {
+            await this._runtime.stepIn();
+        }
+        catch(e) {
+            response.success = false;
+            response.message = e.message;
+        }
+
         this.sendResponse(response);
     }
 
-    protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request): void {
-        this._runtime.stepOut();
+    protected async stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request): Promise<void> {
+        response.success = true;
+        try {
+            await this._runtime.stepOut();
+        }
+        catch(e) {
+            response.success = false;
+            response.message = e.message;
+        }
+
         this.sendResponse(response);
     }
 
@@ -658,8 +675,16 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         throw new Error('Not supported');
     }
 
-    protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments, request?: DebugProtocol.Request): void {
-        this._runtime.pause();
+    protected async pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments, request?: DebugProtocol.Request): Promise<void> {
+        response.success = true;
+        try {
+            await this._runtime.pause();
+        }
+        catch(e) {
+            response.success = false;
+            response.message = e.message;
+        }
+
         this.sendResponse(response);
     }
 
