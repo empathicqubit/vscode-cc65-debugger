@@ -200,7 +200,9 @@ target is `preprocess-only`, but you can change the command used with the
 `preprocessCommand` option.
 
 If you have included any optimizations (`-Osir`) you should probably turn those
-off, however, efort has been made to trace some of them.
+off, however, effort has been made to trace some of them.
+
+You may also want to look at the [full Assembly project template](src/tests/asm-project), and the [C project template](src/tests/simple-project).
 
 ## Changes needed to your code
 
