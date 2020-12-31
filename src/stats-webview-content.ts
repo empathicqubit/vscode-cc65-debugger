@@ -1,6 +1,7 @@
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 import * as reactTabs from 'react-tabs';
+import classNames from 'classnames';
 import _sortBy from 'lodash/fp/sortBy';
 import _chunk from 'lodash/fp/chunk';
 import marked from 'marked';
@@ -140,61 +141,100 @@ export function _statsWebviewContent() {
         enableColors: boolean,
     };
 
-    class Main extends React.PureComponent {
+    class Hider extends React.Component<unknown, { visible: boolean }, unknown> {
+        constructor(props) {
+            super(props);
+            this.state = { visible: false };
+        }
+        toggleVisible() {
+            this.setState({ visible: !this.state.visible })
+        }
         render() {
-            const props = this.props as renderProps;
+            return r('div', { className: 'hider', onClick: () => this.toggleVisible() },
+                r('button', { className: 'hider__info' }, '🛈'),
+                this.state.visible
+                ? r('div', { className: 'hider__content' },
+                    this.props.children
+                )
+                : null
+            );
+        }
+    }
 
+    class Main extends React.PureComponent<renderProps> {
+        render() {
             return r(reactTabs.Tabs, { className: 'all-tabs'}, 
                 r(reactTabs.TabList, null,
-                    r(reactTabs.Tab, null, 'Display'),
+                    r(reactTabs.Tab, null, 'Display (Current)'),
+                    r(reactTabs.Tab, null, 'Display (Next)'),
                     r(reactTabs.Tab, null, 'Sprites'),
                     r(reactTabs.Tab, null, 'Text'),
                 ),
                 r(reactTabs.TabPanel, { 
-                    className: 'display-frames',
+                    className: 'current-frame',
                     onKeyDown: keydown,
                     onKeyUp: keyup,
                 },
-                    !props.runAhead
-                    ? r('h1', null, 'Loading...')
-                    : r('div', {className: 'next-frame'},
-                        r('h1', null, 'Next Frame'),
-                        r('img', { src: props.runAhead.blobUrl }),
+                    r(Hider, null, 
+                        r('div', { dangerouslySetInnerHTML: { __html: marked(`
+This is a duplicate of the screen from the emulator. This is useful if you're
+running headless. The screen and other tabs are updated once per second.
+Pressing keys inside this tab will send them to the emulator. The mapping is
+similar to VICE's default. Tab is C=.
+                        `)}}),
                     ),
-                    !props.current
-                    ? r('h1', null, 'Loading...')
-                    : r('div', {className: 'current-frame'},
-                        r('h1', null, 'Current Frame'),
-                        r('img', { src: props.current.blobUrl }),
-                    ),
+                    !this.props.current
+                        ? r('h1', null, 'Loading...')
+                        : r('img', { src: this.props.current.blobUrl }),
                 ),
+                !this.props.runAhead
+                    ? null
+                    : r(reactTabs.TabPanel, {
+                        className: 'next-frame',
+                    },
+                        r(Hider, null, 
+                            r('div', { dangerouslySetInnerHTML: { __html: marked(`
+The next frame after the current one. Your changes may not be immediately shown
+on the current screen, due to the way the raster works, so you can try looking
+here instead.
+                            `)}}),
+                        ),
+                        r('img', { src: this.props.runAhead.blobUrl }),
+                    ),
                 r(reactTabs.TabPanel, { className: 'sprites' },
-                    r('div', { dangerouslySetInnerHTML: { __html: marked(`
+                    r(Hider, null, 
+                        r('div', { dangerouslySetInnerHTML: { __html: marked(`
 The sprites in the current bank, from the lowest visible
 to the highest visible. Dim sprites are ones which are
 not currently displayed. If the sprite isn't visible,
 the 64th byte is used to guess whether it is a
 multicolor (bit 7) and what the sprite color is (bit 0-3).
 The [SpritePad format](https://www.spritemate.com/) uses this convention.
-                    `)}}),
-                    !props.sprites || !props.sprites.length
-                    ? r('h1', null, 'Loading...')
-                    : props.sprites.map(x =>
-                        r('img', { className: !x.isEnabled && 'disabled', key: x.key, alt: x.key, src: x.blobUrl })
+                        `)}}),
                     ),
+                    !this.props.sprites || !this.props.sprites.length
+                        ? r('h1', null, 'Loading...')
+                        : this.props.sprites.map(x =>
+                            r('img', { className: !x.isEnabled ? 'disabled' : '', key: x.key, alt: x.key, src: x.blobUrl })
+                        ),
                 ),
                 r(reactTabs.TabPanel, { className: 'screentext' },
-                    r('div', { dangerouslySetInnerHTML: { __html: marked(`
+                    r(Hider, null, 
+                        r('div', { dangerouslySetInnerHTML: { __html: marked(`
 The text currently displayed on the screen. You can toggle the checkbox to enable
 or disable colors. You can select the text and copy it to your clipboard.
-                    `)}}),
-                    !props.screenText
-                    ? r('h1', null, 'Loading...')
-                    : r('code', { onCopy: copyScreenText },
-                        renderScreenText(props.screenText, props.enableColors),
+                        `)}}),
                     ),
-                    r("input", { id: 'enable-colors', type: "checkbox", checked: props.enableColors, onChange: toggleColors }),
-                    r("label", { htmlFor: 'enable-colors' }, "Enable colors"),
+                    !this.props.screenText
+                        ? r('h1', null, 'Loading...')
+                        : r('code', { onCopy: copyScreenText },
+                            renderScreenText(this.props.screenText, this.props.enableColors),
+                        ),
+                    r("label", { htmlFor: 'enable-colors' },
+                        r("input", { id: 'enable-colors', type: "checkbox", checked: this.props.enableColors, onChange: toggleColors }),
+                        r("span"),
+                        "Enable colors"
+                    ),
                 ),
             );
         }

@@ -77,6 +77,7 @@
   "dependencies": {
     "@entan.gl/vice-rainbow-monitor": "^1.0.6",
     "await-notify": "1.0.1",
+    "classnames": "^2.2.6",
     "colors": "^1.4.0",
     "get-port": "^5.1.1",
     "hasbin": "^1.2.3",
@@ -97,6 +98,7 @@
   },
   "devDependencies": {
     "@entan.gl/vsce": "^1.79.6",
+    "@types/classnames": "^2.2.11",
     "@types/lodash": "^4.14.149",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.6.4",

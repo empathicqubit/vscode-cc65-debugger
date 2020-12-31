@@ -1,6 +1,7 @@
 dependencies:
   '@entan.gl/vice-rainbow-monitor': 1.0.6
   await-notify: 1.0.1
+  classnames: 2.2.6
   colors: 1.4.0
   get-port: 5.1.1
   hasbin: 1.2.3
@@ -20,6 +21,7 @@ dependencies:
   wait-port: 0.2.9
 devDependencies:
   '@entan.gl/vsce': 1.79.6
+  '@types/classnames': 2.2.11
   '@types/lodash': 4.14.161
   '@types/mocha': 8.0.3
   '@types/node': 14.6.4
@@ -264,6 +266,10 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-tsAQNx32a8CoFhjhijUIhI4kccIAgmGhy8LZMZgGfmXcpMbPRUqn5LWmgRttILi6yeGmBJd2xsPkFMs0PzgPCw==
+  /@types/classnames/2.2.11:
+    dev: true
+    resolution:
+      integrity: sha512-2koNhpWm3DgWRp5tpkiJ8JGc1xTn2q0l+jUNUE7oMKXUf5NpI9AIdC4kbjGNFBdHtcxBD18LAksoudAVhFKCjw==
   /@types/color-name/1.1.1:
     dev: true
     resolution:
@@ -798,6 +804,10 @@ packages:
       node: '>=6.0'
     resolution:
       integrity: sha512-9e/zx1jw7B4CO+c/RXoCsfg/x1AfUBioy4owYH0bJprEYAx5hRFLRhWBqHAG57D0ZM4H7vxbP7bPe0VwhQRYDQ==
+  /classnames/2.2.6:
+    dev: false
+    resolution:
+      integrity: sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
   /clean-react-props/0.4.0:
     dev: false
     resolution:
@@ -3679,6 +3689,7 @@ packages:
 specifiers:
   '@entan.gl/vice-rainbow-monitor': ^1.0.6
   '@entan.gl/vsce': ^1.79.6
+  '@types/classnames': ^2.2.11
   '@types/lodash': ^4.14.149
   '@types/mocha': ^8.0.3
   '@types/node': ^14.6.4
@@ -3687,6 +3698,7 @@ specifiers:
   '@types/universal-analytics': ^0.4.4
   '@types/vscode': '1.42'
   await-notify: 1.0.1
+  classnames: ^2.2.6
   colors: ^1.4.0
   get-port: ^5.1.1
   hasbin: ^1.2.3

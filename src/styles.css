@@ -1,11 +1,52 @@
 /* Generic */
-body {
+body, html {
     margin: 0;
     padding: 0;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 h1, h2, h3, h4, h5, h6 {
     margin-top: .1em;
+}
+
+label input[type="checkbox"] {
+    display: none;
+}
+
+label input[type="checkbox"] + span:before {
+    content: " ";
+    text-align: center;
+    vertical-align: middle;
+	background-color: var(--vscode-checkbox-background);
+	color: var(--vscode-checkbox-foreground);
+	border-color: var(--vscode-checkbox-border);
+	border: 1px solid var(--vscode-checkbox-border);
+	border-radius: .25em;
+    margin-right: .75em;
+    font-size: 1.5em;
+	width: 1em;
+	height: 1em;
+	display: inline-block;
+}
+
+label input:checked + span:before {
+    content: "✓";
+}
+
+button {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: .25em;
+    padding: .5em;
+    line-height: 1em;
+}
+
+button:hover {
+    background-color: var(--vscode-button-hoverBackground);
 }
 
 /* Tabs */
@@ -14,9 +55,16 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--vscode-editorGroupHeader-tabsBackground);
     margin: 0;
     padding: .1em .5em;
+    width: 100%;
+    overflow-x: scroll;
+}
+
+.react-tabs__tab-list::-webkit-scrollbar {
+    height: .2em;
 }
 
 .react-tabs__tab {
+    cursor: pointer;
     display: block;
     padding: 1em;
     border-radius: .25em .25em 0 0;
@@ -29,17 +77,29 @@ h1, h2, h3, h4, h5, h6 {
 .react-tabs__tab--selected {
 	background-color: var(--vscode-tab-activeBackground);
     color: var(--vscode-tab-activeForeground);
+    flex-grow: 1;
 }
 
 .react-tabs__tab-panel--selected {
     padding: 1em;
+    flex-grow: 1;
     overflow: scroll;
 }
 
 /* Everything else */
 
+.display-frames {
+    display: flex;
+    flex-direction: column;
+}
+
 .current-frame, .next-frame {
-	display: table-cell;
+    padding: 0;
+    margin: 0;
+}
+
+.current-frame img, .next-frame img {
+    width: 100%;
 }
 
 .sprites img {
@@ -61,4 +121,17 @@ h1, h2, h3, h4, h5, h6 {
 .screentext code pre {
     font-family: "C64";
     font-size: calc(6px + 0.9vw);
+}
+
+.hider__info {
+    top: -.5em;
+    left: -.5em;
+    position: relative;
+}
+
+.hider__content {
+    padding: .5em;
+    background-color: var(--vscode-settings-focusedRowBackground);
+    border-radius: .25em;
+    display: inline-block;
 }
