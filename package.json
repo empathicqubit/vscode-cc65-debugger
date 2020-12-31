@@ -50,7 +50,7 @@
     "webpack:debug": "webpack --mode development",
     "tisk": "tsc -p src",
     "inspect": "npm-run-all tisk && node --inspect-brk ./out/debug-adapter.js --server=4711",
-    "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all nonjs",
+    "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all nonjs && npm-run-all test:prepublish",
     "vscode:debug": "npm-run-all -p tisk webpack:debug && npm-run-all nonjs",
     "vscode:install": "npm-run-all package && codium --install-extension cc65-vice*.vsix || code --install-extension cc65-vice*.vsix",
     "vice:make": "cd ./src/tests/vicedir && make -j8",
