@@ -43,7 +43,7 @@
     "webpack:debug": "webpack --mode development",
     "tisk": "tsc -p src",
     "inspect": "npm-run-all tisk && node --inspect-brk ./out/debug-adapter.js --server=4711",
-    "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all -p styles fontgen && test:prepublish",
+    "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all -p styles fontgen && npm-run-all test:prepublish",
     "vscode:debug": "npm-run-all -p tisk webpack:debug && npm-run-all -p styles fontgen",
     "vice:make": "cd ./src/tests/vicedir && make -j8",
     "vice:configure:force": "cd ./src/tests/vicedir && bash ./configure --enable-headlessui --disable-pdf-docs",
