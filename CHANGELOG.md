@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.5.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.4.0...v3.5.0) (2020-12-31)
+
+
+### Features
+
+* Add screen text viewer ([f5c5b63](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f5c5b63a8c67808db36db359e9460bae7b9e1561))
+* Add sprite viewer. ([8bb2797](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/8bb27978c9a74f726c62250483145be2356dddc6))
+* Reduce extension size. ([b3c44b1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/b3c44b1094f5e9b36c07ac6be86e1fdf9a84166f))
+* Update project templates to suggest installing the debugger ([c94a81e](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/c94a81ee8edba0769f50c66b33b704a55d5add5b))
+
+
+### Bug Fixes
+
+* Don't fail if Clang isn't installed ([18e8b1b](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/18e8b1b4bc91c8d05d063cca30e19bbef9e67ce6))
+* Don't fail if there are no c files in the project. ([42aedb0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/42aedb0213ce82ed78ff9befb20a5921ac132d3b))
+* Update registers during startup sequence ([a44e74e](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/a44e74e072f771bc1eeb01d36acb1b64295d1256))
+
 ## [3.4.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.3.0...v3.4.0) (2020-12-27)
 
 
