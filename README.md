@@ -256,8 +256,8 @@ scary "no symbols for this file" window when you pause on a compiled DLL in VS p
 
 ## Building
 
-You will need node >=13, vscode >=1.42, pnpm >=5.5, and Subversion.
-Mocha Test Explorer extension is also recommended.
+You will need node >=13, vscode >=1.42, pnpm >=5.5, Python 3 (to generate
+the font), and Subversion.  Mocha Test Explorer extension is also recommended.
 
 For more details about what is needed to build, please look at the
 [Dockerfile](docker/Dockerfile)
