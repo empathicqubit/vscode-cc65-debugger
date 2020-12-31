@@ -22,7 +22,7 @@ export class GraphicsManager {
     constructor(vice: ViceGrip, machineType: debugFile.MachineType) {
         this._spritesPng = new pngjs.PNG({
             width: 24,
-            height: 30, 
+            height: 30,
         });
         this._spritePixels = Buffer.alloc(4 * this._spritesPng.width * this._spritesPng.height);
         this._vice = vice;
@@ -37,7 +37,7 @@ export class GraphicsManager {
                 type: bin.CommandType.resourceGet,
                 resourceName: 'VICIIPaletteFile',
             });
-            const paletteFile = await util.promisify(fs.readFile)(path.normalize(path.join(__dirname, "../system", paletteFileName.stringValue + '.vpl')), 'utf8');
+            const paletteFile = await util.promisify(fs.readFile)(path.normalize(path.join(__dirname, "../dist/system", paletteFileName.stringValue + '.vpl')), 'utf8');
             const paletteLines = paletteFile.split(/[\r\n]+\s*/gim);
             const paletteActiveLines = paletteLines.filter(x => !/^#/.test(x));
             const paletteLinePattern = /^\s*([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s*$/i;
@@ -187,16 +187,16 @@ export class GraphicsManager {
         const sprites : any[] = [];
         for(let idx = 0; idx < spriteDatas.length; idx++) {
             let slot = spriteMults.indexOf(minMult + idx);
-            const mask = slot == -1 
-                ? 1 << (idx % SPRITE_COUNT) 
+            const mask = slot == -1
+                ? 1 << (idx % SPRITE_COUNT)
                 : 1 << slot;
-            const isMulticolor = slot == -1 
-                ? spriteDatas[idx].readUInt8(63) & 0x80 
+            const isMulticolor = slot == -1
+                ? spriteDatas[idx].readUInt8(63) & 0x80
                 : !!(spriteMulticolorFlags & mask);
             const isEnabled = slot != -1 && !!(spriteEnableFlags & mask);
             const palette = this._palette;
-            const spriteColor = slot == -1 
-                ? palette[spriteDatas[idx].readUInt8(63) & 0xf] 
+            const spriteColor = slot == -1
+                ? palette[spriteDatas[idx].readUInt8(63) & 0xf]
                 : palette[spriteColors[slot] & 0xf];
             const spriteImage = this._spritesPng;
             let offset = 0;

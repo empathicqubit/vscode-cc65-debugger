@@ -254,7 +254,7 @@ export class ViceGrip extends EventEmitter {
             ...(
                 path.basename(vicePath).startsWith('x64')
                 ? [
-                    "-directory", `${q}${path.normalize(__dirname + "/../system")}${q}`,
+                    "-directory", `${q}${path.normalize(__dirname + "/../dist/system")}${q}`,
                     "-iecdevice8",
                 ]
                 : []

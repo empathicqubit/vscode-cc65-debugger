@@ -4,6 +4,12 @@ on:
   pull_request:
     branches:
         - master
+  workflow_dispatch:
+      inputs:
+          ref:
+              description: The git refspec to checkout
+              required: true
+              default: 'master'
 
 jobs:
   build:
@@ -17,5 +23,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+          ref: "${{ github.events.inputs.ref }}"
     - run: pnpm install --shamefully-hoist
     - run: pnpm package
+    - run: unzip -l cc65-vice*.vsix
