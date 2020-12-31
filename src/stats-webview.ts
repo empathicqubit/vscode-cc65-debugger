@@ -10,6 +10,7 @@ export class StatsWebview {
 	private static _runAhead : ImageData;
 	private static _current: ImageData;
 	private static _sprites: ImageData[];
+	static _screenText: ImageData;
 	private static _emitter: EventEmitter = new EventEmitter();
 
 	public static readonly viewType = 'statsWebview';
@@ -21,6 +22,7 @@ export class StatsWebview {
 	public static reset() {
 		StatsWebview._runAhead = <any>null;
 		StatsWebview._current = <any>null;
+		StatsWebview._screenText = <any>null;
 		StatsWebview._sprites = [];
 		if(StatsWebview._currentPanel) {
 			StatsWebview._currentPanel._panel.webview.postMessage({
@@ -29,15 +31,17 @@ export class StatsWebview {
 		}
 	}
 
-    public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[]) {
+    public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[], screenText?: ImageData) {
         StatsWebview._runAhead = runAhead || StatsWebview._runAhead;
         StatsWebview._current = current || StatsWebview._current;
-        StatsWebview._sprites = sprites || StatsWebview._sprites;
+		StatsWebview._sprites = sprites || StatsWebview._sprites;
+		StatsWebview._screenText = screenText || StatsWebview._screenText;
         if(StatsWebview._currentPanel) {
             StatsWebview._currentPanel._panel.webview.postMessage({
 				runAhead: StatsWebview._runAhead,
 				current: StatsWebview._current,
 				sprites: StatsWebview._sprites,
+				screenText: StatsWebview._screenText,
 			});
         }
 	}
@@ -74,7 +78,7 @@ export class StatsWebview {
 
         StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
 
-        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current, StatsWebview._sprites);
+        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current, StatsWebview._sprites, StatsWebview._screenText);
 	}
 
 	public static revive(panel: vscode.WebviewPanel, extensionPath: string) {
@@ -118,9 +122,13 @@ export class StatsWebview {
 		const cssPathOnDisk = vscode.Uri.file(
 			path.join(this._extensionPath, 'dist', 'styles.css')
 		);
+		const c64TtfPathOnDisk = vscode.Uri.file(
+			path.join(this._extensionPath, 'dist', 'c64.ttf')
+		);
 
 		const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
 		const cssUri = webview.asWebviewUri(cssPathOnDisk);
+		const c64TtfUri = webview.asWebviewUri(c64TtfPathOnDisk);
 
 		const nonce = getNonce();
 
@@ -128,9 +136,15 @@ export class StatsWebview {
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src-elem ${webview.cspSource} ; img-src blob: ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webview.cspSource}; style-src 'nonce-${nonce}' ${webview.cspSource}; img-src blob: ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<link rel="stylesheet" type="text/css" href="${cssUri}" />
+				<style nonce="${nonce}" type="text/css">
+					@font-face {
+						font-family: "C64";
+						src: url("${c64TtfUri}") format("truetype");
+					}
+				</style>
+				<link rel="stylesheet" type="text/css" href="${cssUri}" nonce="${nonce}" />
                 <title>Jimmy Eat World</title>
             </head>
             <body>

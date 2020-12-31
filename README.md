@@ -256,7 +256,11 @@ scary "no symbols for this file" window when you pause on a compiled DLL in VS p
 
 ## Building
 
-You will need node >=13, vscode >=1.42, pnpm >=5.5. Mocha Test Explorer extension is also recommended.
+You will need node >=13, vscode >=1.42, pnpm >=5.5, and Subversion.
+Mocha Test Explorer extension is also recommended.
+
+For more details about what is needed to build, please look at the
+[Dockerfile](docker/Dockerfile)
 
 To build, run the following commands:
 
@@ -272,4 +276,5 @@ All work happens on `master`, and releases are merged from pull requests using G
 ## Additional Credits (see also LICENSE.md)
 
 * **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
+* **Font**: Font for the screen text viewer is generated using [atbrask/c64ttf](https://github.com/atbrask/c64ttf)
 * **Icon**: Based on a character that appears on the box art for **Bug Blaster**.

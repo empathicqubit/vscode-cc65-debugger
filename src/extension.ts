@@ -70,7 +70,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
         StatsWebview.maybeCreate(context.extensionPath);
-        if(e.event == 'runahead') {
+        if(e.event == 'screenText') {
+            StatsWebview.update(undefined, undefined, undefined, e.body.screenText);
+        }
+        else if(e.event == 'runahead') {
             StatsWebview.update(e.body.runAhead);
         }
         else if(e.event == 'current') {

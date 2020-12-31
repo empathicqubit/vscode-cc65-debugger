@@ -96,6 +96,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             const e = new Event('runahead', data);
             this.sendEvent(e);
         });
+        this._runtime.on('screenText', data => {
+            const e = new Event('screenText', data);
+            this.sendEvent(e);
+        })
         this._runtime.on('sprites', data => {
             const e = new Event('sprites', data);
             this.sendEvent(e);

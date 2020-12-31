@@ -1,0 +1,3 @@
+[submodule "3rdparty/c64ttf"]
+	path = 3rdparty/c64ttf
+	url = https://github.com/empathicqubit/c64ttf

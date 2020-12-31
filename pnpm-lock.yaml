@@ -32,6 +32,7 @@ devDependencies:
   nyc: 15.1.0
   shebang-loader: 0.0.1
   shx: 0.3.2
+  split-file: 2.2.1
   ts-loader: 6.2.2_typescript@3.9.7
   ts-node: 9.1.1_typescript@3.9.7
   tslint: 5.18.0_typescript@3.9.7
@@ -664,6 +665,10 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-1Yj8h9Q+QDF5FzhMs/c9+6UntbD5MkRfRwac8DoEm9ZfUBZ7tZ55YcGVAzEe4bXsdQHEk+s9S5wsOKVdZrw0tQ==
+  /bluebird/3.7.2:
+    dev: true
+    resolution:
+      integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
   /boolbase/1.0.0:
     dev: true
     resolution:
@@ -2924,6 +2929,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-J+FWzZoynJEXGphVIS+XEh3kFSjZX/1i9gFBaWQcB+/tmpe2qUsSBABpcxqxnAxFdiUFEgAX1bjYGQvIZmoz9Q==
+  /split-file/2.2.1:
+    dependencies:
+      bluebird: 3.7.2
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-rKVzxLOPIaAB222NGbPOHo/h9q+SZ3BseIqfLNBMpHw07l7P1V8bgSB2xC5JDDbvxUPvbZfCysj45nRvZXet8A==
   /sprintf-js/1.0.3:
     dev: true
     resolution:
@@ -3693,6 +3705,7 @@ specifiers:
   recursive-readdir: ^2.2.2
   shebang-loader: ^0.0.1
   shx: ^0.3.2
+  split-file: ^2.2.1
   tmp: ^0.1.0
   ts-loader: ^6.2.1
   ts-node: ^9.1.1

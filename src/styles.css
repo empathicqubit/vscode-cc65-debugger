@@ -32,7 +32,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .react-tabs__tab-panel--selected {
-    margin: 1em;
+    padding: 1em;
+    overflow: scroll;
 }
 
 /* Everything else */
@@ -52,5 +53,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .all-tabs {
 	width: 100%;
-	height: 100vh; 
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.screentext code pre {
+    font-family: "C64";
+    font-size: calc(6px + 0.9vw);
 }

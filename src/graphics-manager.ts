@@ -139,8 +139,18 @@ export class GraphicsManager {
         const vicBankStart = vicBankMult * 0x4000;
         const screenMult = (vicSetup >>> 4) & 0b1111;
         const screenStart = vicBankStart + screenMult * 0x400;
-        const screenMemory = this._vice.getMemory(screenStart, 40 * 25);
-        console.log(screenMemory);
+        const screenMemory = await this._vice.getMemory(screenStart, 40 * 25);
+        const colorRam = ioMemory.slice(0x800, 0xbe8);
+
+        emitter.emit('screenText', {
+            screenText: {
+                palette: this._palette,
+                colors: Array.from(colorRam),
+                data: Array.from(screenMemory),
+                width: 40,
+                height: 25,
+            },
+        });
     }
 
     private async _updateSprites(ioMemory: Buffer, emitter: events.EventEmitter) : Promise<void> {

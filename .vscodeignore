@@ -10,4 +10,5 @@ out/**/*
 *.log
 webpack*.config*
 coverage/**/*
+stubbed_modules/**/*
 .nyc_output/**/*

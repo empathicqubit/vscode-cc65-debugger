@@ -2,7 +2,9 @@ import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 import * as reactTabs from 'react-tabs';
 import _sortBy from 'lodash/fp/sortBy';
+import _chunk from 'lodash/fp/chunk';
 import marked from 'marked';
+import { screenMappings } from './screen-mappings';
 
 interface vscode {
     postMessage(message: any): void;
@@ -11,6 +13,112 @@ interface vscode {
 declare const acquireVsCodeApi : () => vscode;
 
 export function _statsWebviewContent() {
+    const parseText = (text: string) : string => {
+        const stringBuilder = new Array<string>(text.length);
+        let i = 0;
+        Array.from(text).forEach((chr, d) => {
+            const code = chr.charCodeAt(0);
+            if(chr == '\n') {
+                stringBuilder[i] = '\n';
+                i++;
+                return;
+            }
+
+            const baseChar = code % 0x80;
+            const reverse = code / 0x80 > 1;
+            stringBuilder[i] = screenMappings.find(x => x.screen == baseChar)!.gfx;
+            i++;
+        });
+
+        return stringBuilder.join('');
+    };
+
+    const renderScreenText = (screenText: screenData, enableColors: boolean) : React.ReactElement => {
+        if(!screenText) {
+            return r('pre');
+        }
+
+        const arr = new Uint8Array((screenText.data.length + screenText.height) * 2);
+        let outputOffset = 0;
+        for(let i = 0; i < screenText.data.length; i++) {
+            if(i && !(i % screenText.width)) {
+                arr[outputOffset] = '\n'.charCodeAt(0);
+                outputOffset++;
+                arr[outputOffset] = 0x00;
+                outputOffset++;
+            }
+
+            arr[outputOffset] = screenText.data[i];
+            outputOffset++;
+            arr[outputOffset] = 0xee;
+            outputOffset++;
+        }
+
+        const text = new TextDecoder('utf-16le').decode(arr);
+        if(!enableColors) {
+            return r('pre', null, text);
+        }
+
+        const palette = screenText.palette.map(x => ({
+            style: {
+                color: '#' + (x >>> 8).toString(16),
+            }
+        }));
+
+        const elems = new Array<React.ReactElement>(text.length);
+        outputOffset = 0;
+        let colorOffset = 0;
+        for(let i = 0; i < text.length; i++) {
+            const chr = text[i];
+            if(chr == '\n') {
+                elems[outputOffset] = r('br');
+                outputOffset++;
+                continue;
+            }
+
+            const style = palette[screenText.colors[colorOffset] & 0xf];
+            colorOffset++;
+
+            // FIXME Would be faster if you used classes
+            elems[outputOffset] = r('span', style, chr);
+            outputOffset++;
+        }
+
+        return r('pre', null, elems);
+    };
+
+    const copyScreenText = (e : ClipboardEvent) : void => {
+        if(!e.clipboardData) {
+            return;
+        }
+        e.clipboardData.setData('text/plain', parseText(document.getSelection()!.toString()))
+        e.preventDefault();
+    }
+
+    const keydown = (evt: React.KeyboardEvent<HTMLDivElement>) : void => {
+        evt.preventDefault();
+        evt.stopPropagation();
+        vscode.postMessage({
+            request: 'keydown',
+            key: evt.key,
+            ctrlKey: evt.ctrlKey,
+            shiftKey: evt.shiftKey,
+            location: evt.location,
+        });
+    };
+
+    const keyup = (evt: React.KeyboardEvent<HTMLDivElement>) : void => {
+        evt.preventDefault();
+        evt.stopPropagation();
+        vscode.postMessage({
+            request: 'keyup',
+            key: evt.key,
+            ctrlKey: evt.ctrlKey,
+            shiftKey: evt.shiftKey,
+            location: evt.location,
+        });
+    };
+
     const r = React.createElement;
 
     interface spriteData extends ImageData {
@@ -19,30 +127,42 @@ export function _statsWebviewContent() {
         isEnabled: boolean;
     }
 
+    interface screenData extends ImageData {
+        colors: number[];
+        palette: number[];
+    }
+
     interface renderProps {
         runAhead: spriteData | null,
         current: spriteData | null,
         sprites: spriteData[],
-        screentext: string,
+        screenText: screenData | null,
+        enableColors: boolean,
     };
 
     class Main extends React.PureComponent {
         render() {
             const props = this.props as renderProps;
+
             return r(reactTabs.Tabs, { className: 'all-tabs'}, 
                 r(reactTabs.TabList, null,
                     r(reactTabs.Tab, null, 'Display'),
                     r(reactTabs.Tab, null, 'Sprites'),
+                    r(reactTabs.Tab, null, 'Text'),
                 ),
-                r(reactTabs.TabPanel, { className: 'display-frames' },
+                r(reactTabs.TabPanel, { 
+                    className: 'display-frames',
+                    onKeyDown: keydown,
+                    onKeyUp: keyup,
+                },
                     !props.runAhead
-                    ? r('h1', 'Loading...')
+                    ? r('h1', null, 'Loading...')
                     : r('div', {className: 'next-frame'},
                         r('h1', null, 'Next Frame'),
                         r('img', { src: props.runAhead.blobUrl }),
                     ),
                     !props.current
-                    ? r('h1', 'Loading...')
+                    ? r('h1', null, 'Loading...')
                     : r('div', {className: 'current-frame'},
                         r('h1', null, 'Current Frame'),
                         r('img', { src: props.current.blobUrl }),
@@ -64,9 +184,17 @@ The [SpritePad format](https://www.spritemate.com/) uses this convention.
                     ),
                 ),
                 r(reactTabs.TabPanel, { className: 'screentext' },
-                    !props.screentext
+                    r('div', { dangerouslySetInnerHTML: { __html: marked(`
+The text currently displayed on the screen. You can toggle the checkbox to enable
+or disable colors. You can select the text and copy it to your clipboard.
+                    `)}}),
+                    !props.screenText
                     ? r('h1', null, 'Loading...')
-                    : props.screentext
+                    : r('code', { onCopy: copyScreenText },
+                        renderScreenText(props.screenText, props.enableColors),
+                    ),
+                    r("input", { id: 'enable-colors', type: "checkbox", checked: props.enableColors, onChange: toggleColors }),
+                    r("label", { htmlFor: 'enable-colors' }, "Enable colors"),
                 ),
             );
         }
@@ -76,42 +204,21 @@ The [SpritePad format](https://www.spritemate.com/) uses this convention.
 
     const content = document.querySelector("#content")!;
 
-    document.addEventListener('keydown', evt => {
-        evt.preventDefault();
-        evt.stopPropagation();
-        vscode.postMessage({
-            request: 'keydown',
-            key: evt.key,
-            ctrlKey: evt.ctrlKey,
-            shiftKey: evt.shiftKey,
-            location: evt.location,
-        });
-
-        return false;
-    });
-
-    document.addEventListener('keyup', evt => {
-        evt.preventDefault();
-        evt.stopPropagation();
-        vscode.postMessage({
-            request: 'keyup',
-            key: evt.key,
-            ctrlKey: evt.ctrlKey,
-            shiftKey: evt.shiftKey,
-            location: evt.location,
-        });
-
-        return false;
-    });
-
     const data : renderProps = {
         runAhead: null,
         current: null,
-        screentext: '',
+        screenText: null,
         sprites: [],
+        enableColors: true,
     };
 
-    ReactDOM.render((r as any)(Main, data), content);
+    const rerender = () => ReactDOM.render((r as any)(Main, data), content);
+
+    const toggleColors = (e) => {
+        data.enableColors = !!e.target.checked;
+
+        rerender();
+    }
 
     window.addEventListener('message', async e => {
         try {
@@ -123,6 +230,12 @@ The [SpritePad format](https://www.spritemate.com/) uses this convention.
                 return;
             }
 
+            if(msgData.screenText) {
+                const s = msgData.screenText;
+                if(!data.screenText || data.screenText.data.length != s.data.length || !data.screenText.data.every((x, i) => s.data[i] == x)) {
+                    data.screenText = s;
+                }
+            }
             if(msgData.current) {
                 const c = msgData.current;
                 if(!data.current || data.current.data.length != c.data.length || !data.current.data.every((x, i) => c.data[i] == x)) {
@@ -187,6 +300,6 @@ The [SpritePad format](https://www.spritemate.com/) uses this convention.
         }
 
 
-        ReactDOM.render((r as any)(Main, data), content);
+        rerender();
     });
 }
