@@ -19,3 +19,4 @@ jobs:
     - uses: actions/checkout@v2
     - run: pnpm install --shamefully-hoist
     - run: pnpm package
+    - run: unzip -l cc65-vice*.vsix
