@@ -4,4 +4,4 @@
 !package.json
 !README.md
 !LICENSE.md
-!language-configuration.json
+!syntaxes/**/*

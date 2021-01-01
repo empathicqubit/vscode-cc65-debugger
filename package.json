@@ -181,7 +181,7 @@
           ".s",
           ".a65"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./syntaxes/language-configuration.json"
       }
     ],
     "grammars": [
