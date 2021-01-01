@@ -19,6 +19,7 @@ jobs:
     - uses: actions/checkout@v2
     - run: pnpm install --shamefully-hoist
     - run: pnpm package
+    - run: unzip -l cc65-vice*.vsix
 
     - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
       id: get_filename
