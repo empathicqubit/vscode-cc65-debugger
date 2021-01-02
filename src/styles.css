@@ -4,6 +4,23 @@ body, html {
     padding: 0;
 }
 
+input[type="text"], input[type="number"], select {
+    border-radius: .25em;
+    margin: .25em;
+    padding: .1em;
+}
+
+select {
+    background-color: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 2px solid var(--vscode-dropdown-border);
+    border-radius: .25em;
+}
+
+option {
+    background: var(--vscode-dropdown-listBackground);
+}
+
 input[type="text"], input[type="number"] {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
@@ -30,7 +47,7 @@ label input[type="checkbox"] {
 }
 
 label input[type="checkbox"] + span:before {
-    content: " ";
+    content: "\2000";
     text-align: center;
     vertical-align: middle;
 	background-color: var(--vscode-checkbox-background);
@@ -46,7 +63,7 @@ label input[type="checkbox"] + span:before {
 }
 
 label input:checked + span:before {
-    content: "✓";
+    content: "\2713";
 }
 
 button {
@@ -67,10 +84,15 @@ button:hover {
     display: flex;
     background-color: var(--vscode-editorGroupHeader-tabsBackground);
     margin: 0;
-    padding: .1em .5em;
+    padding: .1em .5em 0;
     width: 100%;
     overflow-x: scroll;
     flex-shrink: 0;
+}
+
+.react-tabs {
+    border: 2px solid var(--vscode-tab-border);
+    border-radius: .25em;
 }
 
 .react-tabs__tab-list::-webkit-scrollbar {
@@ -116,18 +138,18 @@ button:hover {
     width: 100%;
 }
 
-.sprites .sprite {
+.sprite {
 	margin: .25em;
     height: 5em;
     width: 5em;
     display: inline-block;
 }
 
-.sprites .sprite canvas {
+.sprite canvas {
     width: 100%;
 }
 
-.sprites .sprite.disabled {
+.sprite.disabled {
     opacity: 0.70;
 }
 
@@ -157,5 +179,10 @@ button:hover {
 }
 
 #memview__offset {
-    width: 1.5em;
+    width: 5em;
+}
+
+label[for="memview__multicolor"],
+label[for="memview__offset"] {
+    display: block;
 }

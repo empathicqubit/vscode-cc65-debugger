@@ -229,7 +229,11 @@ export function _statsWebviewContent() {
         enableColors: boolean;
         memory: number[];
         memoryOffset: number;
+        memoryOffsetString: string;
         memoryIsMulticolor: boolean;
+        memColor: number;
+        memColor1: number;
+        memColor3: number;
     };
 
     class Hider extends React.Component<unknown, { visible: boolean }, unknown> {
@@ -337,49 +341,92 @@ or disable colors. You can select the text and copy it to your clipboard.
                     ),
                 ),
                 r(reactTabs.TabPanel, { className: 'memview' },
-                    r('input', { 
-                        type: 'number', 
-                        id: 'memview__offset', 
-                        value: this.props.memoryOffset, 
-                        step: 0x40,
-                        min: 0x0000,
-                        max: 0xF000,
-                        onKeyDown: () => false,
-                        onChange: changeOffset,
-                    }),
-                    r('label', { htmlFor: 'memview__offset' },
-                        '$' + this.props.memoryOffset.toString(16).padStart(4, '0')),
-                    renderMemory(this.props.memory),
-                    _chunk(0x40, this.props.memory).map((x, i) => {
-                        const sd = <spriteData>{
-                            data: Uint8ClampedArray.from(x),
-                            width: 24,
-                            height: 21,
-                            key: i.toString(),
-                            blobUrl: '',
-                            canvas: <any>null,
-                            isEnabled: true,
-                            isMulticolor: this.props.memoryIsMulticolor,
-                            color1: 1,
-                            color3: 14,
-                            color: 7,
-                        };
-                        const sprite = renderSprite(this.props.palette, sd);
-                        return r('span', {
-                            className: 'sprite',
-                            ref: (ref) => ref && ref.lastChild != sprite && 
-                                (ref.lastChild ? ref.replaceChild(sprite, ref.lastChild) : ref.appendChild(sprite))
-                        });
-                    }),
-                    r("label", { htmlFor: 'memory-is-multicolor' },
-                        r("input", { 
-                            id: 'memory-is-multicolor', 
-                            type: "checkbox", 
-                            checked: this.props.memoryIsMulticolor,
-                            onChange: e => (data.memoryIsMulticolor = e.target.checked, rerender())
+                    r('label', { htmlFor: 'memview__offset' }, 
+                        'Offset: ',
+                        r('input', { 
+                            type: 'text', 
+                            id: 'memview__offset', 
+                            value: this.props.memoryOffsetString, 
+                            onChange: changeOffset,
                         }),
-                        r("span"),
-                        "Enable multicolor"
+                    ),
+                    '$' + this.props.memoryOffset.toString(16).padStart(4, '0'),
+                    r(reactTabs.Tabs, null,
+                        r(reactTabs.TabList, null,
+                            r(reactTabs.Tab, null, 'Raw'),
+                            r(reactTabs.Tab, null, 'Sprite'),
+                        ),
+
+                        r(reactTabs.TabPanel, null,
+                            renderMemory(this.props.memory),
+                        ),
+
+                        r(reactTabs.TabPanel, null,
+                            r("label", { htmlFor: 'memview__multicolor' },
+                                r("input", { 
+                                    id: 'memview__multicolor', 
+                                    type: "checkbox", 
+                                    checked: this.props.memoryIsMulticolor,
+                                    onChange: e => (data.memoryIsMulticolor = e.target.checked, rerender())
+                                }),
+                                r("span"),
+                                "Enable multicolor"
+                            ),
+                            r("label", { htmlFor: 'memview__color1' },
+                                "Color 1:"
+                            ),
+                            r('select', { 
+                                id: 'memview__color1', 
+                                value: this.props.memColor1, 
+                                onChange: (e) => (data.memColor1 = parseInt(e.target.value), rerender())
+                                },
+                                this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                            ),
+                            r('br'),
+                            r("label", { htmlFor: 'memview__color3' },
+                                "Color 3:"
+                            ),
+                            r('select', { 
+                                id: 'memview__color3', 
+                                value: this.props.memColor3, 
+                                onChange: (e) => (data.memColor3 = parseInt(e.target.value), rerender()) 
+                                },
+                                this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                            ),
+                            r('br'),
+                            r("label", { htmlFor: 'memview__color' },
+                                "Sprite Color:"
+                            ),
+                            r('select', { 
+                                id: 'memview__color', 
+                                value: this.props.memColor, 
+                                onChange: (e) => (data.memColor = parseInt(e.target.value), rerender())
+                                },
+                                this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                            ),
+                            r('br'),
+                            _chunk(0x40, this.props.memory).map((x, i) => {
+                                const sd = <spriteData>{
+                                    data: Uint8ClampedArray.from(x),
+                                    width: 24,
+                                    height: 21,
+                                    key: (i * 0x40 + this.props.memoryOffset).toString(),
+                                    blobUrl: '',
+                                    canvas: <any>null,
+                                    isEnabled: true,
+                                    isMulticolor: this.props.memoryIsMulticolor,
+                                    color1: this.props.memColor1,
+                                    color3: this.props.memColor3,
+                                    color: this.props.memColor,
+                                };
+                                const sprite = renderSprite(this.props.palette, sd);
+                                return r('span', {
+                                    className: 'sprite',
+                                    ref: (ref) => ref && ref.lastChild != sprite && 
+                                        (ref.lastChild ? ref.replaceChild(sprite, ref.lastChild) : ref.appendChild(sprite))
+                                });
+                            }),
+                        ),
                     ),
                 ),
             );
@@ -399,7 +446,11 @@ or disable colors. You can select the text and copy it to your clipboard.
         enableColors: true,
         memory: [],
         memoryOffset: 0,
+        memoryOffsetString: '$0000',
         memoryIsMulticolor: true,
+        memColor1: 7,
+        memColor3: 14,
+        memColor: 8,
     };
 
     const rerender = () => ReactDOM.render((r as any)(Main, data), content);
@@ -411,7 +462,21 @@ or disable colors. You can select the text and copy it to your clipboard.
     };
 
     const changeOffset = (e) => {
-        data.memoryOffset = parseInt(e.target.value);
+        const match = /^((\$|0x)([0-9a-f]{0,4})|([0-9]{0,5}))$/i.exec(e.target.value);
+        if(!match) {
+            return;
+        }
+
+        data.memoryOffsetString = e.target.value;
+
+        const isHex = !!match[2];
+
+        if(isHex) {
+            data.memoryOffset = parseInt(match[3] || '0', 16);
+        }
+        else {
+            data.memoryOffset = parseInt(match[4] || '0', 10);
+        }
 
         vscode.postMessage({
             request: 'offset',

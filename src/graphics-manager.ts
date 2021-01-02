@@ -198,9 +198,11 @@ export class GraphicsManager {
                 ? 1 << (i % VIC_SPRITE_COUNT)
                 : 1 << slot;
             const isEnabled = slot != -1 && !!(spriteEnableFlags & mask);
-            const isMulticolor = slot == -1
+            const isMulticolor = !!(
+                slot == -1
                 ? spriteBuf.readUInt8(63) & 0x80
-                : !!(spriteMulticolorFlags & mask);
+                : spriteMulticolorFlags & mask
+            );
             const color = slot == -1
                 ? spriteBuf.readUInt8(63) & 0xf
                 : spriteColors[slot] & 0xf;
