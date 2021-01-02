@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.5.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.5.0...v3.5.1) (2021-01-01)
+
+
+### Bug Fixes
+
+* Fix syntax file ([2147d46](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/2147d46dddfcd0c35307601b4b19c0bc61e41ed0))
+
 ## [3.5.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.4.0...v3.5.0) (2020-12-31)
 
 
