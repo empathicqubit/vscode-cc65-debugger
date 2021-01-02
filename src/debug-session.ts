@@ -96,6 +96,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             const e = new Event('palette', data);
             this.sendEvent(e);
         });
+        this._runtime.on('banks', data => {
+            const e = new Event('banks', data);
+            this.sendEvent(e);
+        });
         this._runtime.on('runahead', data => {
             const e = new Event('runahead', data);
             this.sendEvent(e);
@@ -191,6 +195,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
             else if(command == 'offset') {
                 await this._runtime.updateMemoryOffset(request.arguments.offset);
+            }
+            else if(command == 'bank') {
+                await this._runtime.updateMemoryBank(request.arguments.bank);
             }
             else if(command == 'messageActioned') {
                 await this._runtime.action(request.arguments.name);

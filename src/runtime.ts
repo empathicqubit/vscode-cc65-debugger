@@ -190,8 +190,8 @@ export class Runtime extends EventEmitter {
 
         if(!await this._validateLoad(firstLastScopes)) {
             this.sendMessage({
-                level: debugUtils.ExtensionMessageLevel.information, 
-                content: 'Waiting for program to start...', 
+                level: debugUtils.ExtensionMessageLevel.information,
+                content: 'Waiting for program to start...',
                 items: this._attachProgram ? ['Autostart'] : [],
             });
             await this._vice.withAllBreaksDisabled(async () => {
@@ -218,7 +218,7 @@ export class Runtime extends EventEmitter {
                 do {
                     await this.continue();
                     await this._vice.waitForStop();
-                } while(!await this._validateLoad(firstLastScopes)) 
+                } while(!await this._validateLoad(firstLastScopes))
                 this._bypassStatusUpdates = false;
 
                 const delCmds : bin.CheckpointDeleteCommand[] = storeReses
@@ -230,7 +230,7 @@ export class Runtime extends EventEmitter {
             });
 
             this.sendMessage({
-                level: debugUtils.ExtensionMessageLevel.information, 
+                level: debugUtils.ExtensionMessageLevel.information,
                 content: 'Program started.',
             })
         }
@@ -260,8 +260,8 @@ export class Runtime extends EventEmitter {
 
     private async _preStart(
         buildCwd: string,
-        stopOnExit: boolean, 
-        runAhead: boolean, 
+        stopOnExit: boolean,
+        runAhead: boolean,
         consoleType?: string,
         program?: string,
         debugFilePath?: string,
@@ -273,7 +273,7 @@ export class Runtime extends EventEmitter {
         this._stopOnExit = stopOnExit;
 
         this.sendMessage({
-            level: debugUtils.ExtensionMessageLevel.warning, 
+            level: debugUtils.ExtensionMessageLevel.warning,
             content: `To avoid problems, make sure you're using VICE 3.5 or later.`
         });
 
@@ -311,7 +311,7 @@ export class Runtime extends EventEmitter {
         console.timeEnd('preVice');
 
         this._vice = new ViceGrip(
-            <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)), 
+            <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)),
         );
 
         this._registerMeta = {};
@@ -360,14 +360,14 @@ export class Runtime extends EventEmitter {
      * @param labelFilePath Manual path to label file
      */
     public async start(
-        program: string, 
-        buildCwd: string, 
-        stopOnEntry: boolean, 
+        program: string,
+        buildCwd: string,
+        stopOnEntry: boolean,
         stopOnExit: boolean,
-        runAhead: boolean, 
-        viceDirectory?: string, 
-        viceArgs?: string[], 
-        consoleType?: string, 
+        runAhead: boolean,
+        viceDirectory?: string,
+        viceArgs?: string[],
+        consoleType?: string,
         preferX64OverX64sc?: boolean,
         debugFilePath?: string,
         mapFilePath?: string,
@@ -384,9 +384,9 @@ export class Runtime extends EventEmitter {
         }
 
         await this._vice.start(
-            this._dbgFile.entryAddress, 
+            this._dbgFile.entryAddress,
             path.dirname(program),
-            await this._getVicePath(viceDirectory, !!preferX64OverX64sc), 
+            await this._getVicePath(viceDirectory, !!preferX64OverX64sc),
             viceArgs,
             labelFilePath
         )
@@ -432,13 +432,13 @@ export class Runtime extends EventEmitter {
             this._updateRegisters(this._startupRegisters);
             this._startupRegisters = undefined;
         }
-        
+
         await Promise.all([
             this._callStackManager.reset(this._currentAddress, this._currentPosition),
             this._setExitGuard(),
             this._guardCodeSeg(),
             this._variableManager.postStart(),
-            this._graphicsManager.postStart(this, this._bankMeta['io'], this._bankMeta['ram']),
+            this._graphicsManager.postStart(this, this._bankMeta['io'], this._bankMeta['ram'], Object.values(this._bankMeta)),
         ]);
 
         this._viceStarting = false;
@@ -490,6 +490,15 @@ export class Runtime extends EventEmitter {
         const wasRunning = this.viceRunning;
 
         await this._graphicsManager.updateMemoryOffset(offset);
+        if(!wasRunning) {
+            await this._graphicsManager.updateMemory(this);
+        }
+    }
+
+    public async updateMemoryBank(bank: number) {
+        const wasRunning = this.viceRunning;
+
+        await this._graphicsManager.updateMemoryBank(bank);
         if(!wasRunning) {
             await this._graphicsManager.updateMemory(this);
         }
@@ -733,7 +742,7 @@ or define the location manually with the launch.json->mapFile setting`
             }
             else {
                 this.sendMessage({
-                    level: debugUtils.ExtensionMessageLevel.warning, 
+                    level: debugUtils.ExtensionMessageLevel.warning,
                     content: 'Can\'t step out here!'
                 });
                 this.sendEvent('stopOnStep');
@@ -756,10 +765,10 @@ or define the location manually with the launch.json->mapFile setting`
     public async stack(startFrame: number, endFrame: number): Promise<any> {
         this._callStackManager.flushFrames();
         return await this._callStackManager.prettyStack(
-            this._currentAddress, 
-            (this._currentPosition.file || {}).name || '', 
-            this._currentPosition.num, 
-            startFrame, 
+            this._currentAddress,
+            (this._currentPosition.file || {}).name || '',
+            this._currentPosition.num,
+            startFrame,
             endFrame
         );
     }
@@ -1012,7 +1021,7 @@ or define the location manually with the launch.json->mapFile setting`
 
     private _getCurrentScope() : debugFile.Scope | undefined {
         return this._dbgFile.scopes
-            .find(x => x.codeSpan && 
+            .find(x => x.codeSpan &&
                 x.codeSpan.absoluteAddress <= this._currentPosition.span!.absoluteAddress
                 && this._currentPosition.span!.absoluteAddress < x.codeSpan.absoluteAddress + x.codeSpan.size
             );
@@ -1114,7 +1123,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
         else if(e.type == bin.ResponseType.checkpointInfo) {
             // Important note: For performance reasons, brk is a shared object.
-            // If you add any references to it after 
+            // If you add any references to it after
             // an async call you MUST duplicate it before,
             // otherwise it will be overwritten.
             const brk = <bin.CheckpointInfoResponse>e;
@@ -1140,7 +1149,7 @@ or define the location manually with the launch.json->mapFile setting`
                         id: guard,
                     });
                     this.sendMessage({
-                        level: debugUtils.ExtensionMessageLevel.error, 
+                        level: debugUtils.ExtensionMessageLevel.error,
                         content: 'CODE segment was modified. Your program may be broken!'
                     });
                 }
@@ -1328,7 +1337,7 @@ Alternatively, define the location with the launch.json->debugFile setting`
 
         if(!this._dbgFile.csyms.length) {
             this.sendMessage({
-                level: debugUtils.ExtensionMessageLevel.error, 
+                level: debugUtils.ExtensionMessageLevel.error,
                 content: `
 csyms are missing from your debug file. Did you add the -g switch to your linker
 and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)

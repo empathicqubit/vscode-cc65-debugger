@@ -52,49 +52,35 @@ export function activate(context: vscode.ExtensionContext) {
 
     metrics.event('extension', 'activated');
 
-    StatsWebview.addEventListener('offset', evt => {
-        const sesh = vscode.debug.activeDebugSession;
-        if(!sesh) {
-            return;
-        }
-        sesh.customRequest('offset', evt);
+    [
+        'offset',
+        'keydown',
+        'keyup',
+        'bank',
+    ].forEach(t => {
+        StatsWebview.addEventListener(t, evt => {
+            const sesh = vscode.debug.activeDebugSession;
+            if(!sesh) {
+                return;
+            }
+            sesh.customRequest(t, evt);
+        });
     });
 
-    StatsWebview.addEventListener('keydown', evt => {
-        const sesh = vscode.debug.activeDebugSession;
-        if(!sesh) {
-            return;
-        }
-        sesh.customRequest('keydown', evt);
-    });
-
-    StatsWebview.addEventListener('keyup', evt => {
-        const sesh = vscode.debug.activeDebugSession;
-        if(!sesh) {
-            return;
-        }
-        sesh.customRequest('keyup', evt);
-    });
+    const statsEvents = [
+        'memory',
+        'palette',
+        'banks',
+        'screenText',
+        'runahead',
+        'current',
+        'sprites',
+    ];
 
     vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
         StatsWebview.maybeCreate(context.extensionPath);
-        if(e.event == 'memory') {
-            StatsWebview.update(undefined, undefined, undefined, undefined, e.body.memory);
-        }
-        else if(e.event == 'palette') {
-            StatsWebview.update(undefined, undefined, undefined, undefined, undefined, e.body.palette);
-        }
-        else if(e.event == 'screenText') {
-            StatsWebview.update(undefined, undefined, undefined, e.body.screenText);
-        }
-        else if(e.event == 'runahead') {
-            StatsWebview.update(e.body.runAhead);
-        }
-        else if(e.event == 'current') {
-            StatsWebview.update(undefined, e.body.current);
-        }
-        else if(e.event == 'sprites') {
-            StatsWebview.update(undefined, undefined, e.body.sprites);
+        if(statsEvents.includes(e.event)) {
+            StatsWebview.update(e.body);
         }
         else if(e.event == 'started') {
             const terminal =

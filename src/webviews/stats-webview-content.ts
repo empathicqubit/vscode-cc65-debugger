@@ -43,6 +43,13 @@ export function _statsWebviewContent() {
         let offset = 0;
 
         let colors : number[];
+        if(typeof spriteData.isMulticolor == 'undefined') {
+            spriteData.isMulticolor = !!(spriteData.data[63] & 0x80);
+        }
+
+        if(spriteData.color < 0) {
+            spriteData.color = spriteData.data[63] & 0xf;
+        }
 
         if(spriteData.isMulticolor) {
             colors = [
@@ -100,13 +107,13 @@ export function _statsWebviewContent() {
         return canvas;
     };
 
-    const renderMemory = (memory: number[]) : React.ReactElement => {
+    const renderMemory = (memoryOffset: number, memory: number[]) : React.ReactElement => {
         const arr = new Array<string>(memory.length + memory.length / 16 + 1);
         arr[0] = '';
         let offset = 1;
         for(let i = 0; i < memory.length; i++) {
-            if(i && !(i % 16)) {
-                arr[offset] = '\n';
+            if(!(i % 16)) {
+                arr[offset] = `\n${(memoryOffset + i).toString(16).padStart(4, '0')}: `;
                 offset++;
             }
 
@@ -210,7 +217,7 @@ export function _statsWebviewContent() {
         blobUrl: string;
         canvas: HTMLCanvasElement;
         isEnabled: boolean;
-        isMulticolor: boolean;
+        isMulticolor: boolean | undefined;
         color: number;
         color1: number;
         color3: number;
@@ -234,6 +241,8 @@ export function _statsWebviewContent() {
         memColor: number;
         memColor1: number;
         memColor3: number;
+        memBank: number;
+        banks: {id: number, name: string}[];
     };
 
     class Hider extends React.Component<unknown, { visible: boolean }, unknown> {
@@ -258,7 +267,7 @@ export function _statsWebviewContent() {
 
     class Main extends React.PureComponent<renderProps> {
         render() {
-            return r(reactTabs.Tabs, { className: 'all-tabs'}, 
+            return r(reactTabs.Tabs, { className: 'all-tabs'},
                 r(reactTabs.TabList, null,
                     r(reactTabs.Tab, null, 'Display (Current)'),
                     !this.props.runAhead ? null : r(reactTabs.Tab, null, 'Display (Next)'),
@@ -266,12 +275,12 @@ export function _statsWebviewContent() {
                     r(reactTabs.Tab, null, 'Text'),
                     r(reactTabs.Tab, null, 'Memory'),
                 ),
-                r(reactTabs.TabPanel, { 
+                r(reactTabs.TabPanel, {
                     className: 'current-frame',
                     onKeyDown: keydown,
                     onKeyUp: keyup,
                 },
-                    r(Hider, null, 
+                    r(Hider, null,
                         r('div', { dangerouslySetInnerHTML: { __html: marked(`
 This is a duplicate of the screen from the emulator. This is useful if you're
 running headless. The screen and other tabs are updated once per second.
@@ -288,7 +297,7 @@ similar to VICE's default. Tab is C=.
                     : r(reactTabs.TabPanel, {
                         className: 'next-frame',
                     },
-                        r(Hider, null, 
+                        r(Hider, null,
                             r('div', { dangerouslySetInnerHTML: { __html: marked(`
 The next frame after the current one. Your changes may not be immediately shown
 on the current screen, due to the way the raster works, so you can try looking
@@ -298,7 +307,7 @@ here instead.
                         r('img', { src: this.props.runAhead.blobUrl }),
                     ),
                 r(reactTabs.TabPanel, { className: 'sprites' },
-                    r(Hider, null, 
+                    r(Hider, null,
                         r('div', { dangerouslySetInnerHTML: { __html: marked(`
 The sprites in the current bank, from the lowest visible
 to the highest visible. Dim sprites are ones which are
@@ -311,19 +320,19 @@ The [SpritePad format](https://www.spritemate.com/) uses this convention.
                     !this.props.sprites || !this.props.sprites.length
                         ? r('h1', null, 'Loading...')
                         : this.props.sprites.map(x =>
-                            r('span', { 
-                                key: x.key, 
+                            r('span', {
+                                key: x.key,
                                 className: classNames({
                                     disabled: !x.isEnabled,
                                     sprite: true,
-                                }), 
-                                ref: (ref) => ref && ref.lastChild != x.canvas && 
+                                }),
+                                ref: (ref) => ref && ref.lastChild != x.canvas &&
                                     (ref.lastChild ? ref.replaceChild(x.canvas, ref.lastChild) : ref.appendChild(x.canvas))
                             }),
                         ),
                 ),
                 r(reactTabs.TabPanel, { className: 'screentext' },
-                    r(Hider, null, 
+                    r(Hider, null,
                         r('div', { dangerouslySetInnerHTML: { __html: marked(`
 The text currently displayed on the screen. You can toggle the checkbox to enable
 or disable colors. You can select the text and copy it to your clipboard.
@@ -341,14 +350,24 @@ or disable colors. You can select the text and copy it to your clipboard.
                     ),
                 ),
                 r(reactTabs.TabPanel, { className: 'memview' },
-                    r('label', { htmlFor: 'memview__offset' }, 
+                    r('label', { htmlFor: 'memview__offset' },
                         'Offset: ',
-                        r('input', { 
-                            type: 'text', 
-                            id: 'memview__offset', 
-                            value: this.props.memoryOffsetString, 
+                        r('input', {
+                            type: 'text',
+                            id: 'memview__offset',
+                            value: this.props.memoryOffsetString,
                             onChange: changeOffset,
                         }),
+                    ),
+                    r("label", { htmlFor: 'memview__bank' },
+                        "Bank: "
+                    ),
+                    r('select', {
+                        id: 'memview__bank',
+                        value: this.props.memBank,
+                        onChange: changeBank,
+                        },
+                        this.props.banks.map((x, i) => r('option', { value: x.id }, x.name.toString())),
                     ),
                     '$' + this.props.memoryOffset.toString(16).padStart(4, '0'),
                     r(reactTabs.Tabs, null,
@@ -358,14 +377,14 @@ or disable colors. You can select the text and copy it to your clipboard.
                         ),
 
                         r(reactTabs.TabPanel, null,
-                            renderMemory(this.props.memory),
+                            renderMemory(this.props.memoryOffset, this.props.memory),
                         ),
 
                         r(reactTabs.TabPanel, null,
                             r("label", { htmlFor: 'memview__multicolor' },
-                                r("input", { 
-                                    id: 'memview__multicolor', 
-                                    type: "checkbox", 
+                                r("input", {
+                                    id: 'memview__multicolor',
+                                    type: "checkbox",
                                     checked: this.props.memoryIsMulticolor,
                                     onChange: e => (data.memoryIsMulticolor = e.target.checked, rerender())
                                 }),
@@ -375,9 +394,9 @@ or disable colors. You can select the text and copy it to your clipboard.
                             r("label", { htmlFor: 'memview__color1' },
                                 "Color 1:"
                             ),
-                            r('select', { 
-                                id: 'memview__color1', 
-                                value: this.props.memColor1, 
+                            r('select', {
+                                id: 'memview__color1',
+                                value: this.props.memColor1,
                                 onChange: (e) => (data.memColor1 = parseInt(e.target.value), rerender())
                                 },
                                 this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
@@ -386,10 +405,10 @@ or disable colors. You can select the text and copy it to your clipboard.
                             r("label", { htmlFor: 'memview__color3' },
                                 "Color 3:"
                             ),
-                            r('select', { 
-                                id: 'memview__color3', 
-                                value: this.props.memColor3, 
-                                onChange: (e) => (data.memColor3 = parseInt(e.target.value), rerender()) 
+                            r('select', {
+                                id: 'memview__color3',
+                                value: this.props.memColor3,
+                                onChange: (e) => (data.memColor3 = parseInt(e.target.value), rerender())
                                 },
                                 this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
                             ),
@@ -397,9 +416,9 @@ or disable colors. You can select the text and copy it to your clipboard.
                             r("label", { htmlFor: 'memview__color' },
                                 "Sprite Color:"
                             ),
-                            r('select', { 
-                                id: 'memview__color', 
-                                value: this.props.memColor, 
+                            r('select', {
+                                id: 'memview__color',
+                                value: this.props.memColor,
                                 onChange: (e) => (data.memColor = parseInt(e.target.value), rerender())
                                 },
                                 this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
@@ -414,7 +433,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                                     blobUrl: '',
                                     canvas: <any>null,
                                     isEnabled: true,
-                                    isMulticolor: this.props.memoryIsMulticolor,
+                                    isMulticolor: this.props.memoryIsMulticolor
                                     color1: this.props.memColor1,
                                     color3: this.props.memColor3,
                                     color: this.props.memColor,
@@ -422,7 +441,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                                 const sprite = renderSprite(this.props.palette, sd);
                                 return r('span', {
                                     className: 'sprite',
-                                    ref: (ref) => ref && ref.lastChild != sprite && 
+                                    ref: (ref) => ref && ref.lastChild != sprite &&
                                         (ref.lastChild ? ref.replaceChild(sprite, ref.lastChild) : ref.appendChild(sprite))
                                 });
                             }),
@@ -443,11 +462,13 @@ or disable colors. You can select the text and copy it to your clipboard.
         screenText: null,
         sprites: [],
         palette: [],
+        banks: [],
         enableColors: true,
         memory: [],
         memoryOffset: 0,
         memoryOffsetString: '$0000',
         memoryIsMulticolor: true,
+        memBank: 0,
         memColor1: 7,
         memColor3: 14,
         memColor: 8,
@@ -486,6 +507,17 @@ or disable colors. You can select the text and copy it to your clipboard.
         rerender();
     };
 
+    const changeBank = (e) => {
+        data.memBank = parseInt(e.target.value);
+
+        vscode.postMessage({
+            request: 'bank',
+            bank: data.memBank,
+        });
+
+        rerender();
+    }
+
     window.addEventListener('message', async e => {
         try {
             const msgData : renderProps = e.data;
@@ -496,6 +528,11 @@ or disable colors. You can select the text and copy it to your clipboard.
                 return;
             }
 
+            if(msgData.banks) {
+                if(!data.banks || !data.banks.length) {
+                    data.banks = msgData.banks;
+                }
+            }
             if(msgData.palette) {
                 const p = msgData.palette;
                 if(!data.palette || data.palette.length != p.length || !data.palette.every((x, i) => p[i] == x)) {

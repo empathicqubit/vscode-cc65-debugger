@@ -137,7 +137,7 @@ export class ViceGrip extends EventEmitter {
         return await this.execBinary(cmd);
     }
 
-    public async getMemory(addr: number, length: number) : Promise<Buffer> {
+    public async getMemory(addr: number, length: number, bankId: number = 0) : Promise<Buffer> {
         if(length <= 0) {
             return Buffer.alloc(0);
         }
@@ -148,7 +148,7 @@ export class ViceGrip extends EventEmitter {
             startAddress: addr,
             endAddress: addr + length - 1,
             memspace: bin.ViceMemspace.main,
-            bankId: 0,
+            bankId: bankId,
         });
 
         return Buffer.from(res.memory);

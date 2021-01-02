@@ -12,21 +12,24 @@ import { ViceGrip } from './vice-grip';
 export class GraphicsManager {
     private _currentPng: any;
     private _runAheadPng: any;
+    private _banks: bin.SingleBankMeta[];
     private _ioBank: bin.SingleBankMeta;
     private _vice: ViceGrip;
     private _machineType: debugFile.MachineType = debugFile.MachineType.unknown;
     private _ramBank: bin.SingleBankMeta;
     private _memoryOffset: number = 0x0000;
     private _memoryLength: number = 0x1000;
+    private _memoryBank: number = 0;
 
     constructor(vice: ViceGrip, machineType: debugFile.MachineType) {
         this._vice = vice;
         this._machineType = machineType;
     }
 
-    public async postStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta) {
+    public async postStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[]) {
         this._ioBank = ioBank!;
         this._ramBank = ramBank!;
+        this._banks = banks!;
         if(this._machineType == debugFile.MachineType.c64) {
             const paletteFileName = await this._vice.execBinary<bin.ResourceGetCommand, bin.ResourceGetResponse>({
                 type: bin.CommandType.resourceGet,
@@ -52,21 +55,32 @@ export class GraphicsManager {
         }
     }
 
-    public async updateMemoryOffset(offset: number) {
+    public async updateMemoryOffset(offset: number) : Promise<void> {
         this._memoryOffset = offset;
     }
 
+    public async updateMemoryBank(bank: number) : Promise<void> {
+        this._memoryBank = bank;
+    }
+
     public async updateMemory(emitter: events.EventEmitter) {
-        const buf = await this._vice.getMemory(this._memoryOffset, this._memoryLength);
+        const buf = await this._vice.getMemory(this._memoryOffset, this._memoryLength, this._memoryBank);
         emitter.emit('memory', {
             memory: Array.from(buf),
         })
+    }
+
+    public async updateBanks(emitter: events.EventEmitter) : Promise<void> {
+        emitter.emit('banks', {
+            banks: this._banks
+        });
     }
 
     public async updateUI(emitter: events.EventEmitter) : Promise<void> {
         Promise.all([
             this.updateCurrent(emitter),
             this.updateMemory(emitter),
+            this.updateBanks(emitter),
         ]);
 
         if(this._machineType != debugFile.MachineType.c64) {
@@ -198,13 +212,11 @@ export class GraphicsManager {
                 ? 1 << (i % VIC_SPRITE_COUNT)
                 : 1 << slot;
             const isEnabled = slot != -1 && !!(spriteEnableFlags & mask);
-            const isMulticolor = !!(
-                slot == -1
-                ? spriteBuf.readUInt8(63) & 0x80
-                : spriteMulticolorFlags & mask
-            );
+            const isMulticolor = slot == -1
+                ? undefined
+                : !!(spriteMulticolorFlags & mask);
             const color = slot == -1
-                ? spriteBuf.readUInt8(63) & 0xf
+                ? -1
                 : spriteColors[slot] & 0xf;
             const sprite = {
                 data: Array.from(spriteBuf),
