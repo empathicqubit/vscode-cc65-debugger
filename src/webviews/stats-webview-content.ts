@@ -433,7 +433,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                                     blobUrl: '',
                                     canvas: <any>null,
                                     isEnabled: true,
-                                    isMulticolor: this.props.memoryIsMulticolor
+                                    isMulticolor: this.props.memoryIsMulticolor,
                                     color1: this.props.memColor1,
                                     color3: this.props.memColor3,
                                     color: this.props.memColor,
