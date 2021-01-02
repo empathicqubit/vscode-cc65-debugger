@@ -10,7 +10,8 @@ export class StatsWebview {
 	private static _runAhead : ImageData;
 	private static _current: ImageData;
 	private static _sprites: ImageData[];
-	static _screenText: ImageData;
+	private static _memory: number[];
+	private static _screenText: ImageData;
 	private static _emitter: EventEmitter = new EventEmitter();
 
 	public static readonly viewType = 'statsWebview';
@@ -24,6 +25,7 @@ export class StatsWebview {
 		StatsWebview._current = <any>null;
 		StatsWebview._screenText = <any>null;
 		StatsWebview._sprites = [];
+		StatsWebview._memory = [];
 		if(StatsWebview._currentPanel) {
 			StatsWebview._currentPanel._panel.webview.postMessage({
 				reset: true,
@@ -31,17 +33,19 @@ export class StatsWebview {
 		}
 	}
 
-    public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[], screenText?: ImageData) {
+    public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[], screenText?: ImageData, memory?: number[]) {
         StatsWebview._runAhead = runAhead || StatsWebview._runAhead;
         StatsWebview._current = current || StatsWebview._current;
 		StatsWebview._sprites = sprites || StatsWebview._sprites;
 		StatsWebview._screenText = screenText || StatsWebview._screenText;
+		StatsWebview._memory = memory || StatsWebview._memory;
         if(StatsWebview._currentPanel) {
             StatsWebview._currentPanel._panel.webview.postMessage({
 				runAhead: StatsWebview._runAhead,
 				current: StatsWebview._current,
 				sprites: StatsWebview._sprites,
 				screenText: StatsWebview._screenText,
+				memory: StatsWebview._memory,
 			});
         }
 	}
@@ -74,11 +78,14 @@ export class StatsWebview {
 			else if(r == 'keyup') {
 				StatsWebview._emitter.emit(r, evt);
 			}
+			else if(r == 'offset') {
+				StatsWebview._emitter.emit(r, evt);
+			}
 		});
 
         StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
 
-        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current, StatsWebview._sprites, StatsWebview._screenText);
+        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current, StatsWebview._sprites, StatsWebview._screenText, StatsWebview._memory);
 	}
 
 	public static revive(panel: vscode.WebviewPanel, extensionPath: string) {
@@ -145,7 +152,7 @@ export class StatsWebview {
 					}
 				</style>
 				<link rel="stylesheet" type="text/css" href="${cssUri}" nonce="${nonce}" />
-                <title>Jimmy Eat World</title>
+                <title>Thoughts of a Dying Atheist</title>
             </head>
             <body>
                 <div id="content"></div>

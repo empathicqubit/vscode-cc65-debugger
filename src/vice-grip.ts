@@ -154,6 +154,21 @@ export class ViceGrip extends EventEmitter {
         return Buffer.from(res.memory);
     }
 
+    public async setMemory(addr: number, memory: Buffer) : Promise<void> {
+        if(memory.length <= 0) {
+            return;
+        }
+
+        await this.execBinary<bin.MemorySetCommand, bin.MemorySetResponse>({
+            type: bin.CommandType.memorySet,
+            sidefx: false,
+            startAddress: addr,
+            endAddress: addr + memory.length - 1,
+            memspace: bin.ViceMemspace.main,
+            bankId: 0,
+            memory: memory,
+        });
+    }
 
     public async connect(binaryPort: number) {
         let binaryConn : net.Socket | undefined;

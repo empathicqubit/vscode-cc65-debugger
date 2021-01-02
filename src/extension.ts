@@ -52,6 +52,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     metrics.event('extension', 'activated');
 
+    StatsWebview.addEventListener('offset', evt => {
+        const sesh = vscode.debug.activeDebugSession;
+        if(!sesh) {
+            return;
+        }
+        sesh.customRequest('offset', evt);
+    });
+
     StatsWebview.addEventListener('keydown', evt => {
         const sesh = vscode.debug.activeDebugSession;
         if(!sesh) {
@@ -70,7 +78,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
         StatsWebview.maybeCreate(context.extensionPath);
-        if(e.event == 'screenText') {
+        if(e.event == 'memory') {
+            StatsWebview.update(undefined, undefined, undefined, undefined, e.body.memory);
+        }
+        else if(e.event == 'screenText') {
             StatsWebview.update(undefined, undefined, undefined, e.body.screenText);
         }
         else if(e.event == 'runahead') {

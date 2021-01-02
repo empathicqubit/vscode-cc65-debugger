@@ -7,9 +7,11 @@ import * as path from 'path';
 import * as net from 'net';
 import _difference from 'lodash/fp/difference';
 import _transform from 'lodash/transform';
+import _random from 'lodash/fp/random';
 import * as util from 'util';
 import * as fs from 'fs';
 import * as debugUtils from '../debug-utils';
+import * as disassembly from '../disassembly';
 
 const all = (...args) => Promise.all(args);
 
@@ -369,6 +371,7 @@ suite('Runtime', () => {
         let thingOffset = -1;
         let stepsOffset = -1;
         let mainContents = '';
+        let stepsEntry = -1;
         const labels : { [key:string]:number } = {};
         setup(async () => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
@@ -398,9 +401,44 @@ suite('Runtime', () => {
                 const spl = x.split(/\s+/gim);
                 labels[spl[2]] = parseInt(spl[1], 16);
             });
+
+            stepsEntry = mainOffset + 3;
         });
 
         suite('Essential', () => {
+            test('Pauses correctly', async () => {
+                await rt.start(
+                    PROGRAM,
+                    BUILD_CWD,
+                    true,
+                    false,
+                    false,
+                    VICE_DIRECTORY,
+                    viceArgs,
+                    undefined,
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+                await rt.step();
+                await waitFor(rt, 'stopOnStep');
+                await rt.setMemory(0x03fc, Buffer.from([0x01]));
+                const testCycle = async () => {
+                    await rt.continue();
+                    await debugUtils.delay(_random(100, 200));
+                    await rt.pause();
+                    const previousPC = rt.getRegisters().pc;
+                    await debugUtils.delay(_random(100, 200));
+                    assert.strictEqual(rt.getRegisters().pc, previousPC);
+                }
+                for(let i = 0; i < 10; i++) {
+                    await testCycle();
+                }
+            });
+
             test('Starts and terminates successfully without intervention', async() => {
                 await rt.start(
                     PROGRAM,
@@ -463,7 +501,7 @@ suite('Runtime', () => {
 
                 await waitFor(rt, 'output', (type, __, file, line, col) => {
                     assert.strictEqual(file, MAIN_C)
-                    assert.strictEqual(line, mainOffset + 4)
+                    assert.strictEqual(line, mainOffset + 8)
                 });
                 await waitFor(rt, 'stopOnStep');
 
@@ -535,7 +573,7 @@ suite('Runtime', () => {
 
                 await waitFor(rt, 'stopOnEntry');
 
-                await rt.setBreakPoint(MAIN_C, mainOffset + 2);
+                await rt.setBreakPoint(MAIN_C, stepsEntry);
                 await rt.continue();
 
                 await waitFor(rt, 'stopOnStep');
@@ -554,7 +592,7 @@ suite('Runtime', () => {
                     rt.stepOut(),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_C)
-                        assert.strictEqual(line, mainOffset + 3)
+                        assert.strictEqual(line, mainOffset + 4)
                     }),
                 );
 
@@ -582,7 +620,7 @@ suite('Runtime', () => {
 
                 await waitFor(rt, 'stopOnEntry');
 
-                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), mainOffset + 2);
+                await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), stepsEntry);
                 await rt.continue();
 
                 await waitFor(rt, 'stopOnStep');
@@ -800,23 +838,31 @@ suite('Runtime', () => {
         });
 
         suite('Runahead', () => {
-            test('Restores the original location', async() => {
-                await rt.start(
-                    PROGRAM,
-                    BUILD_CWD,
-                    true,
-                    false,
-                    true,
-                    VICE_DIRECTORY,
-                    viceArgs,
-                    undefined,
-                    false,
-                    DEBUG_FILE,
-                    MAP_FILE,
-                    LABEL_FILE
-                );
+            let mainStartAddress = -1;
+            setup(async () => {
+            });
 
-                await waitFor(rt, 'runahead', () => assert.strictEqual(rt.getRegisters().pc, 0x890));
+            test('Restores the original location', async() => {
+                await all([
+                    rt.start(
+                        PROGRAM,
+                        BUILD_CWD,
+                        true,
+                        false,
+                        true,
+                        VICE_DIRECTORY,
+                        viceArgs,
+                        undefined,
+                        false,
+                        DEBUG_FILE,
+                        MAP_FILE,
+                        LABEL_FILE
+                    ),
+                    waitFor(rt, 'runahead', () => assert.strictEqual(rt.getRegisters().pc, labels['._main'])),
+                ])
+
+                await waitFor(rt, 'started');
+
                 await rt.continue();
                 await waitFor(rt, 'end');
             });
@@ -842,7 +888,7 @@ suite('Runtime', () => {
                 await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), mainOffset + 2);
                 await rt.continue();
 
-                await waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > 0x890 && rt.getRegisters().pc < 0x89e, true));
+                await waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > labels['._main'] && rt.getRegisters().pc < labels['._main'] + disassembly.maxOpCodeSize * 10, true));
                 await rt.continue();
                 await waitFor(rt, 'end');
             });
@@ -867,7 +913,7 @@ suite('Runtime', () => {
 
                 await rt.step();
 
-                await waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > 0x890 && rt.getRegisters().pc < 0x89e, true));
+                await waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > labels['._main'] && rt.getRegisters().pc < labels['._main'] + disassembly.maxOpCodeSize * 10, true));
                 await rt.continue();
                 await waitFor(rt, 'end');
             });
@@ -888,10 +934,10 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor(rt, 'stopOnEntry');
+                await waitFor(rt, 'started');
 
                 await all([
-                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc, 0x890)),
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc, labels['._main'])),
                     rt.pause()
                 ])
 
@@ -917,13 +963,13 @@ suite('Runtime', () => {
 
                 await waitFor(rt, 'stopOnEntry');
 
-                await rt.setBreakPoint(MAIN_C, mainOffset + 2);
+                await rt.setBreakPoint(MAIN_C, stepsEntry);
 
                 await all(
                     rt.continue(),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_C)
-                        assert.strictEqual(line, mainOffset + 2)
+                        assert.strictEqual(line, stepsEntry)
                     })
                 )
 
@@ -931,7 +977,7 @@ suite('Runtime', () => {
 
                 await all(
                     rt.stepIn(),
-                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > 0x840 && rt.getRegisters().pc < 0x890, true)),
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > labels['._steps'] && rt.getRegisters().pc < labels['._steps'] * disassembly.maxOpCodeSize * 10, true)),
                 );
 
                 await rt.continue();

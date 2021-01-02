@@ -18,6 +18,8 @@ export class GraphicsManager {
     private _machineType: debugFile.MachineType = debugFile.MachineType.unknown;
     private _palette: number[] = [];
     private _ramBank: bin.SingleBankMeta;
+    private _memoryOffset: number = 0x0000;
+    private _memoryLength: number = 0x1000;
 
     constructor(vice: ViceGrip, machineType: debugFile.MachineType) {
         this._spritesPng = new pngjs.PNG({
@@ -55,8 +57,22 @@ export class GraphicsManager {
         }
     }
 
-    public async updateScreen(emitter: events.EventEmitter) : Promise<void> {
-        await this.updateCurrent(emitter);
+    public async updateMemoryOffset(offset: number) {
+        this._memoryOffset = offset;
+    }
+
+    public async updateMemory(emitter: events.EventEmitter) {
+        const buf = await this._vice.getMemory(this._memoryOffset, this._memoryLength);
+        emitter.emit('memory', {
+            memory: Array.from(buf),
+        })
+    }
+
+    public async updateUI(emitter: events.EventEmitter) : Promise<void> {
+        Promise.all([
+            this.updateCurrent(emitter),
+            this.updateMemory(emitter),
+        ]);
 
         if(this._machineType != debugFile.MachineType.c64) {
             return;

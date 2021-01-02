@@ -440,7 +440,6 @@ export class Runtime extends EventEmitter {
             this._variableManager.postStart(),
             this._graphicsManager.postStart(this._bankMeta['io'], this._bankMeta['ram']),
         ]);
-        // FIXME await this._setScreenUpdateCheckpoint();
 
         this._viceStarting = false;
 
@@ -457,36 +456,42 @@ export class Runtime extends EventEmitter {
             await this.continue();
         }
 
-        const updateLoop = async() => {
-            try {
-                await this._updateScreen();
-            }
-            catch(e) {
-                console.error(e);
-            }
-
-            this._screenUpdateTimer = setTimeout(updateLoop, 1000);
-        }
-        this._screenUpdateTimer = setTimeout(updateLoop, 1000);
+        this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), 1000);
 
         this.sendEvent('started');
 
         console.timeEnd('postStart');
     }
 
-    private async _updateScreen() : Promise<void> {
-        const wasRunning = this.viceRunning;
+    private async _screenUpdateHandler() : Promise<void> {
+        try {
+            const wasRunning = this.viceRunning;
 
-        if(!wasRunning) {
-            return;
+            if(wasRunning) {
+                await this._updateUI();
+                await this.continue();
+            }
+        }
+        catch(e) {
+            console.error(e);
         }
 
-        this._bypassStatusUpdates = true;
-        await this._graphicsManager.updateScreen(this);
-        this._bypassStatusUpdates = false;
+        this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), 1000);
+    }
 
-        if(wasRunning) {
-            await this.continue();
+    private async _updateUI() : Promise<void> {
+        this._bypassStatusUpdates = true;
+        await this._vice.ping();
+        await this._graphicsManager.updateUI(this);
+        this._bypassStatusUpdates = false;
+    }
+
+    public async updateMemoryOffset(offset: number) {
+        const wasRunning = this.viceRunning;
+
+        await this._graphicsManager.updateMemoryOffset(offset);
+        if(!wasRunning) {
+            await this._graphicsManager.updateMemory(this);
         }
     }
 
@@ -672,6 +677,10 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async stepIn() : Promise<void> {
+        if(this.viceRunning) {
+            return;
+        }
+
         if(!this._dbgFile.codeSeg) {
             return;
         }
@@ -710,6 +719,10 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async stepOut(event = 'stopOnStep') : Promise<void> {
+        if(this.viceRunning) {
+            return;
+        }
+
         if(!await this._callStackManager.returnToLastStackFrame()) {
             if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
                 const retCmd : bin.ExecuteUntilReturnCommand = {
@@ -805,6 +818,10 @@ or define the location manually with the launch.json->mapFile setting`
 
     public async getMemory(addr: number, length: number) : Promise<Buffer> {
         return await this._vice.getMemory(addr, length);
+    }
+
+    public async setMemory(addr: number, memory: Buffer) : Promise<void> {
+        await this._vice.setMemory(addr, memory);
     }
 
     // Breakpoints
@@ -1219,11 +1236,11 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     private async _doRunAhead() : Promise<void>{
+        await this._updateUI();
+
         if(!this._runAhead) {
             return;
         }
-
-        await this._graphicsManager.updateCurrent(this);
 
         const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
         const dumpCmd : bin.DumpCommand =  {

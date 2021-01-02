@@ -104,6 +104,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             const e = new Event('sprites', data);
             this.sendEvent(e);
         });
+        this._runtime.on('memory', data => {
+            const e = new Event('memory', data);
+            this.sendEvent(e);
+        });
         this._runtime.on('current', data => {
             const e = new Event('current', data);
             this.sendEvent(e);
@@ -180,6 +184,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 this._keybuf.push(key);
 
                 this._bounceBuf();
+            }
+            else if(command == 'offset') {
+                await this._runtime.updateMemoryOffset(request.arguments.offset);
             }
             else if(command == 'messageActioned') {
                 await this._runtime.action(request.arguments.name);

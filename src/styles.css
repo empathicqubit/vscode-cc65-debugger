@@ -4,6 +4,19 @@ body, html {
     padding: 0;
 }
 
+input[type="text"], input[type="number"] {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 2px solid var(--vscode-input-border);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    opacity: 1;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -23,7 +36,7 @@ label input[type="checkbox"] + span:before {
 	background-color: var(--vscode-checkbox-background);
 	color: var(--vscode-checkbox-foreground);
 	border-color: var(--vscode-checkbox-border);
-	border: 1px solid var(--vscode-checkbox-border);
+	border: 2px solid var(--vscode-checkbox-border);
 	border-radius: .25em;
     margin-right: .75em;
     font-size: 1.5em;
@@ -57,6 +70,7 @@ button:hover {
     padding: .1em .5em;
     width: 100%;
     overflow-x: scroll;
+    flex-shrink: 0;
 }
 
 .react-tabs__tab-list::-webkit-scrollbar {
@@ -134,4 +148,8 @@ button:hover {
     background-color: var(--vscode-settings-focusedRowBackground);
     border-radius: .25em;
     display: inline-block;
+}
+
+#memview__offset {
+    width: 1.5em;
 }

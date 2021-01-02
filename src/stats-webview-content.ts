@@ -8,7 +8,7 @@ import marked from 'marked';
 import { screenMappings } from './screen-mappings';
 
 interface vscode {
-    postMessage(message: any): void;
+    postMessage(message: {[key: string]: any, request: string}): void;
 }
 
 declare const acquireVsCodeApi : () => vscode;
@@ -32,6 +32,23 @@ export function _statsWebviewContent() {
         });
 
         return stringBuilder.join('');
+    };
+
+    const renderMemory = (memory: number[]) : React.ReactElement => {
+        const arr = new Array<string>(memory.length + memory.length / 16 + 1);
+        arr[0] = '';
+        let offset = 1;
+        for(let i = 0; i < memory.length; i++) {
+            if(i && !(i % 16)) {
+                arr[offset] = '\n';
+                offset++;
+            }
+
+            arr[offset] = memory[i].toString(16).padStart(2, '0');
+            offset++;
+        }
+
+        return r('code', null, r('pre', null, arr.join(' ')));
     };
 
     const renderScreenText = (screenText: screenData, enableColors: boolean) : React.ReactElement => {
@@ -139,6 +156,8 @@ export function _statsWebviewContent() {
         sprites: spriteData[],
         screenText: screenData | null,
         enableColors: boolean,
+        memory: number[],
+        memoryOffset: number,
     };
 
     class Hider extends React.Component<unknown, { visible: boolean }, unknown> {
@@ -166,9 +185,10 @@ export function _statsWebviewContent() {
             return r(reactTabs.Tabs, { className: 'all-tabs'}, 
                 r(reactTabs.TabList, null,
                     r(reactTabs.Tab, null, 'Display (Current)'),
-                    r(reactTabs.Tab, null, 'Display (Next)'),
+                    !this.props.runAhead ? null : r(reactTabs.Tab, null, 'Display (Next)'),
                     r(reactTabs.Tab, null, 'Sprites'),
                     r(reactTabs.Tab, null, 'Text'),
+                    r(reactTabs.Tab, null, 'Memory'),
                 ),
                 r(reactTabs.TabPanel, { 
                     className: 'current-frame',
@@ -236,6 +256,21 @@ or disable colors. You can select the text and copy it to your clipboard.
                         "Enable colors"
                     ),
                 ),
+                r(reactTabs.TabPanel, { className: 'memview' },
+                    r('input', { 
+                        type: 'number', 
+                        id: 'memview__offset', 
+                        value: this.props.memoryOffset, 
+                        step: 0x40,
+                        min: 0x0000,
+                        max: 0xF000,
+                        onKeyDown: () => false,
+                        onChange: changeOffset,
+                    }),
+                    r('label', { htmlFor: 'memview__offset' },
+                        '$' + this.props.memoryOffset.toString(16).padStart(4, '0')),
+                    renderMemory(this.props.memory),
+                ),
             );
         }
     }
@@ -250,6 +285,8 @@ or disable colors. You can select the text and copy it to your clipboard.
         screenText: null,
         sprites: [],
         enableColors: true,
+        memory: [],
+        memoryOffset: 0,
     };
 
     const rerender = () => ReactDOM.render((r as any)(Main, data), content);
@@ -258,7 +295,18 @@ or disable colors. You can select the text and copy it to your clipboard.
         data.enableColors = !!e.target.checked;
 
         rerender();
-    }
+    };
+
+    const changeOffset = (e) => {
+        data.memoryOffset = parseInt(e.target.value);
+
+        vscode.postMessage({
+            request: 'offset',
+            offset: data.memoryOffset,
+        });
+
+        rerender();
+    };
 
     window.addEventListener('message', async e => {
         try {
@@ -270,6 +318,12 @@ or disable colors. You can select the text and copy it to your clipboard.
                 return;
             }
 
+            if(msgData.memory) {
+                const m = msgData.memory;
+                if(!data.memory || data.memory.length != m.length || !data.memory.every((x, i) => m[i] == x)) {
+                    data.memory = m;
+                }
+            }
             if(msgData.screenText) {
                 const s = msgData.screenText;
                 if(!data.screenText || data.screenText.data.length != s.data.length || !data.screenText.data.every((x, i) => s.data[i] == x)) {

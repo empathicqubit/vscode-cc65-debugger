@@ -1,12 +1,21 @@
 #include <stdio.h>
 #include <cbm.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#define TEST_FLAG (unsigned char *)0x03fc
 
 void steps(void);
 
+void pause_test(void);
+
 unsigned char main(void) {
+    *TEST_FLAG = 0x00;
     puts("Hello world!");
     steps();
+    if(*TEST_FLAG == 0x01) {
+        pause_test();
+    }
     return 0;
 }
 
@@ -45,5 +54,34 @@ void open_a_thing(void) {
         }
 
         puts("");
+    }
+}
+
+void pause_test(void) {
+    while(1) {
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
+        sleep(1);
     }
 }
