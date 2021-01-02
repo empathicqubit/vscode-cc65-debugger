@@ -14,6 +14,10 @@ interface vscode {
 declare const acquireVsCodeApi : () => vscode;
 
 export function _statsWebviewContent() {
+    const SPRITE_WIDTH = 24;
+    const SPRITE_HEIGHT = 30;
+    const spritePixels = Buffer.alloc(4 * SPRITE_WIDTH * SPRITE_HEIGHT);
+
     const parseText = (text: string) : string => {
         const stringBuilder = new Array<string>(text.length);
         let i = 0;
@@ -34,6 +38,68 @@ export function _statsWebviewContent() {
         return stringBuilder.join('');
     };
 
+    const renderSprite = (palette: number[], spriteData: spriteData) : HTMLCanvasElement => {
+        const buf = spriteData.data;
+        let offset = 0;
+
+        let colors : number[];
+
+        if(spriteData.isMulticolor) {
+            colors = [
+                0x00000000, // transparent
+                palette[spriteData.color1],
+                palette[spriteData.color],
+                palette[spriteData.color3],
+            ];
+        }
+        else {
+            colors = [
+                0x00000000, // transparent
+                palette[spriteData.color],
+            ];
+        }
+
+        if(spriteData.isMulticolor) {
+            for(let b of buf.slice(0, 63)) {
+                for(let i = 0; i < 4; i++) {
+                    const colorIndex = b >>> 6;
+                    spritePixels.writeUInt32BE(colors[colorIndex], offset);
+                    offset+=4;
+                    spritePixels.writeUInt32BE(colors[colorIndex], offset);
+                    offset+=4;
+                    b = (b << 2) & 0b11111111;
+                }
+            }
+        }
+        else {
+            for(let b of buf.slice(0, 63)) {
+                for(let i = 0; i < 8; i++) {
+                    const colorIndex = b >>> 7;
+                    spritePixels.writeUInt32BE(colors[colorIndex], offset);
+                    offset+=4;
+                    b = (b << 1) & 0b11111111;
+                }
+            }
+        }
+
+        for(let i = 0; i < 9; i++) {
+            for(const color of colors) {
+                for(let j = 0; j < SPRITE_WIDTH / colors.length; j++) {
+                    spritePixels.writeUInt32BE(color, offset);
+                    offset+=4;
+                }
+            }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = SPRITE_WIDTH;
+        canvas.height = SPRITE_HEIGHT;
+        const ctx = canvas.getContext('2d');
+        ctx && ctx.putImageData(new ImageData(Uint8ClampedArray.from(spritePixels), SPRITE_WIDTH, SPRITE_HEIGHT), 0, 0);
+
+        return canvas;
+    };
+
     const renderMemory = (memory: number[]) : React.ReactElement => {
         const arr = new Array<string>(memory.length + memory.length / 16 + 1);
         arr[0] = '';
@@ -51,7 +117,7 @@ export function _statsWebviewContent() {
         return r('code', null, r('pre', null, arr.join(' ')));
     };
 
-    const renderScreenText = (screenText: screenData, enableColors: boolean) : React.ReactElement => {
+    const renderScreenText = (palette: number[], screenText: screenData, enableColors: boolean) : React.ReactElement => {
         if(!screenText) {
             return r('pre');
         }
@@ -77,7 +143,7 @@ export function _statsWebviewContent() {
             return r('pre', null, text);
         }
 
-        const palette = screenText.palette.map(x => ({
+        const styles = palette.map(x => ({
             style: {
                 color: '#' + (x >>> 8).toString(16),
             }
@@ -94,7 +160,7 @@ export function _statsWebviewContent() {
                 continue;
             }
 
-            const style = palette[screenText.colors[colorOffset] & 0xf];
+            const style = styles[screenText.colors[colorOffset] & 0xf];
             colorOffset++;
 
             // FIXME Would be faster if you used classes
@@ -142,22 +208,27 @@ export function _statsWebviewContent() {
     interface spriteData extends ImageData {
         key: string;
         blobUrl: string;
+        canvas: HTMLCanvasElement;
         isEnabled: boolean;
+        isMulticolor: boolean;
+        color: number;
+        color1: number;
+        color3: number;
     }
 
     interface screenData extends ImageData {
         colors: number[];
-        palette: number[];
     }
 
     interface renderProps {
-        runAhead: spriteData | null,
-        current: spriteData | null,
-        sprites: spriteData[],
-        screenText: screenData | null,
-        enableColors: boolean,
-        memory: number[],
-        memoryOffset: number,
+        runAhead: spriteData | null;
+        current: spriteData | null;
+        sprites: spriteData[];
+        screenText: screenData | null;
+        palette: number[];
+        enableColors: boolean;
+        memory: number[];
+        memoryOffset: number;
     };
 
     class Hider extends React.Component<unknown, { visible: boolean }, unknown> {
@@ -235,7 +306,15 @@ The [SpritePad format](https://www.spritemate.com/) uses this convention.
                     !this.props.sprites || !this.props.sprites.length
                         ? r('h1', null, 'Loading...')
                         : this.props.sprites.map(x =>
-                            r('img', { className: !x.isEnabled ? 'disabled' : '', key: x.key, alt: x.key, src: x.blobUrl })
+                            r('span', { 
+                                key: x.key, 
+                                className: classNames({
+                                    disabled: !x.isEnabled,
+                                    sprite: true,
+                                }), 
+                                ref: (ref) => ref && ref.lastChild != x.canvas && 
+                                    (ref.lastChild ? ref.replaceChild(x.canvas, ref.lastChild) : ref.appendChild(x.canvas))
+                            }),
                         ),
                 ),
                 r(reactTabs.TabPanel, { className: 'screentext' },
@@ -248,7 +327,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                     !this.props.screenText
                         ? r('h1', null, 'Loading...')
                         : r('code', { onCopy: copyScreenText },
-                            renderScreenText(this.props.screenText, this.props.enableColors),
+                            renderScreenText(this.props.palette, this.props.screenText, this.props.enableColors),
                         ),
                     r("label", { htmlFor: 'enable-colors' },
                         r("input", { id: 'enable-colors', type: "checkbox", checked: this.props.enableColors, onChange: toggleColors }),
@@ -284,6 +363,7 @@ or disable colors. You can select the text and copy it to your clipboard.
         current: null,
         screenText: null,
         sprites: [],
+        palette: [],
         enableColors: true,
         memory: [],
         memoryOffset: 0,
@@ -318,6 +398,12 @@ or disable colors. You can select the text and copy it to your clipboard.
                 return;
             }
 
+            if(msgData.palette) {
+                const p = msgData.palette;
+                if(!data.palette || data.palette.length != p.length || !data.palette.every((x, i) => p[i] == x)) {
+                    data.palette = p;
+                }
+            }
             if(msgData.memory) {
                 const m = msgData.memory;
                 if(!data.memory || data.memory.length != m.length || !data.memory.every((x, i) => m[i] == x)) {
@@ -353,7 +439,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                 for(const sprite of msgData.sprites) {
                     const newSprite = () : spriteData => ({
                         ...sprite,
-                        blobUrl: URL.createObjectURL(new Blob([new Uint8Array(sprite.data)], {type: 'image/png' })),
+                        canvas: renderSprite(data.palette, sprite),
                     });
                     let existingIndex = -1;
                     const existing = data.sprites.find((x, i) => {
@@ -371,7 +457,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                     else if(existing.isEnabled != sprite.isEnabled) {
                         data.sprites[existingIndex] = {
                             ...sprite,
-                            blobUrl: existing.blobUrl,
+                            canvas: existing.canvas,
                         }
                     }
 

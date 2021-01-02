@@ -1,6 +1,7 @@
 dependencies:
   '@entan.gl/vice-rainbow-monitor': 1.0.6
   await-notify: 1.0.1
+  buffer: 6.0.3
   classnames: 2.2.6
   colors: 1.4.0
   get-port: 5.1.1
@@ -655,6 +656,10 @@ packages:
   /balanced-match/1.0.0:
     resolution:
       integrity: sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
+  /base64-js/1.5.1:
+    dev: false
+    resolution:
+      integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
   /bcrypt-pbkdf/1.0.2:
     dependencies:
       tweetnacl: 0.14.5
@@ -718,6 +723,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
+  /buffer/6.0.3:
+    dependencies:
+      base64-js: 1.5.1
+      ieee754: 1.2.1
+    dev: false
+    resolution:
+      integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==
   /builtin-modules/1.1.1:
     dev: true
     engines:
@@ -1565,6 +1577,10 @@ packages:
       node: '>=8.12.0'
     resolution:
       integrity: sha512-SEQu7vl8KjNL2eoGBLF3+wAjpsNfA9XMlXAYj/3EdaNfAlxKthD1xjEQfGOUhllCGGJVNY34bRr6lPINhNjyZw==
+  /ieee754/1.2.1:
+    dev: false
+    resolution:
+      integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
   /import-local/3.0.2:
     dependencies:
       pkg-dir: 4.2.0
@@ -3698,6 +3714,7 @@ specifiers:
   '@types/universal-analytics': ^0.4.4
   '@types/vscode': '1.42'
   await-notify: 1.0.1
+  buffer: ^6.0.3
   classnames: ^2.2.6
   colors: ^1.4.0
   get-port: ^5.1.1

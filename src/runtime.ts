@@ -438,7 +438,7 @@ export class Runtime extends EventEmitter {
             this._setExitGuard(),
             this._guardCodeSeg(),
             this._variableManager.postStart(),
-            this._graphicsManager.postStart(this._bankMeta['io'], this._bankMeta['ram']),
+            this._graphicsManager.postStart(this, this._bankMeta['io'], this._bankMeta['ram']),
         ]);
 
         this._viceStarting = false;

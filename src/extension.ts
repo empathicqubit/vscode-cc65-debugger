@@ -81,6 +81,9 @@ export function activate(context: vscode.ExtensionContext) {
         if(e.event == 'memory') {
             StatsWebview.update(undefined, undefined, undefined, undefined, e.body.memory);
         }
+        else if(e.event == 'palette') {
+            StatsWebview.update(undefined, undefined, undefined, undefined, undefined, e.body.palette);
+        }
         else if(e.event == 'screenText') {
             StatsWebview.update(undefined, undefined, undefined, e.body.screenText);
         }

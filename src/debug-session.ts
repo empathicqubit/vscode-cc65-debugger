@@ -92,6 +92,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._runtime.on('breakpointValidated', (bp: CC65ViceBreakpoint) => {
             this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
         });
+        this._runtime.on('palette', data => {
+            const e = new Event('palette', data);
+            this.sendEvent(e);
+        });
         this._runtime.on('runahead', data => {
             const e = new Event('runahead', data);
             this.sendEvent(e);

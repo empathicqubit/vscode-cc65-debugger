@@ -116,12 +116,18 @@ button:hover {
     width: 100%;
 }
 
-.sprites img {
+.sprites .sprite {
 	margin: .25em;
-	height: 5em;
+    height: 5em;
+    width: 5em;
+    display: inline-block;
 }
 
-.sprites img.disabled {
+.sprites .sprite canvas {
+    width: 100%;
+}
+
+.sprites .sprite.disabled {
     opacity: 0.70;
 }
 

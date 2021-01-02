@@ -12,6 +12,7 @@ export class StatsWebview {
 	private static _sprites: ImageData[];
 	private static _memory: number[];
 	private static _screenText: ImageData;
+	private static _palette: number[];
 	private static _emitter: EventEmitter = new EventEmitter();
 
 	public static readonly viewType = 'statsWebview';
@@ -26,6 +27,7 @@ export class StatsWebview {
 		StatsWebview._screenText = <any>null;
 		StatsWebview._sprites = [];
 		StatsWebview._memory = [];
+		StatsWebview._palette = [];
 		if(StatsWebview._currentPanel) {
 			StatsWebview._currentPanel._panel.webview.postMessage({
 				reset: true,
@@ -33,12 +35,13 @@ export class StatsWebview {
 		}
 	}
 
-    public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[], screenText?: ImageData, memory?: number[]) {
+    public static update(runAhead?: ImageData, current?: ImageData, sprites?: ImageData[], screenText?: ImageData, memory?: number[], palette?: number[]) {
         StatsWebview._runAhead = runAhead || StatsWebview._runAhead;
         StatsWebview._current = current || StatsWebview._current;
 		StatsWebview._sprites = sprites || StatsWebview._sprites;
 		StatsWebview._screenText = screenText || StatsWebview._screenText;
 		StatsWebview._memory = memory || StatsWebview._memory;
+		StatsWebview._palette = palette || StatsWebview._palette;
         if(StatsWebview._currentPanel) {
             StatsWebview._currentPanel._panel.webview.postMessage({
 				runAhead: StatsWebview._runAhead,
@@ -46,6 +49,7 @@ export class StatsWebview {
 				sprites: StatsWebview._sprites,
 				screenText: StatsWebview._screenText,
 				memory: StatsWebview._memory,
+				palette: StatsWebview._palette,
 			});
         }
 	}
@@ -85,7 +89,7 @@ export class StatsWebview {
 
         StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
 
-        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current, StatsWebview._sprites, StatsWebview._screenText, StatsWebview._memory);
+        StatsWebview.update(StatsWebview._runAhead, StatsWebview._current, StatsWebview._sprites, StatsWebview._screenText, StatsWebview._memory, StatsWebview._palette);
 	}
 
 	public static revive(panel: vscode.WebviewPanel, extensionPath: string) {

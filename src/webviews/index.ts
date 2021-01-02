@@ -20,4 +20,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 import { _statsWebviewContent } from "./stats-webview-content";
 
+(window as any).Buffer = require('buffer/').Buffer;
+
 export const statsWebviewContent = _statsWebviewContent
