@@ -4,9 +4,17 @@
 
 const path = require('path');
 
-/**@type {import('webpack').Configuration}*/
+/**@type {import('webpack').Configuration & { devServer: import('webpack-dev-server').Configuration }}*/
 const config = {
   target: 'web', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
+  cache: {
+      "type": "filesystem"
+  },
+  devServer: {
+      disableHostCheck: true,
+      publicPath: '/dist/',
+      compress: true
+  },
   entry: {
     webviews: './src/webviews/index.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
   },
@@ -15,7 +23,6 @@ const config = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'webviews.js',
     libraryTarget: 'umd',
-    globalObject: '(window.webviews = (window.webviews || {}))',
     devtoolModuleFilenameTemplate: '../[resource-path]'
   },
   devtool: 'source-map',
@@ -26,18 +33,18 @@ const config = {
   },
   module: {
     rules: [
-    {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        use: [
         {
-            loader: 'ts-loader',
-            options: {
-              transpileOnly: true,
-            },
-        }
-        ]
-    },
+            test: /\.ts$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'ts-loader',
+                    options: {
+                        transpileOnly: true,
+                    },
+                }
+            ]
+        },
     ]
   },
 };

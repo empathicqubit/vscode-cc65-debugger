@@ -18,7 +18,7 @@ export function _statsWebviewContent() {
     const SPRITE_HEIGHT = 30;
     const spritePixels = Buffer.alloc(4 * SPRITE_WIDTH * SPRITE_HEIGHT);
 
-    const parseText = (text: string) : string => {
+    const convertScreenCodesToUtf8 = (text: string) : string => {
         const stringBuilder = new Array<string>(text.length);
         let i = 0;
         Array.from(text).forEach((chr, d) => {
@@ -107,11 +107,17 @@ export function _statsWebviewContent() {
         return canvas;
     };
 
-    const renderMemory = (memoryOffset: number, memory: number[]) : React.ReactElement => {
-        const arr = new Array<string>(memory.length + memory.length / 16 + 1);
+    const renderMemoryBytes = (memoryOffset: number, memory: number[]) : React.ReactElement => {
+        const arr = new Array<string>(memory.length + (memory.length / 4) + (memory.length / 16) + 1);
         arr[0] = '';
         let offset = 1;
+
         for(let i = 0; i < memory.length; i++) {
+            if(!(i % 4)) {
+                arr[offset] = '';
+                offset++;
+            }
+
             if(!(i % 16)) {
                 arr[offset] = `\n${(memoryOffset + i).toString(16).padStart(4, '0')}: `;
                 offset++;
@@ -124,28 +130,32 @@ export function _statsWebviewContent() {
         return r('code', null, r('pre', null, arr.join(' ')));
     };
 
-    const renderScreenText = (palette: number[], screenText: screenData, enableColors: boolean) : React.ReactElement => {
-        if(!screenText) {
-            return r('pre');
-        }
-
-        const arr = new Uint8Array((screenText.data.length + screenText.height) * 2);
+    const renderScreenCodeText = (data: Iterable<number>, width: number, height: number, offset: number = 0) => {
+        const arr = new Uint8Array((width * height + height) * 2);
         let outputOffset = 0;
-        for(let i = 0; i < screenText.data.length; i++) {
-            if(i && !(i % screenText.width)) {
+        for(let i = offset; i < width * height + offset; i++) {
+            if(i - offset && !((i - offset) % width)) {
                 arr[outputOffset] = '\n'.charCodeAt(0);
                 outputOffset++;
                 arr[outputOffset] = 0x00;
                 outputOffset++;
             }
 
-            arr[outputOffset] = screenText.data[i];
+            arr[outputOffset] = data[i];
             outputOffset++;
             arr[outputOffset] = 0xee;
             outputOffset++;
         }
 
-        const text = new TextDecoder('utf-16le').decode(arr);
+        return new TextDecoder('utf-16le').decode(arr);
+    }
+
+    const renderScreenText = (palette: number[], screenText: screenData, enableColors: boolean) : React.ReactElement => {
+        if(!screenText) {
+            return r('pre');
+        }
+
+        const text = renderScreenCodeText(screenText.data, screenText.width, screenText.height);
         if(!enableColors) {
             return r('pre', null, text);
         }
@@ -157,7 +167,7 @@ export function _statsWebviewContent() {
         }));
 
         const elems = new Array<React.ReactElement>(text.length);
-        outputOffset = 0;
+        let outputOffset = 0;
         let colorOffset = 0;
         for(let i = 0; i < text.length; i++) {
             const chr = text[i];
@@ -182,7 +192,7 @@ export function _statsWebviewContent() {
         if(!e.clipboardData) {
             return;
         }
-        e.clipboardData.setData('text/plain', parseText(document.getSelection()!.toString()))
+        e.clipboardData.setData('text/plain', convertScreenCodesToUtf8(document.getSelection()!.toString()))
         e.preventDefault();
     }
 
@@ -376,8 +386,11 @@ or disable colors. You can select the text and copy it to your clipboard.
                             r(reactTabs.Tab, null, 'Sprite'),
                         ),
 
-                        r(reactTabs.TabPanel, null,
-                            renderMemory(this.props.memoryOffset, this.props.memory),
+                        r(reactTabs.TabPanel, { className: 'memview__raw' },
+                            renderMemoryBytes(this.props.memoryOffset, this.props.memory),
+                            r('code', { className: 'memview__screentext'}, r('pre', null,
+                                renderScreenCodeText(this.props.memory, 16, this.props.memory.length / 16, 0)
+                            )),
                         ),
 
                         r(reactTabs.TabPanel, null,

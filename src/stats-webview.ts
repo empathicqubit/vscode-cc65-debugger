@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as dbgFile from './debug-file';
 import * as fs from 'fs';
-import * as util from 'util';
 import * as bin from './binary-dto';
+import * as util from 'util';
 import { EventEmitter } from 'events';
 
 export class StatsWebview {
@@ -58,7 +57,7 @@ export class StatsWebview {
 		StatsWebview._emitter.addListener(event, cb);
 	}
 
-	public static maybeCreate(extensionPath: string) {
+	public static async maybeCreate(extensionPath: string) : Promise<void> {
 		if (StatsWebview._currentPanel) {
 			return;
 		}
@@ -82,19 +81,19 @@ export class StatsWebview {
 		});
 
         StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
+        await StatsWebview._currentPanel._init();
 
         StatsWebview.update(StatsWebview._state);
 	}
 
-	public static revive(panel: vscode.WebviewPanel, extensionPath: string) {
-		StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
+	public static async revive(panel: vscode.WebviewPanel, extensionPath: string) {
+        StatsWebview._currentPanel = new StatsWebview(panel, extensionPath);
+        await StatsWebview._currentPanel._init();
 	}
 
 	private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
 		this._panel = panel;
 		this._extensionPath = extensionPath;
-
-        this._init();
 
 		this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 	}
@@ -112,26 +111,37 @@ export class StatsWebview {
 		}
     }
 
-	private _init() {
+	private async _init() : Promise<void> {
 		const webview = this._panel.webview;
 
 		this._panel.title = 'CC65 - Run';
-        this._panel.webview.html = this._getHtmlForWebview(webview);
-
+        this._panel.webview.html = await this._getHtmlForWebview(webview);
     }
 
-	private _getHtmlForWebview(webview: vscode.Webview) {
-		const scriptPathOnDisk = vscode.Uri.file(
-			path.join(this._extensionPath, 'dist', 'webviews.js')
-		);
-		const cssPathOnDisk = vscode.Uri.file(
-			path.join(this._extensionPath, 'dist', 'styles.css')
-		);
+	private async _getHtmlForWebview(webview: vscode.Webview) : Promise<string> {
+        let scriptUri : vscode.Uri;
+        let connectSrc = "'none'";
+        try {
+            await util.promisify(fs.stat)(this._extensionPath + '/.git');
+            scriptUri = vscode.Uri.parse(
+                'http://localhost:8080/dist/webviews.js'
+            );
+            connectSrc = "http://localhost:8080 ws://localhost:8080";
+        }
+        catch {
+            const sp = vscode.Uri.file(
+                path.join(this._extensionPath, 'dist', 'webviews.js')
+            );
+            scriptUri = webview.asWebviewUri(sp);
+        }
+
+        const cssPathOnDisk = vscode.Uri.file(
+            path.join(this._extensionPath, 'dist/styles.css')
+        );
 		const c64TtfPathOnDisk = vscode.Uri.file(
 			path.join(this._extensionPath, 'dist', 'c64.ttf')
 		);
 
-		const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
 		const cssUri = webview.asWebviewUri(cssPathOnDisk);
 		const c64TtfUri = webview.asWebviewUri(c64TtfPathOnDisk);
 
@@ -141,7 +151,7 @@ export class StatsWebview {
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webview.cspSource}; style-src 'nonce-${nonce}' ${webview.cspSource}; img-src blob: ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src ${connectSrc}; font-src ${webview.cspSource}; style-src 'nonce-${nonce}' ${webview.cspSource}; img-src blob: ${webview.cspSource}; script-src 'nonce-${nonce}';">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<style nonce="${nonce}" type="text/css">
 					@font-face {
@@ -156,7 +166,7 @@ export class StatsWebview {
                 <div id="content"></div>
                 <script nonce="${nonce}" type="text/javascript" src="${scriptUri}"></script>
                 <script nonce="${nonce}" type="text/javascript">
-                    webviews.statsWebviewContent();
+                    window.statsWebviewContent();
                 </script>
             </body>
             </html>`;

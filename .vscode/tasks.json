@@ -3,16 +3,29 @@
     "tasks": [
         {
             "type": "npm",
-            "script": "watch",
-            "problemMatcher": "$tsc-watch",
-            "isBackground": true,
-            "presentation": {
-                "reveal": "never"
+            "label": "server",
+            "script": "not-extension:debug",
+            "problemMatcher": {
+                "owner": "webpack",
+                "severity": "error",
+                "fileLocation": "absolute",
+                "pattern": [{
+                            "regexp": "ERROR in [^ ]* (.*):(.*):(.*)",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3
+                    },
+                    {
+                            "regexp": ".*",
+                            "message": 0
+                    }
+                ],
+                "background": {
+                    "beginsPattern": "ℹ ｢wds｣: Project is running at",
+                    "endsPattern": "ℹ ｢wdm｣: Compiled successfully.",
+                }
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "isBackground": true
         }
     ]
 }

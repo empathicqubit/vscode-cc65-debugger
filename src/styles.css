@@ -182,6 +182,24 @@ button:hover {
     width: 5em;
 }
 
+.memview__raw {
+    display: flex;
+}
+
+.memview__raw code {
+    line-height: 1em;
+    display: block;
+}
+
+.memview__screentext {
+    border-left: 2px solid var(--vscode-textPreformat-background);
+}
+
+.memview__screentext pre {
+    padding-top: 1em;
+    font-family: "C64";
+}
+
 label[for="memview__multicolor"],
 label[for="memview__offset"] {
     display: block;
