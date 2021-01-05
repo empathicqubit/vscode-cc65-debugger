@@ -10,6 +10,10 @@ input[type="text"], input[type="number"], select {
     padding: .1em;
 }
 
+label {
+    white-space: nowrap;
+}
+
 select {
     background-color: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
@@ -182,7 +186,7 @@ button:hover {
     width: 5em;
 }
 
-.memview__raw {
+.memview__rawcontent {
     display: flex;
 }
 

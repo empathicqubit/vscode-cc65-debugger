@@ -38,7 +38,7 @@ export function _statsWebviewContent() {
         return stringBuilder.join('');
     };
 
-    const renderSprite = (palette: number[], spriteData: spriteData) : HTMLCanvasElement => {
+    const renderSprite = (palette: number[], spriteData: SpriteData) : HTMLCanvasElement => {
         const buf = spriteData.data;
         let offset = 0;
 
@@ -130,9 +130,22 @@ export function _statsWebviewContent() {
         return r('code', null, r('pre', null, arr.join(' ')));
     };
 
-    const renderScreenCodeText = (data: Iterable<number>, width: number, height: number, offset: number = 0) => {
+    const renderScreenCodeText = (data: Iterable<number>, width: number, height: number, textType: PreferredTextType, offset: number = 0) => {
         const arr = new Uint8Array((width * height + height) * 2);
         let outputOffset = 0;
+
+        let charsetByte : number
+        if(textType == PreferredTextType.Graphics) {
+            charsetByte = 0xee;
+        }
+        else if(textType == PreferredTextType.Lower) {
+            charsetByte = 0xef;
+        }
+        else {
+            charsetByte = 0xee;
+            console.error('Missing text type');
+        }
+
         for(let i = offset; i < width * height + offset; i++) {
             if(i - offset && !((i - offset) % width)) {
                 arr[outputOffset] = '\n'.charCodeAt(0);
@@ -143,19 +156,19 @@ export function _statsWebviewContent() {
 
             arr[outputOffset] = data[i];
             outputOffset++;
-            arr[outputOffset] = 0xee;
+            arr[outputOffset] = charsetByte;
             outputOffset++;
         }
 
         return new TextDecoder('utf-16le').decode(arr);
     }
 
-    const renderScreenText = (palette: number[], screenText: screenData, enableColors: boolean) : React.ReactElement => {
+    const renderScreenText = (palette: number[], screenText: ScreenData, enableColors: boolean, textType: PreferredTextType) : React.ReactElement => {
         if(!screenText) {
             return r('pre');
         }
 
-        const text = renderScreenCodeText(screenText.data, screenText.width, screenText.height);
+        const text = renderScreenCodeText(screenText.data, screenText.width, screenText.height, textType);
         if(!enableColors) {
             return r('pre', null, text);
         }
@@ -222,7 +235,7 @@ export function _statsWebviewContent() {
 
     const r = React.createElement;
 
-    interface spriteData extends ImageData {
+    interface SpriteData extends ImageData {
         key: string;
         blobUrl: string;
         canvas: HTMLCanvasElement;
@@ -233,15 +246,21 @@ export function _statsWebviewContent() {
         color3: number;
     }
 
-    interface screenData extends ImageData {
+    interface ScreenData extends ImageData {
         colors: number[];
     }
 
-    interface renderProps {
-        runAhead: spriteData | null;
-        current: spriteData | null;
-        sprites: spriteData[];
-        screenText: screenData | null;
+    enum PreferredTextType {
+        Graphics = 0x01,
+        Lower = 0x02,
+    }
+
+    interface RenderProps {
+        runAhead: SpriteData | null;
+        current: SpriteData | null;
+        sprites: SpriteData[];
+        screenText: ScreenData | null;
+        preferredTextType: PreferredTextType;
         palette: number[];
         enableColors: boolean;
         memory: number[];
@@ -275,7 +294,7 @@ export function _statsWebviewContent() {
         }
     }
 
-    class Main extends React.PureComponent<renderProps> {
+    class Main extends React.PureComponent<RenderProps> {
         render() {
             return r(reactTabs.Tabs, { className: 'all-tabs'},
                 r(reactTabs.TabList, null,
@@ -348,10 +367,26 @@ The text currently displayed on the screen. You can toggle the checkbox to enabl
 or disable colors. You can select the text and copy it to your clipboard.
                         `)}}),
                     ),
+                    r('div', { className: 'screentext__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
+                        'Preferred character set: ',
+                        Object.keys(PreferredTextType)
+                            .filter(x => !isNaN(Number(PreferredTextType[x])))
+                            .map(textType =>
+                                r('label', { htmlFor: 'screentext__preferred__' + textType },
+                                    r('input', {
+                                        name: 'screentext__preferred__' + textType,
+                                        type: 'radio',
+                                        checked: this.props.preferredTextType == PreferredTextType[textType],
+                                        value: PreferredTextType[textType]
+                                    }),
+                                    textType
+                                ),
+                            )
+                    ),
                     !this.props.screenText
                         ? r('h1', null, 'Loading...')
                         : r('code', { onCopy: copyScreenText },
-                            renderScreenText(this.props.palette, this.props.screenText, this.props.enableColors),
+                            renderScreenText(this.props.palette, this.props.screenText, this.props.enableColors, this.props.preferredTextType),
                         ),
                     r("label", { htmlFor: 'enable-colors' },
                         r("input", { id: 'enable-colors', type: "checkbox", checked: this.props.enableColors, onChange: toggleColors }),
@@ -387,10 +422,28 @@ or disable colors. You can select the text and copy it to your clipboard.
                         ),
 
                         r(reactTabs.TabPanel, { className: 'memview__raw' },
-                            renderMemoryBytes(this.props.memoryOffset, this.props.memory),
-                            r('code', { className: 'memview__screentext', onCopy: copyScreenText }, r('pre', null,
-                                renderScreenCodeText(this.props.memory, 16, this.props.memory.length / 16, 0)
-                            )),
+                            r('div', { className: 'memview__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
+                                'Preferred character set: ',
+                                Object.keys(PreferredTextType)
+                                    .filter(x => !isNaN(Number(PreferredTextType[x])))
+                                    .map(textType =>
+                                        r('label', { htmlFor: 'memview__preferred__' + textType },
+                                            r('input', {
+                                                name: 'memview__preferred__' + textType,
+                                                type: 'radio',
+                                                checked: this.props.preferredTextType == PreferredTextType[textType],
+                                                value: PreferredTextType[textType]
+                                            }),
+                                            textType
+                                        ),
+                                    )
+                            ),
+                            r('div', { className: 'memview__rawcontent' },
+                                renderMemoryBytes(this.props.memoryOffset, this.props.memory),
+                                r('code', { className: 'memview__screentext', onCopy: copyScreenText }, r('pre', null,
+                                    renderScreenCodeText(this.props.memory, 16, this.props.memory.length / 16, this.props.preferredTextType, 0)
+                                )),
+                            )
                         ),
 
                         r(reactTabs.TabPanel, null,
@@ -438,7 +491,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                             ),
                             r('br'),
                             _chunk(0x40, this.props.memory).map((x, i) => {
-                                const sd = <spriteData>{
+                                const sd = <SpriteData>{
                                     data: Uint8ClampedArray.from(x),
                                     width: 24,
                                     height: 21,
@@ -469,7 +522,7 @@ or disable colors. You can select the text and copy it to your clipboard.
 
     const content = document.querySelector("#content")!;
 
-    const data : renderProps = {
+    const data : RenderProps = {
         runAhead: null,
         current: null,
         screenText: null,
@@ -477,6 +530,7 @@ or disable colors. You can select the text and copy it to your clipboard.
         palette: [],
         banks: [],
         enableColors: true,
+        preferredTextType: PreferredTextType.Graphics,
         memory: [],
         memoryOffset: 0,
         memoryOffsetString: '$0000',
@@ -533,7 +587,7 @@ or disable colors. You can select the text and copy it to your clipboard.
 
     window.addEventListener('message', async e => {
         try {
-            const msgData : renderProps = e.data;
+            const msgData : RenderProps = e.data;
             if((msgData as any).reset) {
                 data.current = null;
                 data.runAhead = null;
@@ -585,7 +639,7 @@ or disable colors. You can select the text and copy it to your clipboard.
             if(msgData.sprites && msgData.sprites.length) {
                 // Add / Modify
                 for(const sprite of msgData.sprites) {
-                    const newSprite = () : spriteData => ({
+                    const newSprite = () : SpriteData => ({
                         ...sprite,
                         canvas: renderSprite(data.palette, sprite),
                     });
