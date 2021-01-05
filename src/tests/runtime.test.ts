@@ -206,7 +206,6 @@ suite('Runtime', () => {
         const DEBUG_FILE = BUILD_CWD + '/asm-project.c64.dbg';
         const LABEL_FILE = BUILD_CWD + '/asm-project.c64.lbl';
         const PROGRAM = BUILD_CWD + '/asm-project.c64'
-        const VICE_DIRECTORY = path.normalize(BUILD_CWD + '/../vicedir/src');
 
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
@@ -283,7 +282,7 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor(rt, 'stopOnEntry');
+                await waitFor(rt, 'started');
 
                 await rt.setBreakPoint(MAIN_S, 7);
                 await all(
@@ -294,7 +293,7 @@ suite('Runtime', () => {
                     }),
                 );
 
-                await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
@@ -336,7 +335,7 @@ suite('Runtime', () => {
                     }),
                 );
 
-                await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
@@ -912,11 +911,12 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor(rt, 'stopOnEntry');
+                await waitFor(rt, 'started');
 
-                await rt.step();
-
-                await waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > labels['._main'] && rt.getRegisters().pc < labels['._main'] + disassembly.maxOpCodeSize * 10, true));
+                await all(
+                    rt.step(),
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > labels['._main'] && rt.getRegisters().pc < labels['._main'] + disassembly.maxOpCodeSize * 10, true))
+                );
                 await rt.continue();
                 await waitFor(rt, 'end');
             });
@@ -976,11 +976,14 @@ suite('Runtime', () => {
                     })
                 )
 
-                await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
-                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > labels['._steps'] && rt.getRegisters().pc < labels['._steps'] * disassembly.maxOpCodeSize * 10, true)),
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(
+                        rt.getRegisters().pc >= labels['._steps']
+                        && rt.getRegisters().pc < labels['._steps'] * disassembly.maxOpCodeSize * 10, true
+                    )),
                 );
 
                 await rt.continue();

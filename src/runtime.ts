@@ -44,6 +44,8 @@ export interface Registers {
     cycle: number;
 }
 
+const UPDATE_INTERVAL = 1000;
+
 /**
  * A CC65Vice runtime with debugging functionality.
  * This could be considered the debugger's main "API" and should be kept free of
@@ -94,7 +96,7 @@ export class Runtime extends EventEmitter {
     private _usePreprocess: boolean;
     private _runAhead: boolean;
     private _ignoreEvents: boolean = false;
-    private _screenUpdateTimer: NodeJS.Timeout;
+    private _screenUpdateTimer: NodeJS.Timeout | undefined;
     private _terminated: boolean = false;
     private _attachProgram: string | undefined;
 
@@ -457,7 +459,7 @@ export class Runtime extends EventEmitter {
             await this.continue();
         }
 
-        this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), 1000);
+        this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), UPDATE_INTERVAL);
 
         this.sendEvent('started');
 
@@ -477,7 +479,7 @@ export class Runtime extends EventEmitter {
             console.error(e);
         }
 
-        this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), 1000);
+        this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), UPDATE_INTERVAL);
     }
 
     private async _updateUI() : Promise<void> {
@@ -642,7 +644,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         await this._doRunAhead();
 
-        this.sendEvent(event, 'console')
+        this.sendEvent(event);
     }
 
     private _getNextLine() : debugFile.SourceLine | undefined {
@@ -703,6 +705,7 @@ or define the location manually with the launch.json->mapFile setting`
             };
 
             await this._vice.execBinary(stepCmd);
+            await this._vice.waitForStop();
         }
         else {
             await this._callStackManager.withFrameBreaksEnabled(async () => {
@@ -1178,6 +1181,8 @@ or define the location manually with the launch.json->mapFile setting`
         }
         else if(e.type == bin.ResponseType.stopped) {
             this.viceRunning = false;
+            this._screenUpdateTimer && clearTimeout(this._screenUpdateTimer);
+
             this._updateCurrentAddress((<bin.StoppedResponse>e).programCounter);
 
             if(!this._viceStarting) {
@@ -1209,6 +1214,8 @@ or define the location manually with the launch.json->mapFile setting`
             if(!this._viceStarting) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
+
+            this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), UPDATE_INTERVAL);
         }
     }
 
