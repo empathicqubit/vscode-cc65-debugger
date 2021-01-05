@@ -1181,7 +1181,6 @@ or define the location manually with the launch.json->mapFile setting`
         }
         else if(e.type == bin.ResponseType.stopped) {
             this.viceRunning = false;
-            this._screenUpdateTimer && clearTimeout(this._screenUpdateTimer);
 
             this._updateCurrentAddress((<bin.StoppedResponse>e).programCounter);
 
@@ -1214,8 +1213,6 @@ or define the location manually with the launch.json->mapFile setting`
             if(!this._viceStarting) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
-
-            this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), UPDATE_INTERVAL);
         }
     }
 
