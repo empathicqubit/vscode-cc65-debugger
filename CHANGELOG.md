@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.6.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.5.1...v3.6.0) (2021-01-05)
+
+
+### Features
+
+* Added memory tab ([9616938](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/961693865fa7f6a670bc6a281e1ee2415d20ad24))
+* Allow color selection for sprites on memory tab. ([fc11cf6](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/fc11cf65d38cfc8a998fe0ddb13469ce82e66760))
+* Bank selection for memory viewer ([36a388d](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/36a388d7490d26bf86377e3fa771898d0c5c7afc))
+* Screen code text on memory screen ([05e5e77](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/05e5e77b2c525c686763f5778c2ff2f17fbaf048))
+* View any part of memory as an array of sprites ([5fd9f17](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/5fd9f17f42983b094a6784e0554d207e81473123))
+
+
+### Bug Fixes
+
+* Prevent control before the session is fully setup ([8c5c1a0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/8c5c1a0c8d519410c795073d9afd75a1628824a8))
+
 ### [3.5.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.5.0...v3.5.1) (2021-01-01)
 
 
