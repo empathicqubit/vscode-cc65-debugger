@@ -444,11 +444,11 @@ export class Runtime extends EventEmitter {
             this._variableManager.postStart(),
         ]);
 
+        await this.pause();
+
         this._viceStarting = false;
 
         await this._verifyBreakpoints();
-
-        await this.pause();
 
         if (stopOnEntry) {
             // We don't do anything here since VICE should already be in the
@@ -594,8 +594,12 @@ or define the location manually with the launch.json->mapFile setting`
         });
     }
 
+    /**
+     * Note: only call this if you actually want the UI to think you've resumed.
+     */
     public async continue(reverse = false) {
         await this._vice.exit();
+        !this._viceStarting && this.sendEvent('continued');
     }
 
     public async step(reverse = false, event = 'stopOnStep') : Promise<void> {
@@ -1184,9 +1188,11 @@ or define the location manually with the launch.json->mapFile setting`
 
             this._updateCurrentAddress((<bin.StoppedResponse>e).programCounter);
 
-            if(!this._viceStarting) {
-                this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+            if(this._viceStarting) {
+                return;
             }
+
+            this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 
             if(this._exitQueued) {
                 await this._doRunAhead();
@@ -1289,7 +1295,7 @@ or define the location manually with the launch.json->mapFile setting`
                 checkpointId: brkRes.id,
             };
             await this._vice.execBinary(notCmd);
-            await this.continue();
+            await this._vice.exit();
             await this._vice.waitForStop();
             const notNotCmd : bin.ConditionSetCommand = {
                 type: bin.CommandType.conditionSet,
@@ -1297,7 +1303,7 @@ or define the location manually with the launch.json->mapFile setting`
                 checkpointId: brkRes.id,
             };
             await this._vice.execBinary(notNotCmd);
-            await this.continue();
+            await this._vice.exit();
             await this._vice.waitForStop();
             const delBrk : bin.CheckpointDeleteCommand = {
                 type: bin.CommandType.checkpointDelete,

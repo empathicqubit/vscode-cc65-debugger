@@ -2,7 +2,7 @@ import {
     Logger, logger,
     LoggingDebugSession,
     InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
-    Thread, StackFrame, Scope, Source, Handles, Breakpoint, Event
+    Thread, StackFrame, Scope, Source, Handles, Breakpoint, Event, ContinuedEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
@@ -82,6 +82,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         });
         this._runtime.on('stopOnStep', () => {
             this.sendEvent(new StoppedEvent('step', CC65ViceDebugSession.THREAD_ID));
+        });
+        this._runtime.on('continued', () => {
+            this.sendEvent(new ContinuedEvent(CC65ViceDebugSession.THREAD_ID));
         });
         this._runtime.on('stopOnBreakpoint', () => {
             this.sendEvent(new StoppedEvent('breakpoint', CC65ViceDebugSession.THREAD_ID));
