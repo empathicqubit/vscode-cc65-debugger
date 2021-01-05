@@ -13,7 +13,8 @@ const config = {
   devServer: {
       disableHostCheck: true,
       publicPath: '/dist/',
-      compress: true
+      compress: true,
+      port: 8794,
   },
   entry: {
     webviews: './src/webviews/index.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
@@ -22,7 +23,7 @@ const config = {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
     path: path.resolve(__dirname, 'dist'),
     filename: 'webviews.js',
-    libraryTarget: 'umd',
+    libraryTarget: 'window',
     devtoolModuleFilenameTemplate: '../[resource-path]'
   },
   devtool: 'source-map',

@@ -20,7 +20,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 import { _statsWebviewContent } from "./stats-webview-content";
 
-const wany : any = window;
-wany.Buffer = require('buffer/').Buffer;
+(window as any).Buffer = require('buffer/').Buffer;
 
-wany.statsWebviewContent = _statsWebviewContent
+(window as any).statsWebviewContent = _statsWebviewContent

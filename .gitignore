@@ -12,6 +12,8 @@ dist/
 *.orig
 *.rej
 
+.VSCodeCounter/
+
 *.js
 !webpack.*.config.js
 *.c64
@@ -22,6 +24,7 @@ dist/
 *.lbl
 *.dbg
 *.map
+*.run
 *~
 .nyc_output/
 coverage/

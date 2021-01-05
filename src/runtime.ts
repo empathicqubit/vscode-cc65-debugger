@@ -93,14 +93,14 @@ export class Runtime extends EventEmitter {
     private _colorTermPids: [number, number] = [-1, -1];
     private _usePreprocess: boolean;
     private _runAhead: boolean;
-    private _bypassStatusUpdates: boolean = false;
+    private _ignoreEvents: boolean = false;
     private _screenUpdateTimer: NodeJS.Timeout;
-    private _terminated: boolean;
+    private _terminated: boolean = false;
     private _attachProgram: string | undefined;
 
     private _registerMeta : {[key: string]: bin.SingleRegisterMeta };
     private _bankMeta : {[key: string]: bin.SingleBankMeta };
-    private _startupRegisters: bin.SingleRegisterInfo[] | undefined;
+    private _userBreak: boolean = false;
 
     constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
         super();
@@ -161,16 +161,40 @@ export class Runtime extends EventEmitter {
 
         await this._vice.connect(attachPort);
 
-        this._vice.once('end', () => this.terminate());
-
-        await this._setupViceDataHandler();
+        await this._postViceStart();
 
         // Try to determine if we are loaded and wait if not
         await this._attachWait();
 
         console.timeEnd('vice');
 
-        await this._postStart(stopOnEntry);
+        await this._postFullStart(stopOnEntry);
+    }
+
+    private async _postViceStart() : Promise<void> {
+        this._vice.on('error', (res) => {
+            console.error(res);
+        })
+
+        this._vice.once('end', () => this.terminate());
+
+        const [registersAvailable, banksAvailable] = await Promise.all([
+            this._vice.execBinary<bin.RegistersAvailableCommand, bin.RegistersAvailableResponse>({
+                type: bin.CommandType.registersAvailable,
+                memspace: bin.ViceMemspace.main,
+            }),
+            this._vice.execBinary<bin.BanksAvailableCommand, bin.BanksAvailableResponse>({
+                type: bin.CommandType.banksAvailable,
+            })
+        ]);
+
+        registersAvailable.registers.forEach(x => this._registerMeta[x.name] = x);
+        banksAvailable.banks.forEach(x => this._bankMeta[x.name] = x);
+
+        await this._graphicsManager.postViceStart(this, this._bankMeta['io'], this._bankMeta['ram'], Object.values(this._bankMeta)),
+        await this._setupViceEventHandler();
+
+        await this._updateUI();
     }
 
     private _updateCurrentAddress(address: number) : void {
@@ -214,12 +238,12 @@ export class Runtime extends EventEmitter {
 
                 const storeReses : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(storeCmds);
 
-                this._bypassStatusUpdates = true;
+                this._ignoreEvents = true;
                 do {
                     await this.continue();
                     await this._vice.waitForStop();
                 } while(!await this._validateLoad(firstLastScopes))
-                this._bypassStatusUpdates = false;
+                this._ignoreEvents = false;
 
                 const delCmds : bin.CheckpointDeleteCommand[] = storeReses
                     .map(x => ({
@@ -391,23 +415,18 @@ export class Runtime extends EventEmitter {
             labelFilePath
         )
 
-        this._vice.on('error', (res) => {
-            console.error(res);
-        })
+        await this._postViceStart();
 
-        this._vice.once('end', () => this.terminate());
-
-        await this._setupViceDataHandler();
         await this._vice.autostart(program);
         await this.continue();
         await this._vice.waitForStop(this._dbgFile.entryAddress, undefined, true);
 
         console.timeEnd('vice')
 
-        await this._postStart(stopOnEntry);
+        await this._postFullStart(stopOnEntry);
     }
 
-    private async _postStart(stopOnEntry: boolean) : Promise<void> {
+    private async _postFullStart(stopOnEntry: boolean) : Promise<void> {
         console.time('postStart')
 
         if(this._vice.textPort) {
@@ -416,29 +435,11 @@ export class Runtime extends EventEmitter {
             });
         }
 
-        const [registersAvailable, banksAvailable] = await Promise.all([
-            this._vice.execBinary<bin.RegistersAvailableCommand, bin.RegistersAvailableResponse>({
-                type: bin.CommandType.registersAvailable,
-                memspace: bin.ViceMemspace.main,
-            }),
-            this._vice.execBinary<bin.BanksAvailableCommand, bin.BanksAvailableResponse>({
-                type: bin.CommandType.banksAvailable,
-            })
-        ]);
-
-        registersAvailable.registers.forEach(x => this._registerMeta[x.name] = x);
-        banksAvailable.banks.forEach(x => this._bankMeta[x.name] = x);
-        if(this._startupRegisters) {
-            this._updateRegisters(this._startupRegisters);
-            this._startupRegisters = undefined;
-        }
-
         await Promise.all([
             this._callStackManager.reset(this._currentAddress, this._currentPosition),
             this._setExitGuard(),
             this._guardCodeSeg(),
             this._variableManager.postStart(),
-            this._graphicsManager.postStart(this, this._bankMeta['io'], this._bankMeta['ram'], Object.values(this._bankMeta)),
         ]);
 
         this._viceStarting = false;
@@ -449,7 +450,7 @@ export class Runtime extends EventEmitter {
 
         if (stopOnEntry) {
             // We don't do anything here since VICE should already be in the
-            // correct position after the startup routine.
+            // correct position after thestartup routine.
             this.sendEvent('stopOnEntry');
         } else {
             // we just start to run until we hit a breakpoint or an exception
@@ -480,10 +481,10 @@ export class Runtime extends EventEmitter {
     }
 
     private async _updateUI() : Promise<void> {
-        this._bypassStatusUpdates = true;
+        this._ignoreEvents = true;
         await this._vice.ping();
         await this._graphicsManager.updateUI(this);
-        this._bypassStatusUpdates = false;
+        this._ignoreEvents = false;
     }
 
     public async updateMemoryOffset(offset: number) {
@@ -516,13 +517,13 @@ export class Runtime extends EventEmitter {
 
     public async keypress(key: string) : Promise<void> {
         const wasRunning = this.viceRunning;
-        this._bypassStatusUpdates = true;
+        this._ignoreEvents = true;
         const cmd : bin.KeyboardFeedCommand = {
             type: bin.CommandType.keyboardFeed,
             text: key,
         }
         await this._vice.execBinary(cmd);
-        this._bypassStatusUpdates = false;
+        this._ignoreEvents = false;
         if(wasRunning) {
             await this.continue();
         }
@@ -812,6 +813,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._stopOnExit = false;
         this._exitQueued = false;
+        this._userBreak = false;
 
         this._callStackManager = <any>undefined;
         this._variableManager = <any>undefined;
@@ -1117,8 +1119,8 @@ or define the location manually with the launch.json->mapFile setting`
         }
     }
 
-    private async _dataHandler(e: bin.AbstractResponse) : Promise<void> {
-        if(this._bypassStatusUpdates) {
+    private async _eventHandler(e: bin.AbstractResponse) : Promise<void> {
+        if(this._ignoreEvents) {
             return;
         }
         else if(e.type == bin.ResponseType.checkpointInfo) {
@@ -1159,20 +1161,15 @@ or define the location manually with the launch.json->mapFile setting`
                         return;
                     }
                     else {
-                        await this._doRunAhead();
                         this._exitQueued = true;
-                        this.sendEvent('stopOnExit');
                     }
                 }
                 else {
-                    const userBreak = this._breakPoints.find(x => x.viceIndex == index);
-                    if(userBreak) {
-                        await this._doRunAhead();
-                    }
+                    // We save this event for later, because it happens before the stop
+                    this._userBreak = !!this._breakPoints.find(x => x.viceIndex == index);
                 }
 
                 this.viceRunning = false;
-                this.sendEvent('stopOnBreakpoint');
             }
         }
         else if(e.type == bin.ResponseType.registerInfo) {
@@ -1185,6 +1182,18 @@ or define the location manually with the launch.json->mapFile setting`
 
             if(!this._viceStarting) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+            }
+
+            if(this._exitQueued) {
+                await this._doRunAhead();
+                this.sendEvent('stopOnExit');
+            }
+            else if(this._userBreak) {
+                await this._doRunAhead();
+                this.sendEvent('stopOnBreakpoint');
+                this._userBreak = false;
+            }
+            else {
                 this.sendEvent('stopOnStep');
             }
         }
@@ -1205,10 +1214,6 @@ or define the location manually with the launch.json->mapFile setting`
 
     private _updateRegisters(rr: bin.SingleRegisterInfo[]) : void {
         const meta = this._registerMeta;
-        if(!Object.keys(meta).length) {
-            this._startupRegisters = rr;
-            return;
-        }
         const r = this._registers;
         for(const reg of rr) {
             if(meta['A'].id == reg.id) {
@@ -1240,8 +1245,8 @@ or define the location manually with the launch.json->mapFile setting`
         }
     }
 
-    private async _setupViceDataHandler() {
-        this._vice.on(0xffffffff.toString(16), async e => this._dataHandler(e));
+    private async _setupViceEventHandler() {
+        this._vice.on(0xffffffff.toString(16), async e => this._eventHandler(e));
     }
 
     private async _doRunAhead() : Promise<void>{
@@ -1262,7 +1267,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         const oldLine = this._registers.line;
         const oldPosition = this._currentPosition;
-        this._bypassStatusUpdates = true;
+        this._ignoreEvents = true;
         await this._vice.withAllBreaksDisabled(async() => {
             const brkCmd : bin.CheckpointSetCommand = {
                 type: bin.CommandType.checkpointSet,
@@ -1296,7 +1301,7 @@ or define the location manually with the launch.json->mapFile setting`
             };
             await this._vice.execBinary(delBrk);
         });
-        this._bypassStatusUpdates = false;
+        this._ignoreEvents = false;
 
         await this._graphicsManager.updateRunAhead(this);
 

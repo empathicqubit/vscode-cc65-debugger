@@ -124,9 +124,9 @@ export class StatsWebview {
         try {
             await util.promisify(fs.stat)(this._extensionPath + '/.git');
             scriptUri = vscode.Uri.parse(
-                'http://localhost:8080/dist/webviews.js'
+                'http://localhost:8794/dist/webviews.js'
             );
-            connectSrc = "http://localhost:8080 ws://localhost:8080";
+            connectSrc = "http://localhost:8794 ws://localhost:8794";
         }
         catch {
             const sp = vscode.Uri.file(

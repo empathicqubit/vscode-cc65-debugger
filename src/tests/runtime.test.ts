@@ -26,7 +26,7 @@ suite('Runtime', () => {
     const DEBUG_FILE = BUILD_CWD + '/simple-project.c64.dbg';
     const LABEL_FILE = BUILD_CWD + '/simple-project.c64.lbl';
     const PROGRAM = BUILD_CWD + '/simple-project.c64'
-    const VICE_DIRECTORY = path.normalize(BUILD_CWD + '/../vicedir/src');
+    const VICE_DIRECTORY = process.env.VICE_DIRECTORY || path.normalize(BUILD_CWD + '/../vicedir/src');
 
     let seq = 0;
     let request_seq = 0;
@@ -70,7 +70,7 @@ suite('Runtime', () => {
                 return;
             }
 
-            const env : { [key: string]: string | undefined } = 
+            const env : { [key: string]: string | undefined } =
                 _transform(args.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
             const proc = child_process.spawn(args.args[0], args.args.slice(1), {
                 cwd: args.cwd,
@@ -503,7 +503,7 @@ suite('Runtime', () => {
                     assert.strictEqual(file, MAIN_C)
                     assert.strictEqual(line, mainOffset + 8)
                 });
-                await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnExit');
 
                 await rt.continue();
                 await waitFor(rt, 'end');
@@ -574,9 +574,10 @@ suite('Runtime', () => {
                 await waitFor(rt, 'stopOnEntry');
 
                 await rt.setBreakPoint(MAIN_C, stepsEntry);
-                await rt.continue();
-
-                await waitFor(rt, 'stopOnStep');
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'stopOnBreakpoint')
+                );
 
                 await all(
                     rt.stepIn(),
@@ -621,9 +622,11 @@ suite('Runtime', () => {
                 await waitFor(rt, 'stopOnEntry');
 
                 await rt.setBreakPoint(path.join(BUILD_CWD, "src/main.c"), stepsEntry);
-                await rt.continue();
 
-                await waitFor(rt, 'stopOnStep');
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'stopOnBreakpoint'),
+                );
 
                 await all(
                     rt.stepIn(),
@@ -655,7 +658,7 @@ suite('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor(rt, 'stopOnEntry');
+                await waitFor(rt, 'started');
 
                 await rt.setBreakPoint(MAIN_C, stepsOffset + 9);
 
@@ -667,7 +670,7 @@ suite('Runtime', () => {
                     }),
                 );
 
-                await waitFor(rt, 'stopOnStep');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 const locals = await rt.getScopeVariables();
 

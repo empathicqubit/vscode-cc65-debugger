@@ -2,9 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "extension",
+            "dependsOn": ["server", "webviews"]
+        },
+        {
+            "label": "kill-webviews",
+            "type": "npm",
+            "script": "not-extension:debug:kill"
+        },
+        {
             "type": "npm",
             "label": "server",
-            "script": "not-extension:debug",
+            "script": "vscode:server:debug",
+        },
+        {
+            "type": "npm",
+            "label": "webviews",
+            "script": "vscode:webviews:debug",
             "problemMatcher": {
                 "owner": "webpack",
                 "severity": "error",

@@ -26,7 +26,7 @@ export class GraphicsManager {
         this._machineType = machineType;
     }
 
-    public async postStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[]) {
+    public async postViceStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[]) {
         this._ioBank = ioBank!;
         this._ramBank = ramBank!;
         this._banks = banks!;

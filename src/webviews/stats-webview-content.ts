@@ -388,7 +388,7 @@ or disable colors. You can select the text and copy it to your clipboard.
 
                         r(reactTabs.TabPanel, { className: 'memview__raw' },
                             renderMemoryBytes(this.props.memoryOffset, this.props.memory),
-                            r('code', { className: 'memview__screentext'}, r('pre', null,
+                            r('code', { className: 'memview__screentext', onCopy: copyScreenText }, r('pre', null,
                                 renderScreenCodeText(this.props.memory, 16, this.props.memory.length / 16, 0)
                             )),
                         ),

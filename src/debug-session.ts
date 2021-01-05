@@ -77,6 +77,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._runtime.on('stopOnEntry', () => {
             this.sendEvent(new StoppedEvent('entry', CC65ViceDebugSession.THREAD_ID));
         });
+        this._runtime.on('stopOnExit', () => {
+            this.sendEvent(new StoppedEvent('exit', CC65ViceDebugSession.THREAD_ID));
+        });
         this._runtime.on('stopOnStep', () => {
             this.sendEvent(new StoppedEvent('step', CC65ViceDebugSession.THREAD_ID));
         });

@@ -5,6 +5,9 @@
 
     },
 
+    "mochaExplorer.env": {
+        "VICE_DIRECTORY": "/usr/local/bin"
+    },
     "mochaExplorer.cwd": "src",
     "mochaExplorer.files": [
         "src/tests/**/*.ts",
