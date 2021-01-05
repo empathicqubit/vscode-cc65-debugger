@@ -390,7 +390,6 @@ or disable colors. You can select the text and copy it to your clipboard.
                         ),
                     r("label", { htmlFor: 'enable-colors' },
                         r("input", { id: 'enable-colors', type: "checkbox", checked: this.props.enableColors, onChange: toggleColors }),
-                        r("span"),
                         "Enable colors"
                     ),
                 ),
@@ -454,7 +453,6 @@ or disable colors. You can select the text and copy it to your clipboard.
                                     checked: this.props.memoryIsMulticolor,
                                     onChange: e => (data.memoryIsMulticolor = e.target.checked, rerender())
                                 }),
-                                r("span"),
                                 "Enable multicolor"
                             ),
                             r("label", { htmlFor: 'memview__color1' },

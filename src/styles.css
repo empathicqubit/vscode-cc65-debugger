@@ -14,6 +14,34 @@ label {
     white-space: nowrap;
 }
 
+input[type="radio"] {
+    vertical-align: middle;
+    background-color: var(--vscode-checkbox-background);
+    color: var(--vscode-checkbox-foreground);
+    border-color: var(--vscode-checkbox-border);
+    border: 2px solid var(--vscode-checkbox-border);
+    -webkit-appearance: none;
+    width: 1.2em;
+    height: 1.2em;
+    border-radius: 100%;
+    position: relative;
+
+}
+
+input[type="radio"]:checked:before {
+    border-radius: 100%;
+    background-color: var(--vscode-checkbox-foreground);
+    content: "";
+    display: block;
+    width: calc(100% - .30em);
+    height: calc(100% - .30em);
+    margin: .15em;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 select {
     background-color: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
@@ -47,11 +75,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 label input[type="checkbox"] {
-    display: none;
-}
-
-label input[type="checkbox"] + span:before {
-    content: "\2000";
+    -webkit-appearance: none;
     text-align: center;
     vertical-align: middle;
 	background-color: var(--vscode-checkbox-background);
@@ -66,7 +90,7 @@ label input[type="checkbox"] + span:before {
 	display: inline-block;
 }
 
-label input:checked + span:before {
+label input[type="checkbox"]:checked:before {
     content: "\2713";
 }
 
