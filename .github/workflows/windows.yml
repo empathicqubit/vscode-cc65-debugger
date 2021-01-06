@@ -26,12 +26,7 @@ jobs:
     - run: git config --global core.autocrlf input
       shell: bash
 
-    - name: Checkout VICE
-      uses: actions/checkout@v2
-      with:
-          repository: Vice-Team/svn-mirror
-          path: vicedir
-          ref: master
+    - run: git clone --depth=1 https://github.com/VICE-Team/svn-mirror ./vicedir
 
     - name: Install GTK3 Dependencies if Applicable
       uses: msys2/setup-msys2@v2
