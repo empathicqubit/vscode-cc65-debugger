@@ -26,6 +26,7 @@ dist/
 *.map
 *.run
 *~
+*.sf-*
 .nyc_output/
 coverage/
 vicedir
