@@ -57,6 +57,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 # Install the packages
 choco install --version 2.17 cc65-compiler
 choco install --version 3.5.0 winvice-nightly
+choco install make
 choco install llvm
 ```
 
