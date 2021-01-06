@@ -34,7 +34,7 @@ suite('Runtime', () => {
     let seq = 0;
     let request_seq = 0;
     let rt : Runtime;
-    let viceArgs : string[] = ['-sounddev', 'dummy'];
+    let viceArgs : string[] = ['-VICIIborders', '3', '+sidfilters', '+VICIIhwscale', '-VICIIcrtblur', '0', '-VICIIfilter', '0', '+VICIIdscan', '+VICIIdsize', '-gtkbackend', '0', '-gtkfilter', '0', '+sound', '-sounddev', 'dummy'];
     let pids : number[] = [];
 
     const waitFor = async(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> => {
