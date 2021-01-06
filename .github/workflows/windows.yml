@@ -22,6 +22,7 @@ jobs:
       with:
           ref: "${{ github.events.inputs.ref }}"
     - run: choco install winvice-nightly cc65-compiler nodejs svn make python3
+    - run: pip3 install --user fonttools
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: mkdir dist
