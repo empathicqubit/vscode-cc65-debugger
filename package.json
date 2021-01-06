@@ -33,7 +33,7 @@
   },
   "scripts": {
     "chargen": "split-file -s ./system/chargen 2",
-    "c64ttf": "cd ./system && python3 ../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../dist/c64.ttf",
+    "c64ttf": "cd ./system && python3 ../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../dist/c64.ttf || python ../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../dist/c64.ttf",
     "submodules": "git submodule init && git submodule update",
     "fontgen:force": "npm-run-all submodules chargen c64ttf",
     "fontgen": "shx ls ./dist/c64.ttf || npm-run-all fontgen:force",
