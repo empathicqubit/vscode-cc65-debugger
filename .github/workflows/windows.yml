@@ -30,7 +30,7 @@ jobs:
       uses: actions/checkout@v2
       with:
           repository: Vice-Team/svn-mirror
-          path: ./vice
+          path: vicedir
           ref: master
 
     - name: Install GTK3 Dependencies if Applicable
@@ -60,7 +60,7 @@ jobs:
       id: build
       shell: msys2 {0}
       run: |
-        cd ./vice/vice
+        cd ./vicedir/vice
         ./autogen.sh
         ./configure --enable-headless --disable-arch --disable-pdf-docs --disable-ethernet --disable-cpuhistory
         make -j$(nproc) -s
@@ -73,5 +73,5 @@ jobs:
     - run: mkdir dist
     - run: pnpm tisk
     - run: pnpm nonjs
-    - run: $env:VICE_DIRECTORY="$((Get-Item ./vice/vice).FullName)"; pnpm mocha:prepublish
+    - run: $env:VICE_DIRECTORY="$((Get-Item ./vicedir/vice).FullName)"; pnpm mocha:prepublish
     - run: unzip -l cc65-vice*.vsix
