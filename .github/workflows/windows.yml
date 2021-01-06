@@ -29,5 +29,5 @@ jobs:
     - run: mkdir dist
     - run: pnpm tisk
     - run: pnpm nonjs
-    - run: $env:VICE_DIRECTORY=""; pnpm mocha:prepublish
+    - run: $env:VICE_DIRECTORY="$((Get-Item C:/ProgramData/chocolatey/lib/winvice-nightly/tools/GTK*/bin).FullName)"; pnpm mocha:prepublish
     - run: unzip -l cc65-vice*.vsix
