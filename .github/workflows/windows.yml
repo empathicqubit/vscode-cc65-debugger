@@ -32,7 +32,6 @@ jobs:
           repository: Vice-Team/svn-mirror
           path: ./vice
           ref: master
-          fetch-depth: 1
 
     - name: Install GTK3 Dependencies if Applicable
       uses: msys2/setup-msys2@v2
