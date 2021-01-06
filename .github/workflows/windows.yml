@@ -21,7 +21,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
-    - run: choco install winvice-nightly cc65-compiler nodejs svn make python3
+    - run: choco install winvice-nightly cc65-compiler svn make python3
+    - run: choco install --version 13.14.0 nodejs
     - run: pip3 install --user fonttools
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
