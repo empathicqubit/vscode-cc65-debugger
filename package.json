@@ -32,10 +32,10 @@
     "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
   },
   "scripts": {
-    "chargen": "split-file -s ./src/tests/vicedir/data/C64/chargen 2",
-    "c64ttf": "cd ./src/tests/vicedir/data/C64 && python3 ../../../../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../../../../dist/c64.ttf",
+    "chargen": "split-file -s ./system/chargen 2",
+    "c64ttf": "cd ./system && python3 ../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../dist/c64.ttf",
     "submodules": "git submodule init && git submodule update",
-    "fontgen:force": "npm-run-all -p submodules vice:co && npm-run-all chargen c64ttf",
+    "fontgen:force": "npm-run-all submodules chargen c64ttf",
     "fontgen": "shx ls ./dist/c64.ttf || npm-run-all fontgen:force",
     "styles": "shx cp -u src/styles.css dist/styles.css",
     "kernal": "shx cp -ru system/ dist",
