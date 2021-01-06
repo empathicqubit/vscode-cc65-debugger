@@ -24,5 +24,8 @@ jobs:
     - run: choco install winvice-nightly cc65-compiler nodejs svn make
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
-    - run: pnpm package
+    - run: mkdir dist
+    - run: pnpm tisk
+    - run: pnpm nonjs
+    - run: $env:VICE_DIRECTORY=""; pnpm mocha:prepublish
     - run: unzip -l cc65-vice*.vsix
