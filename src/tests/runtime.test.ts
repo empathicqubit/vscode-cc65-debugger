@@ -28,6 +28,9 @@ suite('Runtime', () => {
     const PROGRAM = BUILD_CWD + '/simple-project.c64'
     const VICE_DIRECTORY = typeof process.env.VICE_DIRECTORY != 'undefined' ? process.env.VICE_DIRECTORY : path.normalize(BUILD_CWD + '/../vicedir/src');
 
+    console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
+    console.log('VICE DIRECTORY', VICE_DIRECTORY);
+
     let seq = 0;
     let request_seq = 0;
     let rt : Runtime;
