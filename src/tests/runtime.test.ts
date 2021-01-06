@@ -78,7 +78,7 @@ suite('Runtime', () => {
             const proc = child_process.spawn(args.args[0], args.args.slice(1), {
                 cwd: args.cwd,
                 stdio: "pipe",
-                shell: false,
+                shell: true,
                 //shell: __dirname + "/xterm-c",
                 detached: false,
                 env: {
