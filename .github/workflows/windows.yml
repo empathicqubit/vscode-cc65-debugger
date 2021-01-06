@@ -1,0 +1,28 @@
+name: Check
+
+on:
+  workflow_dispatch:
+      inputs:
+          ref:
+              description: The git refspec to checkout
+              required: true
+              default: 'master'
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+          vice-version: [3.5] #Add versions here
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          ref: "${{ github.events.inputs.ref }}"
+    - run: choco install winvice-nightly cc65-compiler nodejs svn make
+    - run: npm install -g pnpm
+    - run: pnpm install --shamefully-hoist
+    - run: pnpm package
+    - run: unzip -l cc65-vice*.vsix
