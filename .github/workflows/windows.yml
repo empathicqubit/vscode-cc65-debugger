@@ -74,6 +74,7 @@ jobs:
         ./autogen.sh
         ./configure --enable-headless --disable-arch --disable-pdf-docs --disable-ethernet --disable-cpuhistory
         make -j$(nproc) -s
+        ls -lR ..
 
     - run: choco install nodejs-lts
     - run: choco install winvice-nightly cc65-compiler svn make python3
