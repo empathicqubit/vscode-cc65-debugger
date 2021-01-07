@@ -74,7 +74,7 @@ jobs:
         ./autogen.sh
         ./configure --enable-headless --disable-arch --disable-pdf-docs --disable-ethernet --disable-cpuhistory
         make -j$(nproc) -s
-        ls -lR ..
+        make bindist
 
     - run: choco install nodejs-lts
     - run: choco install winvice-nightly cc65-compiler svn make python3
@@ -84,5 +84,5 @@ jobs:
     - run: mkdir dist
     - run: pnpm tisk
     - run: pnpm nonjs
-    - run: $env:VICE_DIRECTORY="$((Get-Item ./vicedir/vice/src).FullName)"; pnpm mocha:prepublish
+    - run: $env:VICE_DIRECTORY="$((Get-Item ./vicedir/vice/GTK3*/bin).FullName)"; pnpm mocha:prepublish
     - run: unzip -l cc65-vice*.vsix
