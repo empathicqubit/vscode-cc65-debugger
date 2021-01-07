@@ -83,5 +83,5 @@ jobs:
     - run: mkdir dist
     - run: pnpm tisk
     - run: pnpm nonjs
-    - run: $env:VICE_DIRECTORY="$((Get-Item ./vicedir/vice).FullName)"; pnpm mocha:prepublish
+    - run: $env:VICE_DIRECTORY="$((Get-Item ./vicedir/vice/src).FullName)"; pnpm mocha:prepublish
     - run: unzip -l cc65-vice*.vsix
