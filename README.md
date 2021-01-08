@@ -20,7 +20,7 @@ This is an extension to let you debug CC65 code made for the Commodore platforms
 
 If you're having trouble understanding how this extension is supposed to be used, or any other issues setting it up, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-vice-debug/issues) or [messaging me on Twitter](https://twitter.com/intent/tweet?screen_name=empathicqubit).
 
-<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.png?raw=true" />
+<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.gif?raw=true" />
 
 - [vscode-cc65-vice-debug](#vscode-cc65-vice-debug)
   * [Setup](#setup)
