@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.7.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.6.0...v3.7.0) (2021-01-08)
+
+
+### Features
+
+* Ability to toggle between graphics and lower charsets. ([bfbf15c](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/bfbf15cd372772e07d6c091b6e7d031865359b17))
+
 ## [3.6.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.5.1...v3.6.0) (2021-01-05)
 
 
