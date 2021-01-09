@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.7.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.0...v3.7.1) (2021-01-09)
+
+
+### Bug Fixes
+
+* Handle lower charset correctly ([5b487e9](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/5b487e9d26f339ab9fb05201e1f79288155186a6))
+
 ## [3.7.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.6.0...v3.7.0) (2021-01-08)
 
 
