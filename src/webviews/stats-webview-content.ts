@@ -18,7 +18,7 @@ export function _statsWebviewContent() {
     const SPRITE_HEIGHT = 30;
     const spritePixels = Buffer.alloc(4 * SPRITE_WIDTH * SPRITE_HEIGHT);
 
-    const convertScreenCodesToUtf8 = (text: string) : string => {
+    const convertScreenCodesToUtf8 = (text: string, textType: PreferredTextType) : string => {
         const stringBuilder = new Array<string>(text.length);
         let i = 0;
         Array.from(text).forEach((chr, d) => {
@@ -31,7 +31,14 @@ export function _statsWebviewContent() {
 
             const baseChar = code % 0x80;
             const reverse = code / 0x80 > 1;
-            stringBuilder[i] = screenMappings.find(x => x.screen == baseChar)!.gfx;
+            const mapping = screenMappings.find(x => x.screen == baseChar)!;
+            if(textType == PreferredTextType.Graphics) {
+                stringBuilder[i] = mapping.gfx;
+            }
+            else if(textType == PreferredTextType.Lower) {
+                stringBuilder[i] = mapping.lower || mapping.gfx;
+            }
+
             i++;
         });
 
@@ -201,11 +208,11 @@ export function _statsWebviewContent() {
         return r('pre', null, elems);
     };
 
-    const copyScreenText = (e : ClipboardEvent) : void => {
+    const copyScreenText = (e : ClipboardEvent, textType: PreferredTextType) : void => {
         if(!e.clipboardData) {
             return;
         }
-        e.clipboardData.setData('text/plain', convertScreenCodesToUtf8(document.getSelection()!.toString()))
+        e.clipboardData.setData('text/plain', convertScreenCodesToUtf8(document.getSelection()!.toString(), textType))
         e.preventDefault();
     }
 
@@ -385,7 +392,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                     ),
                     !this.props.screenText
                         ? r('h1', null, 'Loading...')
-                        : r('code', { onCopy: copyScreenText },
+                        : r('code', { onCopy: (e) => copyScreenText(e, this.props.preferredTextType) },
                             renderScreenText(this.props.palette, this.props.screenText, this.props.enableColors, this.props.preferredTextType),
                         ),
                     r("label", { htmlFor: 'enable-colors' },
@@ -439,7 +446,7 @@ or disable colors. You can select the text and copy it to your clipboard.
                             ),
                             r('div', { className: 'memview__rawcontent' },
                                 renderMemoryBytes(this.props.memoryOffset, this.props.memory),
-                                r('code', { className: 'memview__screentext', onCopy: copyScreenText }, r('pre', null,
+                                r('code', { className: 'memview__screentext', onCopy: (e) => copyScreenText(e, this.props.preferredTextType) }, r('pre', null,
                                     renderScreenCodeText(this.props.memory, 16, this.props.memory.length / 16, this.props.preferredTextType, 0)
                                 )),
                             )
