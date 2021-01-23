@@ -22,10 +22,10 @@ suite('Runtime', () => {
     const BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
     const PREPROCESS_COMMAND = 'make preprocess-only';
     const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/simple-project');
-    const MAP_FILE = BUILD_CWD + '/simple-project.c64.map';
-    const DEBUG_FILE = BUILD_CWD + '/simple-project.c64.dbg';
-    const LABEL_FILE = BUILD_CWD + '/simple-project.c64.lbl';
     const PROGRAM = BUILD_CWD + '/simple-project.c64'
+    const MAP_FILE = PROGRAM + '.map';
+    const DEBUG_FILE = PROGRAM + '.dbg';
+    const LABEL_FILE = PROGRAM + '.lbl';
     const VICE_DIRECTORY = typeof process.env.VICE_DIRECTORY != 'undefined' ? process.env.VICE_DIRECTORY : path.normalize(BUILD_CWD + '/../vicedir/src');
 
     console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
@@ -419,6 +419,63 @@ suite('Runtime', () => {
         });
 
         suite('Essential', () => {
+            test('Non-C64 platform works correctly', async () => {
+                const PROGRAM = BUILD_CWD + '/simple-project.pet';
+                const MAP_FILE = PROGRAM + '.map';
+                const DEBUG_FILE = PROGRAM + '.dbg';
+                const LABEL_FILE = PROGRAM + '.lbl';
+                const viceArgs = [
+                    '+sound',
+                    '-sounddev', 'dummy',
+                ];
+
+                await rt.start(
+                    PROGRAM,
+                    BUILD_CWD,
+                    true,
+                    false,
+                    false,
+                    VICE_DIRECTORY,
+                    viceArgs,
+                    undefined,
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+
+                await rt.setBreakPoint(MAIN_C, stepsEntry);
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'stopOnBreakpoint')
+                );
+
+                await all(
+                    rt.stepIn(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_C)
+                        assert.strictEqual(line, stepsOffset + 1)
+                    }),
+                );
+
+                await waitFor(rt, 'stopOnStep');
+
+                await all(
+                    rt.stepOut(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, MAIN_C)
+                        assert.strictEqual(line, mainOffset + 4)
+                    }),
+                );
+
+                await waitFor(rt, 'stopOnStep');
+
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
+
             test('Pauses correctly', async () => {
                 await rt.start(
                     PROGRAM,

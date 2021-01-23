@@ -359,7 +359,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 args.viceDirectory,
                 args.viceArgs,
                 args.console,
-                args.preferX64OverX64sc
+                args.preferX64OverX64sc,
+                args.debugFile,
+                args.mapFile
             );
         }
         catch (e) {
