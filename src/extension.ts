@@ -78,6 +78,10 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
+        if(!vscode.debug.activeDebugSession || vscode.debug.activeDebugSession.type != 'cc65-vice') {
+            return;
+        }
+
         StatsWebview.maybeCreate(context.extensionPath);
         if(statsEvents.includes(e.event)) {
             StatsWebview.update(e.body);
