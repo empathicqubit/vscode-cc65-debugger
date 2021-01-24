@@ -89,7 +89,7 @@ suite('Runtime', () => {
             const proc = child_process.spawn(args.args[0], args.args.slice(1), {
                 cwd: args.cwd,
                 stdio: "pipe",
-                shell: true,
+                shell: false,
                 //shell: __dirname + "/xterm-c",
                 detached: false,
                 env: {
@@ -166,7 +166,7 @@ suite('Runtime', () => {
             });
 
             proc.stdout.pipe(process.stdout);
-            proc.stderr.pipe(process.stderr);
+            proc.stderr.pipe(process.stdout);
 
             await debugUtils.delay(1000);
 

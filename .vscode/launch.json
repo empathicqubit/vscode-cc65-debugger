@@ -29,7 +29,22 @@
             "args": [
                 "--server=4711"
             ]
-        }
+        },
+        {
+            "name": "Test Host",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--extensionTestsPath=${workspaceFolder}/out/tests/integration/index",
+            ],
+            "preLaunchTask": "extension",
+            "postDebugTask": "kill-webviews",
+            "outFiles": [
+                "${workspaceFolder}/out/test/integration/**/*.js"
+            ]
+        },
     ],
     "compounds": [
         {

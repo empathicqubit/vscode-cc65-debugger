@@ -35,7 +35,7 @@ export class GraphicsManager {
                 type: bin.CommandType.resourceGet,
                 resourceName: 'VICIIPaletteFile',
             });
-            const paletteFile = await util.promisify(fs.readFile)(path.normalize(path.join(__dirname, "../dist/system", paletteFileName.stringValue + '.vpl')), 'utf8');
+            const paletteFile = await util.promisify(fs.readFile)(path.normalize(path.join(__dirname, "../dist/system/C64", paletteFileName.stringValue + '.vpl')), 'utf8');
             const paletteLines = paletteFile.split(/[\r\n]+\s*/gim);
             const paletteActiveLines = paletteLines.filter(x => !/^#/.test(x));
             const paletteLinePattern = /^\s*([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s*$/i;

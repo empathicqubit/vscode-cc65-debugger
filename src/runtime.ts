@@ -412,6 +412,7 @@ export class Runtime extends EventEmitter {
         await this._vice.start(
             this._dbgFile.entryAddress,
             path.dirname(program),
+            this._dbgFile.machineType,
             await this._getVicePath(viceDirectory, !!preferX64OverX64sc),
             viceArgs,
             labelFilePath

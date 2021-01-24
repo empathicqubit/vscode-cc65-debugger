@@ -1,6 +1,7 @@
 import * as child_process from 'child_process'
 import * as net from 'net'
 import _last from 'lodash/fp/last'
+import * as debugFile from './debug-file'
 import _intersectionBy from 'lodash/fp/intersectionBy'
 import _random from 'lodash/fp/random'
 import _uniq from 'lodash/fp/uniq'
@@ -245,16 +246,18 @@ export class ViceGrip extends EventEmitter {
         this.textPort = parseInt(_last(textRes.stringValue!.split(':'))!);
     }
 
-    public async start(initBreak: number, cwd: string, vicePath: string, viceArgs?: string[], labelFile?: string) {
+    public async start(initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
         const startText = _random(29170, 29400);
         const startBinary = _random(29700, 30000);
         const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
         const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
 
         let q = "";
+        let sep = ":";
         let logfile : string | undefined;
         if(process.platform == "win32") {
             q = '"';
+            sep = ';';
             logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
 
             const tempdir = path.dirname(logfile!);
@@ -264,12 +267,56 @@ export class ViceGrip extends EventEmitter {
                 .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
         }
 
+        let dirs = [""];
+        if(machineType == debugFile.MachineType.c64) {
+            dirs = [
+                path.normalize(__dirname + "/../dist/system/C64"),
+                path.normalize(__dirname + "/../dist/system/DRIVES"),
+                path.normalize(__dirname + "/../dist/system/PRINTER"),
+            ];
+        }
+        else if(machineType == debugFile.MachineType.c128) {
+            dirs = [
+                path.normalize(__dirname + "/../dist/system/C128"),
+                path.normalize(__dirname + "/../dist/system/DRIVES"),
+                path.normalize(__dirname + "/../dist/system/PRINTER"),
+            ];
+        }
+        else if(machineType == debugFile.MachineType.pet) {
+            dirs = [
+                path.normalize(__dirname + "/../dist/system/PET"),
+                path.normalize(__dirname + "/../dist/system/DRIVES"),
+                path.normalize(__dirname + "/../dist/system/PRINTER"),
+            ];
+        }
+        else if(machineType == debugFile.MachineType.vic20) {
+            dirs = [
+                path.normalize(__dirname + "/../dist/system/VIC20"),
+                path.normalize(__dirname + "/../dist/system/DRIVES"),
+                path.normalize(__dirname + "/../dist/system/PRINTER"),
+            ];
+        }
+        else if(machineType == debugFile.MachineType.plus4) {
+            dirs = [
+                path.normalize(__dirname + "/../dist/system/PLUS4"),
+                path.normalize(__dirname + "/../dist/system/DRIVES"),
+                path.normalize(__dirname + "/../dist/system/PRINTER"),
+            ];
+        }
+        else {
+            dirs = [
+                path.normalize(__dirname + "/../dist/system/DRIVES"),
+                path.normalize(__dirname + "/../dist/system/PRINTER"),
+            ];
+        }
+
         let args = [
+            "-directory", q + dirs.join(sep) + q,
+
             // C64-specific
             ...(
-                path.basename(vicePath).startsWith('x64')
+                machineType == debugFile.MachineType.c64
                 ? [
-                    "-directory", `${q}${path.normalize(__dirname + "/../dist/system")}${q}`,
                     "-iecdevice8",
                 ]
                 : []

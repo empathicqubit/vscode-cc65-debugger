@@ -1,0 +1,11 @@
+version: '2'
+services:
+    build:
+        image: empathicqubit/vscode-cc65-vice-debug-build
+        volumes:
+            - ..:/mnt
+        working_dir: /mnt
+        command:
+            - 'bash'
+            - '-c'
+            - 'pnpm install && pnpm package'
