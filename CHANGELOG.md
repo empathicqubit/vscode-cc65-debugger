@@ -1,5 +1,14 @@
 # Changelog
 
+### [3.7.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.1...v3.7.2) (2021-01-24)
+
+
+### Bug Fixes
+
+* Better handling of non-C64 system files ([0bb3a4b](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/0bb3a4bf15570200bdc8296197d9f82efa406db0))
+* Make attach detection more reliable. ([8f4b4eb](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/8f4b4eb0cbfcef759823baa4b95d180b18e63a73))
+* Test PET. Properly handle debug and map file launch args ([ae5c645](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/ae5c645b04d583ddd2d41eed25edc14fdb343d42))
+
 ### [3.7.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.0...v3.7.1) (2021-01-09)
 
 
