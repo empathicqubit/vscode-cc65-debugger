@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.7.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.2...v3.7.3) (2021-01-24)
+
+
+### Bug Fixes
+
+* Don't handle events from other debuggers, ya duh ([2995c32](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/2995c32ba81801c7912f5c490d68ec9678c9e36e))
+
 ### [3.7.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.1...v3.7.2) (2021-01-24)
 
 
