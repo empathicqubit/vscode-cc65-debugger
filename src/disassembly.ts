@@ -33,7 +33,11 @@ export const maxOpCodeSize = _max(opcodeSizes)!;
  * @param scope The scope to filter
  */
 export function getInstructionSpans(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope) : debugFile.DebugSpan[] {
-    const scopeSpan = scope.spans[0];
+    const scopeSpan = scope.codeSpan;
+    if(!scopeSpan) {
+        return [];
+    }
+
     const span = dbgFile.spans[0];
     const range = _flow(
         _dropWhile((x : typeof span) => x.absoluteAddress >= scopeSpan.absoluteAddress + scopeSpan.size),
@@ -52,10 +56,10 @@ export function getInstructionSpans(dbgFile: debugFile.Dbgfile, scope: debugFile
  */
 export function verifyScope(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope, mem: Buffer) : boolean {
     const instructionSpans = getInstructionSpans(dbgFile, scope);
-        
+
     let i = 0;
     const nonMatch = opCodeFind(mem, (cmd, rest, pos) => {
-        if(instructionSpans[i].size != opcodeSizes[cmd]) {
+        if(!instructionSpans[i] || instructionSpans[i].size != opcodeSizes[cmd]) {
             return true;
         }
         i++;
@@ -78,13 +82,13 @@ export function opCodeFind<T>(mem: Buffer, handler: (cmd: number, rest: Buffer, 
 }
 
 interface StackChanges {
-    exitAddresses: ScopeAddress[], 
-    jumpAddresses: ScopeAddress[], 
+    exitAddresses: ScopeAddress[],
+    jumpAddresses: ScopeAddress[],
     descendants: debugFile.Scope[],
 }
 
 export interface ScopeAddress {
-    scope: debugFile.Scope, 
+    scope: debugFile.Scope,
     address: number,
 }
 
