@@ -181,11 +181,11 @@ export class Runtime extends EventEmitter {
         this._vice.once('end', () => this.terminate());
 
         const [registersAvailable, banksAvailable] = await Promise.all([
-            this._vice.execBinary<bin.RegistersAvailableCommand, bin.RegistersAvailableResponse>({
+            this._vice.execBinary({
                 type: bin.CommandType.registersAvailable,
                 memspace: bin.ViceMemspace.main,
             }),
-            this._vice.execBinary<bin.BanksAvailableCommand, bin.BanksAvailableResponse>({
+            this._vice.execBinary({
                 type: bin.CommandType.banksAvailable,
             })
         ]);
@@ -521,11 +521,10 @@ export class Runtime extends EventEmitter {
     public async keypress(key: string) : Promise<void> {
         const wasRunning = this.viceRunning;
         this._ignoreEvents = true;
-        const cmd : bin.KeyboardFeedCommand = {
+        await this._vice.execBinary({
             type: bin.CommandType.keyboardFeed,
             text: key,
-        }
-        await this._vice.execBinary(cmd);
+        });
         this._ignoreEvents = false;
         if(wasRunning) {
             await this.continue();
@@ -559,7 +558,7 @@ export class Runtime extends EventEmitter {
             return;
         }
 
-        const cmd : bin.CheckpointSetCommand = {
+        const res = await this._vice.execBinary({
             type: bin.CommandType.checkpointSet,
             operation: bin.CpuOperation.store,
             startAddress: this._dbgFile.codeSeg.start,
@@ -567,8 +566,7 @@ export class Runtime extends EventEmitter {
             enabled: true,
             stop: true,
             temporary: false,
-        };
-        const res : bin.CheckpointInfoResponse = await this._vice.execBinary(cmd);
+        });
         this._codeSegGuardIndex = res.id;
     }
 
@@ -612,7 +610,7 @@ or define the location manually with the launch.json->mapFile setting`
             // Find the next source line and continue to it.
             const nextLine = this._getNextLine();
             if(!nextLine) {
-                await this._vice.execBinary<bin.AdvanceInstructionsCommand, bin.AdvanceInstructionsResponse>({
+                await this._vice.execBinary({
                     type: bin.CommandType.advanceInstructions,
                     stepOverSubroutines: false,
                     count: 1,
@@ -633,7 +631,7 @@ or define the location manually with the launch.json->mapFile setting`
                     await this._vice.multiExecBinary(delBrks);
                 }
                 else {
-                    await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
+                    await this._vice.execBinary({
                         type: bin.CommandType.checkpointSet,
                         startAddress: nextAddress,
                         endAddress: nextAddress,
@@ -703,13 +701,11 @@ or define the location manually with the launch.json->mapFile setting`
         }
 
         if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
-            const stepCmd : bin.AdvanceInstructionsCommand = {
+            await this._vice.execBinary({
                 type: bin.CommandType.advanceInstructions,
                 stepOverSubroutines: false,
                 count: 1,
-            };
-
-            await this._vice.execBinary(stepCmd);
+            });
             await this._vice.waitForStop();
         }
         else {
@@ -743,11 +739,9 @@ or define the location manually with the launch.json->mapFile setting`
 
         if(!await this._callStackManager.returnToLastStackFrame()) {
             if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
-                const retCmd : bin.ExecuteUntilReturnCommand = {
+                await this._vice.execBinary({
                     type: bin.CommandType.executeUntilReturn,
-                };
-
-                await this._vice.execBinary(retCmd);
+                });
             }
             else {
                 this.sendMessage({
@@ -1127,7 +1121,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
     }
 
-    private async _eventHandler(e: bin.AbstractResponse) : Promise<void> {
+    private async _eventHandler(e: bin.Response) : Promise<void> {
         if(this._ignoreEvents) {
             return;
         }
@@ -1136,25 +1130,23 @@ or define the location manually with the launch.json->mapFile setting`
             // If you add any references to it after
             // an async call you MUST duplicate it before,
             // otherwise it will be overwritten.
-            const brk = <bin.CheckpointInfoResponse>e;
-
-            if(!brk.hit) {
+            if(!e.hit) {
                 return;
             }
 
-            const startAddress = brk.startAddress;
+            const startAddress = e.startAddress;
 
             const line = () => debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, startAddress);
-            this._callStackManager.addFrame(brk, line);
+            this._callStackManager.addFrame(e, line);
 
-            let index = brk.id;
+            let index = e.id;
 
             // Is a breakpoint
-            if(brk.stop) {
+            if(e.stop) {
                 if(this._codeSegGuardIndex == index) {
                     const guard = this._codeSegGuardIndex;
                     this._codeSegGuardIndex = -1;
-                    await this._vice.checkpointDelete({
+                    await this._vice.execBinary({
                         type: bin.CommandType.checkpointDelete,
                         id: guard,
                     });
@@ -1181,13 +1173,12 @@ or define the location manually with the launch.json->mapFile setting`
             }
         }
         else if(e.type == bin.ResponseType.registerInfo) {
-            const rr = (<bin.RegisterInfoResponse>e).registers;
-            this._updateRegisters(rr);
+            this._updateRegisters(e.registers);
         }
         else if(e.type == bin.ResponseType.stopped) {
             this.viceRunning = false;
 
-            this._updateCurrentAddress((<bin.StoppedResponse>e).programCounter);
+            this._updateCurrentAddress(e.programCounter);
 
             if(this._viceStarting) {
                 return;
@@ -1215,7 +1206,7 @@ or define the location manually with the launch.json->mapFile setting`
             }
 
             this.viceRunning = true;
-            this._updateCurrentAddress((<bin.ResumedResponse>e).programCounter);
+            this._updateCurrentAddress(e.programCounter);
 
             if(!this._viceStarting) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
@@ -1268,19 +1259,18 @@ or define the location manually with the launch.json->mapFile setting`
         }
 
         const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
-        const dumpCmd : bin.DumpCommand =  {
+        await this._vice.execBinary({
             type: bin.CommandType.dump,
             saveDisks: false,
             saveRoms: false,
             filename: dumpFileName,
-        }
-        await this._vice.execBinary(dumpCmd);
+        });
 
         const oldLine = this._registers.line;
         const oldPosition = this._currentPosition;
         this._ignoreEvents = true;
         await this._vice.withAllBreaksDisabled(async() => {
-            const brkCmd : bin.CheckpointSetCommand = {
+            const brkRes = await this._vice.execBinary({
                 type: bin.CommandType.checkpointSet,
                 startAddress: 0x0000,
                 endAddress: 0xffff,
@@ -1288,39 +1278,34 @@ or define the location manually with the launch.json->mapFile setting`
                 enabled: true,
                 operation: bin.CpuOperation.exec,
                 temporary: false,
-            };
-            const brkRes : bin.CheckpointInfoResponse = await this._vice.execBinary(brkCmd);
-            const notCmd : bin.ConditionSetCommand = {
+            });
+            await this._vice.execBinary({
                 type: bin.CommandType.conditionSet,
                 condition: 'RL != $' + oldLine.toString(16),
                 checkpointId: brkRes.id,
-            };
-            await this._vice.execBinary(notCmd);
+            });
             await this._vice.exit();
             await this._vice.waitForStop();
-            const notNotCmd : bin.ConditionSetCommand = {
+            await this._vice.execBinary({
                 type: bin.CommandType.conditionSet,
                 condition: 'RL == $' + oldLine.toString(16),
                 checkpointId: brkRes.id,
-            };
-            await this._vice.execBinary(notNotCmd);
+            });
             await this._vice.exit();
             await this._vice.waitForStop();
-            const delBrk : bin.CheckpointDeleteCommand = {
+            await this._vice.execBinary({
                 type: bin.CommandType.checkpointDelete,
                 id: brkRes.id,
-            };
-            await this._vice.execBinary(delBrk);
+            });
         });
         this._ignoreEvents = false;
 
         await this._graphicsManager.updateRunAhead(this);
 
-        const undumpCmd : bin.UndumpCommand = {
+        const undumpRes = await this._vice.execBinary({
             type: bin.CommandType.undump,
             filename: dumpFileName,
-        };
-        const undumpRes : bin.UndumpResponse = await this._vice.execBinary(undumpCmd);
+        });
         this._updateCurrentAddress(undumpRes.programCounter);
 
         await util.promisify(fs.unlink)(dumpFileName);

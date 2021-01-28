@@ -82,37 +82,108 @@ export enum CommandType {
     autostart = 0xdd,
 }
 
+export type Command =
+    MemoryGetCommand
+    | MemorySetCommand
 
-export interface Command {
+    | CheckpointGetCommand
+    | CheckpointSetCommand
+    | CheckpointDeleteCommand
+    | CheckpointListCommand
+    | CheckpointToggleCommand
+
+    | ConditionSetCommand
+
+    | RegistersGetCommand
+    | RegistersSetCommand
+
+    | DumpCommand
+    | UndumpCommand
+
+    | ResourceGetCommand
+    | ResourceSetCommand
+
+    | AdvanceInstructionsCommand
+    | KeyboardFeedCommand
+    | ExecuteUntilReturnCommand
+
+    | PingCommand
+    | BanksAvailableCommand
+    | RegistersAvailableCommand
+    | DisplayGetCommand
+
+    | ExitCommand
+    | QuitCommand
+    | ResetCommand
+    | AutostartCommand
+
+export type Response =
+    UnknownResponse
+
+    | MemoryGetResponse
+    | MemorySetResponse
+
+    | CheckpointInfoResponse
+    | CheckpointDeleteResponse
+    | CheckpointListResponse
+    | CheckpointToggleResponse
+
+    | ConditionSetResponse
+
+    | RegisterInfoResponse
+
+    | DumpResponse
+    | UndumpResponse
+
+    | ResourceGetResponse
+    | ResourceSetResponse
+
+    | JamResponse
+    | StoppedResponse
+    | ResumedResponse
+
+    | AdvanceInstructionsResponse
+    | KeyboardFeedResponse
+    | ExecuteUntilReturnResponse
+
+    | PingResponse
+    | BanksAvailableResponse
+    | RegistersAvailableResponse
+    | DisplayGetResponse
+
+    | ExitResponse
+    | QuitResponse
+    | ResetResponse
+    | AutostartResponse;
+
+interface AbstractCommand {
     type: CommandType
     /** The type of the response. If included the handler will collect
      * responses with the request ID until this type is seen. */
     responseType?: ResponseType
 }
 
-export interface AbstractResponse {
+interface AbstractResponse {
     /** Currently 1 */
     apiVersion: number;
     type: ResponseType;
     error: number;
     requestId: number;
     /** Any responses that occurred before this one which had the same request ID */
-    related: AbstractResponse[];
+    related: Response[];
 }
 
-export interface Response<T extends Command> extends AbstractResponse {
-}
-
-export interface UnknownResponse extends Response<Command> {
+export interface UnknownResponse extends AbstractResponse {
+    type: ResponseType.unknown;
     /** The binary body of the command, which does not include the headers */
     rawBody: Uint8Array
 }
 
-export interface RegisterCommand extends Command {};
+export interface RegisterCommand extends AbstractCommand {};
 
-export interface CheckpointCommand extends Command {};
+export interface CheckpointCommand extends AbstractCommand {};
 
-export interface MemoryGetCommand extends Command {
+export interface MemoryGetCommand extends AbstractCommand {
     type: CommandType.memoryGet;
     sidefx: boolean;
     startAddress: number;
@@ -121,12 +192,12 @@ export interface MemoryGetCommand extends Command {
     bankId: number;
 }
 
-export interface MemoryGetResponse extends Response<MemoryGetCommand> {
+export interface MemoryGetResponse extends AbstractResponse {
     type: ResponseType.memoryGet;
     memory: Buffer;
 }
 
-export interface MemorySetCommand extends Command {
+export interface MemorySetCommand extends AbstractCommand {
     type: CommandType.memorySet;
     sidefx: boolean;
     startAddress: number;
@@ -136,7 +207,7 @@ export interface MemorySetCommand extends Command {
     memory: Buffer;
 }
 
-export interface MemorySetResponse extends Response<MemorySetCommand> {
+export interface MemorySetResponse extends AbstractResponse {
     type: ResponseType.memorySet;
 }
 
@@ -155,43 +226,43 @@ export interface CheckpointSetCommand extends CheckpointCommand {
     temporary: boolean;
 }
 
-export interface CheckpointDeleteCommand extends Command {
+export interface CheckpointDeleteCommand extends AbstractCommand {
     type: CommandType.checkpointDelete;
     id: number;
 }
 
-export interface CheckpointDeleteResponse extends Response<CheckpointDeleteCommand> {
+export interface CheckpointDeleteResponse extends AbstractResponse {
     type: ResponseType.checkpointDelete;
 }
 
-export interface CheckpointListCommand extends Command {
+export interface CheckpointListCommand extends AbstractCommand {
     type: CommandType.checkpointList;
 }
 
-export interface CheckpointListResponse extends Response<CheckpointListCommand> {
+export interface CheckpointListResponse extends AbstractResponse {
     type: ResponseType.checkpointList;
     related: CheckpointInfoResponse[];
     count: number
 }
 
 
-export interface CheckpointToggleCommand extends Command {
+export interface CheckpointToggleCommand extends AbstractCommand {
     type: CommandType.checkpointToggle;
     id: number;
     enabled: boolean;
 }
 
-export interface CheckpointToggleResponse extends Response<CheckpointToggleCommand> {
+export interface CheckpointToggleResponse extends AbstractResponse {
     type: ResponseType.checkpointToggle;
 }
 
-export interface ConditionSetCommand extends Command {
+export interface ConditionSetCommand extends AbstractCommand {
     type: CommandType.conditionSet;
     checkpointId: number;
     condition: string;
 }
 
-export interface ConditionSetResponse extends Response<ConditionSetCommand> {
+export interface ConditionSetResponse extends AbstractResponse {
     type: ResponseType.conditionSet;
 }
 
@@ -206,23 +277,23 @@ export interface RegistersSetCommand extends RegisterCommand {
     registers: SingleRegisterInfo[];
 }
 
-export interface DumpCommand extends Command {
+export interface DumpCommand extends AbstractCommand {
     type: CommandType.dump;
     saveRoms: boolean;
     saveDisks: boolean;
     filename: string;
 }
 
-export interface DumpResponse extends Response<DumpCommand> {
+export interface DumpResponse extends AbstractResponse {
     type: ResponseType.dump;
 }
 
-export interface UndumpCommand extends Command {
+export interface UndumpCommand extends AbstractCommand {
     type: CommandType.undump;
     filename: string;
 }
 
-export interface UndumpResponse extends Response<UndumpCommand> {
+export interface UndumpResponse extends AbstractResponse {
     type: ResponseType.undump;
     programCounter: number;
 }
@@ -232,79 +303,79 @@ export enum ResourceType {
     int = 0x01,
 }
 
-export interface ResourceGetCommand extends Command {
+export interface ResourceGetCommand extends AbstractCommand {
     type: CommandType.resourceGet;
     resourceName: string;
 }
 
-export interface ResourceGetResponse extends Response<ResourceGetCommand> {
+export interface ResourceGetResponse extends AbstractResponse {
     type: ResponseType.resourceGet;
     resourceType: ResourceType;
     intValue?: number;
     stringValue?: string;
 }
 
-export interface ResourceSetCommand extends Command {
+export interface ResourceSetCommand extends AbstractCommand {
     type: CommandType.resourceSet;
     resourceType: ResourceType;
     resourceName: string;
     resourceValue: string | number;
 }
 
-export interface ResourceSetResponse extends Response<ResourceSetCommand> {
+export interface ResourceSetResponse extends AbstractResponse {
     type: ResponseType.resourceSet;
 }
 
-export interface AdvanceInstructionsCommand extends Command {
+export interface AdvanceInstructionsCommand extends AbstractCommand {
     type: CommandType.advanceInstructions;
     stepOverSubroutines: boolean;
     count: number;
 }
 
-export interface AdvanceInstructionsResponse extends Response<AdvanceInstructionsCommand> {
+export interface AdvanceInstructionsResponse extends AbstractResponse {
     type: ResponseType.advanceInstructions;
 }
 
-export interface KeyboardFeedCommand extends Command {
+export interface KeyboardFeedCommand extends AbstractCommand {
     type: CommandType.keyboardFeed;
     text: string;
 }
 
-export interface KeyboardFeedResponse extends Response<KeyboardFeedCommand> {
+export interface KeyboardFeedResponse extends AbstractResponse {
     type: ResponseType.keyboardFeed;
 }
 
-export interface ExecuteUntilReturnCommand extends Command {
+export interface ExecuteUntilReturnCommand extends AbstractCommand {
     type: CommandType.executeUntilReturn;
 }
 
-export interface ExecuteUntilReturnResponse extends Response<ExecuteUntilReturnCommand> {
+export interface ExecuteUntilReturnResponse extends AbstractResponse {
     type: ResponseType.executeUntilReturn;
 }
 
-export interface PingCommand extends Command {
+export interface PingCommand extends AbstractCommand {
     type: CommandType.ping;
 }
 
-export interface PingResponse extends Response<PingCommand> {
+export interface PingResponse extends AbstractResponse {
     type: ResponseType.ping;
 }
 
-export interface BanksAvailableCommand extends Command {
+export interface BanksAvailableCommand extends AbstractCommand {
     type: CommandType.banksAvailable;
 }
 
-export interface BanksAvailableResponse extends Response<BanksAvailableCommand> {
+export interface BanksAvailableResponse extends AbstractResponse {
     type: ResponseType.banksAvailable;
     banks: SingleBankMeta[];
 }
 
-export interface RegistersAvailableCommand extends Command {
+export interface RegistersAvailableCommand extends AbstractCommand {
     type: CommandType.registersAvailable;
     memspace: ViceMemspace;
 }
 
-export interface RegistersAvailableResponse extends Response<RegistersAvailableCommand> {
+export interface RegistersAvailableResponse extends AbstractResponse {
     type: ResponseType.registersAvailable;
     registers: SingleRegisterMeta[];
 }
@@ -317,13 +388,13 @@ export enum DisplayGetFormat {
     BGRA = 0x04,
 }
 
-export interface DisplayGetCommand extends Command {
+export interface DisplayGetCommand extends AbstractCommand {
     type: CommandType.displayGet;
     useVicII: boolean;
     format: DisplayGetFormat;
 }
 
-export interface DisplayGetResponse extends Response<DisplayGetCommand> {
+export interface DisplayGetResponse extends AbstractResponse {
     type: ResponseType.displayGet;
     debugWidth: number;
     debugHeight: number;
@@ -336,23 +407,23 @@ export interface DisplayGetResponse extends Response<DisplayGetCommand> {
     rawImageData: Buffer;
 }
 
-export interface ExitCommand extends Command {
+export interface ExitCommand extends AbstractCommand {
     type: CommandType.exit;
 }
 
-export interface ExitResponse extends Response<ExitCommand> {
+export interface ExitResponse extends AbstractResponse {
     type: ResponseType.exit;
 }
 
-export interface QuitCommand extends Command {
+export interface QuitCommand extends AbstractCommand {
     type: CommandType.quit;
 }
 
-export interface QuitResponse extends Response<QuitCommand> {
+export interface QuitResponse extends AbstractResponse {
     type: ResponseType.quit;
 }
 
-export interface ResetCommand extends Command {
+export interface ResetCommand extends AbstractCommand {
     type: CommandType.reset;
     resetMethod: ResetMethod;
 }
@@ -366,37 +437,37 @@ export enum ResetMethod {
     drive11 = 0x0b
 }
 
-export interface ResetResponse extends Response<ResetCommand> {
+export interface ResetResponse extends AbstractResponse {
     type: ResponseType.reset;
 }
 
-export interface AutostartCommand extends Command {
+export interface AutostartCommand extends AbstractCommand {
     type: CommandType.autostart;
     run: boolean;
     index: number;
     filename: string;
 }
 
-export interface AutostartResponse extends Response<AutostartCommand> {
+export interface AutostartResponse extends AbstractResponse {
     type: ResponseType.autostart;
 }
 
-export interface JamResponse extends Response<Command> {
+export interface JamResponse extends AbstractResponse {
     type: ResponseType.jam;
     programCounter: number;
 }
 
-export interface StoppedResponse extends Response<Command> {
+export interface StoppedResponse extends AbstractResponse {
     type: ResponseType.stopped;
     programCounter: number;
 }
 
-export interface ResumedResponse extends Response<Command> {
+export interface ResumedResponse extends AbstractResponse {
     type: ResponseType.resumed;
     programCounter: number;
 }
 
-export interface RegisterInfoResponse extends Response<RegisterCommand> {
+export interface RegisterInfoResponse extends AbstractResponse {
     type: ResponseType.registerInfo;
     registers: SingleRegisterInfo[];
 }
@@ -417,7 +488,7 @@ export interface SingleRegisterInfo {
     value: number;
 }
 
-export interface CheckpointInfoResponse extends Response<CheckpointCommand> {
+export interface CheckpointInfoResponse extends AbstractResponse {
     type: ResponseType.checkpointInfo;
     id: number;
     hit: boolean;
@@ -478,7 +549,7 @@ const cache : cache = {
     }
 };
 
-export function responseBufferToObject(buf: Buffer, responseLength: number) : AbstractResponse {
+export function responseBufferToObject(buf: Buffer, responseLength: number) : Response {
     const header_size = 12; // FIXME
     const body = buf.slice(header_size, responseLength);
     const res = cache.abstract;
@@ -531,9 +602,9 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
         return r;
     }
     else if(type == ResponseType.checkpointInfo) {
-        const r = {
+        const r : CheckpointInfoResponse = {
             ...res,
-            type: ResponseType.checkpointInfo,
+            type,
             id: body.readUInt32LE(0),
             hit: !!body.readUInt8(4),
             startAddress: body.readUInt16LE(5),
@@ -819,6 +890,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
     else {
         const r : UnknownResponse = {
             ...res,
+            type: ResponseType.unknown,
             rawBody: body,
         }
 
@@ -826,192 +898,166 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Ab
     }
 }
 
-export function commandObjectToBytes(command: Command, buf: Buffer) : Buffer {
-    const type = (<any>command).type;
+export function commandObjectToBytes(c: Command, buf: Buffer) : Buffer {
     let length = 0;
-    if(type == CommandType.memoryGet) {
-        const cmd = <MemoryGetCommand>command;
+    if(c.type == CommandType.memoryGet) {
         length = 8;
-        buf.writeUInt8(Number(cmd.sidefx), 0);
-        buf.writeUInt16LE(cmd.startAddress, 1);
-        buf.writeUInt16LE(cmd.endAddress, 3);
-        buf.writeUInt8(cmd.memspace, 5);
-        buf.writeUInt16LE(cmd.bankId, 6);
+        buf.writeUInt8(Number(c.sidefx), 0);
+        buf.writeUInt16LE(c.startAddress, 1);
+        buf.writeUInt16LE(c.endAddress, 3);
+        buf.writeUInt8(c.memspace, 5);
+        buf.writeUInt16LE(c.bankId, 6);
     }
-    else if(type == CommandType.memorySet) {
-        const cmd = <MemorySetCommand>command;
-        length = 8 + cmd.memory.length;
+    else if(c.type == CommandType.memorySet) {
+        length = 8 + c.memory.length;
         if(buf.length < length) {
             buf = Buffer.alloc(length)
         }
-        buf.writeUInt8(Number(cmd.sidefx), 0);
-        buf.writeUInt16LE(cmd.startAddress, 1);
-        buf.writeUInt16LE(cmd.endAddress, 3);
-        buf.writeUInt8(cmd.memspace, 5);
-        buf.writeUInt16LE(cmd.bankId, 6);
+        buf.writeUInt8(Number(c.sidefx), 0);
+        buf.writeUInt16LE(c.startAddress, 1);
+        buf.writeUInt16LE(c.endAddress, 3);
+        buf.writeUInt8(c.memspace, 5);
+        buf.writeUInt16LE(c.bankId, 6);
 
-        Buffer.from(cmd.memory).copy(buf, 8);
+        Buffer.from(c.memory).copy(buf, 8);
     }
-    else if(type == CommandType.checkpointGet) {
-        const cmd = <CheckpointGetCommand>command;
+    else if(c.type == CommandType.checkpointGet) {
         length = 4;
-        buf.writeUInt32LE(cmd.id, 0);
+        buf.writeUInt32LE(c.id, 0);
     }
-    else if(type == CommandType.checkpointSet) {
-        const cmd = <CheckpointSetCommand>command;
+    else if(c.type == CommandType.checkpointSet) {
         length = 8;
-        buf.writeUInt16LE(cmd.startAddress, 0);
-        buf.writeUInt16LE(cmd.endAddress, 2);
-        buf.writeUInt8(Number(cmd.stop), 4);
-        buf.writeUInt8(Number(cmd.enabled), 5);
-        buf.writeUInt8(cmd.operation, 6);
-        buf.writeUInt8(Number(cmd.temporary), 7);
+        buf.writeUInt16LE(c.startAddress, 0);
+        buf.writeUInt16LE(c.endAddress, 2);
+        buf.writeUInt8(Number(c.stop), 4);
+        buf.writeUInt8(Number(c.enabled), 5);
+        buf.writeUInt8(c.operation, 6);
+        buf.writeUInt8(Number(c.temporary), 7);
     }
-    else if(type == CommandType.checkpointDelete) {
-        const cmd = <CheckpointDeleteCommand>command;
+    else if(c.type == CommandType.checkpointDelete) {
         length = 4;
-        buf.writeUInt32LE(cmd.id, 0);
+        buf.writeUInt32LE(c.id, 0);
     }
-    else if(type == CommandType.checkpointList) {
-        const cmd = <CheckpointListCommand>command;
+    else if(c.type == CommandType.checkpointList) {
         length = 0;
     }
-    else if(type == CommandType.checkpointToggle) {
-        const cmd = <CheckpointToggleCommand>command;
+    else if(c.type == CommandType.checkpointToggle) {
         length = 5;
-        buf.writeUInt32LE(cmd.id, 0);
-        buf.writeUInt8(Number(cmd.enabled), 4);
+        buf.writeUInt32LE(c.id, 0);
+        buf.writeUInt8(Number(c.enabled), 4);
     }
-    else if(type == CommandType.conditionSet) {
-        const cmd = <ConditionSetCommand>command;
-        length = 5 + cmd.condition.length;
-        buf.writeUInt32LE(cmd.checkpointId, 0);
-        buf.writeUInt8(cmd.condition.length, 4);
+    else if(c.type == CommandType.conditionSet) {
+        length = 5 + c.condition.length;
+        buf.writeUInt32LE(c.checkpointId, 0);
+        buf.writeUInt8(c.condition.length, 4);
 
-        buf.write(cmd.condition, 5, "ascii");
+        buf.write(c.condition, 5, "ascii");
     }
-    else if(type == CommandType.registersGet) {
-        const cmd = <RegistersGetCommand>command;
+    else if(c.type == CommandType.registersGet) {
         length = 0;
     }
-    else if(type == CommandType.registersSet) {
-        const cmd = <RegistersSetCommand>command;
-        length = 4 * cmd.registers.length + 2;
+    else if(c.type == CommandType.registersSet) {
+        length = 4 * c.registers.length + 2;
         if(buf.length < length) {
-            buf = Buffer.alloc(4 * cmd.registers.length + 2);
+            buf = Buffer.alloc(4 * c.registers.length + 2);
         }
 
-        buf.writeUInt16LE(cmd.registers.length, 0);
+        buf.writeUInt16LE(c.registers.length, 0);
         const itemsBuf = buf.slice(2);
-        cmd.registers.forEach((reg, r) => {
+        c.registers.forEach((reg, r) => {
             const item = itemsBuf.slice(r * 4);
             item.writeUInt8(3, 0);
             item.writeUInt8(reg.id, 1);
             item.writeUInt16LE(reg.value, 2);
         });
     }
-    else if(type == CommandType.dump) {
-        const cmd = <DumpCommand>command;
-        length = 3 + cmd.filename.length;
-        buf.writeUInt8(Number(cmd.saveRoms), 0);
-        buf.writeUInt8(Number(cmd.saveDisks), 1);
-        buf.writeUInt8(cmd.filename.length, 2);
+    else if(c.type == CommandType.dump) {
+        length = 3 + c.filename.length;
+        buf.writeUInt8(Number(c.saveRoms), 0);
+        buf.writeUInt8(Number(c.saveDisks), 1);
+        buf.writeUInt8(c.filename.length, 2);
 
-        buf.write(cmd.filename, 3, "ascii");
+        buf.write(c.filename, 3, "ascii");
     }
-    else if(type == CommandType.undump) {
-        const cmd = <UndumpCommand>command;
-        length = 1 + cmd.filename.length;
-        buf.writeUInt8(cmd.filename.length, 0);
+    else if(c.type == CommandType.undump) {
+        length = 1 + c.filename.length;
+        buf.writeUInt8(c.filename.length, 0);
 
-        buf.write(cmd.filename, 1, "ascii");
+        buf.write(c.filename, 1, "ascii");
     }
-    else if(type == CommandType.resourceGet) {
-        const cmd = <ResourceGetCommand>command;
-        length = 1 + cmd.resourceName.length;
-        buf.writeUInt8(cmd.resourceName.length, 0);
+    else if(c.type == CommandType.resourceGet) {
+        length = 1 + c.resourceName.length;
+        buf.writeUInt8(c.resourceName.length, 0);
 
-        buf.write(cmd.resourceName, 1, "ascii");
+        buf.write(c.resourceName, 1, "ascii");
     }
-    else if(type == CommandType.resourceSet) {
-        const cmd = <ResourceSetCommand>command;
-        const valueLength = _isString(cmd.resourceValue) ? cmd.resourceValue.length : 4;
-        length = 3 + cmd.resourceName.length + valueLength;
-        buf.writeUInt8(cmd.resourceType, 0);
-        buf.writeUInt8(cmd.resourceName.length, 1);
+    else if(c.type == CommandType.resourceSet) {
+        const valueLength = _isString(c.resourceValue) ? c.resourceValue.length : 4;
+        length = 3 + c.resourceName.length + valueLength;
+        buf.writeUInt8(c.resourceType, 0);
+        buf.writeUInt8(c.resourceName.length, 1);
 
-        buf.write(cmd.resourceName, 2, "ascii");
+        buf.write(c.resourceName, 2, "ascii");
 
-        buf.writeUInt8(valueLength, 2 + cmd.resourceName.length);
-        if(cmd.resourceType == ResourceType.int) {
-            buf.writeUInt32LE(<number>cmd.resourceValue, 3 + cmd.resourceName.length)
+        buf.writeUInt8(valueLength, 2 + c.resourceName.length);
+        if(c.resourceType == ResourceType.int) {
+            buf.writeUInt32LE(<number>c.resourceValue, 3 + c.resourceName.length)
         }
-        else if(type == ResourceType.string) {
+        else if(c.resourceType == ResourceType.string) {
 
-            buf.write(<string>cmd.resourceValue, 3 + cmd.resourceName.length, "ascii")
+            buf.write(<string>c.resourceValue, 3 + c.resourceName.length, "ascii")
 
         }
         else {
             throw new Error("Invalid Type");
         }
     }
-    else if(type == CommandType.advanceInstructions) {
-        const cmd = <AdvanceInstructionsCommand>command;
+    else if(c.type == CommandType.advanceInstructions) {
         length = 3;
-        buf.writeUInt8(Number(cmd.stepOverSubroutines), 0);
-        buf.writeUInt16LE(cmd.count, 1);
+        buf.writeUInt8(Number(c.stepOverSubroutines), 0);
+        buf.writeUInt16LE(c.count, 1);
     }
-    else if(type == CommandType.keyboardFeed) {
-        const cmd = <KeyboardFeedCommand>command;
-        length = 1 + cmd.text.length;
-        buf.writeUInt8(cmd.text.length, 0);
+    else if(c.type == CommandType.keyboardFeed) {
+        length = 1 + c.text.length;
+        buf.writeUInt8(c.text.length, 0);
 
-        buf.write(cmd.text, 1, "ascii");
+        buf.write(c.text, 1, "ascii");
     }
-    else if(type == CommandType.executeUntilReturn) {
-        const cmd = <ExecuteUntilReturnCommand>command;
+    else if(c.type == CommandType.executeUntilReturn) {
         length = 0;
     }
-    else if(type == CommandType.ping) {
-        const cmd = <PingCommand>command;
+    else if(c.type == CommandType.ping) {
         length = 0;
     }
-    else if(type == CommandType.banksAvailable) {
-        const cmd = <BanksAvailableCommand>command;
+    else if(c.type == CommandType.banksAvailable) {
         length = 0;
     }
-    else if(type == CommandType.registersAvailable) {
-        const cmd = <RegistersAvailableCommand>command;
-        buf.writeUInt8(cmd.memspace, 0);
+    else if(c.type == CommandType.registersAvailable) {
+        buf.writeUInt8(c.memspace, 0);
         length = 1;
     }
-    else if(type == CommandType.displayGet) {
-        const cmd = <DisplayGetCommand>command;
+    else if(c.type == CommandType.displayGet) {
         length = 2;
-        buf.writeUInt8(Number(cmd.useVicII), 0);
-        buf.writeUInt8(cmd.format, 1);
+        buf.writeUInt8(Number(c.useVicII), 0);
+        buf.writeUInt8(c.format, 1);
     }
-    else if(type == CommandType.exit) {
-        const cmd = <ExitCommand>command;
+    else if(c.type == CommandType.exit) {
         length = 0;
     }
-    else if(type == CommandType.quit) {
-        const cmd = <QuitCommand>command;
+    else if(c.type == CommandType.quit) {
         length = 0;
     }
-    else if(type == CommandType.reset) {
-        const cmd = <ResetCommand>command;
+    else if(c.type == CommandType.reset) {
         length = 1;
-        buf.writeUInt8(cmd.resetMethod, 0);
+        buf.writeUInt8(c.resetMethod, 0);
     }
-    else if(type == CommandType.autostart) {
-        const cmd = <AutostartCommand>command;
-        length = 4 + cmd.filename.length;
-        buf.writeUInt8(Number(cmd.run), 0);
-        buf.writeUInt16LE(cmd.index, 1);
-        buf.writeUInt8(cmd.filename.length, 3);
+    else if(c.type == CommandType.autostart) {
+        length = 4 + c.filename.length;
+        buf.writeUInt8(Number(c.run), 0);
+        buf.writeUInt16LE(c.index, 1);
+        buf.writeUInt8(c.filename.length, 3);
 
-        buf.write(cmd.filename, 4, "ascii");
+        buf.write(c.filename, 4, "ascii");
     }
     else {
         throw new Error("Invalid VICE monitor command");

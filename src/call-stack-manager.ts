@@ -286,7 +286,7 @@ export class CallStackManager {
         this.addFrame(current, () => currentLine);
         this.flushFrames();
     }
-    
+
     public flushFrames() : void {
         outer: for(let f = 0; f < this._queuedFramesCount; f++) {
             const item = this._queuedFrames[f];
@@ -378,7 +378,7 @@ export class CallStackManager {
 
         await this._vice.multiExecBinary(cmd);
     }
-    
+
     public async withFrameBreaksEnabled<T>(func: () => Promise<T>) : Promise<T> {
         await this._stackFrameBreakToggle(true);
 
@@ -388,7 +388,7 @@ export class CallStackManager {
 
         return res;
     }
-    
+
     public async returnToLastStackFrame() : Promise<boolean> {
         this.flushFrames();
 
@@ -401,7 +401,7 @@ export class CallStackManager {
         const end = lastFrame.scope.codeSpan!.absoluteAddress + lastFrame.scope.codeSpan!.size - 1;
 
         await this._vice.withAllBreaksDisabled(async() => {
-            const brk = await this._vice.execBinary<bin.CheckpointSetCommand, bin.CheckpointInfoResponse>({
+            const brk = await this._vice.execBinary({
                 type: bin.CommandType.checkpointSet,
                 startAddress: begin,
                 endAddress: end,

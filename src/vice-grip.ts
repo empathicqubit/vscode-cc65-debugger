@@ -53,7 +53,7 @@ export class ViceGrip extends EventEmitter {
 
             if(this._responseBytes.length &&
                 this._responseBytes.readUInt8(0) != 0x02) {
-                const res : bin.AbstractResponse = {
+                const res : bin.Response = {
                     type: 0,
                     apiVersion: 0,
                     related: [],
@@ -107,35 +107,25 @@ export class ViceGrip extends EventEmitter {
     }
 
     public async autostart(program: string) : Promise<bin.AutostartResponse> {
-        const cmd : bin.AutostartCommand = {
+        return await this.execBinary({
             type: bin.CommandType.autostart,
             filename: program,
             index: 0,
             run: true,
-        };
-
-        return await this.execBinary(cmd);
+        });
     }
 
     public async exit() : Promise<bin.ExitResponse> {
-        const cmd : bin.ExitCommand = {
+        return await this.execBinary({
             type: bin.CommandType.exit,
-        };
-
-        return await this.execBinary(cmd);
-    }
-
-    public async checkpointDelete(cmd : bin.CheckpointDeleteCommand) : Promise<bin.CheckpointDeleteResponse> {
-        return await this.execBinary(cmd);
+        });
     }
 
     public async checkpointList() : Promise<bin.CheckpointListResponse> {
-        const cmd: bin.CheckpointListCommand = {
+        return await this.execBinary({
             type: bin.CommandType.checkpointList,
             responseType: bin.ResponseType.checkpointList,
-        };
-
-        return await this.execBinary(cmd);
+        });
     }
 
     public async getMemory(addr: number, length: number, bankId: number = 0) : Promise<Buffer> {
@@ -143,7 +133,7 @@ export class ViceGrip extends EventEmitter {
             return Buffer.alloc(0);
         }
 
-        const res = await this.execBinary<bin.MemoryGetCommand, bin.MemoryGetResponse>({
+        const res = await this.execBinary({
             type: bin.CommandType.memoryGet,
             sidefx: false,
             startAddress: addr,
@@ -160,7 +150,7 @@ export class ViceGrip extends EventEmitter {
             return;
         }
 
-        await this.execBinary<bin.MemorySetCommand, bin.MemorySetResponse>({
+        await this.execBinary({
             type: bin.CommandType.memorySet,
             sidefx: false,
             startAddress: addr,
@@ -383,11 +373,9 @@ export class ViceGrip extends EventEmitter {
     }
 
     public async ping() : Promise<bin.PingResponse> {
-        const cmd : bin.PingCommand = {
+        return await this.execBinary({
             type: bin.CommandType.ping,
-        };
-
-        return await this.execBinary(cmd);
+        });
     }
 
     public async waitForStop(startAddress?: number, endAddress?: number, continueIfUnmatched?: boolean) : Promise<bin.StoppedResponse> {
@@ -407,12 +395,80 @@ export class ViceGrip extends EventEmitter {
         });
     }
 
-    public async execBinary<T extends bin.Command, U extends bin.Response<T>>(command: T) : Promise<U> {
-        const results = await this.multiExecBinary<T, U>([command]);
+    public async execBinary(command: bin.MemoryGetCommand): Promise<bin.MemoryGetResponse>
+    public async execBinary(command: bin.MemorySetCommand): Promise<bin.MemorySetResponse>
+
+    public async execBinary(command: bin.CheckpointGetCommand): Promise<bin.CheckpointInfoResponse>
+    public async execBinary(command: bin.CheckpointSetCommand): Promise<bin.CheckpointInfoResponse>
+    public async execBinary(command: bin.CheckpointDeleteCommand): Promise<bin.CheckpointDeleteResponse>
+    public async execBinary(command: bin.CheckpointListCommand): Promise<bin.CheckpointListResponse>
+    public async execBinary(command: bin.CheckpointToggleCommand): Promise<bin.CheckpointToggleResponse>
+
+    public async execBinary(command: bin.ConditionSetCommand): Promise<bin.ConditionSetResponse>
+
+    public async execBinary(command: bin.RegistersGetCommand): Promise<bin.RegisterInfoResponse>
+    public async execBinary(command: bin.RegistersSetCommand): Promise<bin.RegisterInfoResponse>
+
+    public async execBinary(command: bin.DumpCommand): Promise<bin.DumpResponse>
+    public async execBinary(command: bin.UndumpCommand): Promise<bin.UndumpResponse>
+
+    public async execBinary(command: bin.ResourceGetCommand): Promise<bin.ResourceGetResponse>
+    public async execBinary(command: bin.ResourceSetCommand): Promise<bin.ResourceSetResponse>
+
+    public async execBinary(command: bin.AdvanceInstructionsCommand): Promise<bin.AdvanceInstructionsResponse>
+    public async execBinary(command: bin.KeyboardFeedCommand): Promise<bin.KeyboardFeedResponse>
+    public async execBinary(command: bin.ExecuteUntilReturnCommand): Promise<bin.ExecuteUntilReturnResponse>
+
+    public async execBinary(command: bin.PingCommand): Promise<bin.PingResponse>
+    public async execBinary(command: bin.BanksAvailableCommand): Promise<bin.BanksAvailableResponse>
+    public async execBinary(command: bin.RegistersAvailableCommand): Promise<bin.RegistersAvailableResponse>
+    public async execBinary(command: bin.DisplayGetCommand): Promise<bin.DisplayGetResponse>
+
+    public async execBinary(command: bin.ExitCommand): Promise<bin.ExitResponse>
+    public async execBinary(command: bin.QuitCommand): Promise<bin.QuitResponse>
+    public async execBinary(command: bin.ResetCommand): Promise<bin.ResetResponse>
+    public async execBinary(command: bin.AutostartCommand): Promise<bin.AutostartResponse>
+    public async execBinary(command: bin.Command) : Promise<bin.Response>
+    public async execBinary(command: bin.Command) : Promise<bin.Response> {
+        const results = await this.multiExecBinary([command]);
         return results[0];
     }
 
-    public async multiExecBinary<T extends bin.Command, U extends bin.Response<T>>(commands: T[]) : Promise<U[]> {
+    public async multiExecBinary(commands: bin.MemoryGetCommand[]): Promise<bin.MemoryGetResponse[]>
+    public async multiExecBinary(commands: bin.MemorySetCommand[]): Promise<bin.MemorySetResponse[]>
+
+    public async multiExecBinary(commands: bin.CheckpointGetCommand[]): Promise<bin.CheckpointInfoResponse[]>
+    public async multiExecBinary(commands: bin.CheckpointSetCommand[]): Promise<bin.CheckpointInfoResponse[]>
+    public async multiExecBinary(commands: bin.CheckpointDeleteCommand[]): Promise<bin.CheckpointDeleteResponse[]>
+    public async multiExecBinary(commands: bin.CheckpointListCommand[]): Promise<bin.CheckpointListResponse[]>
+    public async multiExecBinary(commands: bin.CheckpointToggleCommand[]): Promise<bin.CheckpointToggleResponse[]>
+
+    public async multiExecBinary(commands: bin.ConditionSetCommand[]): Promise<bin.ConditionSetResponse[]>
+
+    public async multiExecBinary(commands: bin.RegistersGetCommand[]): Promise<bin.RegisterInfoResponse[]>
+    public async multiExecBinary(commands: bin.RegistersSetCommand[]): Promise<bin.RegisterInfoResponse[]>
+
+    public async multiExecBinary(commands: bin.DumpCommand[]): Promise<bin.DumpResponse[]>
+    public async multiExecBinary(commands: bin.UndumpCommand[]): Promise<bin.UndumpResponse[]>
+
+    public async multiExecBinary(commands: bin.ResourceGetCommand[]): Promise<bin.ResourceGetResponse[]>
+    public async multiExecBinary(commands: bin.ResourceSetCommand[]): Promise<bin.ResourceSetResponse[]>
+
+    public async multiExecBinary(commands: bin.AdvanceInstructionsCommand[]): Promise<bin.AdvanceInstructionsResponse[]>
+    public async multiExecBinary(commands: bin.KeyboardFeedCommand[]): Promise<bin.KeyboardFeedResponse[]>
+    public async multiExecBinary(commands: bin.ExecuteUntilReturnCommand[]): Promise<bin.ExecuteUntilReturnResponse[]>
+
+    public async multiExecBinary(commands: bin.PingCommand[]): Promise<bin.PingResponse[]>
+    public async multiExecBinary(commands: bin.BanksAvailableCommand[]): Promise<bin.BanksAvailableResponse[]>
+    public async multiExecBinary(commands: bin.RegistersAvailableCommand[]): Promise<bin.RegistersAvailableResponse[]>
+    public async multiExecBinary(commands: bin.DisplayGetCommand[]): Promise<bin.DisplayGetResponse[]>
+
+    public async multiExecBinary(commands: bin.ExitCommand[]): Promise<bin.ExitResponse[]>
+    public async multiExecBinary(commands: bin.QuitCommand[]): Promise<bin.QuitResponse[]>
+    public async multiExecBinary(commands: bin.ResetCommand[]): Promise<bin.ResetResponse[]>
+    public async multiExecBinary(commands: bin.AutostartCommand[]): Promise<bin.AutostartResponse[]>
+    public async multiExecBinary(commands: bin.Command[]) : Promise<bin.Response[]>
+    public async multiExecBinary(commands: bin.Command[]) : Promise<bin.Response[]> {
         let conn : Writable;
         if(!commands || !commands.length) {
             return [];
@@ -437,11 +493,11 @@ export class ViceGrip extends EventEmitter {
                 this._commandBytes = body;
             }
 
-            return new Promise<U>((res, rej) => {
+            return new Promise<bin.Response>((res, rej) => {
                 try {
                     const rid = requestId.toString(16);
-                    const related : bin.AbstractResponse[] = [];
-                    const afterResponse = (b : U) => {
+                    const related : bin.Response[] = [];
+                    const afterResponse = (b : bin.Response) => {
                         if(b.error) {
                             const error : any = new Error(`Response error: error 0x${b.error.toString(16)}: req_type 0x${command.type.toString(16)}: req_id 0x${requestId.toString(16)}`);
                             error.response = b;
@@ -507,10 +563,9 @@ export class ViceGrip extends EventEmitter {
 
     public async terminate() : Promise<void> {
         try {
-            const cmd : bin.QuitCommand = {
+            this._binaryConn && await this.execBinary({
                 type: bin.CommandType.quit,
-            };
-            this._binaryConn && await this.execBinary(cmd);
+            });
         }
         catch(e) {
             console.error(e);
@@ -533,7 +588,7 @@ export class ViceGrip extends EventEmitter {
         await this.disconnect();
     }
 
-    once(event: string, listener: ((r: bin.AbstractResponse) => void) | (() => void)): this {
+    once(event: string, listener: ((r: bin.Response) => void) | (() => void)): this {
         if(event == 'end') {
             this._binaryConn.once('error', listener);
             this._binaryConn.once('close', listener);
@@ -547,7 +602,7 @@ export class ViceGrip extends EventEmitter {
         return this;
     }
 
-    on(event: string, listener: ((r: bin.AbstractResponse) => void) | (() => void)): this {
+    on(event: string, listener: ((r: bin.Response) => void) | (() => void)): this {
         if(event == 'end') {
             this._binaryConn.on('error', listener);
             this._binaryConn.on('close', listener);

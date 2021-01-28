@@ -31,7 +31,7 @@ export class GraphicsManager {
         this._ramBank = ramBank!;
         this._banks = banks!;
         if(this._machineType == debugFile.MachineType.c64) {
-            const paletteFileName = await this._vice.execBinary<bin.ResourceGetCommand, bin.ResourceGetResponse>({
+            const paletteFileName = await this._vice.execBinary({
                 type: bin.CommandType.resourceGet,
                 resourceName: 'VICIIPaletteFile',
             });
@@ -87,15 +87,14 @@ export class GraphicsManager {
             return;
         }
 
-        const ioCmd : bin.MemoryGetCommand = {
+        const ioRes = await this._vice.execBinary({
             type: bin.CommandType.memoryGet,
             bankId: this._ioBank.id,
             memspace: bin.ViceMemspace.main,
             sidefx: false,
             startAddress: 0xd000,
             endAddress: 0xdfff,
-        };
-        const ioRes : bin.MemoryGetResponse = await this._vice.execBinary(ioCmd);
+        });
         const ioMemory = ioRes.memory;
 
         await Promise.all([
@@ -105,12 +104,11 @@ export class GraphicsManager {
     }
 
     public async updateRunAhead(emitter: events.EventEmitter) : Promise<void> {
-        const displayCmd : bin.DisplayGetCommand = {
+        const aheadRes = await this._vice.execBinary({
             type: bin.CommandType.displayGet,
             useVicII: false,
             format: bin.DisplayGetFormat.RGBA,
-        };
-        const aheadRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
+        });
 
         if(!this._runAheadPng) {
             this._runAheadPng = new pngjs.PNG({
@@ -131,12 +129,11 @@ export class GraphicsManager {
     }
 
     public async updateCurrent(emitter: events.EventEmitter) : Promise<void> {
-        const displayCmd : bin.DisplayGetCommand = {
+        const currentRes = await this._vice.execBinary({
             type: bin.CommandType.displayGet,
             useVicII: false,
             format: bin.DisplayGetFormat.RGBA,
-        };
-        const currentRes : bin.DisplayGetResponse = await this._vice.execBinary(displayCmd);
+        });
 
         if(!this._currentPng) {
             this._currentPng = new pngjs.PNG({
@@ -203,7 +200,7 @@ export class GraphicsManager {
             sidefx: false,
             bankId: this._ramBank.id,
         }
-        const spriteData : Buffer = (await this._vice.execBinary(spriteDataCmd) as bin.MemoryGetResponse).memory;
+        const spriteData : Buffer = (await this._vice.execBinary(spriteDataCmd)).memory;
         const sprites : any[] = [];
         for(let i = 0; i < spriteData.length / 0x40; i++) {
             const spriteBuf = spriteData.slice(i * 0x40, (i + 1) * 0x40);
