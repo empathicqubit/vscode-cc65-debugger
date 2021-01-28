@@ -1,4 +1,3 @@
-import * as child_process from 'child_process'
 import * as net from 'net'
 import _last from 'lodash/fp/last'
 import * as debugFile from './debug-file'
@@ -12,17 +11,13 @@ import { EventEmitter } from 'events'
 import { Readable, Writable } from 'stream';
 import * as fs from 'fs';
 import * as util from 'util';
-import * as hasbin from 'hasbin';
-import { DebugProtocol } from 'vscode-debugprotocol'
 import * as debugUtils from './debug-utils';
 import * as bin from './binary-dto';
-import { enable } from 'colors/safe';
 
 const waitPort = require('wait-port');
 
 export class ViceGrip extends EventEmitter {
     public textPort : number | undefined;
-    private _binaryPort : number = -1;
     private _binaryConn: Readable & Writable;
 
     private _commandBytes : Buffer = Buffer.alloc(1024);
@@ -214,7 +209,6 @@ export class ViceGrip extends EventEmitter {
         this._binaryConn.read();
         this._binaryConn.resume();
 
-        this._binaryPort = binaryPort;
 
         const resources : bin.ResourceGetCommand[] = [
             {
@@ -379,7 +373,7 @@ export class ViceGrip extends EventEmitter {
     }
 
     public async waitForStop(startAddress?: number, endAddress?: number, continueIfUnmatched?: boolean) : Promise<bin.StoppedResponse> {
-        return await new Promise<bin.StoppedResponse>((res, rej) => {
+        return await new Promise<bin.StoppedResponse>((res) => {
             const handle = async (r: bin.StoppedResponse) => {
                 if(!endAddress
                     ? (!startAddress || r.programCounter == startAddress)

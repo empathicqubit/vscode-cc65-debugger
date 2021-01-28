@@ -1,12 +1,12 @@
 import * as events from 'events';
-import * as bin from './binary-dto';
-import * as util from 'util';
 import * as fs from 'fs';
-import * as debugFile from './debug-file';
+import _max from 'lodash/fp/max';
+import _min from 'lodash/fp/min';
 import * as path from 'path';
 import * as pngjs from 'pngjs';
-import _min from 'lodash/fp/min';
-import _max from 'lodash/fp/max';
+import * as util from 'util';
+import * as bin from './binary-dto';
+import * as debugFile from './debug-file';
 import { ViceGrip } from './vice-grip';
 
 export class GraphicsManager {
@@ -77,7 +77,7 @@ export class GraphicsManager {
     }
 
     public async updateUI(emitter: events.EventEmitter) : Promise<void> {
-        Promise.all([
+        await Promise.all([
             this.updateCurrent(emitter),
             this.updateMemory(emitter),
             this.updateBanks(emitter),

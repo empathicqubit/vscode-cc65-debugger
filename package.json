@@ -125,6 +125,7 @@
     "ts-loader": "^6.2.1",
     "ts-node": "^9.1.1",
     "tslint": "5.18.0",
+    "tslint-etc": "^1.13.9",
     "typescript": "^3.7.5",
     "vscode-debugadapter-testsupport": "1.40.1",
     "vscode-debugprotocol": "^1.41.0",

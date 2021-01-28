@@ -1,17 +1,17 @@
-import {setup, teardown, suite, test} from 'mocha';
 import * as assert from 'assert';
-import * as bin from '../binary-dto';
-import { Runtime } from '../runtime';
 import * as child_process from 'child_process';
-import * as path from 'path';
-import * as net from 'net';
-import _difference from 'lodash/fp/difference';
-import _transform from 'lodash/transform';
-import _random from 'lodash/fp/random';
-import * as util from 'util';
 import * as fs from 'fs';
+import _difference from 'lodash/fp/difference';
+import _random from 'lodash/fp/random';
+import _transform from 'lodash/transform';
+import { setup, suite, teardown, test } from 'mocha';
+import * as net from 'net';
+import * as path from 'path';
+import * as util from 'util';
+import * as bin from '../binary-dto';
 import * as debugUtils from '../debug-utils';
 import * as disassembly from '../disassembly';
+import { Runtime } from '../runtime';
 
 const all = (...args) => Promise.all(args);
 
@@ -158,7 +158,7 @@ suite('Runtime', () => {
         let proc : child_process.ChildProcessWithoutNullStreams;
 
         setup(async () => {
-            const program = await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
+            await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
 
             proc = child_process.spawn(VICE_DIRECTORY + '/x64sc', ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
                 cwd: '/tmp',
@@ -910,7 +910,6 @@ suite('Runtime', () => {
         });
 
         suite('Runahead', () => {
-            let mainStartAddress = -1;
             setup(async () => {
             });
 

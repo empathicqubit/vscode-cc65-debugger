@@ -1,6 +1,10 @@
 {
+    "extends": [
+        "tslint-etc"
+    ],
     "rules": {
         "no-floating-promises": true,
+        "no-unused-declaration": true,
         "no-duplicate-variable": true,
         "curly": true,
         "semicolon": [ "always" ],

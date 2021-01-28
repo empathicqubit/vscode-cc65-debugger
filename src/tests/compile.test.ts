@@ -1,6 +1,5 @@
-import {setup, teardown, suite, test} from 'mocha';
+import { suite, test} from 'mocha';
 import * as assert from 'assert';
-import * as _ from 'lodash';
 import * as compile from '../compile';
 import * as path from 'path';
 import { EventEmitter } from 'events';

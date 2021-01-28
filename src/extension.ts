@@ -20,16 +20,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 'use strict';
 
-import * as vscode from 'vscode';
-import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
-import { DebugProtocol } from 'vscode-debugprotocol'
-import { CC65ViceDebugSession } from './debug-session';
 import * as Net from 'net';
-import * as util from 'util';
-import * as debugUtils from './debug-utils';
-import { StatsWebview } from './stats-webview';
+import * as vscode from 'vscode';
+import { CancellationToken, DebugConfiguration, ProviderResult, WorkspaceFolder } from 'vscode';
 import { DebugSession } from 'vscode-debugadapter';
+import { CC65ViceDebugSession } from './debug-session';
+import * as debugUtils from './debug-utils';
 import * as metrics from './metrics';
+import { StatsWebview } from './stats-webview';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -82,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        StatsWebview.maybeCreate(context.extensionPath);
+        await StatsWebview.maybeCreate(context.extensionPath);
         if(statsEvents.includes(e.event)) {
             StatsWebview.update(e.body);
         }
@@ -222,7 +220,6 @@ class CC65ViceDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescri
 class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
 
     createDebugAdapterDescriptor(_session: vscode.DebugSession): ProviderResult<vscode.DebugAdapterDescriptor> {
-        const sesh = newSession();
         return new (<any>vscode).DebugAdapterInlineImplementation();
     }
 }

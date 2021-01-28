@@ -1,32 +1,27 @@
-import * as debugFile from './debug-file';
-import * as mapFile from './map-file';
-import {ViceGrip} from './vice-grip';
-import * as bin from './binary-dto';
-import _uniqBy from 'lodash/fp/uniqBy';
-import _remove from 'lodash/fp/remove';
-import _findLastIndex from 'lodash/fp/findLastIndex';
 import _eachRight from 'lodash/eachRight';
+import _findLastIndex from 'lodash/fp/findLastIndex';
+import _remove from 'lodash/fp/remove';
+import _uniqBy from 'lodash/fp/uniqBy';
+import * as bin from './binary-dto';
+import * as debugFile from './debug-file';
 import * as disassembly from './disassembly';
-import * as runtime from './runtime';
-import { Breakpoint } from 'vscode-debugadapter';
+import * as mapFile from './map-file';
+import { ViceGrip } from './vice-grip';
 
 export class CallStackManager {
-    private _cpuStackBottom: number = 0x1ff;
-    private _cpuStackTop: number = 0x1ff;
 
     private _stackFrameJumps: { [index: string]: debugFile.Scope } = {};
     private _stackFrameStarts: { [index: string]: debugFile.Scope } = {};
     private _stackFrameEnds: { [index: string]: debugFile.Scope } = {};
 
     private _stackFrameBreakIndexes : number[] = [];
-    private _lastJump?: {line: debugFile.SourceLine, scope: debugFile.Scope};
 
     private _stackFrames: {line: debugFile.SourceLine, scope: debugFile.Scope}[] = [];
     private _vice: ViceGrip;
     private _mapFile: mapFile.MapRef[];
     private _dbgFile: debugFile.Dbgfile;
 
-    private _queuedFrames: ({id: number, startAddress: number, line: (() => debugFile.SourceLine) | undefined })[] = new Array(1000).fill(undefined).map(x => ({id: -1, startAddress: -1, line: undefined }));
+    private _queuedFrames: ({id: number, startAddress: number, line: (() => debugFile.SourceLine) | undefined })[] = new Array(1000).fill(undefined).map(() => ({id: -1, startAddress: -1, line: undefined }));
     private _queuedFramesCount = 0;
 
     constructor(vice: ViceGrip, mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile) {
@@ -148,7 +143,6 @@ export class CallStackManager {
     }
 
     public setCpuStackTop(value: number) {
-        this._cpuStackTop = value;
     }
 
     public async getExitAddresses() : Promise<number[]> {
@@ -178,7 +172,6 @@ export class CallStackManager {
         this._stackFrameBreakIndexes = [];
         this._stackFrames = [];
         this._stackFrameJumps = {};
-        this._lastJump = undefined;
 
         const startFrames : disassembly.ScopeAddress[] = [];
         const endFrames : disassembly.ScopeAddress[] = [];

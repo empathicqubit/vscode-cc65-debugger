@@ -1,30 +1,28 @@
+import * as child_process from 'child_process';
+import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import _first from 'lodash/fp/first';
+import _flatten from 'lodash/fp/flatten';
+import _flow from 'lodash/fp/flow';
+import _last from 'lodash/fp/last';
+import _map from 'lodash/fp/map';
 import _uniq from 'lodash/fp/uniq';
 import _uniqBy from 'lodash/fp/uniqBy';
-import _first from 'lodash/fp/first';
-import _last from 'lodash/fp/last';
-import _flow from 'lodash/fp/flow';
-import _map from 'lodash/fp/map';
-import _flatten from 'lodash/fp/flatten';
-import { DebugProtocol } from 'vscode-debugprotocol';
-import { CallStackManager } from './call-stack-manager';
-import { GraphicsManager } from './graphics-manager';
-import * as tmp from 'tmp';
-import * as child_process from 'child_process'
-import * as disassembly from './disassembly'
-import { EventEmitter } from 'events';
-import * as compile from './compile';
 import * as path from 'path';
+import * as tmp from 'tmp';
 import * as util from 'util';
-import * as debugUtils from './debug-utils';
-import * as debugFile from './debug-file'
-import { ViceGrip } from './vice-grip';
-import * as mapFile from './map-file';
+import { DebugProtocol } from 'vscode-debugprotocol';
 import * as bin from './binary-dto';
-import { VariableManager, VariableData } from './variable-manager';
+import { CallStackManager } from './call-stack-manager';
+import * as compile from './compile';
+import * as debugFile from './debug-file';
+import * as debugUtils from './debug-utils';
+import * as disassembly from './disassembly';
+import { GraphicsManager } from './graphics-manager';
+import * as mapFile from './map-file';
 import * as metrics from './metrics';
-import { debug } from 'vscode';
-import first from 'lodash/fp/first';
+import { VariableData, VariableManager } from './variable-manager';
+import { ViceGrip } from './vice-grip';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -208,8 +206,6 @@ export class Runtime extends EventEmitter {
         if(!this._dbgFile.codeSeg) {
             return;
         }
-
-        const mainLab = this._dbgFile.mainLab;
 
         const scopes = this._dbgFile.scopes.filter(x => x.codeSpan && x.name.startsWith("_") && x.size > disassembly.maxOpCodeSize);
         const firstLastScopes = _uniq([_first(scopes)!, _last(scopes)!]);
@@ -1267,7 +1263,6 @@ or define the location manually with the launch.json->mapFile setting`
         });
 
         const oldLine = this._registers.line;
-        const oldPosition = this._currentPosition;
         this._ignoreEvents = true;
         await this._vice.withAllBreaksDisabled(async() => {
             const brkRes = await this._vice.execBinary({

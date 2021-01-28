@@ -1,10 +1,10 @@
-import * as ReactDOM from 'react-dom';
-import * as React from 'react';
-import * as reactTabs from 'react-tabs';
 import classNames from 'classnames';
-import _sortBy from 'lodash/fp/sortBy';
 import _chunk from 'lodash/fp/chunk';
+import _sortBy from 'lodash/fp/sortBy';
 import marked from 'marked';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import * as reactTabs from 'react-tabs';
 import { screenMappings } from './screen-mappings';
 
 interface vscode {
@@ -30,7 +30,7 @@ export function _statsWebviewContent() {
             }
 
             const baseChar = code % 0x80;
-            const reverse = code / 0x80 > 1;
+            //const reverse = code / 0x80 > 1;
             const mapping = screenMappings.find(x => x.screen == baseChar)!;
             if(textType == PreferredTextType.Graphics) {
                 stringBuilder[i] = mapping.gfx;

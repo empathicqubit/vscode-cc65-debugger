@@ -1,6 +1,4 @@
 import _isString from "lodash/fp/isString";
-import { BreakpointEvent } from "vscode-debugadapter";
-import { Color } from "vscode";
 
 export enum ResponseType {
     unknown = -1,
@@ -661,7 +659,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             registers: [],
         };
 
-        const count = body.readUInt16LE(0);
+        //const count = body.readUInt16LE(0);
         let cursor = 2;
         while(cursor < body.length) {
             const item_size = body.readUInt8(cursor + 0);
@@ -770,7 +768,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             banks: [],
         }
 
-        const count = body.readUInt16LE(0);
+        //const count = body.readUInt16LE(0);
         let cursor = 2;
         while(cursor < body.length) {
             const item_size = body.readUInt8(cursor + 0);
@@ -792,7 +790,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             registers: [],
         }
 
-        const count = body.readUInt16LE(0);
+        //const count = body.readUInt16LE(0);
         let cursor = 2;
         while(cursor < body.length) {
             const item_size = body.readUInt8(cursor + 0);

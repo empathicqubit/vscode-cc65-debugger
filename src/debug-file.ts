@@ -1,6 +1,5 @@
 import * as path from 'path';
 import _sortBy from 'lodash/fp/sortBy';
-import { StackFrame } from 'vscode-debugadapter';
 
 export interface Version {
     major: number;
