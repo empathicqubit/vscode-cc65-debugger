@@ -819,7 +819,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             offsetY: body.readUInt16LE(18),
             innerWidth: body.readUInt16LE(20),
             innerHeight: body.readUInt16LE(22),
-            bpp: body.readUInt16LE(23),
+            bpp: body.readUInt8(23),
             targaImageData: targaImageData,
             rawImageData: rawImageData,
         };
