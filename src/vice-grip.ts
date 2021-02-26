@@ -1,6 +1,7 @@
 import * as net from 'net'
 import _last from 'lodash/fp/last'
 import * as debugFile from './debug-file'
+import semver from 'semver'
 import _intersectionBy from 'lodash/fp/intersectionBy'
 import _random from 'lodash/fp/random'
 import _uniq from 'lodash/fp/uniq'
@@ -18,6 +19,12 @@ const waitPort = require('wait-port');
 
 export class ViceGrip extends EventEmitter {
     public textPort : number | undefined;
+    public versionInfo : { 
+        viceVersion: string, 
+        svnRevision: number,
+        compoundDirectory: boolean,
+    } | undefined;
+
     private _binaryConn: Readable & Writable;
 
     private _commandBytes : Buffer = Buffer.alloc(1024);
@@ -25,6 +32,7 @@ export class ViceGrip extends EventEmitter {
     private _responseByteCount : number = 0;
     private _nextResponseLength : number = -1;
     private _responseEmitter : EventEmitter = new EventEmitter();
+
     private _binaryDataHandler(d : Buffer) {
         try {
             // FIXME: API version
@@ -156,7 +164,7 @@ export class ViceGrip extends EventEmitter {
         });
     }
 
-    public async connect(binaryPort: number) {
+    private static async _connect(binaryPort: number, listener: (data: Buffer) => void) : Promise<net.Socket> {
         let binaryConn : net.Socket | undefined;
 
         while(binaryPort == await getPort({port: getPort.makeRange(binaryPort, binaryPort + 256)})) {};
@@ -200,15 +208,21 @@ export class ViceGrip extends EventEmitter {
                 continue;
             }
 
-            this._binaryConn = binaryConn;
             break;
         } while(true);
 
-        this._binaryConn.on('data', this._binaryDataHandler.bind(this));
+        binaryConn.on('data', listener);
 
-        this._binaryConn.read();
-        this._binaryConn.resume();
+        binaryConn.read();
+        binaryConn.resume();
 
+        return binaryConn;
+    }
+
+    public async connect(binaryPort: number) {
+        await this._versionProbeConnect(binaryPort, false);
+
+        this._binaryConn = await ViceGrip._connect(binaryPort, this._binaryDataHandler.bind(this));
 
         const resources : bin.ResourceGetCommand[] = [
             {
@@ -230,7 +244,81 @@ export class ViceGrip extends EventEmitter {
         this.textPort = parseInt(_last(textRes.stringValue!.split(':'))!);
     }
 
+    private async _versionProbeConnect(binaryPort: number, terminate: boolean) : Promise<void> {
+        if(this.versionInfo) {
+            return;
+        }
+
+        const grip = new ViceGrip(this._handler);
+        grip._binaryConn = await ViceGrip._connect(binaryPort, grip._binaryDataHandler.bind(grip));
+
+        try {
+            const res = await grip.execBinary({
+                type: bin.CommandType.viceInfo,
+            })
+
+            console.log('VICE Info', res);
+
+            const ver = res.viceVersion.join('.')
+            const rev = res.svnRevision;
+            this.versionInfo = {
+                viceVersion: ver,
+                svnRevision: rev,
+                compoundDirectory: semver.satisfies(ver, `>=3.6`) || rev >= 39825,
+            }
+        }
+        catch {
+            this.versionInfo = {
+                viceVersion: '3.5.0.0',
+                svnRevision: 0,
+                compoundDirectory: false,
+            }
+        }
+
+        terminate ? await grip.terminate() : await grip.disconnect();
+    }
+
+    /**
+     * Get the version info from a VICE with default settings so it's less likely
+     * to break at startup
+     * @param vicePath The absolute path to VICE
+     */
+    private async _versionProbeStart(vicePath: string) : Promise<void> {
+        const startText = _random(29170, 29400);
+        const startBinary = _random(29700, 30000);
+        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
+        const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
+
+        let args = [
+            "-default",
+
+            // Monitor
+            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
+            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
+        ];
+
+        const opts : debugUtils.ExecFileOptions = {
+            shell: false,
+            cwd: '.',
+            title: 'VICE',
+        };
+
+        console.log('Probing VICE', vicePath, args, opts);
+
+        let pids : number[];
+        try {
+            pids = await this._handler(vicePath, args, opts);
+        }
+        catch {
+            throw new Error(`Could not start VICE with "${vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
+        }
+
+        await this._versionProbeConnect(binaryPort, true);
+    }
+
     public async start(initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
+        await this._versionProbeStart(vicePath);
+
         const startText = _random(29170, 29400);
         const startBinary = _random(29700, 30000);
         const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
@@ -241,7 +329,7 @@ export class ViceGrip extends EventEmitter {
         let logfile : string | undefined;
         if(process.platform == "win32") {
             q = '"';
-            sep = ';';
+        sep = ';';
             logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
 
             const tempdir = path.dirname(logfile!);
@@ -252,46 +340,53 @@ export class ViceGrip extends EventEmitter {
         }
 
         let dirs = [""];
-        if(machineType == debugFile.MachineType.c64) {
+        if(this.versionInfo!.compoundDirectory) {
             dirs = [
-                path.normalize(__dirname + "/../dist/system/C64"),
-                path.normalize(__dirname + "/../dist/system/DRIVES"),
-                path.normalize(__dirname + "/../dist/system/PRINTER"),
-            ];
-        }
-        else if(machineType == debugFile.MachineType.c128) {
-            dirs = [
-                path.normalize(__dirname + "/../dist/system/C128"),
-                path.normalize(__dirname + "/../dist/system/DRIVES"),
-                path.normalize(__dirname + "/../dist/system/PRINTER"),
-            ];
-        }
-        else if(machineType == debugFile.MachineType.pet) {
-            dirs = [
-                path.normalize(__dirname + "/../dist/system/PET"),
-                path.normalize(__dirname + "/../dist/system/DRIVES"),
-                path.normalize(__dirname + "/../dist/system/PRINTER"),
-            ];
-        }
-        else if(machineType == debugFile.MachineType.vic20) {
-            dirs = [
-                path.normalize(__dirname + "/../dist/system/VIC20"),
-                path.normalize(__dirname + "/../dist/system/DRIVES"),
-                path.normalize(__dirname + "/../dist/system/PRINTER"),
-            ];
-        }
-        else if(machineType == debugFile.MachineType.plus4) {
-            dirs = [
-                path.normalize(__dirname + "/../dist/system/PLUS4"),
-                path.normalize(__dirname + "/../dist/system/DRIVES"),
-                path.normalize(__dirname + "/../dist/system/PRINTER"),
+                path.normalize(__dirname + "/../dist/system"),
             ];
         }
         else {
-            dirs = [
-                path.normalize(__dirname + "/../dist/system/DRIVES"),
-                path.normalize(__dirname + "/../dist/system/PRINTER"),
-            ];
+            if(machineType == debugFile.MachineType.c64) {
+                dirs = [
+                    path.normalize(__dirname + "/../dist/system/C64"),
+                    path.normalize(__dirname + "/../dist/system/DRIVES"),
+                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                ];
+            }
+            else if(machineType == debugFile.MachineType.c128) {
+                dirs = [
+                    path.normalize(__dirname + "/../dist/system/C128"),
+                    path.normalize(__dirname + "/../dist/system/DRIVES"),
+                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                ];
+            }
+            else if(machineType == debugFile.MachineType.pet) {
+                dirs = [
+                    path.normalize(__dirname + "/../dist/system/PET"),
+                    path.normalize(__dirname + "/../dist/system/DRIVES"),
+                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                ];
+            }
+            else if(machineType == debugFile.MachineType.vic20) {
+                dirs = [
+                    path.normalize(__dirname + "/../dist/system/VIC20"),
+                    path.normalize(__dirname + "/../dist/system/DRIVES"),
+                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                ];
+            }
+            else if(machineType == debugFile.MachineType.plus4) {
+                dirs = [
+                    path.normalize(__dirname + "/../dist/system/PLUS4"),
+                    path.normalize(__dirname + "/../dist/system/DRIVES"),
+                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                ];
+            }
+            else {
+                dirs = [
+                    path.normalize(__dirname + "/../dist/system/DRIVES"),
+                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                ];
+            }
         }
 
         let args = [
@@ -417,6 +512,7 @@ export class ViceGrip extends EventEmitter {
     public async execBinary(command: bin.BanksAvailableCommand): Promise<bin.BanksAvailableResponse>
     public async execBinary(command: bin.RegistersAvailableCommand): Promise<bin.RegistersAvailableResponse>
     public async execBinary(command: bin.DisplayGetCommand): Promise<bin.DisplayGetResponse>
+    public async execBinary(command: bin.ViceInfoCommand): Promise<bin.ViceInfoResponse>
 
     public async execBinary(command: bin.ExitCommand): Promise<bin.ExitResponse>
     public async execBinary(command: bin.QuitCommand): Promise<bin.QuitResponse>
@@ -456,6 +552,7 @@ export class ViceGrip extends EventEmitter {
     public async multiExecBinary(commands: bin.BanksAvailableCommand[]): Promise<bin.BanksAvailableResponse[]>
     public async multiExecBinary(commands: bin.RegistersAvailableCommand[]): Promise<bin.RegistersAvailableResponse[]>
     public async multiExecBinary(commands: bin.DisplayGetCommand[]): Promise<bin.DisplayGetResponse[]>
+    public async multiExecBinary(commands: bin.ViceInfoCommand[]): Promise<bin.ViceInfoResponse[]>
 
     public async multiExecBinary(commands: bin.ExitCommand[]): Promise<bin.ExitResponse[]>
     public async multiExecBinary(commands: bin.QuitCommand[]): Promise<bin.QuitResponse[]>

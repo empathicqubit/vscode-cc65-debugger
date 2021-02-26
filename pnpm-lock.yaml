@@ -16,6 +16,7 @@ dependencies:
   react-dom: 16.14.0_react@16.14.0
   react-tabs: 3.1.2_react@16.14.0
   recursive-readdir: 2.2.2
+  semver: 7.3.4
   tmp: 0.1.0
   universal-analytics: 0.4.23
   vscode-debugadapter: 1.38.0
@@ -28,6 +29,7 @@ devDependencies:
   '@types/node': 14.6.4
   '@types/react': 16.14.2
   '@types/react-tabs': 2.3.2
+  '@types/semver': 7.3.4
   '@types/universal-analytics': 0.4.4
   '@types/vscode': 1.42.0
   '@types/webpack': 4.41.25
@@ -49,11 +51,11 @@ devDependencies:
   typescript: 3.9.7
   vscode-debugadapter-testsupport: 1.40.1
   vscode-debugprotocol: 1.41.0
-  webpack: 5.11.1_webpack-cli@4.3.0+webpack@5.11.1
-  webpack-cli: 4.3.0_76e9fee35d0129dcfb7af55b0e8d3092
+  webpack: 5.11.1_webpack-cli@4.3.0
+  webpack-cli: 4.3.0_f7fea7c07e3eff92da170cc456cf96db
   webpack-dev-server: 3.11.1_webpack-cli@4.3.0+webpack@5.11.1
   why-is-node-running: 2.2.0
-lockfileVersion: 5.1
+lockfileVersion: 5.2
 packages:
   /@babel/code-frame/7.10.4:
     dependencies:
@@ -439,6 +441,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-BzzcAlyDxXl2nANlabtT4thtvbbnhee8hMmH/CcJrISDBVcJS1iOsP1f0OAgSdGE0MsY9tqcrb9YoZcOFv9dbQ==
+  /@types/semver/7.3.4:
+    dev: true
+    resolution:
+      integrity: sha512-+nVsLKlcUCeMzD2ufHEYuJ9a2ovstb6Dp52A5VsoKxDXgvE051XgHI/33I1EymwkRGQkwnA0LkhnUzituGs4EQ==
   /@types/serve-static/1.13.8:
     dependencies:
       '@types/mime': 2.0.3
@@ -637,7 +643,7 @@ packages:
   /@webpack-cli/info/1.2.0_webpack-cli@4.3.0:
     dependencies:
       envinfo: 7.7.3
-      webpack-cli: 4.3.0_76e9fee35d0129dcfb7af55b0e8d3092
+      webpack-cli: 4.3.0_f7fea7c07e3eff92da170cc456cf96db
     dev: true
     peerDependencies:
       webpack-cli: 4.x.x
@@ -645,7 +651,7 @@ packages:
       integrity: sha512-+wA8lBKopgKmN76BSGJVJby5ZXDlsrO6p/nm7fUBsHznRNWB/ozotJP7Yfcz8JPfqeG2LxwYlTH2u6D9a/0XAw==
   /@webpack-cli/serve/1.2.0_74488f157fc5cd15ea4fbdac725159af:
     dependencies:
-      webpack-cli: 4.3.0_76e9fee35d0129dcfb7af55b0e8d3092
+      webpack-cli: 4.3.0_f7fea7c07e3eff92da170cc456cf96db
       webpack-dev-server: 3.11.1_webpack-cli@4.3.0+webpack@5.11.1
     dev: true
     peerDependencies:
@@ -2217,7 +2223,7 @@ packages:
   /flat/4.1.0:
     dependencies:
       is-buffer: 2.0.4
-    deprecated: 'Fixed a prototype pollution security issue in 4.1.0, please upgrade to ^4.1.1 or ^5.0.1.'
+    deprecated: Fixed a prototype pollution security issue in 4.1.0, please upgrade to ^4.1.1 or ^5.0.1.
     dev: true
     hasBin: true
     resolution:
@@ -3342,6 +3348,14 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==
+  /lru-cache/6.0.0:
+    dependencies:
+      yallist: 4.0.0
+    dev: false
+    engines:
+      node: '>=10'
+    resolution:
+      integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==
   /make-dir/3.1.0:
     dependencies:
       semver: 6.3.0
@@ -4483,7 +4497,7 @@ packages:
       tough-cookie: 2.5.0
       tunnel-agent: 0.6.0
       uuid: 3.4.0
-    deprecated: 'request has been deprecated, see https://github.com/request/request/issues/3142'
+    deprecated: request has been deprecated, see https://github.com/request/request/issues/3142
     dev: false
     engines:
       node: '>= 6'
@@ -4532,7 +4546,7 @@ packages:
     resolution:
       integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==
   /resolve-url/0.2.1:
-    deprecated: 'https://github.com/lydell/resolve-url#deprecated'
+    deprecated: https://github.com/lydell/resolve-url#deprecated
     dev: true
     resolution:
       integrity: sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
@@ -4637,6 +4651,15 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
+  /semver/7.3.4:
+    dependencies:
+      lru-cache: 6.0.0
+    dev: false
+    engines:
+      node: '>=10'
+    hasBin: true
+    resolution:
+      integrity: sha512-tCfb2WLjqFAtXn4KEdxIhalnRtoKFN7nAwj0B3ZXCbQloV2tq5eDbcTmT68JJD3nRJq24/XgxtQKFIpQdtvmVw==
   /send/0.17.1:
     dependencies:
       debug: 2.6.9
@@ -5186,7 +5209,7 @@ packages:
       serialize-javascript: 5.0.1
       source-map: 0.6.1
       terser: 5.5.1
-      webpack: 5.11.1_webpack-cli@4.3.0+webpack@5.11.1
+      webpack: 5.11.1_webpack-cli@4.3.0
     dev: true
     engines:
       node: '>= 10.13.0'
@@ -5510,7 +5533,7 @@ packages:
     resolution:
       integrity: sha512-B0yRTzYdUCCn9n+F4+Gh4yIDtMQcaJsmYBDsTSG8g/OejKBodLQ2IHfN3bM7jUsRXndopT7OIXWdYqc1fjmV6g==
   /urix/0.1.0:
-    deprecated: 'Please see https://github.com/lydell/urix#deprecated'
+    deprecated: Please see https://github.com/lydell/urix#deprecated
     dev: true
     resolution:
       integrity: sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
@@ -5625,7 +5648,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
-  /webpack-cli/4.3.0_76e9fee35d0129dcfb7af55b0e8d3092:
+  /webpack-cli/4.3.0_f7fea7c07e3eff92da170cc456cf96db:
     dependencies:
       '@discoveryjs/json-ext': 0.5.2
       '@webpack-cli/info': 1.2.0_webpack-cli@4.3.0
@@ -5639,7 +5662,7 @@ packages:
       interpret: 2.2.0
       rechoir: 0.7.0
       v8-compile-cache: 2.2.0
-      webpack: 5.11.1_webpack-cli@4.3.0+webpack@5.11.1
+      webpack: 5.11.1_webpack-cli@4.3.0
       webpack-dev-server: 3.11.1_webpack-cli@4.3.0+webpack@5.11.1
       webpack-merge: 4.2.2
     dev: true
@@ -5653,7 +5676,6 @@ packages:
       '@webpack-cli/migrate': '*'
       webpack: 4.x.x || 5.x.x
       webpack-bundle-analyzer: '*'
-      webpack-cli: '*'
       webpack-dev-server: '*'
     peerDependenciesMeta:
       '@webpack-cli/generate-loader':
@@ -5676,7 +5698,7 @@ packages:
       mime: 2.4.7
       mkdirp: 0.5.5
       range-parser: 1.2.1
-      webpack: 5.11.1_webpack-cli@4.3.0+webpack@5.11.1
+      webpack: 5.11.1_webpack-cli@4.3.0
       webpack-log: 2.0.0
     dev: true
     engines:
@@ -5716,8 +5738,8 @@ packages:
       strip-ansi: 3.0.1
       supports-color: 6.1.0
       url: 0.11.0
-      webpack: 5.11.1_webpack-cli@4.3.0+webpack@5.11.1
-      webpack-cli: 4.3.0_76e9fee35d0129dcfb7af55b0e8d3092
+      webpack: 5.11.1_webpack-cli@4.3.0
+      webpack-cli: 4.3.0_f7fea7c07e3eff92da170cc456cf96db
       webpack-dev-middleware: 3.7.3_webpack@5.11.1
       webpack-log: 2.0.0
       ws: 6.2.1
@@ -5758,7 +5780,7 @@ packages:
       node: '>=10.13.0'
     resolution:
       integrity: sha512-bQsA24JLwcnWGArOKUxYKhX3Mz/nK1Xf6hxullKERyktjNMC4x8koOeaDNTA2fEJ09BdWLbM/iTW0ithREUP0w==
-  /webpack/5.11.1_webpack-cli@4.3.0+webpack@5.11.1:
+  /webpack/5.11.1_webpack-cli@4.3.0:
     dependencies:
       '@types/eslint-scope': 3.7.0
       '@types/estree': 0.0.45
@@ -5783,14 +5805,13 @@ packages:
       tapable: 2.2.0
       terser-webpack-plugin: 5.0.3_webpack@5.11.1
       watchpack: 2.1.0
-      webpack-cli: 4.3.0_76e9fee35d0129dcfb7af55b0e8d3092
+      webpack-cli: 4.3.0_f7fea7c07e3eff92da170cc456cf96db
       webpack-sources: 2.2.0
     dev: true
     engines:
       node: '>=10.13.0'
     hasBin: true
     peerDependencies:
-      webpack: '*'
       webpack-cli: '*'
     peerDependenciesMeta:
       webpack-cli:
@@ -5899,6 +5920,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-wNcy4NvjMYL8gogWWYAO7ZFWFfHcbdbE57tZO8e4cbpj8tfUcwrwqSl3ad8HxpYWCdXcJUCeKKZS62Av1affwQ==
+  /yallist/4.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
   /yargs-parser/13.1.2:
     dependencies:
       camelcase: 5.3.1
@@ -6017,6 +6042,7 @@ specifiers:
   '@types/node': ^14.6.4
   '@types/react': 16.14.2
   '@types/react-tabs': ^2.3.2
+  '@types/semver': ^7.3.4
   '@types/universal-analytics': ^0.4.4
   '@types/vscode': '1.42'
   '@types/webpack': ^4.41.25
@@ -6043,6 +6069,7 @@ specifiers:
   react-dom: 16.14.0
   react-tabs: ^3.1.2
   recursive-readdir: ^2.2.2
+  semver: ^7.3.4
   shebang-loader: ^0.0.1
   shelljs: ^0.8.4
   shx: ^0.3.2

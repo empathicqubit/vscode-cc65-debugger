@@ -35,6 +35,7 @@ export enum ResponseType {
     banksAvailable = 0x82,
     registersAvailable = 0x83,
     displayGet = 0x84,
+    viceInfo = 0x85,
 
     exit = 0xaa,
     quit = 0xbb,
@@ -73,6 +74,7 @@ export enum CommandType {
     banksAvailable = 0x82,
     registersAvailable = 0x83,
     displayGet = 0x84,
+    viceInfo = 0x85,
 
     exit = 0xaa,
     quit = 0xbb,
@@ -109,6 +111,7 @@ export type Command =
     | BanksAvailableCommand
     | RegistersAvailableCommand
     | DisplayGetCommand
+    | ViceInfoCommand
 
     | ExitCommand
     | QuitCommand
@@ -148,6 +151,7 @@ export type Response =
     | BanksAvailableResponse
     | RegistersAvailableResponse
     | DisplayGetResponse
+    | ViceInfoResponse
 
     | ExitResponse
     | QuitResponse
@@ -403,6 +407,16 @@ export interface DisplayGetResponse extends AbstractResponse {
     bpp: number;
     targaImageData: Buffer;
     rawImageData: Buffer;
+}
+
+export interface ViceInfoCommand extends AbstractCommand {
+    type: CommandType.viceInfo;
+}
+
+export interface ViceInfoResponse extends AbstractResponse {
+    type: ResponseType.viceInfo;
+    viceVersion: number[];
+    svnRevision: number;
 }
 
 export interface ExitCommand extends AbstractCommand {
@@ -826,6 +840,18 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
 
         return r;
     }
+    else if(type == ResponseType.viceInfo) {
+        const versionLength = body.readUInt8(0);
+        const revLength = body.readUInt8(1 + versionLength);
+        const r : ViceInfoResponse = {
+            ...res,
+            type,
+            viceVersion: Array.from(body.slice(1, 1 + versionLength)),
+            svnRevision: body.slice(1 + versionLength + 1, 1 + versionLength + 1 + revLength).readUInt32LE(0),
+        };
+
+        return r;
+    }
     else if(type == ResponseType.exit) {
         const r : ExitResponse = {
             ...res,
@@ -1038,6 +1064,9 @@ export function commandObjectToBytes(c: Command, buf: Buffer) : Buffer {
         length = 2;
         buf.writeUInt8(Number(c.useVicII), 0);
         buf.writeUInt8(c.format, 1);
+    }
+    else if(c.type == CommandType.viceInfo) {
+        length = 0;
     }
     else if(c.type == CommandType.exit) {
         length = 0;
