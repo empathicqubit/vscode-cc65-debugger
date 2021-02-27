@@ -1,5 +1,13 @@
 # Changelog
 
+### [3.7.6](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.5...v3.7.6) (2021-02-27)
+
+
+### Bug Fixes
+
+* Added common folder ([99bb144](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/99bb144b4522d1c0cdb12fd720f246f39a11de7b))
+* Added note about feature requests. ([7a3302a](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/7a3302a38b60d5eade15d3a7186dcb3187be0251))
+
 ### [3.7.5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.4...v3.7.5) (2021-02-27)
 
 
