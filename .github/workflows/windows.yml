@@ -73,7 +73,10 @@ jobs:
         cd ./vicedir/vice
         ./autogen.sh
         ./configure --enable-headlessui --disable-arch --disable-pdf-docs --disable-ethernet --disable-cpuhistory
+        cat Makefile
         make -j$(nproc) -s
+        ls -R
+        cat Makefile
         make bindist
 
     - run: choco install nodejs-lts
