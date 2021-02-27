@@ -466,13 +466,17 @@ suite('Runtime', () => {
 
                 console.log('STEP OUT')
 
-                await all(
-                    rt.stepOut(),
+                const wastedOnMyself = [
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_C)
                         assert.strictEqual(line, mainOffset + 4)
                     }),
                     waitFor(rt, 'stopOnStep'),
+                ];
+
+                await all(
+                    rt.stepOut(),
+                    ...wastedOnMyself,
                 );
 
                 console.log('CONTINUE')
