@@ -26,6 +26,6 @@ jobs:
       with:
           ref: "${{ github.events.inputs.ref }}"
     - run: pnpm install --shamefully-hoist
+    - run: ln -s ./system /usr/local/share/vice
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} pnpm package
-    - run: ln -s dist/system /usr/local/share/vice
     - run: unzip -l cc65-vice*.vsix
