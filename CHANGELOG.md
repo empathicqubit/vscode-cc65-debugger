@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.7.5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.4...v3.7.5) (2021-02-27)
+
+
+### Bug Fixes
+
+* Step over works as expected in Assembly files. ([b80dcd3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/b80dcd3fcaded698265f113159c874b54934fcd5))
+
 ### [3.7.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.3...v3.7.4) (2021-02-27)
 
 
