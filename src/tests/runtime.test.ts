@@ -277,6 +277,8 @@ suite('Runtime', () => {
                     }),
                 );
 
+                await waitFor(rt, 'stopOnBreakpoint');
+
                 await rt.terminate();
             });
 
@@ -462,15 +464,18 @@ suite('Runtime', () => {
 
                 await waitFor(rt, 'stopOnStep');
 
+                console.log('STEP OUT')
+
                 await all(
                     rt.stepOut(),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_C)
                         assert.strictEqual(line, mainOffset + 4)
                     }),
+                    waitFor(rt, 'stopOnStep'),
                 );
 
-                await waitFor(rt, 'stopOnStep');
+                console.log('CONTINUE')
 
                 await rt.continue();
                 await waitFor(rt, 'end');

@@ -405,7 +405,6 @@ export class CallStackManager {
             });
 
             await this._vice.waitForStop(brk.startAddress, brk.endAddress);
-
         });
 
         return true;
