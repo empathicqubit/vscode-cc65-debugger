@@ -597,7 +597,7 @@ or define the location manually with the launch.json->mapFile setting`
         !this._viceStarting && this.sendEvent('continued');
     }
 
-    public async step(reverse = false, event = 'stopOnStep') : Promise<void> {
+    public async next(reverse = false, event = 'stopOnStep') : Promise<void> {
         if(this.viceRunning) {
             return;
         }
@@ -605,10 +605,10 @@ or define the location manually with the launch.json->mapFile setting`
         await this._vice.withAllBreaksDisabled(async () => {
             // Find the next source line and continue to it.
             const nextLine = this._getNextLine();
-            if(!nextLine) {
+            if(!nextLine || (nextLine.file && nextLine.file.type == debugFile.SourceFileType.Assembly)) {
                 await this._vice.execBinary({
                     type: bin.CommandType.advanceInstructions,
-                    stepOverSubroutines: false,
+                    stepOverSubroutines: true,
                     count: 1,
                 });
             }

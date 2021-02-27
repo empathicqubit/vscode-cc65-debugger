@@ -502,7 +502,7 @@ suite('Runtime', () => {
                 );
 
                 await waitFor(rt, 'stopOnEntry');
-                await rt.step();
+                await rt.next();
                 await waitFor(rt, 'stopOnStep');
                 await rt.setMemory(0x03fc, Buffer.from([0x01]));
                 const testCycle = async () => {
@@ -992,7 +992,7 @@ suite('Runtime', () => {
                 await waitFor(rt, 'started');
 
                 await all(
-                    rt.step(),
+                    rt.next(),
                     waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > labels['._main'] && rt.getRegisters().pc < labels['._main'] + disassembly.maxOpCodeSize * 10, true))
                 );
                 await rt.continue();

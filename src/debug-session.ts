@@ -665,7 +665,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
         response.success = true;
         try {
-            await this._runtime.step();
+            await this._runtime.next();
         }
         catch(e) {
             response.success = false;
