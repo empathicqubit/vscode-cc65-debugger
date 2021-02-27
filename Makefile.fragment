@@ -1,0 +1,2 @@
+bindist:
+		$(SHELL) $(top_srcdir)/src/arch/gtk3/make-bindist_win32.sh $(STRIP) $(VICE_VERSION) yes nozip $(X64_INCLUDED) $(top_srcdir) $(host_cpu) $(abs_top_builddir) $(CROSS) $(objdump) $(CC) $(HTMLDOCS)

@@ -71,7 +71,7 @@
     "nyc": "env-cmd --silent -f build.env nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
     "nyc:prepublish": "env-cmd --silent -f build.env nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep \"\\bEssential\\b\" -u tdd ./out/tests/",
     "mocha": "env-cmd --silent -f build.env mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
-    "mocha:prepublish": "env-cmd -f --silent build.env mocha --timeout 30000 -r why-is-node-running/include --exit --grep \"\\bEssential\\b\" -u tdd ./out/tests/",
+    "mocha:prepublish": "env-cmd --silent -f build.env mocha --timeout 30000 -r why-is-node-running/include --exit --grep \"\\bEssential\\b\" -u tdd ./out/tests/",
     "test": "npm-run-all -p vice:choose tisk && npm-run-all nyc",
     "test:prepublish": "npm-run-all -p vice:choose tisk && npm-run-all nyc:prepublish",
     "package": "vsce package --packageManager pnpm",
