@@ -292,6 +292,8 @@ export class ViceGrip extends EventEmitter {
         let args = [
             "-default",
 
+            '+sound',
+
             // Monitor
             "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
@@ -391,6 +393,8 @@ export class ViceGrip extends EventEmitter {
 
         let args = [
             "-directory", q + dirs.join(sep) + q,
+
+            '-sound',
 
             // C64-specific
             ...(
