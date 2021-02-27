@@ -329,7 +329,7 @@ export class ViceGrip extends EventEmitter {
         let logfile : string | undefined;
         if(process.platform == "win32") {
             q = '"';
-        sep = ';';
+            sep = ';';
             logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
 
             const tempdir = path.dirname(logfile!);
