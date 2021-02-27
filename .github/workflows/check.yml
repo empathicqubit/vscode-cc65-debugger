@@ -19,12 +19,12 @@ jobs:
 
     strategy:
       matrix:
-          vice-version: [3.5] #Add versions here
+          vice_version: ['tags/v3.5', 'trunk' ] #Add versions here
 
     steps:
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
     - run: pnpm install --shamefully-hoist
-    - run: pnpm package
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} pnpm package
     - run: unzip -l cc65-vice*.vsix
