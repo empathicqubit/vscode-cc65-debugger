@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-          vice-version: [3.5] #Add versions here
+          vice-version: ['tags/v3.5', 'trunk'] #Add versions here
 
     steps:
     - uses: actions/checkout@v2
@@ -25,8 +25,6 @@ jobs:
 
     - run: git config --global core.autocrlf input
       shell: bash
-
-    - run: git clone --depth=1 https://github.com/VICE-Team/svn-mirror ./vicedir
 
     - name: Install GTK3 Dependencies if Applicable
       uses: msys2/setup-msys2@v2
@@ -69,6 +67,8 @@ jobs:
           cp /usr/local/bin/xa.exe /usr/local/bin/xa65.exe
           popd
         fi
+
+        svn checkout svn://svn.code.sf.net/p/vice-emu/code/${{ matrix.vice_version }} ./vicedir
 
         cd ./vicedir/vice
         ./autogen.sh
