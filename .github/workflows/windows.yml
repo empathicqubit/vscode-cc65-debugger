@@ -72,7 +72,7 @@ jobs:
 
         cd ./vicedir/vice
         ./autogen.sh
-        ./configure --enable-headless --disable-arch --disable-pdf-docs --disable-ethernet --disable-cpuhistory
+        ./configure --enable-headlessui --disable-arch --disable-pdf-docs --disable-ethernet --disable-cpuhistory
         make -j$(nproc) -s
         make bindist
 
