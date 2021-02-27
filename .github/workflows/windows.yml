@@ -73,10 +73,11 @@ jobs:
         cd ./vicedir/vice
         ./autogen.sh
         ./configure --enable-headlessui --disable-arch --disable-pdf-docs --disable-ethernet --disable-cpuhistory
-        cat Makefile
+        cat >> Makefile <<HERE
+        bindist:
+                $(SHELL) $(top_srcdir)/src/arch/headless/make-bindist_win32.sh $(STRIP) $(VICE_VERSION) yes nozip $(X64_INCLUDED) $(top_srcdir) $(host_cpu) $(abs_top_builddir) $(CROSS) $(objdump) $(CC) $(HTMLDOCS)
+        HERE
         make -j$(nproc) -s
-        ls -R
-        cat Makefile
         make bindist
 
     - run: choco install nodejs-lts
