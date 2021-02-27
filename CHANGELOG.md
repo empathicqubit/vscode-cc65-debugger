@@ -1,5 +1,14 @@
 # Changelog
 
+### [3.7.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.3...v3.7.4) (2021-02-27)
+
+
+### Bug Fixes
+
+* Detect version and use different directory options ([3dbb594](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/3dbb594cb46ac06b5e3b78e6bed33e2df63e711b))
+* ignore build.env missing ([6fabbcd](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/6fabbcdee6dc25a071cab6c97bb1b5f0212b6408))
+* Properly detect machine type on Windows ([fee5809](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/fee580990c0816fa8de1100f8ce5524d5a014dbb))
+
 ### [3.7.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.2...v3.7.3) (2021-01-24)
 
 
