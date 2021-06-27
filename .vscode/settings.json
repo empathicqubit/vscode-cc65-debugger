@@ -6,7 +6,7 @@
     },
 
     "mochaExplorer.env": {
-        "VICE_DIRECTORY": "/usr/local/bin"
+        "VICE_DIRECTORY": "/home/empathicqubit/vice-emu-code/vice/src"
     },
     "mochaExplorer.cwd": "src",
     "mochaExplorer.files": [

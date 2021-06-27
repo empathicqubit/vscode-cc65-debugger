@@ -37,6 +37,8 @@ export enum ResponseType {
     displayGet = 0x84,
     viceInfo = 0x85,
 
+    paletteGet = 0x91,
+
     exit = 0xaa,
     quit = 0xbb,
     reset = 0xcc,
@@ -76,6 +78,8 @@ export enum CommandType {
     displayGet = 0x84,
     viceInfo = 0x85,
 
+    paletteGet = 0x91,
+
     exit = 0xaa,
     quit = 0xbb,
     reset = 0xcc,
@@ -112,6 +116,8 @@ export type Command =
     | RegistersAvailableCommand
     | DisplayGetCommand
     | ViceInfoCommand
+
+    | PaletteGetCommand
 
     | ExitCommand
     | QuitCommand
@@ -153,6 +159,8 @@ export type Response =
     | DisplayGetResponse
     | ViceInfoResponse
 
+    | PaletteGetResponse
+
     | ExitResponse
     | QuitResponse
     | ResetResponse
@@ -166,7 +174,6 @@ interface AbstractCommand {
 }
 
 interface AbstractResponse {
-    /** Currently 1 */
     apiVersion: number;
     type: ResponseType;
     error: number;
@@ -405,7 +412,6 @@ export interface DisplayGetResponse extends AbstractResponse {
     innerWidth: number;
     innerHeight: number;
     bpp: number;
-    targaImageData: Buffer;
     rawImageData: Buffer;
 }
 
@@ -417,6 +423,23 @@ export interface ViceInfoResponse extends AbstractResponse {
     type: ResponseType.viceInfo;
     viceVersion: number[];
     svnRevision: number;
+}
+
+export interface PaletteGetCommand extends AbstractCommand {
+    type: CommandType.paletteGet
+    useVicII: boolean;
+}
+
+export interface PaletteEntry {
+    red: number;
+    green: number;
+    blue: number;
+    dither: number;
+}
+
+export interface PaletteGetResponse extends AbstractResponse {
+    type: ResponseType.paletteGet
+    entries: PaletteEntry[]
 }
 
 export interface ExitCommand extends AbstractCommand {
@@ -673,7 +696,6 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             registers: [],
         };
 
-        //const count = body.readUInt16LE(0);
         let cursor = 2;
         while(cursor < body.length) {
             const item_size = body.readUInt8(cursor + 0);
@@ -821,24 +843,44 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
         return r;
     }
     else if(type == ResponseType.displayGet) {
-        const targaImageData = Buffer.alloc(body.length - (12 + body.readUInt32LE(4)));
-        body.copy(targaImageData, 0, 12 + body.readUInt32LE(4));
-        const rawImageData = targaImageData.slice(targaImageData.length - body.readUInt32LE(8));
-        const r : DisplayGetResponse = {
-            ...res,
-            type,
-            debugWidth: body.readUInt16LE(12),
-            debugHeight: body.readUInt16LE(14),
-            offsetX: body.readUInt16LE(16),
-            offsetY: body.readUInt16LE(18),
-            innerWidth: body.readUInt16LE(20),
-            innerHeight: body.readUInt16LE(22),
-            bpp: body.readUInt8(23),
-            targaImageData: targaImageData,
-            rawImageData: rawImageData,
-        };
+        if(res.apiVersion < 0x02) {
+            const targaImageData = Buffer.alloc(body.length - (12 + body.readUInt32LE(4)));
+            body.copy(targaImageData, 0, 12 + body.readUInt32LE(4));
+            const rawImageData = targaImageData.slice(targaImageData.length - body.readUInt32LE(8));
+            const r : DisplayGetResponse = {
+                ...res,
+                type,
+                debugWidth: body.readUInt16LE(12),
+                debugHeight: body.readUInt16LE(14),
+                offsetX: body.readUInt16LE(16),
+                offsetY: body.readUInt16LE(18),
+                innerWidth: body.readUInt16LE(20),
+                innerHeight: body.readUInt16LE(22),
+                bpp: body.readUInt8(23),
+                rawImageData: rawImageData,
+            };
 
-        return r;
+            return r;
+        }
+        else {
+            const metaLength = body.readUInt32LE(0) 
+            const rawImageData = Buffer.alloc(body.readUInt32LE(metaLength + 4));
+            body.copy(rawImageData, 0, 4 + metaLength + 4)
+            const r : DisplayGetResponse = {
+                ...res,
+                type,
+                debugWidth: body.readUInt16LE(4),
+                debugHeight: body.readUInt16LE(6),
+                offsetX: body.readUInt16LE(8),
+                offsetY: body.readUInt16LE(10),
+                innerWidth: body.readUInt16LE(12),
+                innerHeight: body.readUInt16LE(14),
+                bpp: body.readUInt8(16),
+                rawImageData: rawImageData,
+            };
+
+            return r;
+        }
     }
     else if(type == ResponseType.viceInfo) {
         const versionLength = body.readUInt8(0);
@@ -849,6 +891,28 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             viceVersion: Array.from(body.slice(1, 1 + versionLength)),
             svnRevision: body.slice(1 + versionLength + 1, 1 + versionLength + 1 + revLength).readUInt32LE(0),
         };
+
+        return r;
+    }
+    else if(type == ResponseType.paletteGet) {
+        const r : PaletteGetResponse = {
+            ...res,
+            entries: [],
+            type
+        }
+
+        let cursor = 2;
+        while(cursor < body.length) {
+            const item_size = body.readUInt8(cursor + 0);
+            const item : PaletteEntry = {
+                red: body.readUInt8(cursor + 1),
+                green: body.readUInt8(cursor + 2),
+                blue: body.readUInt8(cursor + 3),
+                dither: body.readUInt8(cursor + 4),
+            }
+            r.entries.push(item);
+            cursor += item_size + 1;
+        }
 
         return r;
     }
@@ -1067,6 +1131,10 @@ export function commandObjectToBytes(c: Command, buf: Buffer) : Buffer {
     }
     else if(c.type == CommandType.viceInfo) {
         length = 0;
+    }
+    else if(c.type == CommandType.paletteGet) {
+        length = 1
+        buf.writeUInt8(Number(c.useVicII), 0)
     }
     else if(c.type == CommandType.exit) {
         length = 0;

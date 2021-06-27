@@ -762,32 +762,6 @@ suite('Runtime', () => {
             });
         });
 
-        suite('Headless', () => {
-            test('Image grab works', async() => {
-                await rt.start(
-                    PROGRAM,
-                    BUILD_CWD,
-                    true,
-                    false,
-                    false,
-                    VICE_DIRECTORY,
-                    viceArgs,
-                    undefined,
-                    false,
-                    DEBUG_FILE,
-                    MAP_FILE,
-                    LABEL_FILE
-                );
-
-                const res = await rt._vice.execBinary({
-                    type: bin.CommandType.displayGet,
-                    useVicII: true,
-                    format: bin.DisplayGetFormat.BGRA,
-                });
-                assert.strictEqual(res.targaImageData.readUInt8(2), 2);
-            });
-        });
-
         suite('Stack', () => {
             test('Contains the frames plus the current position', async () => {
                 await rt.start(

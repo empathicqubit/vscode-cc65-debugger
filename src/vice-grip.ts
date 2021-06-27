@@ -19,10 +19,14 @@ const waitPort = require('wait-port');
 
 export class ViceGrip extends EventEmitter {
     public textPort : number | undefined;
+
+    private _apiVersion: number = 1;
     public versionInfo : { 
         viceVersion: string, 
         svnRevision: number,
         compoundDirectory: boolean,
+        displayBuffer8BitOnly: boolean,
+        keyboardBufferPetsciiOnly: boolean,
     } | undefined;
 
     private _binaryConn: Readable & Writable;
@@ -261,17 +265,23 @@ export class ViceGrip extends EventEmitter {
 
             const ver = res.viceVersion.join('.')
             const rev = res.svnRevision;
+            this._apiVersion = res.apiVersion;
             this.versionInfo = {
                 viceVersion: ver,
                 svnRevision: rev,
                 compoundDirectory: semver.satisfies(ver, `>=3.6`) || rev >= 39825,
+                displayBuffer8BitOnly: this._apiVersion >= 2,
+                keyboardBufferPetsciiOnly: this._apiVersion >=2,
             }
         }
         catch {
+            this._apiVersion = 1
             this.versionInfo = {
                 viceVersion: '3.5.0.0',
                 svnRevision: 0,
                 compoundDirectory: false,
+                displayBuffer8BitOnly: false,
+                keyboardBufferPetsciiOnly: false,
             }
         }
 
@@ -518,6 +528,8 @@ export class ViceGrip extends EventEmitter {
     public async execBinary(command: bin.DisplayGetCommand): Promise<bin.DisplayGetResponse>
     public async execBinary(command: bin.ViceInfoCommand): Promise<bin.ViceInfoResponse>
 
+    public async execBinary(command: bin.PaletteGetCommand): Promise<bin.PaletteGetResponse>
+
     public async execBinary(command: bin.ExitCommand): Promise<bin.ExitResponse>
     public async execBinary(command: bin.QuitCommand): Promise<bin.QuitResponse>
     public async execBinary(command: bin.ResetCommand): Promise<bin.ResetResponse>
@@ -558,6 +570,8 @@ export class ViceGrip extends EventEmitter {
     public async multiExecBinary(commands: bin.DisplayGetCommand[]): Promise<bin.DisplayGetResponse[]>
     public async multiExecBinary(commands: bin.ViceInfoCommand[]): Promise<bin.ViceInfoResponse[]>
 
+    public async multiExecBinary(commands: bin.PaletteGetCommand[]): Promise<bin.PaletteGetResponse[]>
+
     public async multiExecBinary(commands: bin.ExitCommand[]): Promise<bin.ExitResponse[]>
     public async multiExecBinary(commands: bin.QuitCommand[]): Promise<bin.QuitResponse[]>
     public async multiExecBinary(commands: bin.ResetCommand[]): Promise<bin.ResetResponse[]>
@@ -577,7 +591,7 @@ export class ViceGrip extends EventEmitter {
             const requestId = _random(0, 0xffffffff);
             const buf = Buffer.alloc(11 + body.length);
             buf.writeUInt8(0x02, 0); // start
-            buf.writeUInt8(0x01, 1); // version
+            buf.writeUInt8(this._apiVersion, 1); // version
             buf.writeUInt32LE(body.length, 2);
             buf.writeUInt32LE(requestId, 6);
             buf.writeUInt8(command.type, 10);
@@ -621,6 +635,46 @@ export class ViceGrip extends EventEmitter {
         }
         await util.promisify((d, cb) => conn.write(d, cb))(Buffer.concat(frags));
         return await results;
+    }
+
+    public async displayGetRGBA() : Promise<bin.DisplayGetResponse> {
+        if(this._apiVersion < 0x02) {
+            const res = await this.execBinary({
+                type: bin.CommandType.displayGet,
+                useVicII: false,
+                format: bin.DisplayGetFormat.RGBA,
+            });
+
+            return res;
+        }
+
+        const res = await this.execBinary({
+            type: bin.CommandType.displayGet,
+            useVicII: false,
+            format: bin.DisplayGetFormat.Indexed8,
+        });
+
+        const paletteRes = await this.execBinary({
+            type: bin.CommandType.paletteGet,
+            useVicII: false,
+        });
+        const entries = paletteRes.entries;
+
+        const buf = Buffer.alloc(res.rawImageData.length * 4);
+
+        for(let i = 0; i < res.rawImageData.length; i++) {
+            const index = res.rawImageData[i];
+            const entry = entries[index];
+            buf.writeUInt8(entry.red, i * 4 + 0);
+            buf.writeUInt8(entry.green, i * 4 + 1);
+            buf.writeUInt8(entry.blue, i * 4 + 2);
+            buf.writeUInt8(255, i * 4 + 3);
+        }
+
+        return {
+            ...res,
+            rawImageData: buf,
+        };
     }
 
     public async withAllBreaksDisabled<T>(func: () => Promise<T>) : Promise<T> {

@@ -104,11 +104,7 @@ export class GraphicsManager {
     }
 
     public async updateRunAhead(emitter: events.EventEmitter) : Promise<void> {
-        const aheadRes = await this._vice.execBinary({
-            type: bin.CommandType.displayGet,
-            useVicII: false,
-            format: bin.DisplayGetFormat.RGBA,
-        });
+        const aheadRes = await this._vice.displayGetRGBA();
 
         if(!this._runAheadPng) {
             this._runAheadPng = new pngjs.PNG({
@@ -117,7 +113,7 @@ export class GraphicsManager {
             });
         }
 
-        this._runAheadPng.data = aheadRes.rawImageData;
+        this._runAheadPng.data = aheadRes;
 
         emitter.emit('runahead', {
             runAhead: {
@@ -129,11 +125,7 @@ export class GraphicsManager {
     }
 
     public async updateCurrent(emitter: events.EventEmitter) : Promise<void> {
-        const currentRes = await this._vice.execBinary({
-            type: bin.CommandType.displayGet,
-            useVicII: false,
-            format: bin.DisplayGetFormat.RGBA,
-        });
+        const currentRes = await this._vice.displayGetRGBA();
 
         if(!this._currentPng) {
             this._currentPng = new pngjs.PNG({
