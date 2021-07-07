@@ -35,8 +35,9 @@
                     }
                 ],
                 "background": {
-                    "beginsPattern": "ℹ ｢wds｣: Project is running at",
-                    "endsPattern": "ℹ ｢wdm｣: Compiled successfully.",
+                    "activeOnStart": true,
+                    "beginsPattern": "Project is running at",
+                    "endsPattern": "Compiled successfully.",
                 }
             },
             "isBackground": true

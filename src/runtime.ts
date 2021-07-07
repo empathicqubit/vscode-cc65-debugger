@@ -1,6 +1,7 @@
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import * as hotel from 'hasbin';
 import _first from 'lodash/fp/first';
 import _flatten from 'lodash/fp/flatten';
 import _flow from 'lodash/fp/flow';
@@ -1083,9 +1084,11 @@ or define the location manually with the launch.json->mapFile setting`
         }
 
         try {
-            await util.promisify(child_process.execFile)(vicePath, ['--help']);
+            await util.promisify((i, cb) =>
+                hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null))
+            )([vicePath])
         }
-        catch(e) {
+        catch {
             throw new Error("Couldn't find VICE. Make sure your `cc65vice.viceDirectory` user setting is pointing to the directory containing VICE executables.");
         }
 

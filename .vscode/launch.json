@@ -1,4 +1,4 @@
-{ 
+{
     "version": "0.2.0",
     "configurations": [
         {
@@ -6,14 +6,14 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
+            "sourceMaps": true,
+            "outFiles": [ "${workspaceFolder}/out/**/*.js" ],
             "env": {
                 "ELECTRON_IS_DEV": "1"
             },
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
-            "sourceMaps": true,
-            "outFiles": [ "${workspaceFolder}/out/**/*.js" ],
             "preLaunchTask": "extension",
             "postDebugTask": "kill-webviews",
         },
