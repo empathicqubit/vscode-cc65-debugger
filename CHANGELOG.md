@@ -1,5 +1,13 @@
 # Changelog
 
+### [3.7.7](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.6...v3.7.7) (2021-07-07)
+
+
+### Bug Fixes
+
+* Use hasbin to test existence of vice bins. Javascript tail for Windows. ([bb366fc](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/bb366fc281bd5f3a1a3b3e295dfef805a05b8dbb))
+* Work with new version of display get ([fc39254](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/fc39254517d2fcd8c44c8c3804a10fba4934e5df))
+
 ### [3.7.6](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.5...v3.7.6) (2021-02-27)
 
 
