@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.7.9](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.8...v3.7.9) (2021-07-15)
+
+
+### Bug Fixes
+
+* more symlinks ([a92e365](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/a92e365bf7013a36f9e922c02165d02708343a8f))
+
 ### [3.7.8](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.7...v3.7.8) (2021-07-15)
 
 
