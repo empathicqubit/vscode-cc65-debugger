@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        vice_version: ['trunk'] #Add versions here
+        vice_version: ['tags/v3.5'] #Add versions here
 
     steps:
     - uses: actions/checkout@v2
