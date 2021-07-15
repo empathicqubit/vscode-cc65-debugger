@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.7.8](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.7...v3.7.8) (2021-07-15)
+
+
+### Bug Fixes
+
+* Only test against v3.5 for now. ([032083a](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/032083a10989bc744191109f6b7eb426565415b7))
+
 ### [3.7.7](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.6...v3.7.7) (2021-07-07)
 
 
