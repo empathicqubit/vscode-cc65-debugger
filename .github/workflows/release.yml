@@ -1,8 +1,14 @@
 name: Release
 
 on:
-  release:
-    types:
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: The git tag to checkout
+                required: true
+                default: 'vFIXME'
+    release:
+        types:
         - published
 
 jobs:
@@ -17,6 +23,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+          ref: "refs/tags/${{ github.events.inputs.tag }}"
     - run: pnpm install --shamefully-hoist
     - run: ln -s $PWD/system /usr/local/share/vice
     - run: ln -s $PWD/system /usr/local/lib/vice
@@ -32,6 +40,8 @@ jobs:
       id: get_release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          ref: "refs/tags/${{ github.events.inputs.tag }}"
 
     - uses: actions/upload-release-asset@v1
       continue-on-error: true
