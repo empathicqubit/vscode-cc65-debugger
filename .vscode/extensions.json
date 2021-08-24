@@ -1,6 +1,6 @@
 {
     "recommendations": [
-        "hbenl.vscode-mocha-test-adapter",
+        "Orta.vscode-jest",
         "ryanluker.vscode-coverage-gutters"
     ],
     "unwantedRecommendations": ["sharpninja.cc65", "tlgkccampbell.code-ca65"]
