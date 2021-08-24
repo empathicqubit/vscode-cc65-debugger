@@ -1,5 +1,9 @@
 {
   "name": "cc65-vice",
+  "jest": {
+      "testRegex": "out/tests/.*\\.js$",
+      "testTimeout": 30000
+  },
   "displayName": "C64 CC65/VICE Debugger",
   "version": "3.7.9",
   "publisher": "entan-gl",
@@ -68,12 +72,10 @@
     "vice:local": "shx echo \"USING LOCAL VICE\"",
     "vice:choose": "env-cmd --silent -f ./build.env node -e \"typeof process.env.VICE_DIRECTORY != 'undefined' ? process.exit(0) : process.exit(1)\" && npm-run-all vice:local || npm-run-all vice:build",
     "lint": "tslint --project src",
-    "nyc": "env-cmd --silent -f build.env nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
-    "nyc:prepublish": "env-cmd --silent -f build.env nyc --reporter=lcov mocha --timeout 30000 -r why-is-node-running/include --exit --grep \"\\bEssential\\b\" -u tdd ./out/tests/",
-    "mocha": "env-cmd --silent -f build.env mocha --timeout 30000 -r why-is-node-running/include --exit -u tdd ./out/tests/",
-    "mocha:prepublish": "env-cmd --silent -f build.env mocha --timeout 30000 -r why-is-node-running/include --exit --grep \"\\bEssential\\b\" -u tdd ./out/tests/",
-    "test": "npm-run-all -p vice:choose tisk && npm-run-all nyc",
-    "test:prepublish": "npm-run-all -p vice:choose tisk && npm-run-all nyc:prepublish",
+    "jest": "env-cmd --silent -f build.env jest --runInBand --coverage",
+    "jest:prepublish": "env-cmd --silent -f build.env jest --runInBand --coverage -t \"\\bEssential\\b\"",
+    "test": "npm-run-all -p vice:choose tisk && npm-run-all jest",
+    "test:prepublish": "npm-run-all -p vice:choose tisk && npm-run-all jest:prepublish",
     "package": "vsce package --packageManager pnpm",
     "publish": "vsce publish --packageManager pnpm"
   },
@@ -122,7 +124,7 @@
     "dotenv": "^8.2.0",
     "env-cmd": "^10.1.0",
     "glob": "^7.1.6",
-    "mocha": "^8.1.3",
+    "jest": "^27.0.6",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
     "shebang-loader": "^0.0.1",

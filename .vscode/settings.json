@@ -1,19 +1,14 @@
-// Place your settings in this file to overwrite default and user settings.FALSE
 {
     "workbench.colorCustomizations": {
         "activityBar.background": "#630",
 
     },
 
-    "mochaExplorer.env": {
-        "VICE_DIRECTORY": "/home/empathicqubit/vice-emu-code/vice/src"
+    "jest.autoRun": {
+        "watch": false,
     },
-    "mochaExplorer.cwd": "src",
-    "mochaExplorer.files": [
-        "src/tests/*.ts",
-    ],
-    "mochaExplorer.require": [
-        "ts-node/register",
-    ],
-    "mochaExplorer.timeout": 15000,
+    "jest.testExplorer": {
+        "enabled": true
+    },
+    "jest.jestCommandLine": "npm run jest --"
 }

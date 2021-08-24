@@ -4,7 +4,6 @@ import * as fs from 'fs';
 import _difference from 'lodash/fp/difference';
 import _random from 'lodash/fp/random';
 import _transform from 'lodash/transform';
-import { setup, suite, teardown, test } from 'mocha';
 import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
@@ -15,7 +14,7 @@ import { Runtime } from '../runtime';
 
 const all = (...args) => Promise.all(args);
 
-suite('Runtime', () => {
+describe('Runtime', () => {
     /* These tests require VICE to be installed on your PATH */
     /* All values should be explicitly defined except
         when testing the defaults */
@@ -66,7 +65,7 @@ suite('Runtime', () => {
         });
     }
 
-    setup(async() => {
+    beforeEach(async() => {
         rt = new Runtime((args, timeout, cb) => {
             if(args.args.find(x => x.includes("monitor.js"))) {
                 console.log(args);
@@ -137,7 +136,7 @@ suite('Runtime', () => {
         });
     });
 
-    teardown(async () => {
+    afterEach(async () => {
         for(const pid of pids) {
             try {
                 process.kill(pid, 0) && process.kill(pid, 'SIGKILL');
@@ -147,17 +146,17 @@ suite('Runtime', () => {
         pids = [];
     });
 
-    suite('Build', () => {
+    describe('Build', () => {
         test('Builds successfully', async() => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
         })
     });
 
-    suite('Attach', () => {
+    describe('Attach', () => {
         const binaryPort = 1024 + Math.floor(Math.random() * 10000);
         let proc : child_process.ChildProcessWithoutNullStreams;
 
-        setup(async () => {
+        beforeEach(async () => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
 
             proc = child_process.spawn(VICE_DIRECTORY + '/x64sc', ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
@@ -195,7 +194,7 @@ suite('Runtime', () => {
             await rt.attach(binaryPort, BUILD_CWD, false, false, false, undefined, PROGRAM, DEBUG_FILE, MAP_FILE);
         });
 
-        teardown(async () => {
+        afterEach(async () => {
             const conn = net.connect(binaryPort, '127.0.0.1');
             const buf = Buffer.from([
                 0x02, 0x01,
@@ -214,7 +213,7 @@ suite('Runtime', () => {
         });
     });
 
-    suite('Assembly', () => {
+    describe('Assembly', () => {
         const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/asm-project');
         const MAP_FILE = BUILD_CWD + '/asm-project.c64.map';
         const DEBUG_FILE = BUILD_CWD + '/asm-project.c64.dbg';
@@ -223,11 +222,11 @@ suite('Runtime', () => {
 
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
-        setup(async () => {
+        beforeEach(async () => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
         });
 
-        suite('Essential', () => {
+        describe('Essential', () => {
             test('Starts and terminates successfully with intervention', async() => {
                 await rt.start(
                     PROGRAM,
@@ -378,7 +377,7 @@ suite('Runtime', () => {
         });
     });
 
-    suite('Launch', () => {
+    describe('Launch', () => {
         const MAIN_C = path.join(BUILD_CWD, "src/main.c")
 
         /** This is the zero-based line index to the function signature */
@@ -388,7 +387,7 @@ suite('Runtime', () => {
         let mainContents = '';
         let stepsEntry = -1;
         const labels : { [key:string]:number } = {};
-        setup(async () => {
+        beforeEach(async () => {
             await rt.build(BUILD_CWD, BUILD_COMMAND, PREPROCESS_COMMAND);
 
             mainContents = await util.promisify(fs.readFile)(MAIN_C, 'utf8');
@@ -420,7 +419,7 @@ suite('Runtime', () => {
             stepsEntry = mainOffset + 3;
         });
 
-        suite('Essential', () => {
+        describe('Essential', () => {
             test('Non-C64 platform works correctly', async () => {
                 const PROGRAM = BUILD_CWD + '/simple-project.pet';
                 const MAP_FILE = PROGRAM + '.map';
@@ -762,7 +761,7 @@ suite('Runtime', () => {
             });
         });
 
-        suite('Stack', () => {
+        describe('Stack', () => {
             test('Contains the frames plus the current position', async () => {
                 await rt.start(
                     PROGRAM,
@@ -892,8 +891,8 @@ suite('Runtime', () => {
             });
         });
 
-        suite('Runahead', () => {
-            setup(async () => {
+        describe('Runahead', () => {
+            beforeEach(async () => {
             });
 
             test('Restores the original location', async() => {

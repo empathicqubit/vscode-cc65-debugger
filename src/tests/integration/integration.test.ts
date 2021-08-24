@@ -1,13 +1,7 @@
 
 import * as path from 'path';
-import { after } from 'mocha';
-
 import * as vscode from 'vscode';
-suite('Integration', () => {
-    after(() => {
-        vscode.window.showInformationMessage('All tests done!');
-    });
-
+describe('Integration', () => {
     test('Verify that the session finishes successfully without intervention', async () => {
         const root = vscode.Uri.file(path.normalize(__dirname + '/../../../src/tests/simple-project'));
         await vscode.commands.executeCommand('vscode.openFolder', root);

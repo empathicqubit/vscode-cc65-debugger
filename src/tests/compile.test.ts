@@ -1,11 +1,10 @@
-import { suite, test} from 'mocha';
 import * as assert from 'assert';
 import * as compile from '../compile';
 import * as path from 'path';
 import { EventEmitter } from 'events';
 
 
-suite('Compile', () => {
+describe('Compile', () => {
     const BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
     const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/simple-project');
     const PROGRAM = BUILD_CWD + '/simple-project.c64';

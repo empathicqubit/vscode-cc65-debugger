@@ -7,7 +7,9 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "sourceMaps": true,
-            "outFiles": [ "${workspaceFolder}/out/**/*.js" ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
             "env": {
                 "ELECTRON_IS_DEV": "1"
             },
@@ -15,7 +17,7 @@
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "preLaunchTask": "extension",
-            "postDebugTask": "kill-webviews",
+            "postDebugTask": "kill-webviews"
         },
         {
             "name": "Server",
@@ -24,7 +26,9 @@
             "cwd": "${workspaceFolder}",
             "sourceMaps": true,
             "program": "${workspaceFolder}/src/debug-adapter.ts",
-            "outFiles": ["${workspaceFolder}/out/**/*.js"],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
             "preLaunchTask": "server",
             "args": [
                 "--server=4711"
@@ -37,7 +41,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/tests/integration/index",
+                "--extensionTestsPath=${workspaceFolder}/out/tests/integration/index"
             ],
             "preLaunchTask": "extension",
             "postDebugTask": "kill-webviews",
@@ -45,6 +49,23 @@
                 "${workspaceFolder}/out/test/integration/**/*.js"
             ]
         },
+        {
+            "type": "node",
+            "name": "vscode-jest-tests",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "npm",
+            "args": [
+                "run",
+                "jest",
+                "--",
+                "--runInBand",
+                "--watchAll=false"
+            ]
+        }
     ],
     "compounds": [
         {

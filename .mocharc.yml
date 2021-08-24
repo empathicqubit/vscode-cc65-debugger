@@ -1,6 +1,0 @@
-timeout: 30000
-require: why-is-node-running/include
-exit: true
-ui: tdd
-spec:
-    - ./out/tests/
