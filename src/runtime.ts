@@ -1088,8 +1088,8 @@ or define the location manually with the launch.json->mapFile setting`
                 hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null))
             )([vicePath])
         }
-        catch {
-            throw new Error("Couldn't find VICE. Make sure your `cc65vice.viceDirectory` user setting is pointing to the directory containing VICE executables.");
+        catch (e) {
+            throw new Error(`Couldn't find VICE. Make sure your \`cc65vice.viceDirectory\` user setting is pointing to the directory containing VICE executables. ${vicePath} ${e}`);
         }
 
         return vicePath;
