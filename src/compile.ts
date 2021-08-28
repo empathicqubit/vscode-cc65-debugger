@@ -97,7 +97,7 @@ export async function make(buildCwd: string, buildCmd: string, status: EventEmit
         recursive: true,
         filter: f => debugUtils.programFiletypes.test(f),
     }, (evt, filename) => {
-        filenames.push(filename);
+        filenames.push(filename || "");
     });
 
     await builder;

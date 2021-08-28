@@ -1,9 +1,5 @@
 {
   "name": "cc65-vice",
-  "jest": {
-      "testRegex": "out/tests/.*\\.js$",
-      "testTimeout": 30000
-  },
   "displayName": "C64 CC65/VICE Debugger",
   "version": "3.7.9",
   "publisher": "entan-gl",
@@ -36,6 +32,7 @@
     "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
   },
   "scripts": {
+    "clean": "shx rm -r dist out",
     "chargen": "split-file -s ./system/C64/chargen 2",
     "c64ttf": "cd ./system/C64 && python3 ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf || python ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf",
     "submodules": "git submodule init && git submodule update",
@@ -55,7 +52,7 @@
     "not-extension:debug:kill": "node -e \"process.kill(parseInt(require('fs').readFileSync('./webviews.run', 'utf8')))\"",
     "webpack": "webpack --mode production",
     "webpack:debug": "npm-run-all -p extension:debug not-extension:debug",
-    "tisk": "tsc -p src",
+    "tisk": "tsc -p .",
     "inspect": "npm-run-all tisk && node --inspect-brk ./out/debug-adapter.js --server=4711",
     "vscode:prepublish": "npm-run-all -p tisk webpack && npm-run-all nonjs && npm-run-all test:prepublish",
     "vscode:server:debug": "npm-run-all -p tisk nonjs && npm-run-all extension:debug",
@@ -74,8 +71,8 @@
     "lint": "tslint --project src",
     "jest": "env-cmd --silent -f build.env jest --runInBand --coverage",
     "jest:prepublish": "env-cmd --silent -f build.env jest --runInBand --coverage -t \"\\bEssential\\b\"",
-    "test": "npm-run-all -p vice:choose tisk && npm-run-all jest",
-    "test:prepublish": "npm-run-all -p vice:choose tisk && npm-run-all jest:prepublish",
+    "test": "npm-run-all -p vice:choose && npm-run-all jest",
+    "test:prepublish": "npm-run-all -p vice:choose && npm-run-all jest:prepublish",
     "package": "vsce package --packageManager pnpm",
     "publish": "vsce publish --packageManager pnpm"
   },
@@ -94,7 +91,7 @@
     "hasbin": "^1.2.3",
     "lodash": "^4.17.15",
     "marked": "^1.2.7",
-    "node-watch": "^0.6.4",
+    "node-watch": "^0.7.1",
     "performance-now": "^2.1.0",
     "pngjs": "^5.0.0",
     "react": "16.14.0",
@@ -111,8 +108,8 @@
   "devDependencies": {
     "@entan.gl/vsce": "^1.79.6",
     "@types/classnames": "^2.2.11",
+    "@types/jest": "^27.0.1",
     "@types/lodash": "^4.14.149",
-    "@types/mocha": "^8.0.3",
     "@types/node": "^14.6.4",
     "@types/react": "16.14.2",
     "@types/react-tabs": "^2.3.2",
@@ -126,11 +123,11 @@
     "glob": "^7.1.6",
     "jest": "^27.0.6",
     "npm-run-all": "^4.1.5",
-    "nyc": "^15.1.0",
     "shebang-loader": "^0.0.1",
     "shelljs": "^0.8.4",
     "shx": "^0.3.2",
     "split-file": "^2.2.1",
+    "ts-jest": "^27.0.5",
     "ts-loader": "^6.2.1",
     "ts-node": "^9.1.1",
     "tslint": "5.18.0",

@@ -15,6 +15,7 @@ export function event(
     callback?: ua.Callback,
 ): void {
     if(options.disabled) {
+        console.log('No metric');
         return;
     }
 

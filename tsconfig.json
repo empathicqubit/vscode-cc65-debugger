@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "types": ["jest"],
         "module": "commonjs",
         "target": "ES2017",
 
@@ -10,10 +11,12 @@
         "noImplicitThis": true,
         "inlineSourceMap": false,
         "sourceMap": true,
-        "outDir": "../out",
+        "outDir": "./out",
         "preserveConstEnums": true,
         "strictNullChecks": true,
         "noUnusedParameters": false,
         "esModuleInterop": true
-    }
+    },
+    "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"],
+    "include": ["./src/**/*.tsx", "./src/**/*.ts"]
 }

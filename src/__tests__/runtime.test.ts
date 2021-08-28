@@ -11,6 +11,9 @@ import * as bin from '../binary-dto';
 import * as debugUtils from '../debug-utils';
 import * as disassembly from '../disassembly';
 import { Runtime } from '../runtime';
+import * as metrics from '../../src/metrics';
+
+metrics.options.disabled = true;
 
 const all = (...args) => Promise.all(args);
 
@@ -20,7 +23,7 @@ describe('Runtime', () => {
         when testing the defaults */
     const BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
     const PREPROCESS_COMMAND = 'make preprocess-only';
-    const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/simple-project');
+    const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/simple-project');
     const PROGRAM = BUILD_CWD + '/simple-project.c64'
     const MAP_FILE = PROGRAM + '.map';
     const DEBUG_FILE = PROGRAM + '.dbg';
@@ -214,7 +217,7 @@ describe('Runtime', () => {
     });
 
     describe('Assembly', () => {
-        const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/asm-project');
+        const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/asm-project');
         const MAP_FILE = BUILD_CWD + '/asm-project.c64.map';
         const DEBUG_FILE = BUILD_CWD + '/asm-project.c64.dbg';
         const LABEL_FILE = BUILD_CWD + '/asm-project.c64.lbl';
