@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 
 describe('Compile', () => {
     const BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
-    const BUILD_CWD = path.normalize(__dirname + '/../../src/tests/simple-project');
+    const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/simple-project');
     const PROGRAM = BUILD_CWD + '/simple-project.c64';
     const PREPROCESS_COMMAND = 'make preprocess-only';
 
