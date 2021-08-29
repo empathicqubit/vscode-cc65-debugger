@@ -179,7 +179,7 @@ VICE detects this may be to blame. To turn it off, just add `+warp` and
 
 If you've used the default `Makefile` at
 [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself),
-it's recommended to use a [slightly modified Makefile](src/tests/simple-project/Makefile).
+it's recommended to use a [slightly modified Makefile](src/__tests__/simple-project/Makefile).
 This Makefile contains targets to generate the preprocessor `.i` files, which
 are easier for Clang to understand to help you [browse struct data](#changes-needed-to-your-system).
 Otherwise you only need to add the `-g` option to your `CFLAGS` **and** `LDFLAGS`
@@ -203,7 +203,7 @@ target is `preprocess-only`, but you can change the command used with the
 If you have included any optimizations (`-Osir`) you should probably turn those
 off, however, effort has been made to trace some of them.
 
-You may also want to look at the [full Assembly project template](src/tests/asm-project), and the [C project template](src/tests/simple-project).
+You may also want to look at the [full Assembly project template](src/__tests__/asm-project), and the [C project template](src/__tests__/simple-project).
 
 ## Changes needed to your code
 

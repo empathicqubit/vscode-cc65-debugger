@@ -25,7 +25,7 @@ specifiers:
   hasbin: ^1.2.3
   jest: ^27.0.6
   lodash: ^4.17.15
-  marked: ^1.2.7
+  marked: ^3.0.2
   node-watch: ^0.7.1
   npm-run-all: ^4.1.5
   performance-now: ^2.1.0
@@ -66,7 +66,7 @@ dependencies:
   get-port: 5.1.1
   hasbin: 1.2.3
   lodash: 4.17.20
-  marked: 1.2.7
+  marked: 3.0.2
   node-watch: 0.7.1
   performance-now: 2.1.0
   pngjs: 5.0.0
@@ -4352,9 +4352,9 @@ packages:
       uc.micro: 1.0.6
     dev: true
 
-  /marked/1.2.7:
-    resolution: {integrity: sha512-No11hFYcXr/zkBvL6qFmAp1z6BKY3zqLMHny/JN/ey+al7qwCM2+CMBL9BOgqMxZU36fz4cCWfn2poWIf7QRXA==}
-    engines: {node: '>= 8.16.2'}
+  /marked/3.0.2:
+    resolution: {integrity: sha512-TMJQQ79Z0e3rJYazY0tIoMsFzteUGw9fB3FD+gzuIT3zLuG9L9ckIvUfF51apdJkcqc208jJN2KbtPbOvXtbjA==}
+    engines: {node: '>= 12'}
     hasBin: true
     dev: false
 
