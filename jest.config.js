@@ -1,5 +1,5 @@
 module.exports = {
-    "testTimeout": 30000,
+    "testTimeout": 35000,
     "roots": [
         "<rootDir>/src"
     ],
