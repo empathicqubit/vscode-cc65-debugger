@@ -19,7 +19,11 @@ jobs:
 
     strategy:
       matrix:
-        vice_version: ['tags/v3.5'] #Add versions here
+          include:
+              - vice_version:
+                vice_directory: VICE_DIRECTORY=/vices/vice-3.5-build/src
+              - vice_version: trunk
+                vice_directory:
 
     steps:
     - uses: actions/checkout@v2
@@ -31,7 +35,7 @@ jobs:
     - run: ln -s $PWD/system /usr/lib/vice
     - run: ln -s $PWD/system /usr/share/vice
     - run: ls -l /usr/local/share
-    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} pnpm package
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm package
     - run: unzip -l cc65-vice*.vsix
 
     - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
