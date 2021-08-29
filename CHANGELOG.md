@@ -1,5 +1,14 @@
 # Changelog
 
+### [3.7.10](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.9...v3.7.10) (2021-08-29)
+
+
+### Bug Fixes
+
+* More detailed executable not found message ([4663f9e](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/4663f9e047cb6c0991b4ede9a45ed44f8588ef4c))
+* Switch to Jest tests ([8e248b5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/8e248b5c2e6f3fce82958869818bed0ba5985782))
+* Update system ROM folder. ([c417568](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/c4175682c114e0cb892ca62bfd0f5d5e1ee50824))
+
 ### [3.7.9](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.8...v3.7.9) (2021-07-15)
 
 
