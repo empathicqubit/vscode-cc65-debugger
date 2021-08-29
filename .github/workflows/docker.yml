@@ -2,8 +2,8 @@ name: Docker
 
 on:
   push:
-    branches:
-      - master
+    paths:
+      - 'docker/**'
 
 jobs:
   build:
