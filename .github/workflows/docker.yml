@@ -1,0 +1,22 @@
+name: Docker
+
+on:
+  push:
+    paths:
+      - 'docker/**'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - uses: actions/checkout@v2
+    - run: docker pull empathicqubit/vscode-cc65-vice-debug-build
+    - run: cd docker && docker build -t empathicqubit/vscode-cc65-vice-debug-build .
+    - run: docker push empathicqubit/vscode-cc65-vice-debug-build
