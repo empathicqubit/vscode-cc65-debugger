@@ -1,5 +1,12 @@
 # Changelog
 
+### [3.7.11](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.10...v3.7.11) (2021-08-29)
+
+
+### Bug Fixes
+
+* Update marked. Fix Makefile for multiple targets. ([b81e264](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/b81e2644ebbdde149d04c87e195305e6e6550e03))
+
 ### [3.7.10](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.9...v3.7.10) (2021-08-29)
 
 
