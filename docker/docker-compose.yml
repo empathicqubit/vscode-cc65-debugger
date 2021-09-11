@@ -2,6 +2,7 @@ version: '2'
 services:
     build:
         image: empathicqubit/vscode-cc65-vice-debug-build
+        user: "1000"
         volumes:
             - ..:/mnt
         working_dir: /mnt

@@ -1,11 +1,15 @@
-FROM node:13-buster
-RUN sed -i 's@debian.org/debian [[:alpha:]]* main@& contrib@g' /etc/apt/sources.list
-RUN grep 'debian.org/debian [[:alpha:]]* main' /etc/apt/sources.list \
-    | grep -v '#' \
-    | sed -e 's/^deb/deb-src/g' >> /etc/apt/sources.list
+FROM ubuntu:bionic
+ENV DEBIAN_FRONTEND noninteractive
+RUN grep 'ubuntu.com/ubuntu' /etc/apt/sources.list \
+    | grep '# deb-src' \
+    | sed -e 's/^# //g' >> /etc/apt/sources.list
+RUN sed -i 's@http://archive.ubuntu.com/ubuntu@mirror://mirrors.ubuntu.com/mirrors.txt@g' /etc/apt/sources.list
 RUN apt-get update && \
     apt-get build-dep --no-install-recommends -y vice && \
-    apt-get install -y --no-install-recommends curl python3-fonttools dos2unix cc65 && \
+    apt-get install -y --no-install-recommends curl python3-fonttools dos2unix cc65 zip gcc-multilib-i686-linux-gnu mingw-w64 libc6-dev-arm64-cross libc6-arm64-cross gcc-aarch64-linux-gnu gcc-multilib-arm-linux-gnueabi gcc-multilib-arm-linux-gnueabihf && \
+    apt-get clean && rm -rf /var/cache/apt/lists/*
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs git unzip subversion xa65 && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
 RUN mkdir /vices && \
     cd /vices && \
@@ -18,4 +22,4 @@ RUN mkdir /vices && \
         make -j$(nproc) && \
         rm -rf /vices/vice-$each /vices/vice-$each.tar.gz ; \
     done
-RUN npm install -g pnpm@5.5.10
+RUN curl -L unpkg.com/@pnpm/self-installer | node

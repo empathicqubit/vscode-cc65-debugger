@@ -337,7 +337,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // build the program.
             let possibles = <any>[];
             try {
-                possibles = await this._runtime.build(args.buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile", args.preprocessCommand || "make preprocess-only");
+                possibles = await this._runtime.build(args.buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile,debugtables", args.preprocessCommand || "make preprocess-only");
             }
             catch {
                 metrics.event('session', 'build-error');

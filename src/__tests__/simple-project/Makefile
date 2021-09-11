@@ -27,7 +27,7 @@ CONFIG  :=
 
 # Additional C compiler flags and options.
 # Default: none
-CFLAGS  = -g
+CFLAGS  = -g -d
 
 # Additional assembler flags and options.
 # Default: none
@@ -112,6 +112,12 @@ endef
 define _debugfile_
   LDFLAGS += -Wl --dbgfile,$$@.dbg
   REMOVES += $(PROGRAM).dbg
+endef
+
+# Linker flags for generating a symbol table file
+define _debugtables_
+  CFLAGS += -Wc '--debug-tables "$$(@:.o=.tab)"'
+  REMOVES += $(PROGRAM).tab
 endef
 
 ###############################################################################

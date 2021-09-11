@@ -5,11 +5,22 @@
 
 #define TEST_FLAG (unsigned char *)0x03fc
 
+struct hello {
+    unsigned char j;
+    unsigned char k;
+    struct {
+        unsigned char m;
+        unsigned char n;
+    } l;
+};
+
 void steps(void);
 
 void pause_test(void);
 
 unsigned char main(void) {
+    struct hello wow = { 1, 3 };
+    printf("%d %d", wow.j, wow.k);
     *TEST_FLAG = 0x00;
     puts("Hello world!");
     steps();
@@ -47,7 +58,7 @@ void open_a_thing(void) {
         }
 
         if(
-            i % 5 != 0 
+            i % 5 != 0
             && i % 3 != 0
             ) {
             printf("%d", i);

@@ -32,15 +32,30 @@
     "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
   },
   "scripts": {
-    "clean": "shx rm -r dist out",
+    "distclean": "npm-run-all clean && shx rm -rf node_modules .pnpm_store 3rdparty/cc65 3rdparty/c64tff",
+    "clean": "shx rm -r dist out || echo Done && cd 3rdparty/cc65 && make clean",
     "chargen": "split-file -s ./system/C64/chargen 2",
     "c64ttf": "cd ./system/C64 && python3 ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf || python ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf",
     "submodules": "git submodule init && git submodule update",
+    "compiler:arch": "npm-run-all compiler:distdir && node -e \"const shx = require('shelljs'); shx.config.fatal = true; const arg = process.argv; let [, arch, cross] = arg; cross = cross || ''; const archDir = '3rdparty/cc65/wrk/' + arch; shx.mkdir('-p', archDir); shx.cp('-ru', archDir + '/../../src/', archDir); shx.cd(archDir + '/src'); shx.exec('make -j8 CROSS_COMPILE=' + cross); shx.exec(cross + 'strip ../bin/*'); const distDir = '../../../../../dist/cc65/bin_' + arch; shx.mkdir('-p', distDir); shx.cp('-ru', '../bin/.', distDir);\"",
+    "compiler:arch:linux_x32": "npm-run-all \"compiler:arch -- linux_x32 i686-linux-gnu-\"",
+    "compiler:arch:linux_x64": "npm-run-all \"compiler:arch -- linux_x64\"",
+    "compiler:arch:linux_arm": "npm-run-all \"compiler:arch -- linux_arm arm-linux-gnueabi-\"",
+    "compiler:arch:linux_ahf": "npm-run-all \"compiler:arch -- linux_ahf arm-linux-gnueabihf-\"",
+    "compiler:arch:linux_arm64": "npm-run-all \"compiler:arch -- linux_arm64 aarch64-linux-gnu-\"",
+    "compiler:arch:win32_x32": "npm-run-all \"compiler:arch -- win32_x32 i686-w64-mingw32-\"",
+    "compiler:arch:win32_x64": "npm-run-all \"compiler:arch -- win32_x64 x86_64-w64-mingw32-\"",
+    "compiler:base": "npm-run-all compiler:distdir && shx rm -f cc65.zip && cd 3rdparty/cc65 && make -j8 && make zip && unzip -o cc65.zip -d ../../dist/cc65",
+    "compiler:distdir": "mkdir -p dist/cc65",
+    "compiler:on-windows": "echo \"You cannot build on this platform yet.\" && exit 1",
+    "compiler:on-linux": "npm-run-all -p compiler:base compiler:arch:*",
+    "compiler:choose": "node -e \"process.exit(!(process.platform == 'win32'))\" && npm-run-all compiler:on-windows || npm-run-all compiler:on-linux",
+    "compiler": "npm-run-all submodules compiler:choose",
     "fontgen:force": "npm-run-all submodules chargen c64ttf",
     "fontgen": "shx test -e ./dist/c64.ttf || npm-run-all fontgen:force",
     "styles": "shx cp -u src/styles.css dist/styles.css",
     "kernal": "shx cp -ru system/ dist",
-    "nonjs": "npm-run-all -p styles fontgen kernal",
+    "nonjs": "npm-run-all -p styles fontgen kernal compiler",
     "monitor": "webpack --config webpack.monitor.config.js --mode production",
     "monitor:debug": "webpack --config webpack.monitor.config.js --mode development",
     "webviews": "webpack --config webpack.webviews.config.js --mode production",
@@ -59,7 +74,7 @@
     "vscode:webviews:debug": "npm-run-all -p tisk nonjs && npm-run-all not-extension:debug",
     "vscode:install": "npm-run-all package && codium --install-extension cc65-vice*.vsix || code --install-extension cc65-vice*.vsix",
     "vice:make": "cd ./src/__tests__/vicedir && make -j8",
-    "vice:configure:force": "cd ./src/__tests__/vicedir && bash ./configure --enable-headlessui --disable-pdf-docs",
+    "vice:configure:force": "cd ./src/__tests__/vicedir && bash ./configure --enable-headlessui --disable-pdf-docs --disable-portaudio",
     "vice:autogen:force": "cd ./src/__tests__/vicedir && bash ./autogen.sh",
     "vice:autogen": "shx test -e ./src/__tests__/vicedir/Makefile.in || npm-run-all vice:autogen:force",
     "vice:configure": "shx test -e ./src/__tests__/vicedir/Makefile || npm-run-all vice:autogen vice:configure:force",
@@ -268,12 +283,12 @@
               "buildCommand": {
                 "type": "string",
                 "description": "The command to use to build before execution. Default is 'make'",
-                "default": "make OPTIONS=debugfile,makefile,labelfile"
+                "default": "make OPTIONS=debugfile,makefile,labelfile,debugtables"
               },
               "preprocessCommand": {
                 "type": "string",
                 "description": "The command to use to generate preprocessor .i files before execution. Default is 'make preprocess-only'",
-                "default": "make OPTIONS=debugfile,makefile,labelfile preprocess-only"
+                "default": "make OPTIONS=debugfile,makefile,labelfile,debugtables preprocess-only"
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -320,8 +335,8 @@
             "request": "launch",
             "name": "CC65 Vice Launch",
             "buildCwd": "${workspaceFolder}",
-            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
-            "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
+            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables",
+            "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables preprocess-only",
             "stopOnEntry": true,
             "stopOnExit": true,
             "viceArgs": [
@@ -339,8 +354,8 @@
               "request": "launch",
               "name": "CC65 Vice Launch",
               "buildCwd": "^\"\\${workspaceFolder}\"",
-              "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
-              "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile preprocess-only",
+              "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables",
+              "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables preprocess-only",
               "stopOnEntry": true,
               "stopOnExit": true,
               "viceArgs": [
