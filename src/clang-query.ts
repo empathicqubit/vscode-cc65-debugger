@@ -18,22 +18,16 @@ export interface ClangTypeInfo {
     aliasOf: string;
 }
 
-export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, usePreprocess: boolean, cwd: string) : Promise<{[typename: string]:ClangTypeInfo[]}> {
+export async function getLocalTypes(dbgFile: dbgfile.Dbgfile, cwd: string) : Promise<{[typename: string]:ClangTypeInfo[]}> {
     const clangExecPath : string = <any>await util.promisify((i, cb) => hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null)))(['clang-query-12', 'clang-query-11', 'clang-query-10', 'clang-query-9', 'clang-query-8', 'clang-query-7', 'clang-query'])
     const baseArgs = ['-c=set output dump'];
 
-    let codeFiles : string[];
-    if(usePreprocess) {
-        // FIXME Get this list from elsewhere?
-        codeFiles = (await util.promisify(readdir)(cwd) as string[]).filter(x => /\.i$/gi.test(x));
-    }
-    else {
-        codeFiles = _flow(
+    let codeFiles : string[] =
+        _flow(
             _filter((x: typeof dbgFile.files[0]) => /\.(c|h)$/gi.test(x.name)),
             _map(x => x.name),
             _sortBy((x : string) => !/\.h$/gi.test(x), (_, i) => i)
         )(dbgFile.files);
-    }
 
     if(!codeFiles.length) {
         console.log('No code files found. Not running Clang');

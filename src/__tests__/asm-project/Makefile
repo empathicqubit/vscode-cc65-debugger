@@ -244,7 +244,7 @@ ifneq ($(word 2,$(CONFIG)),)
 endif
 
 .SUFFIXES:
-.PHONY: all test clean zap love preprocess-only
+.PHONY: all test clean zap love
 
 all: $(PROGRAM)
 
@@ -308,8 +308,6 @@ $(TARGETOBJDIR)/%.i: %.c | $(TARGETOBJDIR)
 $(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
 	cl65 -t $(CC65TARGET) $(LDFLAGS) -o $@ $(patsubst %.cfg,-C %.cfg,$^)
 
-preprocess-only: $(INTERMEDIATES)
-
 test: $(PROGRAM)
 	$(PREEMUCMD)
 	$(EMUCMD) $<
@@ -323,7 +321,7 @@ clean:
 
 else # $(words $(TARGETLIST)),1
 
-all test clean preprocess-only:
+all test clean:
 	$(foreach t,$(TARGETLIST),$(MAKE) TARGETS=$t $@$(NEWLINE))
 
 endif # $(words $(TARGETLIST)),1

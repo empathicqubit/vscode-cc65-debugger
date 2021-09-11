@@ -24,6 +24,7 @@ import * as Net from 'net';
 import * as vscode from 'vscode';
 import { CancellationToken, DebugConfiguration, ProviderResult, WorkspaceFolder } from 'vscode';
 import { DebugSession } from 'vscode-debugadapter';
+import { DEFAULT_BUILD_COMMAND } from './compile';
 import { CC65ViceDebugSession } from './debug-session';
 import * as debugUtils from './debug-utils';
 import * as metrics from './metrics';
@@ -178,12 +179,13 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
                 config.type = 'cc65-vice';
                 config.name = 'Build and launch VICE';
                 config.request = 'launch';
-                config.buildCommand = 'make OPTIONS=debugfile,mapfile,labelfile';
+                config.buildCommand = DEFAULT_BUILD_COMMAND;
                 config.buildCwd = '${worspaceFolder}';
                 config.stopOnEntry = true;
             }
         }
 
+        config.cc65Directory = vscode.workspace.getConfiguration('cc65vice').get('cc65Directory');
         config.viceDirectory = vscode.workspace.getConfiguration('cc65vice').get('viceDirectory');
         config.preferX64OverX64sc = vscode.workspace.getConfiguration('cc65vice').get('preferX64OverX64sc');
         config.runAhead = vscode.workspace.getConfiguration('cc65vice').get('runAhead');

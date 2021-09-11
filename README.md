@@ -121,10 +121,6 @@ hardware options that you need for your program. Either NTSC or one of the PAL
 models (jap, drean, etc). Look at the VICE manual for the full list.
 - **buildCommand**: Your actual build command. Defaults to make if unspecified.
 [You will need to change your Makefile to support being debugged with this.](#changes-needed-to-your-makefile)
-- **preprocessCommand**: The command used to generate the preprocessor `.i`
-files, which are used by Clang instead of the `.c` and `.h` files if they are
-available. Omitting this setting may cause the preprocessor files not to be
-built, which could result in less accurate struct handling.
 
 Other shared settings:
 
@@ -180,8 +176,6 @@ VICE detects this may be to blame. To turn it off, just add `+warp` and
 If you've used the default `Makefile` at
 [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself),
 it's recommended to use a [slightly modified Makefile](src/__tests__/simple-project/Makefile).
-This Makefile contains targets to generate the preprocessor `.i` files, which
-are easier for Clang to understand to help you [browse struct data](#changes-needed-to-your-system).
 Otherwise you only need to add the `-g` option to your `CFLAGS` **and** `LDFLAGS`
 variables at the top of the file.
 
@@ -195,10 +189,6 @@ your linker:
 
 Make sure that the paths on the files are in the same folder and have the same
 name (minus the extension, of course) as your main program!
-
-You will also need a target to generate the preprocessor `.i` files. The default
-target is `preprocess-only`, but you can change the command used with the
-`preprocessCommand` option.
 
 If you have included any optimizations (`-Osir`) you should probably turn those
 off, however, effort has been made to trace some of them.

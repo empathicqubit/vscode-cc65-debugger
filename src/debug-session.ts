@@ -14,6 +14,7 @@ const { Subject } = require('await-notify');
 import * as colors from 'colors/safe';
 import {keyMappings} from './key-mappings';
 import {LaunchRequestArguments} from './launch-arguments';
+import {DEFAULT_BUILD_COMMAND} from './compile';
 import * as metrics from './metrics';
 
 enum VariablesReferenceFlag {
@@ -337,7 +338,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // build the program.
             let possibles = <any>[];
             try {
-                possibles = await this._runtime.build(args.buildCwd, args.buildCommand || "make OPTIONS=mapfile,debugfile,labelfile,debugtables", args.preprocessCommand || "make preprocess-only");
+                possibles = await this._runtime.build(args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND);
             }
             catch {
                 metrics.event('session', 'build-error');

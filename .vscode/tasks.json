@@ -2,6 +2,15 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "build",
+            "type": "npm",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "script": "tisk"
+        },
+        {
             "label": "extension",
             "dependsOn": ["server", "webviews"]
         },

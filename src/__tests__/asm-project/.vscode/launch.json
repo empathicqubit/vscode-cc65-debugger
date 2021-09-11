@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "CC65 Vice Launch",
             "buildCwd": "${workspaceFolder}",
-            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables",
             "debugServer": 4711,
             "stopOnEntry": true,
             "stopOnExit": true,

@@ -50,11 +50,11 @@
     "compiler:on-windows": "echo \"You cannot build on this platform yet.\" && exit 1",
     "compiler:on-linux": "npm-run-all -p compiler:base compiler:arch:*",
     "compiler:choose": "node -e \"process.exit(!(process.platform == 'win32'))\" && npm-run-all compiler:on-windows || npm-run-all compiler:on-linux",
-    "compiler": "npm-run-all submodules compiler:choose",
+    "compiler": "node -e \"/* Wait for finish if it's already running */ const [fs, shx, pidFile] = [require('fs'), require('shelljs'), './compiler.run']; if (shx.test('-e', pidFile)) { const pid = shx.cat(pidFile); console.log('Waiting for active process'); while(true) { try { process.kill(pid, 0) } catch { break } } console.log('Other process finished!'); process.exit(0); } ; fs.writeFileSync(pidFile, process.pid.toString());  shx.config.fatal = true; shx.exec('npm-run-all submodules compiler:choose'); fs.unlinkSync(pidFile)\"",
     "fontgen:force": "npm-run-all submodules chargen c64ttf",
     "fontgen": "shx test -e ./dist/c64.ttf || npm-run-all fontgen:force",
     "styles": "shx cp -u src/styles.css dist/styles.css",
-    "kernal": "shx cp -ru system/ dist",
+    "kernal": "shx mkdir -p dist/system && shx cp -ru system/. dist/system",
     "nonjs": "npm-run-all -p styles fontgen kernal compiler",
     "monitor": "webpack --config webpack.monitor.config.js --mode production",
     "monitor:debug": "webpack --config webpack.monitor.config.js --mode development",
@@ -167,13 +167,21 @@
     "configuration": {
       "title": "CC65 VICE Debugger",
       "properties": {
+        "cc65vice.cc65Directory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "The directory containing cc65. Set this if you don't want to use the builtin one."
+        },
         "cc65vice.viceDirectory": {
           "type": [
             "string",
             "null"
           ],
           "default": null,
-          "description": "The directory containing VICE Emulator. Set this if you're on Windows."
+          "description": "The directory containing VICE Emulator. Set this if it's not on your path."
         },
         "cc65vice.preferX64OverX64sc": {
           "type": "boolean",
@@ -283,12 +291,7 @@
               "buildCommand": {
                 "type": "string",
                 "description": "The command to use to build before execution. Default is 'make'",
-                "default": "make OPTIONS=debugfile,makefile,labelfile,debugtables"
-              },
-              "preprocessCommand": {
-                "type": "string",
-                "description": "The command to use to generate preprocessor .i files before execution. Default is 'make preprocess-only'",
-                "default": "make OPTIONS=debugfile,makefile,labelfile,debugtables preprocess-only"
+                "default": "make OPTIONS=debugfile,makefile,labelfile"
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -336,7 +339,6 @@
             "name": "CC65 Vice Launch",
             "buildCwd": "${workspaceFolder}",
             "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables",
-            "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables preprocess-only",
             "stopOnEntry": true,
             "stopOnExit": true,
             "viceArgs": [
@@ -354,8 +356,7 @@
               "request": "launch",
               "name": "CC65 Vice Launch",
               "buildCwd": "^\"\\${workspaceFolder}\"",
-              "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables",
-              "preprocessCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables preprocess-only",
+              "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
               "stopOnEntry": true,
               "stopOnExit": true,
               "viceArgs": [

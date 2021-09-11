@@ -24,6 +24,7 @@ import * as mapFile from './map-file';
 import * as metrics from './metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
+import * as os from 'os';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -92,7 +93,6 @@ export class Runtime extends EventEmitter {
     private _consoleType?: string;
     private _runInTerminalRequest: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void;
     private _colorTermPids: [number, number] = [-1, -1];
-    private _usePreprocess: boolean;
     private _runAhead: boolean;
     private _ignoreEvents: boolean = false;
     private _screenUpdateTimer: NodeJS.Timeout | undefined;
@@ -113,17 +113,30 @@ export class Runtime extends EventEmitter {
     * Build the program using the command specified and try to find the output file with monitoring.
     * @returns The possible output files of types d81, prg, and d64.
     */
-    public async build(buildCwd: string, buildCmd: string, preprocessCmd: string) : Promise<string[]> {
-        const opts = {
-            shell: true,
+    public async build(buildCwd: string, buildCmd: string, cc65Directory?: string) : Promise<string[]> {
+        let cc65Home = '';
+        let sep = ':';
+        if(process.platform == 'win32') {
+            sep = ';';
+        }
+        if(!cc65Directory) {
+            if(['linux', 'win32'].includes(process.platform) && ['arm', 'arm64', 'x32', 'x64'].includes(os.arch())) {
+                cc65Directory = path.normalize(__dirname + '/../dist/cc65/bin_' + process.platform + '_' + os.arch());
+                cc65Home = path.normalize(cc65Directory + '/..');
+            }
+        }
+
+        const opts : child_process.ExecOptions = {
+            shell: <any>true,
+            env: {
+                PATH: [process.env.PATH, cc65Directory].filter(x => x).join(sep),
+                CC65_HOME: [process.env.CC65_HOME, cc65Home].filter(x => x).join(sep),
+            }
         };
 
-        const [changedFilenames, usePreprocess] = await Promise.all([
+        const [changedFilenames] = await Promise.all([
             compile.make(buildCwd, buildCmd, this, opts),
-            compile.preProcess(buildCwd, preprocessCmd, opts),
         ]);
-
-        this._usePreprocess = usePreprocess;
 
         if(changedFilenames.length) {
             return changedFilenames;
@@ -353,7 +366,7 @@ export class Runtime extends EventEmitter {
 
         console.time('graphics+variables');
 
-        const messages = await variableManager.preStart(buildCwd, this._dbgFile, this._usePreprocess);
+        const messages = await variableManager.preStart(buildCwd, this._dbgFile);
         for(const msg of messages) {
             this.sendMessage(msg);
         }

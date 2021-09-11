@@ -10,6 +10,8 @@ import * as util from 'util';
 import readdir from 'recursive-readdir';
 import * as path from 'path';
 
+export const DEFAULT_BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
+
 export async function guessProgramPath(workspaceDir: string) {
     const filenames : string[] = await readdir(workspaceDir);
 
@@ -46,27 +48,7 @@ export async function guessProgramPath(workspaceDir: string) {
     return orderedPrograms;
 }
 
-export async function preProcess(buildCwd: string, preprocessCmd: string, opts: {}) : Promise<boolean> {
-    try {
-        if(!(preprocessCmd && preprocessCmd.trim())) {
-            return false;
-        }
-
-        await util.promisify(child_process.exec)(preprocessCmd, {
-            ...opts,
-            cwd: buildCwd,
-            shell: undefined,
-        }) 
-
-        return true;
-    }
-    catch(e) {
-        console.error(e);
-        return false;
-    }
-}
-
-export async function make(buildCwd: string, buildCmd: string, status: EventEmitter, opts: {}) : Promise<string[]> {
+export async function make(buildCwd: string, buildCmd: string, status: EventEmitter, opts: child_process.ExecOptions) : Promise<string[]> {
     const builder = new Promise((res, rej) => {
         const process = child_process.spawn(buildCmd, {
             ...opts,

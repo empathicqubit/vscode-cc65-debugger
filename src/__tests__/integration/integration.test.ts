@@ -1,6 +1,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { DEFAULT_BUILD_COMMAND } from '../../compile';
 describe('Integration', () => {
     test('Verify that the session finishes successfully without intervention', async () => {
         const root = vscode.Uri.file(path.normalize(__dirname + '/../../../src/tests/simple-project'));
@@ -12,7 +13,7 @@ describe('Integration', () => {
             "name": "debug-" + Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER / 2)).toString(16),
             "program": "${workspaceFolder}/simple-project.c64",
             "buildCwd": "${workspaceFolder}",
-            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+            "buildCommand": DEFAULT_BUILD_COMMAND,
             "stopOnEntry": false,
             "stopOnExit": false,
             "viceArgs": [],
