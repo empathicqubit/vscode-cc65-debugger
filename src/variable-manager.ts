@@ -1,9 +1,8 @@
 import * as debugFile from './debug-file'
 import {ViceGrip} from './vice-grip'
-import * as clangQuery from './clang-query'
+import * as typeQuery from './type-query'
 import * as debugUtils from './debug-utils'
 import _sum from 'lodash/fp/sum'
-import _last from 'lodash/fp/last'
 
 export interface VariableData {
     name : string;
@@ -20,7 +19,7 @@ export class VariableManager {
     private _bssLabs: debugFile.Sym[] = [];
     private _globalLabs: debugFile.Sym[] = [];
 
-    private _localTypes: { [typename: string]: clangQuery.ClangTypeInfo[]; } | undefined;
+    private _localTypes: { [typename: string]: typeQuery.FieldTypeInfo[]; } | undefined;
 
     constructor(vice: ViceGrip, codeSeg?: debugFile.Segment, zeroPage?: debugFile.Segment, labs?: debugFile.Sym[]) {
         this._vice = vice;
@@ -82,12 +81,13 @@ export class VariableManager {
 
         let val = debugUtils.rawBufferHex(buf);
 
-        let typename: string = '';
-        let clangTypeInfo: clangQuery.ClangTypeInfo[];
-        if(this._localTypes && (clangTypeInfo = this._localTypes['__GLOBAL__()'])) {
-            typename = (<any>(clangTypeInfo.find(x => x.name == symName) || {})).type || '';
+        let typeName: string = '';
+        let fieldInfo: typeQuery.FieldTypeInfo[];
+        if(this._localTypes && (fieldInfo = this._localTypes['__GLOBAL__()'])) {
+            const field = ((fieldInfo.find(x => x.name == symName) || <typeQuery.FieldTypeInfo>{}));
+            typeName = field.type.name || '';
 
-            if(/\bchar\s+\*/g.test(typename)) {
+            if(field.type.isString) {
                 const mem = await this._vice.getMemory(ptr, 24);
                 const nullIndex = mem.indexOf(0x00);
                 // FIXME PETSCII conversion
@@ -95,8 +95,8 @@ export class VariableManager {
                 val = `${str} (${debugUtils.rawBufferHex(mem)})`;
             }
 
-            if(!this._localTypes[typename.split(/\s+/g)[0]]) {
-                typename = '';
+            if(!this._localTypes[typeName]) {
+                typeName = '';
             }
         }
 
@@ -104,13 +104,13 @@ export class VariableManager {
             name: symName,
             value: val,
             addr: sym.val,
-            type: typename
+            type: typeName
         };
     }
 
     private async _getLocalTypes(buildCwd: string, dbgFile: debugFile.Dbgfile) {
         try {
-            this._localTypes = await clangQuery.getLocalTypes(dbgFile, buildCwd);
+            this._localTypes = typeQuery.getLocalTypes(dbgFile, await typeQuery.getTabFiles(buildCwd));
         }
         catch(e) {
             console.error(e);
@@ -123,42 +123,35 @@ export class VariableManager {
             return [];
         }
 
-        const arrayParts = /^([^\[]+)\[([0-9]+)\]$/gi.exec(typeName);
-        let typeParts : string[];
-        if(arrayParts) {
-            const itemCount = parseInt(arrayParts[2]);
+        const type = typeQuery.parseTypeExpression(typeName);
+        if(type.array) {
             const vars : VariableData[] = [];
-            const itemSize = clangQuery.recurseFieldSize([{
-                aliasOf: '',
-                type: arrayParts[1],
+            const itemType = typeQuery.parseTypeExpression(type.array.itemType);
+            const itemSize = typeQuery.recurseFieldSize([{
                 name: '',
+                type: itemType,
             }], this._localTypes)[0];
-            for(let i = 0; i < itemCount; i++) {
+            for(let i = 0; i < type.array.length; i++) {
                 vars.push({
-                    type: arrayParts[1],
+                    type: itemType.name,
                     name: i.toString(),
-                    value: arrayParts[1],
+                    value: itemType.name,
                     addr: addr + i * itemSize,
                 });
             }
 
             return vars;
         }
-        else {
-            typeParts = typeName.split(/\s+/g);
-        }
 
-        let isPointer = typeParts.length > 1 && _last(typeParts) == '*';
-
-        if(isPointer) {
+        if(type.pointer) {
             const pointerVal = await this._vice.getMemory(addr, 2);
             addr = pointerVal.readUInt16LE(0);
         }
 
-        const fields = this._localTypes[typeParts[0]];
+        const fields = this._localTypes[type.name];
         const vars : VariableData[] = [];
 
-        const fieldSizes = clangQuery.recurseFieldSize(fields, this._localTypes);
+        const fieldSizes = typeQuery.recurseFieldSize(fields, this._localTypes);
 
         const totalSize = _sum(fieldSizes);
 
@@ -169,14 +162,11 @@ export class VariableManager {
             const fieldSize = fieldSizes[f];
             const field = fields[f];
 
-            let typename = field.type;
-            if(!this._localTypes[typename.split(/\s+/g)[0]]) {
-                typename = '';
-            }
+            let typeName = field.type.name;
 
             let value = '';
             if(fieldSize == 1) {
-                if(field.type.startsWith('signed')) {
+                if(field.type.isSigned) {
                     value = (<any>mem.readInt8(currentPosition).toString(16)).padStart(2, '0');
                 }
                 else {
@@ -184,7 +174,7 @@ export class VariableManager {
                 }
             }
             else if(fieldSize == 2) {
-                if(field.type.startsWith('signed')) {
+                if(field.type.isSigned) {
                     value = (<any>mem.readInt16LE(currentPosition).toString(16)).padStart(4, '0');
                 }
                 else {
@@ -195,8 +185,12 @@ export class VariableManager {
                 value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
             }
 
+            if(!this._localTypes[typeName] && !field.type.array) {
+                typeName = '';
+            }
+
             vars.push({
-                type: typename,
+                type: typeName,
                 name: field.name,
                 value: "0x" + value,
                 addr: addr + currentPosition,
@@ -253,20 +247,21 @@ export class VariableManager {
             }
 
             // FIXME Duplication with globals
-            let typename: string = '';
-            let clangTypeInfo: clangQuery.ClangTypeInfo[];
-            if(this._localTypes && (clangTypeInfo = this._localTypes[currentScope.name + '()'])) {
-                typename = (<any>(clangTypeInfo.find(x => x.name == csym.name) || {})).type || '';
+            let typeName: string = '';
+            let fieldInfo: typeQuery.FieldTypeInfo[];
+            if(this._localTypes && (fieldInfo = this._localTypes[currentScope.name + '()'])) {
+                const field = ((fieldInfo.find(x => x.name == csym.name) || <typeQuery.FieldTypeInfo>{}));
+                typeName = field.type.name || '';
 
-                if(ptr && /\bchar\s+\*/g.test(typename)) {
+                if(ptr && field.type.isString) {
                     const mem = await this._vice.getMemory(ptr, 24);
                     const nullIndex = mem.indexOf(0x00);
                     const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
                     val = `${str} (${debugUtils.rawBufferHex(mem)})`;
                 }
 
-                if(!this._localTypes[typename.split(/\s+/g)[0]]) {
-                    typename = '';
+                if(!this._localTypes[typeName]) {
+                    typeName = '';
                 }
             }
 
@@ -274,7 +269,7 @@ export class VariableManager {
                 name: csym.name,
                 value: val,
                 addr: addr,
-                type: typename,
+                type: typeName,
             });
         }
 

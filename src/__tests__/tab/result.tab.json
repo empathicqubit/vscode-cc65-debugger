@@ -1,0 +1,1877 @@
+{
+    "path": "sample.tab",
+    "scopes": [
+        {
+            "type": 1,
+            "name": "_main",
+            "tableType": 1,
+            "syms": [
+                {
+                    "name": "__fixargs__",
+                    "flags": 3,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "__argsize__",
+                    "flags": 3,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "wow",
+                    "flags": 14,
+                    "type": "struct hello"
+                }
+            ]
+        },
+        {
+            "type": 1,
+            "name": "_steps",
+            "tableType": 1,
+            "syms": [
+                {
+                    "name": "__fixargs__",
+                    "flags": 3,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "__argsize__",
+                    "flags": 3,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "i",
+                    "flags": 14,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "j",
+                    "flags": 14,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 1,
+            "name": "_open_a_thing",
+            "tableType": 1,
+            "syms": [
+                {
+                    "name": "__fixargs__",
+                    "flags": 3,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "__argsize__",
+                    "flags": 3,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "barg",
+                    "flags": 22,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "i",
+                    "flags": 14,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 1,
+            "name": "_pause_test",
+            "tableType": 1,
+            "syms": [
+                {
+                    "name": "__fixargs__",
+                    "flags": 3,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "__argsize__",
+                    "flags": 3,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 3,
+            "tableType": 1,
+            "syms": [
+                {
+                    "name": "ptrdiff_t",
+                    "flags": 64,
+                    "type": "int"
+                },
+                {
+                    "name": "wchar_t",
+                    "flags": 64,
+                    "type": "char"
+                },
+                {
+                    "name": "size_t",
+                    "flags": 64,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "va_list",
+                    "flags": 64,
+                    "type": "unsigned char *"
+                },
+                {
+                    "name": "FILE",
+                    "flags": 64,
+                    "type": "struct _FILE"
+                },
+                {
+                    "name": "fpos_t",
+                    "flags": 64,
+                    "type": "unsigned long"
+                },
+                {
+                    "name": "stdin",
+                    "flags": 176,
+                    "type": "struct _FILE *"
+                },
+                {
+                    "name": "stdout",
+                    "flags": 176,
+                    "type": "struct _FILE *"
+                },
+                {
+                    "name": "stderr",
+                    "flags": 176,
+                    "type": "struct _FILE *"
+                },
+                {
+                    "name": "clearerr",
+                    "flags": 432,
+                    "type": "void (struct _FILE *)"
+                },
+                {
+                    "name": "fclose",
+                    "flags": 432,
+                    "type": "int (struct _FILE *)"
+                },
+                {
+                    "name": "feof",
+                    "flags": 432,
+                    "type": "int (struct _FILE *)"
+                },
+                {
+                    "name": "ferror",
+                    "flags": 432,
+                    "type": "int (struct _FILE *)"
+                },
+                {
+                    "name": "fflush",
+                    "flags": 432,
+                    "type": "int (struct _FILE *)"
+                },
+                {
+                    "name": "fgetc",
+                    "flags": 432,
+                    "type": "int (struct _FILE *)"
+                },
+                {
+                    "name": "fgets",
+                    "flags": 432,
+                    "type": "char *(char *, unsigned int, struct _FILE *)"
+                },
+                {
+                    "name": "fopen",
+                    "flags": 432,
+                    "type": "struct _FILE *(const char *, const char *)"
+                },
+                {
+                    "name": "fprintf",
+                    "flags": 432,
+                    "type": "int (struct _FILE *, const char *, ...)"
+                },
+                {
+                    "name": "fputc",
+                    "flags": 432,
+                    "type": "int (int, struct _FILE *)"
+                },
+                {
+                    "name": "fputs",
+                    "flags": 432,
+                    "type": "int (const char *, struct _FILE *)"
+                },
+                {
+                    "name": "fread",
+                    "flags": 432,
+                    "type": "unsigned int (void *, unsigned int, unsigned int, struct _FILE *)"
+                },
+                {
+                    "name": "freopen",
+                    "flags": 432,
+                    "type": "struct _FILE *(const char *, const char *, struct _FILE *)"
+                },
+                {
+                    "name": "fwrite",
+                    "flags": 432,
+                    "type": "unsigned int (const void *, unsigned int, unsigned int, struct _FILE *)"
+                },
+                {
+                    "name": "fgetpos",
+                    "flags": 432,
+                    "type": "int (struct _FILE *, unsigned long *)"
+                },
+                {
+                    "name": "fsetpos",
+                    "flags": 432,
+                    "type": "int (struct _FILE *, const unsigned long *)"
+                },
+                {
+                    "name": "ftell",
+                    "flags": 432,
+                    "type": "long (struct _FILE *)"
+                },
+                {
+                    "name": "fseek",
+                    "flags": 432,
+                    "type": "int (struct _FILE *, long, int)"
+                },
+                {
+                    "name": "rewind",
+                    "flags": 432,
+                    "type": "void (struct _FILE *)"
+                },
+                {
+                    "name": "getchar",
+                    "flags": 432,
+                    "type": "int (void)"
+                },
+                {
+                    "name": "gets",
+                    "flags": 432,
+                    "type": "char *(char *)"
+                },
+                {
+                    "name": "perror",
+                    "flags": 432,
+                    "type": "void (const char *)"
+                },
+                {
+                    "name": "printf",
+                    "flags": 436,
+                    "type": "int (const char *, ...)"
+                },
+                {
+                    "name": "putchar",
+                    "flags": 432,
+                    "type": "int (int)"
+                },
+                {
+                    "name": "puts",
+                    "flags": 436,
+                    "type": "int (const char *)"
+                },
+                {
+                    "name": "remove",
+                    "flags": 432,
+                    "type": "int (const char *)"
+                },
+                {
+                    "name": "rename",
+                    "flags": 432,
+                    "type": "int (const char *, const char *)"
+                },
+                {
+                    "name": "snprintf",
+                    "flags": 432,
+                    "type": "int (char *, unsigned int, const char *, ...)"
+                },
+                {
+                    "name": "sprintf",
+                    "flags": 432,
+                    "type": "int (char *, const char *, ...)"
+                },
+                {
+                    "name": "ungetc",
+                    "flags": 432,
+                    "type": "int (int, struct _FILE *)"
+                },
+                {
+                    "name": "vfprintf",
+                    "flags": 432,
+                    "type": "int (struct _FILE *, const char *, unsigned char *)"
+                },
+                {
+                    "name": "vprintf",
+                    "flags": 432,
+                    "type": "int (const char *, unsigned char *)"
+                },
+                {
+                    "name": "vsnprintf",
+                    "flags": 432,
+                    "type": "int (char *, unsigned int, const char *, unsigned char *)"
+                },
+                {
+                    "name": "vsprintf",
+                    "flags": 432,
+                    "type": "int (char *, const char *, unsigned char *)"
+                },
+                {
+                    "name": "scanf",
+                    "flags": 432,
+                    "type": "int (const char *, ...)"
+                },
+                {
+                    "name": "fscanf",
+                    "flags": 432,
+                    "type": "int (struct _FILE *, const char *, ...)"
+                },
+                {
+                    "name": "sscanf",
+                    "flags": 432,
+                    "type": "int (const char *, const char *, ...)"
+                },
+                {
+                    "name": "vscanf",
+                    "flags": 432,
+                    "type": "int (const char *, unsigned char *)"
+                },
+                {
+                    "name": "vsscanf",
+                    "flags": 432,
+                    "type": "int (const char *, const char *, unsigned char *)"
+                },
+                {
+                    "name": "vfscanf",
+                    "flags": 432,
+                    "type": "int (struct _FILE *, const char *, unsigned char *)"
+                },
+                {
+                    "name": "fdopen",
+                    "flags": 432,
+                    "type": "struct _FILE *(int, const char *)"
+                },
+                {
+                    "name": "fileno",
+                    "flags": 432,
+                    "type": "int (struct _FILE *)"
+                },
+                {
+                    "name": "_poserror",
+                    "flags": 432,
+                    "type": "void (const char *)"
+                },
+                {
+                    "name": "c64_65816_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_c256k_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_dqbb_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_georam_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_isepic_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_kerberos_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_ram_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_ramcart_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_reu_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_vdc_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "dtv_himem_emd",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_hitjoy_joy",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_numpad_joy",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_ptvjoy_joy",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_stdjoy_joy",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_1351_mou",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_joy_mou",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_inkwell_mou",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_pot_mou",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_swlink_ser",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "c64_hi_tgi",
+                    "flags": 176,
+                    "type": "void[]"
+                },
+                {
+                    "name": "get_ostype",
+                    "flags": 432,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "_cbm_filetype",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned char)"
+                },
+                {
+                    "name": "_filetype",
+                    "flags": 176,
+                    "type": "char"
+                },
+                {
+                    "name": "get_tv",
+                    "flags": 432,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "kbrepeat",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned char)"
+                },
+                {
+                    "name": "waitvsync",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "cbm_k_acptr",
+                    "flags": 432,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "cbm_k_basin",
+                    "flags": 432,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "cbm_k_bsout",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_chkin",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_chrin",
+                    "flags": 432,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "cbm_k_chrout",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_ciout",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_ckout",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_clall",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "cbm_k_close",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_clrch",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "cbm_k_getin",
+                    "flags": 432,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "cbm_k_iobase",
+                    "flags": 432,
+                    "type": "unsigned int (void)"
+                },
+                {
+                    "name": "cbm_k_listen",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_load",
+                    "flags": 432,
+                    "type": "unsigned int (unsigned char, unsigned int)"
+                },
+                {
+                    "name": "cbm_k_open",
+                    "flags": 436,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "cbm_k_readst",
+                    "flags": 432,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "cbm_k_save",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned int, unsigned int)"
+                },
+                {
+                    "name": "cbm_k_scnkey",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "cbm_k_second",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_setlfs",
+                    "flags": 432,
+                    "type": "void (unsigned char, unsigned char, unsigned char)"
+                },
+                {
+                    "name": "cbm_k_setnam",
+                    "flags": 432,
+                    "type": "void (const char *)"
+                },
+                {
+                    "name": "cbm_k_settim",
+                    "flags": 432,
+                    "type": "void (unsigned long)"
+                },
+                {
+                    "name": "cbm_k_talk",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_tksa",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_k_udtim",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "cbm_k_unlsn",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "cbm_k_untlk",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "cbm_load",
+                    "flags": 432,
+                    "type": "unsigned int (const char *, unsigned char, void *)"
+                },
+                {
+                    "name": "cbm_save",
+                    "flags": 432,
+                    "type": "unsigned char (const char *, unsigned char, const void *, unsigned int)"
+                },
+                {
+                    "name": "cbm_open",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned char, unsigned char, unsigned char, const char *)"
+                },
+                {
+                    "name": "cbm_close",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "cbm_read",
+                    "flags": 432,
+                    "type": "int (unsigned char, void *, unsigned int)"
+                },
+                {
+                    "name": "cbm_write",
+                    "flags": 432,
+                    "type": "int (unsigned char, const void *, unsigned int)"
+                },
+                {
+                    "name": "cbm_opendir",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned char, unsigned char, ...)"
+                },
+                {
+                    "name": "cbm_readdir",
+                    "flags": 432,
+                    "type": "unsigned char (unsigned char, struct cbm_dirent *)"
+                },
+                {
+                    "name": "cbm_closedir",
+                    "flags": 432,
+                    "type": "void (unsigned char)"
+                },
+                {
+                    "name": "div_t",
+                    "flags": 64,
+                    "type": "struct $anon-struct-000D"
+                },
+                {
+                    "name": "ldiv_t",
+                    "flags": 64,
+                    "type": "struct $anon-struct-000E"
+                },
+                {
+                    "name": "malloc",
+                    "flags": 432,
+                    "type": "void *(unsigned int)"
+                },
+                {
+                    "name": "calloc",
+                    "flags": 432,
+                    "type": "void *(unsigned int, unsigned int)"
+                },
+                {
+                    "name": "realloc",
+                    "flags": 432,
+                    "type": "void *(void *, unsigned int)"
+                },
+                {
+                    "name": "free",
+                    "flags": 432,
+                    "type": "void (void *)"
+                },
+                {
+                    "name": "posix_memalign",
+                    "flags": 432,
+                    "type": "int (void **, unsigned int, unsigned int)"
+                },
+                {
+                    "name": "_heapadd",
+                    "flags": 432,
+                    "type": "void (void *, unsigned int)"
+                },
+                {
+                    "name": "_heapblocksize",
+                    "flags": 432,
+                    "type": "unsigned int (const void *)"
+                },
+                {
+                    "name": "_heapmemavail",
+                    "flags": 432,
+                    "type": "unsigned int (void)"
+                },
+                {
+                    "name": "_heapmaxavail",
+                    "flags": 432,
+                    "type": "unsigned int (void)"
+                },
+                {
+                    "name": "rand",
+                    "flags": 432,
+                    "type": "int (void)"
+                },
+                {
+                    "name": "srand",
+                    "flags": 432,
+                    "type": "void (unsigned int)"
+                },
+                {
+                    "name": "_randomize",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "abort",
+                    "flags": 432,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "abs",
+                    "flags": 432,
+                    "type": "int (int)"
+                },
+                {
+                    "name": "labs",
+                    "flags": 432,
+                    "type": "long (long)"
+                },
+                {
+                    "name": "atoi",
+                    "flags": 432,
+                    "type": "int (const char *)"
+                },
+                {
+                    "name": "atol",
+                    "flags": 432,
+                    "type": "long (const char *)"
+                },
+                {
+                    "name": "atexit",
+                    "flags": 432,
+                    "type": "int (void (*)(void))"
+                },
+                {
+                    "name": "bsearch",
+                    "flags": 432,
+                    "type": "void *(const void *, const void *, unsigned int, unsigned int, int (*)(const void *, const void *))"
+                },
+                {
+                    "name": "div",
+                    "flags": 432,
+                    "type": "struct $anon-struct-000D (int, int)"
+                },
+                {
+                    "name": "exit",
+                    "flags": 432,
+                    "type": "void (int)"
+                },
+                {
+                    "name": "getenv",
+                    "flags": 432,
+                    "type": "char *(const char *)"
+                },
+                {
+                    "name": "qsort",
+                    "flags": 432,
+                    "type": "void (void *, unsigned int, unsigned int, int (*)(const void *, const void *))"
+                },
+                {
+                    "name": "strtol",
+                    "flags": 432,
+                    "type": "long (const char *, char **, int)"
+                },
+                {
+                    "name": "strtoul",
+                    "flags": 432,
+                    "type": "unsigned long (const char *, char **, int)"
+                },
+                {
+                    "name": "system",
+                    "flags": 432,
+                    "type": "int (const char *)"
+                },
+                {
+                    "name": "_swap",
+                    "flags": 432,
+                    "type": "void (void *, void *, unsigned int)"
+                },
+                {
+                    "name": "itoa",
+                    "flags": 432,
+                    "type": "char *(int, char *, int)"
+                },
+                {
+                    "name": "utoa",
+                    "flags": 432,
+                    "type": "char *(unsigned int, char *, int)"
+                },
+                {
+                    "name": "ltoa",
+                    "flags": 432,
+                    "type": "char *(long, char *, int)"
+                },
+                {
+                    "name": "ultoa",
+                    "flags": 432,
+                    "type": "char *(unsigned long, char *, int)"
+                },
+                {
+                    "name": "putenv",
+                    "flags": 432,
+                    "type": "int (char *)"
+                },
+                {
+                    "name": "off_t",
+                    "flags": 64,
+                    "type": "long"
+                },
+                {
+                    "name": "optarg",
+                    "flags": 176,
+                    "type": "char *"
+                },
+                {
+                    "name": "optind",
+                    "flags": 176,
+                    "type": "int"
+                },
+                {
+                    "name": "opterr",
+                    "flags": 176,
+                    "type": "int"
+                },
+                {
+                    "name": "optopt",
+                    "flags": 176,
+                    "type": "int"
+                },
+                {
+                    "name": "write",
+                    "flags": 432,
+                    "type": "int (int, const void *, unsigned int)"
+                },
+                {
+                    "name": "read",
+                    "flags": 432,
+                    "type": "int (int, void *, unsigned int)"
+                },
+                {
+                    "name": "lseek",
+                    "flags": 432,
+                    "type": "long (int, long, int)"
+                },
+                {
+                    "name": "unlink",
+                    "flags": 432,
+                    "type": "int (const char *)"
+                },
+                {
+                    "name": "chdir",
+                    "flags": 432,
+                    "type": "int (const char *)"
+                },
+                {
+                    "name": "getcwd",
+                    "flags": 432,
+                    "type": "char *(char *, unsigned int)"
+                },
+                {
+                    "name": "mkdir",
+                    "flags": 432,
+                    "type": "int (const char *, ...)"
+                },
+                {
+                    "name": "rmdir",
+                    "flags": 432,
+                    "type": "int (const char *)"
+                },
+                {
+                    "name": "sleep",
+                    "flags": 436,
+                    "type": "unsigned int (unsigned int)"
+                },
+                {
+                    "name": "getopt",
+                    "flags": 432,
+                    "type": "int (int, char * const *, const char *)"
+                },
+                {
+                    "name": "exec",
+                    "flags": 432,
+                    "type": "int (const char *, const char *)"
+                },
+                {
+                    "name": "steps",
+                    "flags": 438,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "pause_test",
+                    "flags": 438,
+                    "type": "void (void)"
+                },
+                {
+                    "name": "main",
+                    "flags": 306,
+                    "type": "unsigned char (void)"
+                },
+                {
+                    "name": "open_a_thing",
+                    "flags": 306,
+                    "type": "void (void)"
+                }
+            ]
+        },
+        {
+            "type": 3,
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "_FILE",
+                    "flags": 0,
+                    "type": "(none)"
+                },
+                {
+                    "name": "__vic2",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0001",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0002",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0003",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0004",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0005",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0006",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0007",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0008",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0009",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "000A",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "000B",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "000C",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "__sid_voice",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "__sid",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "__6526",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "cbm_dirent",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "000D",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "000E",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "hello",
+                    "flags": 2,
+                    "type": "(none)"
+                },
+                {
+                    "name": "0013",
+                    "flags": 2,
+                    "type": "(none)"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "__vic2",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "0000",
+                    "flags": 512,
+                    "type": "union $anon-union-0001"
+                },
+                {
+                    "name": "spr0_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr0_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr1_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr1_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr2_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr2_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr3_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr3_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr4_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr4_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr5_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr5_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr6_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr6_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr7_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr7_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_pos",
+                    "flags": 512,
+                    "type": "struct $anon-struct-0003[8]"
+                },
+                {
+                    "name": "spr_hi_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ctrl1",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "rasterline",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "0001",
+                    "flags": 512,
+                    "type": "union $anon-union-0004"
+                },
+                {
+                    "name": "strobe_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "strobe_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "strobe",
+                    "flags": 512,
+                    "type": "struct $anon-struct-0006"
+                },
+                {
+                    "name": "spr_ena",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ctrl2",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_exp_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "addr",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "irr",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "imr",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_bg_prio",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_mcolor",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_exp_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_coll",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_bg_coll",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bordercolor",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "0002",
+                    "flags": 512,
+                    "type": "union $anon-union-0007"
+                },
+                {
+                    "name": "bgcolor0",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bgcolor1",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bgcolor2",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bgcolor3",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bgcolor",
+                    "flags": 512,
+                    "type": "unsigned char[4]"
+                },
+                {
+                    "name": "0003",
+                    "flags": 512,
+                    "type": "union $anon-union-0009"
+                },
+                {
+                    "name": "spr_mcolor0",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_mcolor1",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_mcolors",
+                    "flags": 512,
+                    "type": "unsigned char[2]"
+                },
+                {
+                    "name": "0004",
+                    "flags": 512,
+                    "type": "union $anon-union-000B"
+                },
+                {
+                    "name": "spr0_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr1_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr2_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr3_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr4_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr5_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr6_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr7_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_color",
+                    "flags": 512,
+                    "type": "unsigned char[8]"
+                },
+                {
+                    "name": "x_kbd",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "clock",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-0002",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "spr0_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr0_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr1_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr1_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr2_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr2_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr3_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr3_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr4_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr4_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr5_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr5_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr6_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr6_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr7_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr7_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-0003",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-0005",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "strobe_x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "strobe_y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-0006",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "x",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "y",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-0008",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "bgcolor0",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bgcolor1",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bgcolor2",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "bgcolor3",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-000A",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "spr_mcolor0",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr_mcolor1",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-000C",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "spr0_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr1_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr2_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr3_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr4_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr5_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr6_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "spr7_color",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "__sid_voice",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "freq",
+                    "flags": 512,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "pw",
+                    "flags": 512,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "ctrl",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ad",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "sr",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "__sid",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "v1",
+                    "flags": 512,
+                    "type": "struct __sid_voice"
+                },
+                {
+                    "name": "v2",
+                    "flags": 512,
+                    "type": "struct __sid_voice"
+                },
+                {
+                    "name": "v3",
+                    "flags": 512,
+                    "type": "struct __sid_voice"
+                },
+                {
+                    "name": "flt_freq",
+                    "flags": 512,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "flt_ctrl",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "amp",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ad1",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ad2",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "noise",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "read3",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "__6526",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "pra",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "prb",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ddra",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ddrb",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ta_lo",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "ta_hi",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "tb_lo",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "tb_hi",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "tod_10",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "tod_sec",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "tod_min",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "tod_hour",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "sdr",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "icr",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "cra",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "crb",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "cbm_dirent",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "name",
+                    "flags": 512,
+                    "type": "char[17]"
+                },
+                {
+                    "name": "size",
+                    "flags": 512,
+                    "type": "unsigned int"
+                },
+                {
+                    "name": "type",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "access",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-000D",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "rem",
+                    "flags": 512,
+                    "type": "int"
+                },
+                {
+                    "name": "quot",
+                    "flags": 512,
+                    "type": "int"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-000E",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "rem",
+                    "flags": 512,
+                    "type": "long"
+                },
+                {
+                    "name": "quot",
+                    "flags": 512,
+                    "type": "long"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "hello",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "j",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "k",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "l",
+                    "flags": 512,
+                    "type": "struct $anon-struct-0013"
+                }
+            ]
+        },
+        {
+            "type": 2,
+            "name": "$anon-struct-0013",
+            "tableType": 2,
+            "syms": [
+                {
+                    "name": "m",
+                    "flags": 512,
+                    "type": "unsigned char"
+                },
+                {
+                    "name": "n",
+                    "flags": 512,
+                    "type": "unsigned char"
+                }
+            ]
+        }
+    ]
+}

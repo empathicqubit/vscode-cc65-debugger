@@ -10,9 +10,7 @@
 
 Dependencies and date last changed:
 
-
 [![VICE](https://img.shields.io/badge/VICE-3.5%202020%2f12%2f24-blue)](https://chocolatey.org/packages/winvice-nightly/3.5.2021010401) 
-[![CC65](https://img.shields.io/badge/CC65-2.17%202020%2f09%2f27-blue)](https://chocolatey.org/packages/cc65-compiler/2.17)
 
 This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms, including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
 
@@ -44,9 +42,8 @@ of my test project), and VICE 3.5 or later.
 
 ### Windows-specific instructions
 
-You will need to install LLVM, cc65 2.17 (later versions had problems building
-my test project the same way as before), and VICE 3.5 or later. The easiest way
-to install these packages to your PATH is to use [Chocolatey](https://chocolatey.org/).
+You will need to install VICE 3.5 or later and make. A special build of CC65 is included.
+The easiest way to install VICE to your PATH is to use [Chocolatey](https://chocolatey.org/).
 
 ```powershell
 # Make sure you use an Administrator shell!
@@ -55,23 +52,13 @@ to install these packages to your PATH is to use [Chocolatey](https://chocolatey
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install the packages
-choco install --version 2.17 cc65-compiler
 choco install --version 3.5.2021010401 winvice-nightly
 choco install make
-choco install llvm
 ```
 
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
-You will need to install LLVM, cc65 2.17 (later versions had problems building
-my test project the same way as before), and VICE 3.5 or later.
-
-For Debian Buster, the latest version of cc65 is 2.17 in the repositories, so
-just install it with apt:
-
-```sh
-sudo apt install clang-tools-8 cc65
-```
+You will need to install VICE 3.5 or later and make. A special build of CC65 is included.
 
 To install VICE 3.5 before it is packaged for your distribution, you will need
 to build VICE from source, to do that, download the source from the VICE
@@ -150,6 +137,9 @@ There are also some user settings to note:
 - **cc65.viceDirectory**: Set this to specify the directory that contains the
 VICE executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
+- **cc65.cc65Directory**: Set this to specify the directory that contains the
+CC65 executables. If your system doesn't have prebuilt binaries, you probably
+want to use CC65 on your PATH, and *not* this.
 - **cc65.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
 - **cc65.disableMetrics**: This disables metric reporting, which tracks when the
 extension is activated or a debug session is requested or fails.
@@ -187,6 +177,12 @@ your linker:
 -g -Wl "--mapfile,build/PROGRAMNAME.map" -Wl "--dbgfile,build/PROGRAMNAME.dbg"
 ```
 
+And the following to your compiler:
+
+```sh
+--debug-tables "FILENAME.tab"
+```
+
 Make sure that the paths on the files are in the same folder and have the same
 name (minus the extension, of course) as your main program!
 
@@ -194,29 +190,6 @@ If you have included any optimizations (`-Osir`) you should probably turn those
 off, however, effort has been made to trace some of them.
 
 You may also want to look at the [full Assembly project template](src/__tests__/asm-project), and the [C project template](src/__tests__/simple-project).
-
-## Changes needed to your code
-
-You can use the debugger to browse structs, but only if the bare struct definition
-exists somewhere in your code. So this will work:
-
-```c
-struct blah {
-    unsigned char field;
-}
-typedef struct blah blah;
-```
-
-This will **not** work:
-
-```
-typedef struct {
-    unsigned char field;
-} blah;
-```
-
-Also, do not name your typedefs differently than your struct. It hasn't been
-tested it but I assume it will break.
 
 ## What works
 
@@ -248,7 +221,7 @@ scary "no symbols for this file" window when you pause on a compiled DLL in VS p
 ## Building
 
 You will need node >=13, vscode >=1.42, pnpm >=5.5, Python 3 (to generate
-the font), and Subversion.  Mocha Test Explorer extension is also recommended.
+the font), and Subversion. Jest Test Explorer extension is also recommended.
 
 For more details about what is needed to build, please look at the
 [Dockerfile](docker/Dockerfile)

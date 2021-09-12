@@ -1,0 +1,4326 @@
+{
+    "_main()": [
+        {
+            "name": "wow",
+            "type": {
+                "name": "hello",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "_steps()": [
+        {
+            "name": "i",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "j",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "_open_a_thing()": [
+        {
+            "name": "barg",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "i",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "_pause_test()": [],
+    "__GLOBAL__()": [
+        {
+            "name": "ptrdiff_t",
+            "type": {
+                "name": "int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "wchar_t",
+            "type": {
+                "name": "char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "size_t",
+            "type": {
+                "name": "unsigned int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "va_list",
+            "type": {
+                "name": "unsigned char *",
+                "aliasOf": "",
+                "isString": true,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "pointer": {
+                    "baseType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "FILE",
+            "type": {
+                "name": "_FILE",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "fpos_t",
+            "type": {
+                "name": "unsigned long",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": true,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "stdin",
+            "type": {
+                "name": "_FILE *",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "pointer": {
+                    "baseType": "_FILE"
+                }
+            }
+        },
+        {
+            "name": "stdout",
+            "type": {
+                "name": "_FILE *",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "pointer": {
+                    "baseType": "_FILE"
+                }
+            }
+        },
+        {
+            "name": "stderr",
+            "type": {
+                "name": "_FILE *",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "pointer": {
+                    "baseType": "_FILE"
+                }
+            }
+        },
+        {
+            "name": "clearerr",
+            "type": {
+                "name": "void (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "fclose",
+            "type": {
+                "name": "int (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "feof",
+            "type": {
+                "name": "int (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "ferror",
+            "type": {
+                "name": "int (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fflush",
+            "type": {
+                "name": "int (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fgetc",
+            "type": {
+                "name": "int (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fgets",
+            "type": {
+                "name": "char *(char *, unsigned int, _FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "fopen",
+            "type": {
+                "name": "_FILE *(const char *, const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "_FILE *"
+                }
+            }
+        },
+        {
+            "name": "fprintf",
+            "type": {
+                "name": "int (_FILE *, const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fputc",
+            "type": {
+                "name": "int (int, _FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fputs",
+            "type": {
+                "name": "int (const char *, _FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fread",
+            "type": {
+                "name": "unsigned int (void *, unsigned int, unsigned int, _FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "freopen",
+            "type": {
+                "name": "_FILE *(const char *, const char *, struct _FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "_FILE *"
+                }
+            }
+        },
+        {
+            "name": "fwrite",
+            "type": {
+                "name": "unsigned int (const void *, unsigned int, unsigned int, _FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "fgetpos",
+            "type": {
+                "name": "int (_FILE *, unsigned long *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fsetpos",
+            "type": {
+                "name": "int (_FILE *, const unsigned long *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "ftell",
+            "type": {
+                "name": "long (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "long"
+                }
+            }
+        },
+        {
+            "name": "fseek",
+            "type": {
+                "name": "int (_FILE *, long, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "rewind",
+            "type": {
+                "name": "void (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "getchar",
+            "type": {
+                "name": "int (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "gets",
+            "type": {
+                "name": "char *(char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "perror",
+            "type": {
+                "name": "void (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "printf",
+            "type": {
+                "name": "int (const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "putchar",
+            "type": {
+                "name": "int (int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "puts",
+            "type": {
+                "name": "int (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "remove",
+            "type": {
+                "name": "int (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "rename",
+            "type": {
+                "name": "int (const char *, const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "snprintf",
+            "type": {
+                "name": "int (char *, unsigned int, const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "sprintf",
+            "type": {
+                "name": "int (char *, const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "ungetc",
+            "type": {
+                "name": "int (int, _FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "vfprintf",
+            "type": {
+                "name": "int (_FILE *, const char *, unsigned char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "vprintf",
+            "type": {
+                "name": "int (const char *, unsigned char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "vsnprintf",
+            "type": {
+                "name": "int (char *, unsigned int, const char *, unsigned char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "vsprintf",
+            "type": {
+                "name": "int (char *, const char *, unsigned char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "scanf",
+            "type": {
+                "name": "int (const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fscanf",
+            "type": {
+                "name": "int (_FILE *, const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "sscanf",
+            "type": {
+                "name": "int (const char *, const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "vscanf",
+            "type": {
+                "name": "int (const char *, unsigned char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "vsscanf",
+            "type": {
+                "name": "int (const char *, const char *, unsigned char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "vfscanf",
+            "type": {
+                "name": "int (_FILE *, const char *, unsigned char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "fdopen",
+            "type": {
+                "name": "_FILE *(int, const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "_FILE *"
+                }
+            }
+        },
+        {
+            "name": "fileno",
+            "type": {
+                "name": "int (_FILE *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "_poserror",
+            "type": {
+                "name": "void (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_65816_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_c256k_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_dqbb_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_georam_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_isepic_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_kerberos_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_ram_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_ramcart_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_reu_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_vdc_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "dtv_himem_emd",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_hitjoy_joy",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_numpad_joy",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_ptvjoy_joy",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_stdjoy_joy",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_1351_mou",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_joy_mou",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_inkwell_mou",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_pot_mou",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_swlink_ser",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "c64_hi_tgi",
+            "type": {
+                "name": "void[]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": null,
+                    "itemType": "void"
+                }
+            }
+        },
+        {
+            "name": "get_ostype",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "_cbm_filetype",
+            "type": {
+                "name": "unsigned char (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "_filetype",
+            "type": {
+                "name": "char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "get_tv",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "kbrepeat",
+            "type": {
+                "name": "unsigned char (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "waitvsync",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_acptr",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_basin",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_bsout",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_chkin",
+            "type": {
+                "name": "unsigned char (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_chrin",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_chrout",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_ciout",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_ckout",
+            "type": {
+                "name": "unsigned char (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_clall",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_close",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_clrch",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_getin",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_iobase",
+            "type": {
+                "name": "unsigned int (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_listen",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_load",
+            "type": {
+                "name": "unsigned int (unsigned char, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_open",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_readst",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_save",
+            "type": {
+                "name": "unsigned char (unsigned int, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_scnkey",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_second",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_setlfs",
+            "type": {
+                "name": "void (unsigned char, unsigned char, unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_setnam",
+            "type": {
+                "name": "void (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_settim",
+            "type": {
+                "name": "void (unsigned long)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_talk",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_tksa",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_udtim",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_unlsn",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_k_untlk",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_load",
+            "type": {
+                "name": "unsigned int (const char *, unsigned char, void *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "cbm_save",
+            "type": {
+                "name": "unsigned char (const char *, unsigned char, const void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_open",
+            "type": {
+                "name": "unsigned char (unsigned char, unsigned char, unsigned char, const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_close",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "cbm_read",
+            "type": {
+                "name": "int (unsigned char, void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "cbm_write",
+            "type": {
+                "name": "int (unsigned char, const void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "cbm_opendir",
+            "type": {
+                "name": "unsigned char (unsigned char, unsigned char, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_readdir",
+            "type": {
+                "name": "unsigned char (unsigned char, cbm_dirent *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "cbm_closedir",
+            "type": {
+                "name": "void (unsigned char)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "div_t",
+            "type": {
+                "name": "$anon-struct-000D",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ldiv_t",
+            "type": {
+                "name": "$anon-struct-000E",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "malloc",
+            "type": {
+                "name": "void *(unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void *"
+                }
+            }
+        },
+        {
+            "name": "calloc",
+            "type": {
+                "name": "void *(unsigned int, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void *"
+                }
+            }
+        },
+        {
+            "name": "realloc",
+            "type": {
+                "name": "void *(void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void *"
+                }
+            }
+        },
+        {
+            "name": "free",
+            "type": {
+                "name": "void (void *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "posix_memalign",
+            "type": {
+                "name": "int (void **, unsigned int, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "_heapadd",
+            "type": {
+                "name": "void (void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "_heapblocksize",
+            "type": {
+                "name": "unsigned int (const void *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "_heapmemavail",
+            "type": {
+                "name": "unsigned int (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "_heapmaxavail",
+            "type": {
+                "name": "unsigned int (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "rand",
+            "type": {
+                "name": "int (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "srand",
+            "type": {
+                "name": "void (unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "_randomize",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "abort",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "abs",
+            "type": {
+                "name": "int (int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "labs",
+            "type": {
+                "name": "long (long)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "long"
+                }
+            }
+        },
+        {
+            "name": "atoi",
+            "type": {
+                "name": "int (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "atol",
+            "type": {
+                "name": "long (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "long"
+                }
+            }
+        },
+        {
+            "name": "atexit",
+            "type": {
+                "name": "int (void (*)(void))",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "bsearch",
+            "type": {
+                "name": "void *(const void *, const void *, unsigned int, unsigned int, int (*)(const void *, const void *))",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void *"
+                }
+            }
+        },
+        {
+            "name": "div",
+            "type": {
+                "name": "$anon-struct-000D (int, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "$anon-struct-000D"
+                }
+            }
+        },
+        {
+            "name": "exit",
+            "type": {
+                "name": "void (int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "getenv",
+            "type": {
+                "name": "char *(const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "qsort",
+            "type": {
+                "name": "void (void *, unsigned int, unsigned int, int (*)(const void *, const void *))",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "strtol",
+            "type": {
+                "name": "long (const char *, char **, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "long"
+                }
+            }
+        },
+        {
+            "name": "strtoul",
+            "type": {
+                "name": "unsigned long (const char *, char **, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned long"
+                }
+            }
+        },
+        {
+            "name": "system",
+            "type": {
+                "name": "int (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "_swap",
+            "type": {
+                "name": "void (void *, void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "itoa",
+            "type": {
+                "name": "char *(int, char *, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "utoa",
+            "type": {
+                "name": "char *(unsigned int, char *, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "ltoa",
+            "type": {
+                "name": "char *(long, char *, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "ultoa",
+            "type": {
+                "name": "char *(unsigned long, char *, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "putenv",
+            "type": {
+                "name": "int (char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "off_t",
+            "type": {
+                "name": "long",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": true,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "optarg",
+            "type": {
+                "name": "char *",
+                "aliasOf": "",
+                "isString": true,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "pointer": {
+                    "baseType": "char"
+                }
+            }
+        },
+        {
+            "name": "optind",
+            "type": {
+                "name": "int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "opterr",
+            "type": {
+                "name": "int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "optopt",
+            "type": {
+                "name": "int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "write",
+            "type": {
+                "name": "int (int, const void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "read",
+            "type": {
+                "name": "int (int, void *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "lseek",
+            "type": {
+                "name": "long (int, long, int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "long"
+                }
+            }
+        },
+        {
+            "name": "unlink",
+            "type": {
+                "name": "int (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "chdir",
+            "type": {
+                "name": "int (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "getcwd",
+            "type": {
+                "name": "char *(char *, unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "char *"
+                }
+            }
+        },
+        {
+            "name": "mkdir",
+            "type": {
+                "name": "int (const char *, ...)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "rmdir",
+            "type": {
+                "name": "int (const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "sleep",
+            "type": {
+                "name": "unsigned int (unsigned int)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned int"
+                }
+            }
+        },
+        {
+            "name": "getopt",
+            "type": {
+                "name": "int (int, char * const *, const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "exec",
+            "type": {
+                "name": "int (const char *, const char *)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "int"
+                }
+            }
+        },
+        {
+            "name": "steps",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "pause_test",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        },
+        {
+            "name": "main",
+            "type": {
+                "name": "unsigned char (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "open_a_thing",
+            "type": {
+                "name": "void (void)",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "fn": {
+                    "returnType": "void"
+                }
+            }
+        }
+    ],
+    "__vic2": [
+        {
+            "name": "0000",
+            "type": {
+                "name": "union $anon-union-0001",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr0_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr0_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr1_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr1_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr2_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr2_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr3_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr3_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr4_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr4_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr5_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr5_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr6_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr6_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr7_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr7_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_pos",
+            "type": {
+                "name": "$anon-struct-0003[8]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": 8,
+                    "itemType": "$anon-struct-0003"
+                }
+            }
+        },
+        {
+            "name": "spr_hi_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ctrl1",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "rasterline",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "0001",
+            "type": {
+                "name": "union $anon-union-0004",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "strobe_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "strobe_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "strobe",
+            "type": {
+                "name": "$anon-struct-0006",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_ena",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ctrl2",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_exp_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "addr",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "irr",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "imr",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_bg_prio",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_mcolor",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_exp_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_coll",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_bg_coll",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bordercolor",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "0002",
+            "type": {
+                "name": "union $anon-union-0007",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor0",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor1",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor2",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor3",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor",
+            "type": {
+                "name": "unsigned char[4]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": 4,
+                    "itemType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "0003",
+            "type": {
+                "name": "union $anon-union-0009",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_mcolor0",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_mcolor1",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_mcolors",
+            "type": {
+                "name": "unsigned char[2]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": 2,
+                    "itemType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "0004",
+            "type": {
+                "name": "union $anon-union-000B",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr0_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr1_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr2_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr3_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr4_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr5_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr6_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr7_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_color",
+            "type": {
+                "name": "unsigned char[8]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": 8,
+                    "itemType": "unsigned char"
+                }
+            }
+        },
+        {
+            "name": "x_kbd",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "clock",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-0002": [
+        {
+            "name": "spr0_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr0_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr1_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr1_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr2_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr2_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr3_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr3_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr4_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr4_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr5_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr5_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr6_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr6_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr7_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr7_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-0003": [
+        {
+            "name": "x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-0005": [
+        {
+            "name": "strobe_x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "strobe_y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-0006": [
+        {
+            "name": "x",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "y",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-0008": [
+        {
+            "name": "bgcolor0",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor1",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor2",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "bgcolor3",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-000A": [
+        {
+            "name": "spr_mcolor0",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr_mcolor1",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-000C": [
+        {
+            "name": "spr0_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr1_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr2_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr3_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr4_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr5_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr6_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "spr7_color",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "__sid_voice": [
+        {
+            "name": "freq",
+            "type": {
+                "name": "unsigned int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "pw",
+            "type": {
+                "name": "unsigned int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ctrl",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ad",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "sr",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "__sid": [
+        {
+            "name": "v1",
+            "type": {
+                "name": "__sid_voice",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "v2",
+            "type": {
+                "name": "__sid_voice",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "v3",
+            "type": {
+                "name": "__sid_voice",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "flt_freq",
+            "type": {
+                "name": "unsigned int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "flt_ctrl",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "amp",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ad1",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ad2",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "noise",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "read3",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "__6526": [
+        {
+            "name": "pra",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "prb",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ddra",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ddrb",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ta_lo",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "ta_hi",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "tb_lo",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "tb_hi",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "tod_10",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "tod_sec",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "tod_min",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "tod_hour",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "sdr",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "icr",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "cra",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "crb",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "cbm_dirent": [
+        {
+            "name": "name",
+            "type": {
+                "name": "char[17]",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false,
+                "array": {
+                    "length": 17,
+                    "itemType": "char"
+                }
+            }
+        },
+        {
+            "name": "size",
+            "type": {
+                "name": "unsigned int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "type",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "access",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-000D": [
+        {
+            "name": "rem",
+            "type": {
+                "name": "int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "quot",
+            "type": {
+                "name": "int",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": true,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-000E": [
+        {
+            "name": "rem",
+            "type": {
+                "name": "long",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": true,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "quot",
+            "type": {
+                "name": "long",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": true,
+                "isSigned": false
+            }
+        }
+    ],
+    "hello": [
+        {
+            "name": "j",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "k",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "l",
+            "type": {
+                "name": "$anon-struct-0013",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": false,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ],
+    "$anon-struct-0013": [
+        {
+            "name": "m",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        },
+        {
+            "name": "n",
+            "type": {
+                "name": "unsigned char",
+                "aliasOf": "",
+                "isString": false,
+                "isChar": true,
+                "isInt": false,
+                "isLong": false,
+                "isSigned": false
+            }
+        }
+    ]
+}

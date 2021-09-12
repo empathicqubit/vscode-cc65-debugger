@@ -5,21 +5,29 @@
 
 #define TEST_FLAG (unsigned char *)0x03fc
 
+struct l {
+    unsigned char m;
+    unsigned char n;
+    unsigned char o;
+};
+
 struct hello {
     unsigned char j;
     unsigned char k;
-    struct {
-        unsigned char m;
-        unsigned char n;
-    } l;
+    struct l l[16];
 };
+
+typedef struct hello thingy;
 
 void steps(void);
 
 void pause_test(void);
 
 unsigned char main(void) {
-    struct hello wow = { 1, 3 };
+    thingy wow = { 1, 3 };
+    wow.l[0].m = 5;
+    wow.l[0].n = 7;
+    wow.l[0].o = 9;
     printf("%d %d", wow.j, wow.k);
     *TEST_FLAG = 0x00;
     puts("Hello world!");
@@ -42,7 +50,7 @@ void steps(void) {
     printf("%d", j - i);
 }
 
-void open_a_thing(void) {
+void open_a_thing(int yarg) {
     static unsigned char barg = 0;
     unsigned char i = 0;
     barg++;
