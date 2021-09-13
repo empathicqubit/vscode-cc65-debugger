@@ -15,7 +15,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     /** The directory of VICE emulator. */
     viceDirectory?: string;
     /** The directory of CC65, if custom. */
-    cc65Directory?: string;
+    cc65Home?: string;
     /** The arguments to use for starting VICE. No environment variables are allowed. */
     viceArgs?: string[];
     /** The command to run before launching. This is a shell command so you can put arguments and variables in here too. */

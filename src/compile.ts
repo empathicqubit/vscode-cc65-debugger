@@ -1,15 +1,15 @@
-import * as child_process from 'child_process';
 import { EventEmitter } from "events";
 import * as fs from 'fs';
-import _flow from 'lodash/fp/flow';
-import _map from 'lodash/fp/map';
-import _orderBy from 'lodash/fp/orderBy';
+import * as child_process from 'child_process';
 import watch from 'node-watch';
-import * as os from 'os';
-import * as path from 'path';
-import readdir from 'recursive-readdir';
-import * as util from 'util';
+import _flow from 'lodash/fp/flow';
+import _orderBy from 'lodash/fp/orderBy';
+import _map from 'lodash/fp/map';
 import * as debugUtils from './debug-utils';
+import * as util from 'util';
+import readdir from 'recursive-readdir';
+import * as path from 'path';
+import * as os from 'os';
 
 export const DEFAULT_BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
 
@@ -53,25 +53,20 @@ export async function guessProgramPath(workspaceDir: string) {
 * Build the program using the command specified and try to find the output file with monitoring.
 * @returns The possible output files of types d81, prg, and d64.
 */
-export async function build(buildCwd: string, buildCmd: string, eventEmitter: EventEmitter, cc65Directory?: string) : Promise<string[]> {
+export async function build(buildCwd: string, buildCmd: string, eventEmitter: EventEmitter, cc65Home?: string) : Promise<string[]> {
     let sep = ':';
     if(process.platform == 'win32') {
         sep = ';';
     }
     let binDir : string | undefined;
-    if(!cc65Directory) {
+    if(!cc65Home) {
         if(['linux', 'win32'].includes(process.platform) && ['arm', 'arm64', 'x32', 'x64'].includes(os.arch())) {
-            cc65Directory = path.normalize(__dirname + '/../dist/cc65');
-            binDir = cc65Directory + '/bin_' + process.platform + '_' + os.arch();
+            cc65Home = path.normalize(__dirname + '/../dist/cc65');
+            binDir = cc65Home + '/bin_' + process.platform + '_' + os.arch();
         }
     }
     else {
-        binDir = cc65Directory + '/bin';
-    }
-
-    let cc65Home : string | undefined;
-    if(cc65Directory) {
-        cc65Home = path.normalize(cc65Directory + '/..');
+        binDir = cc65Home + '/bin';
     }
 
     console.log('CC65_HOME', cc65Home);
