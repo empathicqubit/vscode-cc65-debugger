@@ -4,11 +4,18 @@ import * as path from 'path';
 import * as debugUtils from '../debug-utils';
 import _transform from 'lodash/transform';
 import * as child_process from 'child_process';
+import { LaunchRequestBuildArguments } from '../launch-arguments';
 
 describe('Compile', () => {
     const BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/simple-project');
     const PROGRAM = BUILD_CWD + '/simple-project.c64';
+    const BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
+    const BUILD : LaunchRequestBuildArguments = {
+        cwd: BUILD_CWD,
+        args: BUILD_ARGS,
+        command: BUILD_COMMAND,
+    }
 
     let pids : number[] = [];
     let execHandler : debugUtils.ExecHandler;
@@ -67,7 +74,7 @@ describe('Compile', () => {
 
     test('Build works', async () => {
         await compile.clean(BUILD_CWD, execHandler);
-        await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
+        await compile.build(BUILD, execHandler);
     });
 
     test('Build works with 32-bit compiler', async () => {
@@ -85,11 +92,11 @@ describe('Compile', () => {
             return oldExecHandler(file, args, opts);
         }
         await compile.clean(BUILD_CWD, execHandler);
-        await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
+        await compile.build(BUILD, execHandler);
     });
 
     test('Can guess the program path', async () => {
-        await compile.make(BUILD_CWD, BUILD_COMMAND, execHandler, {
+        await compile.make(BUILD, execHandler, {
             shell: <any>true,
         });
         const possibles = await compile.guessProgramPath(BUILD_CWD);

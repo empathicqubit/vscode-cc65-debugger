@@ -93,8 +93,8 @@ Required settings for both launch and attach:
 - **name**: The name in the debug dropdown menu.
 - **request**: `launch` will launch, `attach` will attach.
 - **type**: Always `cc65-vice` for this debugger.
-- **buildCwd**: The working directory for your build command. You need this for
-attachment as well, so the debugger can find relative paths in your debug file.
+- **build**: Attributes for the build command. You need this for attachment as
+well, so the debugger can find relative paths in your debug file.
 
 Required for attach mode only:
 

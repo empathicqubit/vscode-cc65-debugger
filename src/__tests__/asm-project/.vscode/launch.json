@@ -8,8 +8,13 @@
             "type": "cc65-vice",
             "request": "launch",
             "name": "CC65 Vice Launch",
-            "buildCwd": "${workspaceFolder}",
-            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
             "debugServer": 4711,
             "stopOnEntry": true,
             "stopOnExit": true,

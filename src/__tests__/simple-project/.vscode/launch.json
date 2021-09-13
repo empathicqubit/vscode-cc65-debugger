@@ -10,8 +10,13 @@
             "request": "launch",
             "name": "CC65 Vice Launch",
             "program": "${workspaceFolder}/simple-project.c64",
-            "buildCwd": "${workspaceFolder}",
-            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
             "debugServer": 4711,
             "stopOnEntry": true,
             "stopOnExit": true,
@@ -25,7 +30,9 @@
             "program": "${workspaceFolder}/simple-project.pet",
             "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
             "mapFile": "${workspaceFolder}/simple-project.pet.map",
-            "buildCwd": "${workspaceFolder}",
+            "build": {
+                "cwd": "${workspaceFolder}",
+            },
             "stopOnEntry": true,
             "stopOnExit": true,
             "attachPort": 29784,
@@ -38,8 +45,13 @@
             "program": "${workspaceFolder}/simple-project.pet",
             "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
             "mapFile": "${workspaceFolder}/simple-project.pet.map",
-            "buildCwd": "${workspaceFolder}",
-            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
             "debugServer": 4711,
             "stopOnEntry": true,
             "stopOnExit": true,

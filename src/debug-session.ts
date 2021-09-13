@@ -11,7 +11,7 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { DEFAULT_BUILD_COMMAND } from './compile';
 import * as debugUtils from './debug-utils';
 import { keyMappings } from './key-mappings';
-import { LaunchRequestArguments } from './launch-arguments';
+import { LaunchRequestArguments, LaunchRequestBuildArguments } from './launch-arguments';
 import * as metrics from './metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
 import * as path from 'path';
@@ -345,7 +345,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
         try {
-            await this._runtime.attach(args.attachPort, args.buildCwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.program, args.debugFile, args.mapFile);
+            await this._runtime.attach(args.attachPort, args.build.cwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.program, args.debugFile, args.mapFile);
         }
         catch (e) {
             metrics.event('session', 'attach-error');
@@ -369,7 +369,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             let possibles = <any>[];
             try {
                 possibles = await compile.build(
-                    args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND, 
+                    args.build, 
                     <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)),
                     args.cc65Home
                 );
@@ -387,7 +387,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // start the program in the runtime
             await this._runtime.start(
                 program,
-                args.buildCwd,
+                args.build.cwd,
                 !!args.stopOnEntry,
                 !!args.stopOnExit,
                 !!args.runAhead,
