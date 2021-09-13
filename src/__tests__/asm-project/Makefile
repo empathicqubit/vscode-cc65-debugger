@@ -229,6 +229,9 @@ INTERMEDIATES := $(addsuffix .i,$(basename $(addprefix $(TARGETOBJDIR)/,$(notdir
 # Set DEPENDS to something like 'obj/c64/foo.d obj/c64/bar.d'.
 DEPENDS := $(OBJECTS:.o=.d)
 
+# Set TABS to something like 'obj/c64/foo.tab obj/c64/bar.tab'.
+TABS := $(OBJECTS:.o=.tab)
+
 # Add to LIBS something like 'src/foo.lib src/c64/bar.lib'.
 LIBS += $(wildcard $(SRCDIR)/*.lib)
 LIBS += $(wildcard $(SRCDIR)/$(TARGETLIST)/*.lib)
@@ -288,7 +291,7 @@ $(TARGETOBJDIR):
 vpath %.c $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
 $(TARGETOBJDIR)/%.o: %.c | $(TARGETOBJDIR)
-	cl65 -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(CFLAGS) -o $@ $<
+	cl65 -t $(CC65TARGET) -c --create-dep $(@:.o=.d) -Wc "--debug-tables" -Wc "$(@:.o=.tab)" $(CFLAGS) -o $@ $<
 
 vpath %.s $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
@@ -316,6 +319,7 @@ test: $(PROGRAM)
 clean:
 	$(call RMFILES,$(OBJECTS))
 	$(call RMFILES,$(DEPENDS))
+	$(call RMFILES,$(TABS))
 	$(call RMFILES,$(REMOVES))
 	$(call RMFILES,$(PROGRAM))
 
