@@ -130,9 +130,21 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
     let filenames : string[] = [];
     const watcher = watch(build.cwd, {
         recursive: true,
-        filter: f => debugUtils.programFiletypes.test(f),
     }, (evt, filename) => {
+        if(!filename) {
+            return;
+        }
+        // Ignore dotfiles
+        if(/(^|[\\\/])\.[^\\\/]+/g.test(filename)) {
+            return;
+        }
+        // Track the file update
         lastUpdated = Date.now();
+        // Ignore files that aren't programs
+        if(debugUtils.programFiletypes.test(filename)) {
+            return;
+        }
+
         filenames.push(filename || "");
     });
 
