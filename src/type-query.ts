@@ -30,7 +30,6 @@ export interface TypeInfo {
     fn?: FunctionInfo;
     pointer?: PointerInfo;
     array?: ArrayInfo;
-    aliasOf: string;
 }
 
 export interface FunctionInfo {
@@ -59,14 +58,9 @@ export async function getTabFiles(cwd: string) : Promise<tableFile.TableFile[]> 
 export function parseTypeExpression(expression: string) : TypeInfo {
     const aliasOf = '';
 
-    const maybeFunction = /^(\s*.[^\(]*?)(\s*\(.*\)\s*)?$/.exec(expression)!;
-    const returnType = maybeFunction[1];
-    const isFunction = !!maybeFunction[2];
-
-    if(/^\s*\(none\)\s*$/i.test(expression)) {
+    if(!expression || /^\s*\(none\)\s*$/i.test(expression)) {
         return {
             name: '',
-            aliasOf,
             isUnion: false,
             isStruct: false,
             isString: false,
@@ -77,10 +71,13 @@ export function parseTypeExpression(expression: string) : TypeInfo {
         }
     }
 
+    const maybeFunction = /^(\s*.[^\(]*?)(\s*\(.*\)\s*)?$/.exec(expression)!;
+    const returnType = maybeFunction[1];
+    const isFunction = !!maybeFunction[2];
+
     if(isFunction) {
         return {
             name: expression,
-            aliasOf,
             isUnion: false,
             isStruct: false,
             isString: false,
@@ -96,7 +93,6 @@ export function parseTypeExpression(expression: string) : TypeInfo {
 
     const t : TypeInfo = {
         name: expression,
-        aliasOf,
         isUnion: /^\s*union\b/g.test(expression),
         isStruct: /^\s*struct\b/g.test(expression),
         isString: /\bchar\s+\*/g.test(expression),
@@ -108,8 +104,9 @@ export function parseTypeExpression(expression: string) : TypeInfo {
 
     const arrayParts = /^([^\[]+)(\[([0-9]*)\])$/gi.exec(expression);
     if(arrayParts) {
+        const length = parseInt(arrayParts[3]) || 0;
         const array : ArrayInfo = {
-            length: parseInt(arrayParts[3]),
+            length: length,
             itemType: arrayParts[1],
         };
 

@@ -21,7 +21,7 @@ describe('Type query mechanics', () => {
                 ['(none)', { name: '' } ],
                 ['union $anon-union-000B', {} ],
                 ['unsigned char[8]', { array: { length: 8, itemType: 'unsigned char' } } ],
-                ['struct __sid_voice', { name: '__sid_voice', isStruct: true }],
+                ['struct __sid_voice', { name: 'struct __sid_voice', isStruct: true }],
                 ['int', { isInt: true } ],
                 ['long', { isLong: true }],
                 ['unsigned char', { isSigned: false, isChar: true }],
@@ -30,7 +30,7 @@ describe('Type query mechanics', () => {
                 ['void[]', { array: {} }],
             ];
             test.each(data)('%s', async (typeName, expected) => {
-                const type = typeQuery.parseTypeName(typeName);
+                const type = typeQuery.parseTypeExpression(typeName);
                 expect(type).toMatchObject(expected);
             });
         });
@@ -41,10 +41,14 @@ describe('Type query mechanics', () => {
             assert.strictEqual(tabFiles.length, 1, tabFiles.map(x => x.path).join(', '));
         });
 
+        // FIXME Replace with more specific cases
         test('Can build a type graph', async () => {
+            const expected = require('./tab/result.graph.json');
             const tabFiles = await typeQuery.getTabFiles(__dirname + '/tab');
 
-            console.log(JSON.stringify(typeQuery.getLocalTypes(<any>null, tabFiles), null, 4));
+            const actual = typeQuery.getLocalTypes(<any>null, tabFiles);
+
+            assert.deepStrictEqual(actual, expected);
         });
     });
 })

@@ -143,12 +143,16 @@ export class VariableManager {
             return vars;
         }
 
+        let fields : typeQuery.FieldTypeInfo[];
         if(type.pointer) {
             const pointerVal = await this._vice.getMemory(addr, 2);
             addr = pointerVal.readUInt16LE(0);
+            fields = this._localTypes[type.pointer.baseType];
+        }
+        else {
+            fields = this._localTypes[type.name];
         }
 
-        const fields = this._localTypes[type.name];
         const vars : VariableData[] = [];
 
         const fieldSizes = typeQuery.recurseFieldSize(fields, this._localTypes);
@@ -185,7 +189,7 @@ export class VariableManager {
                 value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
             }
 
-            if(!this._localTypes[typeName] && !field.type.array) {
+            if(!this._localTypes[typeName] && !field.type.array && !field.type.pointer) {
                 typeName = '';
             }
 
@@ -206,7 +210,7 @@ export class VariableManager {
         return await Promise.all(this._globalLabs.map(x => this._varFromLab(x)));
     }
 
-    public async getScopeVariables(currentScope: debugFile.Scope | undefined) : Promise<any[]> {
+    public async getScopeVariables(currentScope: debugFile.Scope | undefined) : Promise<VariableData[]> {
         let stack: Buffer;
         try {
             stack = await this._getParamStack();
@@ -220,8 +224,12 @@ export class VariableManager {
             return [];
         }
 
-        const vars : VariableData[] = [];
         const locals = currentScope.autos;
+        if(!locals.length) {
+            return [];
+        }
+
+        const vars : VariableData[] = [];
         const mostOffset = locals[0].offs;
         for(let i = 0; i < locals.length; i++) {
             const csym = locals[i];
@@ -259,8 +267,11 @@ export class VariableManager {
                     const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
                     val = `${str} (${debugUtils.rawBufferHex(mem)})`;
                 }
+                else if(field.type.isStruct) {
+                    val = typeName;
+                }
 
-                if(!this._localTypes[typeName]) {
+                if(!this._localTypes[typeName] && !(field.type.pointer && this._localTypes[field.type.pointer.baseType])) {
                     typeName = '';
                 }
             }

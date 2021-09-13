@@ -649,7 +649,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         }
     }
 
-    dbgFile.scopes = _sortBy([x => x.codeSpan, x => x.codeSpan && -x.codeSpan.absoluteAddress, x => x.codeSpan && x.codeSpan.size], dbgFile.scopes);
+    dbgFile.scopes = _sortBy([x => x.codeSpan, x => x.codeSpan && -x.codeSpan.absoluteAddress, x => x.codeSpan && x.codeSpan.size, x => -x.autos.length], dbgFile.scopes);
     dbgFile.lines = _sortBy([x => x.span, x => x.span && -x.span.absoluteAddress], dbgFile.lines);
 
     dbgFile.spans = _sortBy([x => -x.absoluteAddress, x => x.size], dbgFile.spans);

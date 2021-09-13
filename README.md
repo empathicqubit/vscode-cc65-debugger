@@ -42,7 +42,7 @@ of my test project), and VICE 3.5 or later.
 
 ### Windows-specific instructions
 
-You will need to install VICE 3.5 or later and make. A special build of CC65 is included.
+You will need to install VICE 3.5 or later and make. A modified build of CC65 is included.
 The easiest way to install VICE to your PATH is to use [Chocolatey](https://chocolatey.org/).
 
 ```powershell
@@ -58,7 +58,7 @@ choco install make
 
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
-You will need to install VICE 3.5 or later and make. A special build of CC65 is included.
+You will need to install VICE 3.5 or later and make. A modified build of CC65 is included.
 
 To install VICE 3.5 before it is packaged for your distribution, you will need
 to build VICE from source, to do that, download the source from the VICE
@@ -165,7 +165,7 @@ VICE detects this may be to blame. To turn it off, just add `+warp` and
 
 If you've used the default `Makefile` at
 [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself),
-it's recommended to use a [slightly modified Makefile](src/__tests__/simple-project/Makefile).
+it's required to use a [slightly modified Makefile](src/__tests__/simple-project/Makefile).
 Otherwise you only need to add the `-g` option to your `CFLAGS` **and** `LDFLAGS`
 variables at the top of the file.
 
@@ -239,6 +239,7 @@ All work happens on `master`, and releases are merged from pull requests using G
 
 ## Additional Credits (see also LICENSE.md)
 
+* **Compilation**: A modified version of [CC65](https://github.com/empathicqubit/cc65) is included with this project, in order to generate detailed type information at compile time.
 * **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
 * **Font**: Font for the screen text viewer is generated using [atbrask/c64ttf](https://github.com/atbrask/c64ttf)
 * **Icon**: Based on a character that appears on the box art for **Bug Blaster**.

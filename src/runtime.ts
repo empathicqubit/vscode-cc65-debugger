@@ -53,7 +53,7 @@ const UPDATE_INTERVAL = 1000;
  * easily.
  */
 export class Runtime extends EventEmitter {
-    private _dbgFile: debugFile.Dbgfile;
+    public _dbgFile: debugFile.Dbgfile;
 
     private _dbgFileResolved: (fil: debugFile.Dbgfile) => void;
     private _dbgFileRejected: (err: Error) => void;
@@ -129,7 +129,7 @@ export class Runtime extends EventEmitter {
         const opts : child_process.ExecOptions = {
             shell: <any>true,
             env: {
-                PATH: [process.env.PATH, cc65Directory].filter(x => x).join(sep),
+                PATH: [cc65Directory, process.env.PATH].filter(x => x).join(sep),
                 CC65_HOME: [process.env.CC65_HOME, cc65Home].filter(x => x).join(sep),
             }
         };
@@ -1020,7 +1020,7 @@ or define the location manually with the launch.json->mapFile setting`
 
     // Variables
 
-    public async getScopeVariables() : Promise<any[]> {
+    public async getScopeVariables() : Promise<VariableData[]> {
         const currentScope = this._getCurrentScope()
         return await this._variableManager.getScopeVariables(currentScope);
     }
