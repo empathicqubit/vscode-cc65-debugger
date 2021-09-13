@@ -38,7 +38,7 @@
     "pip": "pip3 install --user fonttools || pip install --user fonttools",
     "c64ttf": "npm-run-all pip && cd ./system/C64 && python3 ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf || python ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf",
     "submodules": "git submodule init && git submodule update || git submodule deinit --force --all",
-    "compiler:arch": "npm-run-all compiler:distdir && node -e \"const shx = require('shelljs'); shx.config.fatal = true; const arg = process.argv; let [, arch, cross] = arg; cross = cross || ''; const archDir = '3rdparty/cc65/wrk/' + arch; const distDir = process.cwd() + '/dist/cc65/bin_' + arch; if(shx.test('-e', distDir)) { process.exit(0); } ; shx.mkdir('-p', archDir); shx.cp('-ru', archDir + '/../../src/', archDir); shx.cd(archDir + '/src'); shx.exec('make -j8 CROSS_COMPILE=' + cross); shx.exec(cross + 'strip ../bin/*'); shx.mkdir('-p', distDir); shx.cp('-ru', '../bin/.', distDir);\"",
+    "compiler:arch": "npm-run-all compiler:distdir && node ./compiler-arch.js",
     "compiler:arch:linux_x32": "npm-run-all \"compiler:arch -- linux_x32 i686-linux-gnu-\"",
     "compiler:arch:linux_x64": "npm-run-all \"compiler:arch -- linux_x64\"",
     "compiler:arch:linux_arm": "npm-run-all \"compiler:arch -- linux_arm arm-linux-gnueabi-\"",
