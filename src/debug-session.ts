@@ -337,7 +337,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // build the program.
             let possibles = <any>[];
             try {
-                possibles = await compile.build(args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND);
+                possibles = await compile.build(args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND, this._runtime);
             }
             catch {
                 metrics.event('session', 'build-error');
