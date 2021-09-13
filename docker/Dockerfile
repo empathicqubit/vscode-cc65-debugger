@@ -28,7 +28,7 @@ RUN mkdir /vices && \
         rm -rf /vices/vice-$each /vices/vice-$each.tar.gz ; \
     done
 RUN curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm
-RUN useradd -m -u 1000 -g 1000 unprivileged
+RUN useradd -m -u 1000 unprivileged
 USER unprivileged
 RUN pip3 install --user fonttools
 USER root
