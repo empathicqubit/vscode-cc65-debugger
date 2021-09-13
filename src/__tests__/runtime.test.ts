@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as child_process from 'child_process';
 import _random from 'lodash/fp/random';
-import _transform from 'lodash/transform';
+import * as testShared from './test-shared';
 import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
@@ -40,51 +40,6 @@ describe('Runtime', () => {
     console.log('VICE DIRECTORY', VICE_DIRECTORY);
 
     let rt : Runtime;
-    let pids : number[] = [];
-    const execHandler : debugUtils.ExecHandler = (file, args, opts) => {
-        const promise = new Promise<[number, number]>((res, rej) => {
-            if(!path.isAbsolute(file) && path.dirname(file) != '.') {
-                file = path.join(__dirname, file);
-            }
-
-            if(args.find(x => x.includes("monitor.js"))) {
-                console.log(args);
-                return [-1, -1];
-            }
-
-            const env : { [key: string]: string | undefined } =
-                _transform(opts.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
-
-            const proc = child_process.spawn(file, args, {
-                cwd: opts.cwd,
-                stdio: "pipe",
-                shell: true,
-                //shell: __dirname + "/xterm-c",
-                detached: false,
-                env: {
-                    ...process.env,
-                    ...env
-                }
-            });
-            proc.stdout.pipe(process.stdout);
-            proc.stderr.pipe(process.stderr);
-            pids.push(proc.pid);
-            const cleanup = (e) => {
-                proc.stdout.unpipe(process.stdout);
-                proc.stdout.unpipe(process.stderr);
-                pids.splice(pids.indexOf(proc.pid), 1);
-                e && console.error(e)
-            };
-            proc.on('disconnect', cleanup);
-            proc.on('close', cleanup);
-            proc.on('error', cleanup);
-            proc.on('exit', cleanup);
-
-            res([proc.pid, proc.pid]);
-        });
-
-        return promise;
-    };
 
     let viceArgs : string[] = [
         '-VICIIborders', '3',
@@ -138,6 +93,14 @@ describe('Runtime', () => {
         });
     }
 
+    let pids : number[] = [];
+    const execHandler : debugUtils.ExecHandler = async (f, a, o) => {
+        const ret = await testShared.DEFAULT_TEST_EXEC_HANDLER(f, a, o)
+        pids.push(...ret);
+
+        return ret;
+    };
+
     beforeEach(async() => {
         rt = new Runtime(execHandler);
 
@@ -158,7 +121,7 @@ describe('Runtime', () => {
     afterEach(async () => {
         for(const pid of pids) {
             try {
-                process.kill(pid, 0) && process.kill(pid, 'SIGKILL');
+                pid != -1 && process.kill(pid, 0) && process.kill(pid, 'SIGKILL');
             }
             catch {}
         }
