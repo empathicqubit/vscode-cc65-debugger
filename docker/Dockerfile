@@ -60,7 +60,4 @@ RUN apt-get update && \
 RUN curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm
 
 RUN useradd -m -u 1000 unprivileged
-USER unprivileged
-RUN pip3 install --user fonttools
 USER root
-RUN pip3 install --user fonttools
