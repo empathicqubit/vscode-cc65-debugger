@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'docker/**'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -17,6 +18,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
     - uses: actions/checkout@v2
+      with:
+          ref: master
     - run: docker pull empathicqubit/vscode-cc65-vice-debug-build
     - run: cd docker && docker build -t empathicqubit/vscode-cc65-vice-debug-build .
     - run: docker push empathicqubit/vscode-cc65-vice-debug-build
