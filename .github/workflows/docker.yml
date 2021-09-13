@@ -16,7 +16,7 @@ jobs:
       with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - run: docker pull empathicqubit/vscode-cc65-vice-debug-build
     - run: cd docker && docker build -t empathicqubit/vscode-cc65-vice-debug-build .
     - run: docker push empathicqubit/vscode-cc65-vice-debug-build
