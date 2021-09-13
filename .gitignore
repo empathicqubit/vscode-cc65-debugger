@@ -16,6 +16,7 @@ dist/
 .VSCodeCounter/
 
 *.js
+!/*.js
 !webpack*.config.js
 !jest*.config.js
 *.c64

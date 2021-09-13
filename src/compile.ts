@@ -49,6 +49,20 @@ export async function guessProgramPath(workspaceDir: string) {
     return orderedPrograms;
 }
 
+export async function clean(buildCwd: string, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<void> {
+    const pids = await execHandler('make clean', [], { cwd: buildCwd });
+
+    while(true) {
+        await debugUtils.delay(100);
+        try {
+            process.kill(pids[0], 0);
+        }
+        catch {
+            break;
+        }
+    }
+}
+
 /**
 * Build the program using the command specified and try to find the output file with monitoring.
 * @returns The possible output files of types d81, prg, and d64.
@@ -70,7 +84,7 @@ export async function build(buildCwd: string, buildCmd: string, execHandler: deb
     }
 
     console.log('CC65_HOME', cc65Home);
-    console.log('CC65 bin folder', binDir);
+    console.log('CC65 path', binDir);
 
     const opts : child_process.ExecOptions = {
         shell: <any>true,
