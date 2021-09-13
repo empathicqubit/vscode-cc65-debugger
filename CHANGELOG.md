@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.11...v3.8.0) (2021-09-13)
+
+
+### Features
+
+* Include cc65 in build so user doesn't have to install ([375e2e4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/375e2e44ca01ff5b2c90ba91665b7958474d6be0))
+
 ### [3.7.11](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.10...v3.7.11) (2021-08-29)
 
 
