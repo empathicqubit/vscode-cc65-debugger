@@ -14,6 +14,7 @@ import { keyMappings } from './key-mappings';
 import { LaunchRequestArguments } from './launch-arguments';
 import * as metrics from './metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
+import * as path from 'path';
 const { Subject } = require('await-notify');
 
 enum VariablesReferenceFlag {
@@ -46,8 +47,34 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     private _addressTypes: {[address:string]: string} = {};
     private _tabby: boolean;
     private _keybuf: string[] = [];
+    private _consoleType?: string;
 
     private _bounceBuf: () => void;
+
+    private _processExecHandler : debugUtils.ExecHandler = ((file, args, opts) => {
+        const promise = new Promise<[number, number]>((res, rej) => {
+            if(!path.isAbsolute(file) && path.dirname(file) != '.') {
+                file = path.join(__dirname, file);
+            }
+
+            this.runInTerminalRequest({
+                args: [file, ...args],
+                cwd: opts.cwd || __dirname,
+                env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
+                title: opts.title || undefined,
+                kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'
+            }, 10000, (response) => {
+                if(!response.success) {
+                    rej(response);
+                }
+                else {
+                    res([response.body.processId || -1, response.body.shellProcessId || -1]);
+                }
+            })
+        });
+
+        return promise;
+    });
 
     /**
     * Creates a new debug adapter that is used for one debug session.
@@ -60,7 +87,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.setDebuggerLinesStartAt1(false);
         this.setDebuggerColumnsStartAt1(false);
 
-        this._runtime = new Runtime((args, timeout, cb) => this.runInTerminalRequest(args, timeout, cb));
+        this._runtime = new Runtime(
+            <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts))
+        );
 
         this._bounceBuf = _debounce(250, async () => {
             const keybuf = this._keybuf;
@@ -316,7 +345,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
         try {
-            await this._runtime.attach(args.attachPort, args.buildCwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.console, args.program, args.debugFile, args.mapFile);
+            await this._runtime.attach(args.attachPort, args.buildCwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.program, args.debugFile, args.mapFile);
         }
         catch (e) {
             metrics.event('session', 'attach-error');
@@ -334,10 +363,16 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
             await this._configurationDone.wait(3000);
 
+            this._consoleType = args.console
+
             // build the program.
             let possibles = <any>[];
             try {
-                possibles = await compile.build(args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND, this._runtime);
+                possibles = await compile.build(
+                    args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND, 
+                    <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)),
+                    args.cc65Home
+                );
             }
             catch {
                 metrics.event('session', 'build-error');
@@ -358,7 +393,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 !!args.runAhead,
                 args.viceDirectory,
                 args.viceArgs,
-                args.console,
                 args.preferX64OverX64sc,
                 args.debugFile,
                 args.mapFile

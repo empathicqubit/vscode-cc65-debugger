@@ -87,8 +87,6 @@ export class Runtime extends EventEmitter {
     private _viceStarting : boolean = false;
     public _vice : ViceGrip;
 
-    private _consoleType?: string;
-    private _runInTerminalRequest: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void;
     private _colorTermPids: [number, number] = [-1, -1];
     private _runAhead: boolean;
     private _ignoreEvents: boolean = false;
@@ -99,18 +97,17 @@ export class Runtime extends EventEmitter {
     private _registerMeta : {[key: string]: bin.SingleRegisterMeta };
     private _bankMeta : {[key: string]: bin.SingleBankMeta };
     private _userBreak: boolean = false;
+    private _processExecHandler: debugUtils.ExecHandler;
 
-    constructor(ritr: (args: DebugProtocol.RunInTerminalRequestArguments, timeout: number, cb: (response: DebugProtocol.RunInTerminalResponse) => void) => void) {
+    constructor(processExecHandler: debugUtils.ExecHandler) {
         super();
-
-        this._runInTerminalRequest = ritr;
+        this._processExecHandler = processExecHandler;
     }
 
     /**
      * Attach to an already running program
      * @param attachPort Binary monitor port
      * @param stopOnEntry Stop after attaching
-     * @param consoleType The type of terminal to use when spawning the text monitor
      * @param runAhead Step ahead one frame when stopping
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
@@ -121,7 +118,6 @@ export class Runtime extends EventEmitter {
         stopOnEntry: boolean,
         stopOnExit: boolean,
         runAhead: boolean,
-        consoleType?: string,
         program?: string,
         debugFilePath?: string,
         mapFilePath?: string
@@ -130,7 +126,7 @@ export class Runtime extends EventEmitter {
 
         this._attachProgram = program;
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath);
+        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath);
 
         console.time('vice')
 
@@ -259,7 +255,6 @@ export class Runtime extends EventEmitter {
         buildCwd: string,
         stopOnExit: boolean,
         runAhead: boolean,
-        consoleType?: string,
         program?: string,
         debugFilePath?: string,
         mapFilePath?: string
@@ -275,7 +270,6 @@ export class Runtime extends EventEmitter {
         });
 
         this._runAhead = !!runAhead;
-        this._consoleType = consoleType;
         console.time('loadSource')
 
         if(program && !debugUtils.programFiletypes.test(program)) {
@@ -349,7 +343,6 @@ export class Runtime extends EventEmitter {
      * @param stopOnEntry Stop after hitting main
      * @param viceDirectory The path with all the VICE executables
      * @param viceArgs Extra arguments to pass to VICE
-     * @param consoleType How the user wants the terminals to launch
      * @param preferX64OverX64sc Use x64 when appropriate
      * @param runAhead Skip ahead one frame
      * @param debugFilePath Manual path to debug file
@@ -364,7 +357,6 @@ export class Runtime extends EventEmitter {
         runAhead: boolean,
         viceDirectory?: string,
         viceArgs?: string[],
-        consoleType?: string,
         preferX64OverX64sc?: boolean,
         debugFilePath?: string,
         mapFilePath?: string,
@@ -372,7 +364,7 @@ export class Runtime extends EventEmitter {
     ) : Promise<void> {
         metrics.event('runtime', 'start');
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, consoleType, program, debugFilePath, mapFilePath)
+        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath)
 
         console.time('vice');
 
@@ -1001,31 +993,6 @@ or define the location manually with the launch.json->mapFile setting`
                 && this._currentPosition.span!.absoluteAddress < x.codeSpan.absoluteAddress + x.codeSpan.size
             );
     }
-
-    private _processExecHandler : debugUtils.ExecHandler = ((file, args, opts) => {
-        const promise = new Promise<[number, number]>((res, rej) => {
-            if(!path.isAbsolute(file) && path.dirname(file) != '.') {
-                file = path.join(__dirname, file);
-            }
-
-            this._runInTerminalRequest({
-                args: [file, ...args],
-                cwd: opts.cwd || __dirname,
-                env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
-                title: opts.title || undefined,
-                kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'
-            }, 10000, (response) => {
-                if(!response.success) {
-                    rej(response);
-                }
-                else {
-                    res([response.body.processId || -1, response.body.shellProcessId || -1]);
-                }
-            })
-        });
-
-        return promise;
-    });
 
     private async _getVicePath(viceDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
         let viceBaseName : string;

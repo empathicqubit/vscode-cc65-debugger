@@ -36,6 +36,51 @@ describe('Runtime', () => {
     let seq = 0;
     let request_seq = 0;
     let rt : Runtime;
+    const execHandler : debugUtils.ExecHandler = (file, args, opts) => {
+        const promise = new Promise<[number, number]>((res, rej) => {
+            if(!path.isAbsolute(file) && path.dirname(file) != '.') {
+                file = path.join(__dirname, file);
+            }
+
+            if(args.find(x => x.includes("monitor.js"))) {
+                console.log(args);
+                return [-1, -1];
+            }
+
+            const env : { [key: string]: string | undefined } =
+                _transform(opts.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
+
+            const proc = child_process.spawn(args[0], args.slice(1), {
+                cwd: opts.cwd,
+                stdio: "pipe",
+                shell: true,
+                //shell: __dirname + "/xterm-c",
+                detached: false,
+                env: {
+                    ...process.env,
+                    ...env
+                }
+            });
+            proc.stdout.pipe(process.stdout);
+            proc.stderr.pipe(process.stderr);
+            pids.push(proc.pid);
+            const cleanup = (e) => {
+                proc.stdout.unpipe(process.stdout);
+                proc.stdout.unpipe(process.stderr);
+                pids.splice(pids.indexOf(proc.pid), 1);
+                e && console.error(e)
+            };
+            proc.on('disconnect', cleanup);
+            proc.on('close', cleanup);
+            proc.on('error', cleanup);
+            proc.on('exit', cleanup);
+
+            return [proc.pid, proc.pid];
+        });
+
+        return promise;
+    };
+
     let viceArgs : string[] = [
         '-VICIIborders', '3',
         '+VICIIhwscale',
@@ -90,61 +135,7 @@ describe('Runtime', () => {
     }
 
     beforeEach(async() => {
-        rt = new Runtime((args, timeout, cb) => {
-            if(args.args.find(x => x.includes("monitor.js"))) {
-                console.log(args);
-                cb({
-                    command: 'runInTerminal',
-                    seq: seq++,
-                    success: true,
-                    type: 'response',
-                    request_seq: request_seq++,
-                    body: {
-                        processId: -1,
-                        shellProcessId: -1,
-                    }
-                });
-                return;
-            }
-
-            const env : { [key: string]: string | undefined } =
-                _transform(args.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
-            const proc = child_process.spawn(args.args[0], args.args.slice(1), {
-                cwd: args.cwd,
-                stdio: "pipe",
-                shell: true,
-                //shell: __dirname + "/xterm-c",
-                detached: false,
-                env: {
-                    ...process.env,
-                    ...env
-                }
-            });
-            proc.stdout.pipe(process.stdout);
-            proc.stderr.pipe(process.stderr);
-            pids.push(proc.pid);
-            const cleanup = (e) => {
-                proc.stdout.unpipe(process.stdout);
-                proc.stdout.unpipe(process.stderr);
-                pids.splice(pids.indexOf(proc.pid), 1);
-                e && console.error(e)
-            };
-            proc.on('disconnect', cleanup);
-            proc.on('close', cleanup);
-            proc.on('error', cleanup);
-            proc.on('exit', cleanup);
-            cb({
-                command: 'runInTerminal',
-                seq: seq++,
-                success: true,
-                type: 'response',
-                request_seq: request_seq++,
-                body: {
-                    processId: proc.pid,
-                    shellProcessId: proc.pid,
-                }
-            });
-        });
+        rt = new Runtime(execHandler);
 
         const emit = rt.emit.bind(rt);
         rt.emit = (...args) => (console.log(args), emit(...args));
@@ -172,7 +163,7 @@ describe('Runtime', () => {
 
     describe('Build', () => {
         test('Builds successfully', async() => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
         })
     });
 
@@ -181,7 +172,7 @@ describe('Runtime', () => {
         let proc : child_process.ChildProcessWithoutNullStreams;
 
         beforeEach(async () => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
 
             proc = child_process.spawn(VICE_DIRECTORY + '/x64sc', ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
                 cwd: '/tmp',
@@ -215,7 +206,7 @@ describe('Runtime', () => {
         });
 
         test('Can attach to a running process', async() => {
-            await rt.attach(binaryPort, BUILD_CWD, false, false, false, undefined, PROGRAM, DEBUG_FILE, MAP_FILE);
+            await rt.attach(binaryPort, BUILD_CWD, false, false, false, PROGRAM, DEBUG_FILE, MAP_FILE);
         });
 
         afterEach(async () => {
@@ -247,7 +238,7 @@ describe('Runtime', () => {
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
         beforeEach(async () => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
         });
 
         describe('Essential', () => {
@@ -260,7 +251,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -282,7 +272,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -314,7 +303,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -356,7 +344,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -406,7 +393,7 @@ describe('Runtime', () => {
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
         beforeEach(async () => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
         });
 
         describe('Essential', () => {
@@ -430,7 +417,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -482,7 +468,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -504,7 +489,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -535,7 +519,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -559,7 +542,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -581,7 +563,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -613,7 +594,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -645,7 +625,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -697,7 +676,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -739,7 +717,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -781,7 +758,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -851,7 +827,6 @@ describe('Runtime', () => {
                     false,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -933,7 +908,6 @@ describe('Runtime', () => {
                         true,
                         VICE_DIRECTORY,
                         viceArgs,
-                        undefined,
                         false,
                         DEBUG_FILE,
                         MAP_FILE,
@@ -958,7 +932,6 @@ describe('Runtime', () => {
                     true,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -986,7 +959,6 @@ describe('Runtime', () => {
                     true,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -1013,7 +985,6 @@ describe('Runtime', () => {
                     true,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
@@ -1041,7 +1012,6 @@ describe('Runtime', () => {
                     true,
                     VICE_DIRECTORY,
                     viceArgs,
-                    undefined,
                     false,
                     DEBUG_FILE,
                     MAP_FILE,
