@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as debugUtils from '../debug-utils';
 import _transform from 'lodash/transform';
 import * as child_process from 'child_process';
+import * as testShared from './test-shared';
 import { LaunchRequestBuildArguments } from '../launch-arguments';
 
 describe('Compile', () => {
@@ -20,52 +21,18 @@ describe('Compile', () => {
     let pids : number[] = [];
     let execHandler : debugUtils.ExecHandler;
     beforeEach(() => {
-        execHandler = (file, args, opts) => {
-            const promise = new Promise<[number, number]>((res, rej) => {
-                if(args.find(x => x.includes("monitor.js"))) {
-                    console.log(args);
-                    return [-1, -1];
-                }
+        execHandler = async (f, a, o) => {
+            const ret = await testShared.DEFAULT_TEST_EXEC_HANDLER(f, a, o)
+            pids.push(...ret);
 
-                const env : { [key: string]: string | undefined } =
-                    _transform(opts.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
-
-                const proc = child_process.spawn(file, args, {
-                    cwd: opts.cwd,
-                    stdio: "pipe",
-                    shell: true,
-                    //shell: __dirname + "/xterm-c",
-                    detached: false,
-                    env: {
-                        ...process.env,
-                        ...env
-                    }
-                });
-                proc.stdout.pipe(process.stdout);
-                proc.stderr.pipe(process.stderr);
-                pids.push(proc.pid);
-                const cleanup = (e) => {
-                    proc.stdout.unpipe(process.stdout);
-                    proc.stdout.unpipe(process.stderr);
-                    pids.splice(pids.indexOf(proc.pid), 1);
-                    e && console.error(e)
-                };
-                proc.on('disconnect', cleanup);
-                proc.on('close', cleanup);
-                proc.on('error', cleanup);
-                proc.on('exit', cleanup);
-
-                res([proc.pid, proc.pid]);
-            });
-
-            return promise;
+            return ret;
         };
     })
 
     afterEach(async () => {
         for(const pid of pids) {
             try {
-                process.kill(pid, 0) && process.kill(pid, 'SIGKILL');
+                pid != -1 && process.kill(pid, 0) && process.kill(pid, 'SIGKILL');
             }
             catch {}
         }
