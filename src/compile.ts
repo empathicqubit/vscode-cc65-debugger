@@ -92,15 +92,17 @@ export async function build(buildCwd: string, buildCmd: string, execHandler: deb
 }
 
 export async function make(buildCwd: string, buildCmd: string, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {
-    const builder = new Promise(async (res, rej) => {
-        // FIXME Exit code?
+    const doBuild = async() => {
         const pids = await execHandler(buildCmd, [], {
             ...opts,
             cwd: buildCwd,
+            title: 'Building...',
         });
 
+        console.log('Started build', pids);
+
         while(true) {
-            debugUtils.delay(100);
+            await debugUtils.delay(100);
             try {
                 process.kill(pids[0], 0);
                 process.kill(pids[1], 0);
@@ -109,7 +111,9 @@ export async function make(buildCwd: string, buildCmd: string, execHandler: debu
                 break;
             }
         }
-    });
+    };
+
+    const builder = doBuild();
 
     let filenames : string[] = [];
     const watcher = watch(buildCwd, {

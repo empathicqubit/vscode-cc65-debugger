@@ -33,9 +33,8 @@ describe('Runtime', () => {
     console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
     console.log('VICE DIRECTORY', VICE_DIRECTORY);
 
-    let seq = 0;
-    let request_seq = 0;
     let rt : Runtime;
+    let pids : number[] = [];
     const execHandler : debugUtils.ExecHandler = (file, args, opts) => {
         const promise = new Promise<[number, number]>((res, rej) => {
             if(!path.isAbsolute(file) && path.dirname(file) != '.') {
@@ -50,7 +49,7 @@ describe('Runtime', () => {
             const env : { [key: string]: string | undefined } =
                 _transform(opts.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
 
-            const proc = child_process.spawn(args[0], args.slice(1), {
+            const proc = child_process.spawn(file, args, {
                 cwd: opts.cwd,
                 stdio: "pipe",
                 shell: true,
@@ -75,7 +74,7 @@ describe('Runtime', () => {
             proc.on('error', cleanup);
             proc.on('exit', cleanup);
 
-            return [proc.pid, proc.pid];
+            res([proc.pid, proc.pid]);
         });
 
         return promise;
@@ -93,7 +92,6 @@ describe('Runtime', () => {
         '+sound',
         '-sounddev', 'dummy'
     ];
-    let pids : number[] = [];
 
     const selectCTest = async (testName: string) => {
         const lab = rt._dbgFile.labs.find(x => x.name == `_${testName}_main`)!;
@@ -242,7 +240,7 @@ describe('Runtime', () => {
         });
 
         describe('Essential', () => {
-            test('Starts and terminates successfully with intervention', async() => {
+            test('Starts and terminates successfully without intervention', async() => {
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
