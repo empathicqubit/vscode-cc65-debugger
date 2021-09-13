@@ -1,5 +1,6 @@
 import * as child_process from 'child_process';
 import * as colors from 'colors/safe';
+import * as compile from './compile';
 import _debounce from 'lodash/fp/debounce';
 import { basename } from 'path';
 import {
