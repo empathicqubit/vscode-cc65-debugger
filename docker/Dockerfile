@@ -9,6 +9,8 @@ RUN apt-get update && \
     apt-get build-dep --no-install-recommends -y vice && \
     apt-get install -y --no-install-recommends curl dos2unix cc65 zip gcc-multilib-i686-linux-gnu mingw-w64 libc6-dev-arm64-cross libc6-arm64-cross gcc-aarch64-linux-gnu gcc-multilib-arm-linux-gnueabi gcc-multilib-arm-linux-gnueabihf && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
+RUN echo 'deb http://ppa.launchpad.net/git-core/ppa/ubuntu bionic main' > /etc/apt/sources.list.d/git-core.list && \
+    echo 'deb-src http://ppa.launchpad.net/git-core/ppa/ubuntu bionic main' >> /etc/apt/sources.list.d/git-core.list
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git unzip subversion xa65 && \
     apt-get clean && rm -rf /var/cache/apt/lists/*

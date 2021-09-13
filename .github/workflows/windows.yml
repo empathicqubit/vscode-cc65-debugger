@@ -19,7 +19,7 @@ jobs:
           vice_version: ['tags/v3.5', 'trunk'] #Add versions here
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
 
