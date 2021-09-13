@@ -30,7 +30,6 @@ specifiers:
   npm-run-all: ^4.1.5
   performance-now: ^2.1.0
   pngjs: ^5.0.0
-  process-tree: ^1.0.3
   react: 16.14.0
   react-canvas-wrapper: ^0.5.1
   react-dom: 16.14.0
@@ -71,7 +70,6 @@ dependencies:
   node-watch: 0.7.1
   performance-now: 2.1.0
   pngjs: 5.0.0
-  process-tree: 1.0.3
   react: 16.14.0
   react-canvas-wrapper: 0.5.1_react@16.14.0
   react-dom: 16.14.0_react@16.14.0
@@ -5082,10 +5080,6 @@ packages:
   /process-nextick-args/2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
     dev: true
-
-  /process-tree/1.0.3:
-    resolution: {integrity: sha1-OtaFGO9Gz/mEoKnsUicYrYaFpcw=}
-    dev: false
 
   /prompts/2.4.1:
     resolution: {integrity: sha512-EQyfIuO2hPDsX1L/blblV+H7I0knhgAd82cVneCwcdND9B8AuCDuRcBH6yIcG4dFzlOUqbazQqwGjx5xmsNLuQ==}

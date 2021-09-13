@@ -110,7 +110,6 @@
     "node-watch": "^0.7.1",
     "performance-now": "^2.1.0",
     "pngjs": "^5.0.0",
-    "process-tree": "^1.0.3",
     "react": "16.14.0",
     "react-canvas-wrapper": "^0.5.1",
     "react-dom": "16.14.0",
@@ -257,7 +256,9 @@
                 "default": true
               },
               "build": {
-                "required": ["cwd"],
+                "required": [
+                  "cwd"
+                ],
                 "properties": {
                   "cwd": {
                     "type": "string",
@@ -296,7 +297,9 @@
             ],
             "properties": {
               "build": {
-                "required": ["cwd"],
+                "required": [
+                  "cwd"
+                ],
                 "properties": {
                   "command": {
                     "type": "string",

@@ -10,7 +10,6 @@ import * as util from 'util';
 import readdir from 'recursive-readdir';
 import * as path from 'path';
 import * as os from 'os';
-import * as processTree from 'process-tree';
 import { LaunchRequestBuildArguments } from "./launch-arguments";
 
 export const DEFAULT_BUILD_COMMAND = 'make';
@@ -110,6 +109,7 @@ export async function build(build: LaunchRequestBuildArguments, execHandler: deb
 }
 
 export async function make(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {
+    let lastUpdated = Date.now();
     const doBuild = async() => {
         const pids = await execHandler(build.command || DEFAULT_BUILD_COMMAND, build.command ? (build.args || []) : DEFAULT_BUILD_ARGS, {
             ...opts,
@@ -119,17 +119,10 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
         });
 
         console.log('Started build', pids);
-
-        while(true) {
+        while(Date.now() - lastUpdated < 2000) {
             await debugUtils.delay(100);
-            try {
-                pids[0] != -1 && process.kill(pids[0], 0);
-                pids[1] != -1 && process.kill(pids[1], 0);
-            }
-            catch {
-                break;
-            }
         }
+        console.log('Finished build', pids);
     };
 
     const builder = doBuild();
@@ -139,6 +132,7 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
         recursive: true,
         filter: f => debugUtils.programFiletypes.test(f),
     }, (evt, filename) => {
+        lastUpdated = Date.now();
         filenames.push(filename || "");
     });
 
