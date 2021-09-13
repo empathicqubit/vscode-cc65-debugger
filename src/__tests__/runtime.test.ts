@@ -1,18 +1,16 @@
 import * as assert from 'assert';
 import * as child_process from 'child_process';
-import * as fs from 'fs';
-import _difference from 'lodash/fp/difference';
 import _random from 'lodash/fp/random';
 import _transform from 'lodash/transform';
 import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
-import * as bin from '../binary-dto';
+import * as compile from '../compile';
+import { DEFAULT_BUILD_COMMAND } from '../compile';
 import * as debugUtils from '../debug-utils';
 import * as disassembly from '../disassembly';
+import * as metrics from '../metrics';
 import { Runtime } from '../runtime';
-import * as metrics from '../../src/metrics';
-import { DEFAULT_BUILD_COMMAND } from '../compile';
 
 metrics.options.disabled = true;
 
@@ -174,7 +172,7 @@ describe('Runtime', () => {
 
     describe('Build', () => {
         test('Builds successfully', async() => {
-            await rt.build(BUILD_CWD, BUILD_COMMAND);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
         })
     });
 
@@ -183,7 +181,7 @@ describe('Runtime', () => {
         let proc : child_process.ChildProcessWithoutNullStreams;
 
         beforeEach(async () => {
-            await rt.build(BUILD_CWD, BUILD_COMMAND);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
 
             proc = child_process.spawn(VICE_DIRECTORY + '/x64sc', ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
                 cwd: '/tmp',
@@ -249,7 +247,7 @@ describe('Runtime', () => {
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
         beforeEach(async () => {
-            await rt.build(BUILD_CWD, BUILD_COMMAND);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
         });
 
         describe('Essential', () => {
@@ -408,7 +406,7 @@ describe('Runtime', () => {
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
         beforeEach(async () => {
-            await rt.build(BUILD_CWD, BUILD_COMMAND);
+            await compile.build(BUILD_CWD, BUILD_COMMAND, rt);
         });
 
         describe('Essential', () => {

@@ -1,14 +1,15 @@
+import * as child_process from 'child_process';
 import { EventEmitter } from "events";
 import * as fs from 'fs';
-import * as child_process from 'child_process';
-import watch from 'node-watch';
 import _flow from 'lodash/fp/flow';
-import _orderBy from 'lodash/fp/orderBy';
 import _map from 'lodash/fp/map';
-import * as debugUtils from './debug-utils';
-import * as util from 'util';
-import readdir from 'recursive-readdir';
+import _orderBy from 'lodash/fp/orderBy';
+import watch from 'node-watch';
+import * as os from 'os';
 import * as path from 'path';
+import readdir from 'recursive-readdir';
+import * as util from 'util';
+import * as debugUtils from './debug-utils';
 
 export const DEFAULT_BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
 
@@ -46,6 +47,53 @@ export async function guessProgramPath(workspaceDir: string) {
     )(fileMeta);
 
     return orderedPrograms;
+}
+
+/**
+* Build the program using the command specified and try to find the output file with monitoring.
+* @returns The possible output files of types d81, prg, and d64.
+*/
+export async function build(buildCwd: string, buildCmd: string, eventEmitter: EventEmitter, cc65Directory?: string) : Promise<string[]> {
+    let sep = ':';
+    if(process.platform == 'win32') {
+        sep = ';';
+    }
+    let binDir : string | undefined;
+    if(!cc65Directory) {
+        if(['linux', 'win32'].includes(process.platform) && ['arm', 'arm64', 'x32', 'x64'].includes(os.arch())) {
+            cc65Directory = path.normalize(__dirname + '/../dist/cc65');
+            binDir = cc65Directory + '/bin_' + process.platform + '_' + os.arch();
+        }
+    }
+    else {
+        binDir = cc65Directory + '/bin';
+    }
+
+    let cc65Home : string | undefined;
+    if(cc65Directory) {
+        cc65Home = path.normalize(cc65Directory + '/..');
+    }
+
+    console.log('CC65_HOME', cc65Home);
+    console.log('CC65 bin folder', binDir);
+
+    const opts : child_process.ExecOptions = {
+        shell: <any>true,
+        env: {
+            PATH: [binDir, process.env.PATH].filter(x => x).join(sep),
+            CC65_HOME: [process.env.CC65_HOME, cc65Home].filter(x => x).join(sep),
+        }
+    };
+
+    const [changedFilenames] = await Promise.all([
+        make(buildCwd, buildCmd, eventEmitter, opts),
+    ]);
+
+    if(changedFilenames.length) {
+        return changedFilenames;
+    }
+
+    return await guessProgramPath(buildCwd);
 }
 
 export async function make(buildCwd: string, buildCmd: string, status: EventEmitter, opts: child_process.ExecOptions) : Promise<string[]> {

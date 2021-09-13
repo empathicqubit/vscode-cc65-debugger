@@ -1,21 +1,19 @@
+import * as child_process from 'child_process';
+import * as colors from 'colors/safe';
+import _debounce from 'lodash/fp/debounce';
+import { basename } from 'path';
 import {
-    Logger, logger,
-    LoggingDebugSession,
-    InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
-    Thread, StackFrame, Scope, Source, Breakpoint, Event, ContinuedEvent
+    Breakpoint, BreakpointEvent, ContinuedEvent, Event, InitializedEvent, Logger, logger,
+    LoggingDebugSession, OutputEvent, Scope, Source, StackFrame, StoppedEvent, TerminatedEvent, Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { basename } from 'path';
-import * as child_process from 'child_process';
-import _debounce from 'lodash/fp/debounce';
+import { DEFAULT_BUILD_COMMAND } from './compile';
 import * as debugUtils from './debug-utils';
-import { Runtime, CC65ViceBreakpoint } from './runtime';
-const { Subject } = require('await-notify');
-import * as colors from 'colors/safe';
-import {keyMappings} from './key-mappings';
-import {LaunchRequestArguments} from './launch-arguments';
-import {DEFAULT_BUILD_COMMAND} from './compile';
+import { keyMappings } from './key-mappings';
+import { LaunchRequestArguments } from './launch-arguments';
 import * as metrics from './metrics';
+import { CC65ViceBreakpoint, Runtime } from './runtime';
+const { Subject } = require('await-notify');
 
 enum VariablesReferenceFlag {
     HAS_TYPE    =    0x10000,
@@ -338,7 +336,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // build the program.
             let possibles = <any>[];
             try {
-                possibles = await this._runtime.build(args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND);
+                possibles = await compile.build(args.buildCwd, args.buildCommand || DEFAULT_BUILD_COMMAND);
             }
             catch {
                 metrics.event('session', 'build-error');

@@ -1,4 +1,3 @@
-import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as hotel from 'hasbin';
@@ -15,7 +14,6 @@ import * as util from 'util';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as bin from './binary-dto';
 import { CallStackManager } from './call-stack-manager';
-import * as compile from './compile';
 import * as debugFile from './debug-file';
 import * as debugUtils from './debug-utils';
 import * as disassembly from './disassembly';
@@ -24,7 +22,6 @@ import * as mapFile from './map-file';
 import * as metrics from './metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
-import * as os from 'os';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -107,42 +104,6 @@ export class Runtime extends EventEmitter {
         super();
 
         this._runInTerminalRequest = ritr;
-    }
-
-    /**
-    * Build the program using the command specified and try to find the output file with monitoring.
-    * @returns The possible output files of types d81, prg, and d64.
-    */
-    public async build(buildCwd: string, buildCmd: string, cc65Directory?: string) : Promise<string[]> {
-        let cc65Home = '';
-        let sep = ':';
-        if(process.platform == 'win32') {
-            sep = ';';
-        }
-        if(!cc65Directory) {
-            if(['linux', 'win32'].includes(process.platform) && ['arm', 'arm64', 'x32', 'x64'].includes(os.arch())) {
-                cc65Directory = path.normalize(__dirname + '/../dist/cc65/bin_' + process.platform + '_' + os.arch());
-                cc65Home = path.normalize(cc65Directory + '/..');
-            }
-        }
-
-        const opts : child_process.ExecOptions = {
-            shell: <any>true,
-            env: {
-                PATH: [cc65Directory, process.env.PATH].filter(x => x).join(sep),
-                CC65_HOME: [process.env.CC65_HOME, cc65Home].filter(x => x).join(sep),
-            }
-        };
-
-        const [changedFilenames] = await Promise.all([
-            compile.make(buildCwd, buildCmd, this, opts),
-        ]);
-
-        if(changedFilenames.length) {
-            return changedFilenames;
-        }
-
-        return await compile.guessProgramPath(buildCwd);
     }
 
     /**

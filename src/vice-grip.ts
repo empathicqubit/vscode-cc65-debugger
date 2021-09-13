@@ -1,19 +1,19 @@
-import * as net from 'net'
-import _last from 'lodash/fp/last'
-import * as debugFile from './debug-file'
-import semver from 'semver'
+import { EventEmitter } from 'events'
+import * as fs from 'fs'
+import getPort from 'get-port'
 import _intersectionBy from 'lodash/fp/intersectionBy'
+import _last from 'lodash/fp/last'
 import _random from 'lodash/fp/random'
 import _uniq from 'lodash/fp/uniq'
+import * as net from 'net'
 import * as path from 'path'
-import getPort from 'get-port';
-import * as tmp from 'tmp';
-import { EventEmitter } from 'events'
-import { Readable, Writable } from 'stream';
-import * as fs from 'fs';
-import * as util from 'util';
-import * as debugUtils from './debug-utils';
-import * as bin from './binary-dto';
+import semver from 'semver'
+import { Readable, Writable } from 'stream'
+import * as tmp from 'tmp'
+import * as util from 'util'
+import * as bin from './binary-dto'
+import * as debugFile from './debug-file'
+import * as debugUtils from './debug-utils'
 
 const waitPort = require('wait-port');
 

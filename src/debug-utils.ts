@@ -1,10 +1,10 @@
-import * as util from 'util';
-import * as fs from 'fs';
-import * as dbgfile from './debug-file';
 import * as child_process from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
-import * as runtime from './runtime';
+import * as util from 'util';
+import * as dbgfile from './debug-file';
 import * as debugFile from './debug-file';
+import * as runtime from './runtime';
 
 export interface ExtensionMessage {
     level: ExtensionMessageLevel,

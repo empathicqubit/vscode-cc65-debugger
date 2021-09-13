@@ -1,8 +1,8 @@
-import * as debugFile from './debug-file'
-import {ViceGrip} from './vice-grip'
-import * as typeQuery from './type-query'
-import * as debugUtils from './debug-utils'
 import _sum from 'lodash/fp/sum'
+import * as debugFile from './debug-file'
+import * as debugUtils from './debug-utils'
+import * as typeQuery from './type-query'
+import { ViceGrip } from './vice-grip'
 
 export interface VariableData {
     name : string;

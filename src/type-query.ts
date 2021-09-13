@@ -1,15 +1,11 @@
-import * as dbgfile from './debug-file';
-import * as util from 'util';
 import * as child_process from 'child_process';
-import readdir from 'recursive-readdir';
-import _sum from 'lodash/fp/sum';
-import _flow from 'lodash/fp/flow';
-import _filter from 'lodash/fp/filter';
-import _map from 'lodash/fp/map';
-import _sortBy from 'lodash/fp/sortBy';
 import * as fs from 'fs';
+import _last from 'lodash/fp/last';
+import _sum from 'lodash/fp/sum';
+import readdir from 'recursive-readdir';
+import * as util from 'util';
+import * as dbgfile from './debug-file';
 import * as tableFile from './table-file';
-import _last from 'lodash/fp/last'
 
 const execFile = util.promisify(child_process.execFile);
 

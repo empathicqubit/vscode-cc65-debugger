@@ -1,10 +1,10 @@
+import _dropWhile from 'lodash/fp/dropWhile';
+import _flow from 'lodash/fp/flow';
+import _max from 'lodash/fp/max';
+import _reverse from 'lodash/fp/reverse';
+import _takeWhile from 'lodash/fp/takeWhile';
 import * as debugFile from './debug-file';
 import * as mapFile from './map-file';
-import _max from 'lodash/fp/max';
-import _flow from 'lodash/fp/flow';
-import _dropWhile from 'lodash/fp/dropWhile';
-import _takeWhile from 'lodash/fp/takeWhile';
-import _reverse from 'lodash/fp/reverse';
 
 const opcodeSizes = [
     1, 6, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
