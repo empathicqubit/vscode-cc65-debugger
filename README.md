@@ -137,7 +137,7 @@ There are also some user settings to note:
 - **cc65.viceDirectory**: Set this to specify the directory that contains the
 VICE executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
-- **cc65.cc65Directory**: Set this to specify the directory that contains the
+- **cc65.cc65Home**: Set this to specify the directory that contains the
 CC65 build. This is the `CC65_HOME` directory, and not the bin directory, so the
 folder above bin.  If your system doesn't have prebuilt binaries, you probably 
 want to use CC65 on your PATH, and *not* this.

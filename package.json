@@ -167,7 +167,7 @@
     "configuration": {
       "title": "CC65 VICE Debugger",
       "properties": {
-        "cc65vice.cc65Directory": {
+        "cc65vice.cc65Home": {
           "type": [
             "string",
             "null"
