@@ -53,7 +53,7 @@ export async function guessProgramPath(workspaceDir: string) {
 * Build the program using the command specified and try to find the output file with monitoring.
 * @returns The possible output files of types d81, prg, and d64.
 */
-export async function build(buildCwd: string, buildCmd: string, eventEmitter: EventEmitter, cc65Home?: string) : Promise<string[]> {
+export async function build(buildCwd: string, buildCmd: string, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<string[]> {
     let sep = ':';
     if(process.platform == 'win32') {
         sep = ';';
@@ -81,7 +81,7 @@ export async function build(buildCwd: string, buildCmd: string, eventEmitter: Ev
     };
 
     const [changedFilenames] = await Promise.all([
-        make(buildCwd, buildCmd, eventEmitter, opts),
+        make(buildCwd, buildCmd, execHandler, opts),
     ]);
 
     if(changedFilenames.length) {
@@ -91,31 +91,29 @@ export async function build(buildCwd: string, buildCmd: string, eventEmitter: Ev
     return await guessProgramPath(buildCwd);
 }
 
-export async function make(buildCwd: string, buildCmd: string, status: EventEmitter, opts: child_process.ExecOptions) : Promise<string[]> {
-    const builder = new Promise((res, rej) => {
-        const process = child_process.spawn(buildCmd, {
+export async function make(buildCwd: string, buildCmd: string, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {
+    const doBuild = async() => {
+        const pids = await execHandler(buildCmd, [], {
             ...opts,
             cwd: buildCwd,
+            title: 'Building...',
         });
 
-        // FIXME This is a little smelly
-        process.stdout.on('data', (d) => {
-            setImmediate(() => status.emit('output', 'stdout', d.toString()));
-        });
+        console.log('Started build', pids);
 
-        process.stderr.on('data', (d) => {
-            setImmediate(() => status.emit('output', 'stderr', d.toString()));
-        });
-
-        process.on('close', (code) => {
-            if(code) {
-                const err = new Error('Problem making the project');
-                rej(err);
+        while(true) {
+            await debugUtils.delay(100);
+            try {
+                process.kill(pids[0], 0);
+                process.kill(pids[1], 0);
             }
+            catch {
+                break;
+            }
+        }
+    };
 
-            res(code);
-        })
-    });
+    const builder = doBuild();
 
     let filenames : string[] = [];
     const watcher = watch(buildCwd, {
