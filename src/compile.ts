@@ -10,8 +10,10 @@ import * as util from 'util';
 import readdir from 'recursive-readdir';
 import * as path from 'path';
 import * as os from 'os';
+import { LaunchRequestBuildArguments } from "./launch-arguments";
 
-export const DEFAULT_BUILD_COMMAND = 'make OPTIONS=mapfile,labelfile,debugfile';
+export const DEFAULT_BUILD_COMMAND = 'make';
+export const DEFAULT_BUILD_ARGS = ['OPTIONS=mapfile,labelfile,debugfile'];
 
 export async function guessProgramPath(workspaceDir: string) {
     const filenames : string[] = await readdir(workspaceDir);
@@ -55,7 +57,8 @@ export async function clean(buildCwd: string, execHandler: debugUtils.ExecHandle
     while(true) {
         await debugUtils.delay(100);
         try {
-            process.kill(pids[0], 0);
+            pids[0] != -1 && process.kill(pids[0], 0);
+            pids[1] != -1 && process.kill(pids[1], 0);
         }
         catch {
             break;
@@ -67,7 +70,7 @@ export async function clean(buildCwd: string, execHandler: debugUtils.ExecHandle
 * Build the program using the command specified and try to find the output file with monitoring.
 * @returns The possible output files of types d81, prg, and d64.
 */
-export async function build(buildCwd: string, buildCmd: string, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<string[]> {
+export async function build(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<string[]> {
     let sep = ':';
     if(process.platform == 'win32') {
         sep = ';';
@@ -95,45 +98,41 @@ export async function build(buildCwd: string, buildCmd: string, execHandler: deb
     };
 
     const [changedFilenames] = await Promise.all([
-        make(buildCwd, buildCmd, execHandler, opts),
+        make(build, execHandler, opts),
     ]);
 
     if(changedFilenames.length) {
         return changedFilenames;
     }
 
-    return await guessProgramPath(buildCwd);
+    return await guessProgramPath(build.cwd);
 }
 
-export async function make(buildCwd: string, buildCmd: string, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {
+export async function make(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {
+    let lastUpdated = Date.now();
     const doBuild = async() => {
-        const pids = await execHandler(buildCmd, [], {
+        const pids = await execHandler(build.command || DEFAULT_BUILD_COMMAND, build.command ? (build.args || []) : DEFAULT_BUILD_ARGS, {
             ...opts,
-            cwd: buildCwd,
+            shell: true,
+            cwd: build.cwd,
             title: 'Building...',
         });
 
         console.log('Started build', pids);
-
-        while(true) {
+        while(Date.now() - lastUpdated < 2000) {
             await debugUtils.delay(100);
-            try {
-                process.kill(pids[0], 0);
-                process.kill(pids[1], 0);
-            }
-            catch {
-                break;
-            }
         }
+        console.log('Finished build', pids);
     };
 
     const builder = doBuild();
 
     let filenames : string[] = [];
-    const watcher = watch(buildCwd, {
+    const watcher = watch(build.cwd, {
         recursive: true,
         filter: f => debugUtils.programFiletypes.test(f),
     }, (evt, filename) => {
+        lastUpdated = Date.now();
         filenames.push(filename || "");
     });
 

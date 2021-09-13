@@ -6,9 +6,9 @@ import * as net from 'net';
 import * as path from 'path';
 import * as util from 'util';
 import * as compile from '../compile';
-import { DEFAULT_BUILD_COMMAND } from '../compile';
 import * as debugUtils from '../debug-utils';
 import * as disassembly from '../disassembly';
+import { LaunchRequestBuildArguments } from '../launch-arguments';
 import * as metrics from '../metrics';
 import { Runtime } from '../runtime';
 
@@ -22,8 +22,14 @@ describe('Runtime', () => {
     /* These tests require VICE to be installed on your PATH */
     /* All values should be explicitly defined except
         when testing the defaults */
-    const BUILD_COMMAND = DEFAULT_BUILD_COMMAND;
+    const BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/simple-project');
+    const BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
+    const BUILD : LaunchRequestBuildArguments = {
+        cwd: BUILD_CWD,
+        args: BUILD_ARGS,
+        command: BUILD_COMMAND,
+    }
     const PROGRAM = BUILD_CWD + '/simple-project.c64'
     const MAP_FILE = PROGRAM + '.map';
     const DEBUG_FILE = PROGRAM + '.dbg';
@@ -159,18 +165,12 @@ describe('Runtime', () => {
         pids = [];
     });
 
-    describe('Build', () => {
-        test('Builds successfully', async() => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
-        })
-    });
-
     describe('Attach', () => {
         const binaryPort = 1024 + Math.floor(Math.random() * 10000);
         let proc : child_process.ChildProcessWithoutNullStreams;
 
         beforeEach(async () => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
+            await compile.build(BUILD, execHandler);
 
             proc = child_process.spawn(VICE_DIRECTORY + '/x64sc', ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
                 cwd: '/tmp',
@@ -236,7 +236,7 @@ describe('Runtime', () => {
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
         beforeEach(async () => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
+            await compile.build(BUILD, execHandler);
         });
 
         describe('Essential', () => {
@@ -391,7 +391,7 @@ describe('Runtime', () => {
         const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
         beforeEach(async () => {
-            await compile.build(BUILD_CWD, BUILD_COMMAND, execHandler);
+            await compile.build(BUILD, execHandler);
         });
 
         describe('Essential', () => {

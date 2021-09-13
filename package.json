@@ -242,7 +242,7 @@
         "configurationAttributes": {
           "attach": {
             "required": [
-              "buildCwd"
+              "build"
             ],
             "properties": {
               "stopOnEntry": {
@@ -255,10 +255,17 @@
                 "description": "Automatically stop after hitting the end of main().",
                 "default": true
               },
-              "buildCwd": {
-                "type": "string",
-                "description": "The full absolute path where the source was built. Default is '${workspaceFolder}'",
-                "default": "${workspaceFolder}"
+              "build": {
+                "required": [
+                  "cwd"
+                ],
+                "properties": {
+                  "cwd": {
+                    "type": "string",
+                    "description": "The full absolute path to run your build command in",
+                    "default": "${workspaceFolder}"
+                  }
+                }
               },
               "program": {
                 "type": "string",
@@ -286,13 +293,32 @@
           },
           "launch": {
             "required": [
-              "buildCwd"
+              "build"
             ],
             "properties": {
-              "buildCommand": {
-                "type": "string",
-                "description": "The command to use to build before execution. Default is 'make'",
-                "default": "make OPTIONS=debugfile,makefile,labelfile"
+              "build": {
+                "required": [
+                  "cwd"
+                ],
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "The executable to run",
+                    "default": "make"
+                  },
+                  "args": {
+                    "type": "array",
+                    "description": "The arguments to use",
+                    "default": [
+                      "OPTIONS=debugfile,makefile,labelfile"
+                    ]
+                  },
+                  "cwd": {
+                    "type": "string",
+                    "description": "The full absolute path to run your build command in",
+                    "default": "${workspaceFolder}"
+                  }
+                }
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -303,11 +329,6 @@
                 "type": "boolean",
                 "description": "Automatically stop after hitting the end of main().",
                 "default": true
-              },
-              "buildCwd": {
-                "type": "string",
-                "description": "The full absolute path to run the build command in. Default is '${workspaceFolder}'",
-                "default": "${workspaceFolder}"
               },
               "program": {
                 "type": "string",
@@ -338,8 +359,13 @@
             "type": "cc65-vice",
             "request": "launch",
             "name": "CC65 Vice Launch",
-            "buildCwd": "${workspaceFolder}",
-            "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile,debugtables",
+            "build": {
+              "cwd": "${workspaceFolder}",
+              "command": "make",
+              "args": [
+                "OPTIONS=mapfile,labelfile,debugfile,debugtables"
+              ]
+            },
             "stopOnEntry": true,
             "stopOnExit": true,
             "viceArgs": [
@@ -356,8 +382,13 @@
               "type": "cc65-vice",
               "request": "launch",
               "name": "CC65 Vice Launch",
-              "buildCwd": "^\"\\${workspaceFolder}\"",
-              "buildCommand": "make OPTIONS=mapfile,labelfile,debugfile",
+              "build": {
+                "cwd": "^\"\\${workspaceFolder}\"",
+                "command": "make",
+                "args": [
+                  "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+              },
               "stopOnEntry": true,
               "stopOnExit": true,
               "viceArgs": [

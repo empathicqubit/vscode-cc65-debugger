@@ -24,7 +24,7 @@ import * as Net from 'net';
 import * as vscode from 'vscode';
 import { CancellationToken, DebugConfiguration, ProviderResult, WorkspaceFolder } from 'vscode';
 import { DebugSession } from 'vscode-debugadapter';
-import { DEFAULT_BUILD_COMMAND } from './compile';
+import * as compile from './compile';
 import { CC65ViceDebugSession } from './debug-session';
 import * as debugUtils from './debug-utils';
 import * as metrics from './metrics';
@@ -179,8 +179,11 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
                 config.type = 'cc65-vice';
                 config.name = 'Build and launch VICE';
                 config.request = 'launch';
-                config.buildCommand = DEFAULT_BUILD_COMMAND;
-                config.buildCwd = '${worspaceFolder}';
+                config.build = {
+                    command: compile.DEFAULT_BUILD_COMMAND,
+                    cwd: '${worspaceFolder}',
+                    args: compile.DEFAULT_BUILD_ARGS,
+                }
                 config.stopOnEntry = true;
             }
         }
