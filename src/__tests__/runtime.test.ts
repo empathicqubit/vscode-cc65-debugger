@@ -61,7 +61,7 @@ describe('Runtime', () => {
         console.log(lab);
         await rt.setMemory(0x03fc, buf);
     }
-    
+
     const getLabel = (name: string) : number => {
         return (rt._dbgFile.labs.find(x => x.name == name) || { val: 0x00 }).val;
     }
@@ -191,6 +191,11 @@ describe('Runtime', () => {
 
     describe('Assembly', () => {
         const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/asm-project');
+        const BUILD : LaunchRequestBuildArguments = {
+            args: BUILD_ARGS,
+            command: BUILD_COMMAND,
+            cwd: BUILD_CWD,
+        }
         const MAP_FILE = BUILD_CWD + '/asm-project.c64.map';
         const DEBUG_FILE = BUILD_CWD + '/asm-project.c64.dbg';
         const LABEL_FILE = BUILD_CWD + '/asm-project.c64.lbl';
@@ -904,7 +909,7 @@ describe('Runtime', () => {
 
                 await rt.setBreakPoint(RUNAHEAD_C, 3);
                 await all(
-                    rt.continue(), 
+                    rt.continue(),
                     waitFor( 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > getLabel('_step_runahead') && rt.getRegisters().pc < getLabel('_step_runahead') + disassembly.maxOpCodeSize * 10, true))
                 );
                 await rt.continue();
