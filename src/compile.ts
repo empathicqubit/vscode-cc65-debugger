@@ -52,10 +52,9 @@ export async function guessProgramPath(workspaceDir: string) {
 }
 
 export async function clean(buildCwd: string, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<void> {
-    const pids = await execHandler('make clean', [], { cwd: buildCwd });
+    const pids = await execHandler('make', ['clean'], { cwd: buildCwd });
 
     while(true) {
-        await debugUtils.delay(100);
         try {
             pids[0] != -1 && process.kill(pids[0], 0);
             pids[1] != -1 && process.kill(pids[1], 0);
@@ -63,6 +62,7 @@ export async function clean(buildCwd: string, execHandler: debugUtils.ExecHandle
         catch {
             break;
         }
+        await debugUtils.delay(100);
     }
 }
 
@@ -109,9 +109,14 @@ export async function build(build: LaunchRequestBuildArguments, execHandler: deb
 }
 
 export async function make(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {
-    let lastUpdated = Date.now();
     const doBuild = async() => {
-        const pids = await execHandler(build.command || DEFAULT_BUILD_COMMAND, build.command ? (build.args || []) : DEFAULT_BUILD_ARGS, {
+        let args = [
+            ...build.command ? (build.args || []) : DEFAULT_BUILD_ARGS,
+        ];
+
+        args.push('&&', 'exit', '0');
+
+        const pids = await execHandler(build.command || DEFAULT_BUILD_COMMAND, args, {
             ...opts,
             shell: true,
             cwd: build.cwd,
@@ -119,7 +124,14 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
         });
 
         console.log('Started build', pids);
-        while(Date.now() - lastUpdated < 2000) {
+        while(true) {
+            try {
+                pids[0] != -1 && process.kill(pids[0], 0);
+                pids[1] != -1 && process.kill(pids[1], 0);
+            }
+            catch {
+                break;
+            }
             await debugUtils.delay(100);
         }
         console.log('Finished build', pids);
@@ -138,8 +150,6 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
         if(/(^|[\\\/])\.[^\\\/]+/g.test(filename)) {
             return;
         }
-        // Track the file update
-        lastUpdated = Date.now();
         // Ignore files that aren't programs
         if(debugUtils.programFiletypes.test(filename)) {
             return;
