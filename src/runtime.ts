@@ -22,6 +22,7 @@ import * as mapFile from './map-file';
 import * as metrics from './metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
+import * as child_process from 'child_process';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -402,6 +403,8 @@ export class Runtime extends EventEmitter {
                 args.unshift(command);
                 command = __dirname + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
             }
+
+            command = path.normalize(command);
 
             this._colorTermPids = await this._execHandler(command, args, {
                 title: 'VICE Monitor',

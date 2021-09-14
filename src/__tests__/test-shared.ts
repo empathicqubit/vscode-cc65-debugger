@@ -6,6 +6,7 @@ export const DEFAULT_TEST_EXEC_HANDLER : debugUtils.ExecHandler = (file, args, o
         if(args.find(x => x.includes("monitor.js"))) {
             console.log(args);
             res([-1, -1]);
+            return;
         }
 
         const env : { [key: string]: string | undefined } =
