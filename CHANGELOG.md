@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.0.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.1...v4.0.2) (2021-09-14)
+
+
+### Bug Fixes
+
+* Make the build process work on Windows again ([c1c65ab](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/c1c65abf6f2ff42e99602bb08f9b69308e81d161))
+
 ### [4.0.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.0...v4.0.1) (2021-09-14)
 
 
