@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.0.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.0...v4.0.1) (2021-09-14)
+
+
+### Bug Fixes
+
+* Remove references to Clang and some old feature caveats. ([6cbe1ce](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/6cbe1ce6ac59bdf77bbfe8d4fbf288a90cd65ed2))
+
 ## [4.0.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.11...v4.0.0) (2021-09-14)
 
 
