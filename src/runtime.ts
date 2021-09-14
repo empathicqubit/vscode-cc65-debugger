@@ -97,11 +97,11 @@ export class Runtime extends EventEmitter {
     private _registerMeta : {[key: string]: bin.SingleRegisterMeta };
     private _bankMeta : {[key: string]: bin.SingleBankMeta };
     private _userBreak: boolean = false;
-    private _processExecHandler: debugUtils.ExecHandler;
+    private _execHandler: debugUtils.ExecHandler;
 
-    constructor(processExecHandler: debugUtils.ExecHandler) {
+    constructor(execHandler: debugUtils.ExecHandler) {
         super();
-        this._processExecHandler = processExecHandler;
+        this._execHandler = execHandler;
     }
 
     /**
@@ -302,7 +302,7 @@ export class Runtime extends EventEmitter {
         console.timeEnd('preVice');
 
         this._vice = new ViceGrip(
-            <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)),
+            <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
         );
 
         this._registerMeta = {};
@@ -396,7 +396,14 @@ export class Runtime extends EventEmitter {
         console.time('postStart')
 
         if(this._vice.textPort) {
-            this._colorTermPids = await this._processExecHandler(process.execPath, [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`], {
+            let command = process.execPath;
+            let args = [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`];
+            if(process.platform == 'win32') {
+                args.unshift(command);
+                command = __dirname + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
+            }
+
+            this._colorTermPids = await this._execHandler(command, args, {
                 title: 'VICE Monitor',
             });
         }

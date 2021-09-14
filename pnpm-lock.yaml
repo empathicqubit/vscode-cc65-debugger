@@ -55,7 +55,6 @@ specifiers:
   webpack: ^5.11.1
   webpack-cli: ^4.3.0
   webpack-dev-server: ^3.11.1
-  why-is-node-running: ^2.2.0
 
 dependencies:
   '@entan.gl/vice-rainbow-monitor': 1.0.6
@@ -114,7 +113,6 @@ devDependencies:
   webpack: 5.11.1_webpack-cli@4.3.0
   webpack-cli: 4.3.0_f7fea7c07e3eff92da170cc456cf96db
   webpack-dev-server: 3.11.1_webpack-cli@4.3.0+webpack@5.11.1
-  why-is-node-running: 2.2.0
 
 packages:
 
@@ -2823,7 +2821,7 @@ packages:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
-      mime-types: 2.1.27
+      mime-types: 2.1.28
     dev: false
 
   /form-data/3.0.1:
@@ -4443,24 +4441,24 @@ packages:
   /mime-db/1.44.0:
     resolution: {integrity: sha512-/NOTfLrsPBVeH7YtFPgsVWveuL+4SjjYxaQ1xtM1KMFj7HdxlBlxeyNLzhyJVx7r4rZGJAZ/6lkKCitSc/Nmpg==}
     engines: {node: '>= 0.6'}
+    dev: true
 
   /mime-db/1.45.0:
     resolution: {integrity: sha512-CkqLUxUk15hofLoLyljJSrukZi8mAtgd+yE5uO4tqRZsdsAJKv0O+rFMhVDRJgozy+yG6md5KwuXhD4ocIoP+w==}
     engines: {node: '>= 0.6'}
-    dev: true
 
   /mime-types/2.1.27:
     resolution: {integrity: sha512-JIhqnCasI9yD+SsmkquHBxTSEuZdQX5BuQnS2Vc7puQQQ+8yiP5AY5uWhpdv4YL4VM5c6iliiYWPgJ/nJQLp7w==}
     engines: {node: '>= 0.6'}
     dependencies:
       mime-db: 1.44.0
+    dev: true
 
   /mime-types/2.1.28:
     resolution: {integrity: sha512-0TO2yJ5YHYr7M2zzT7gDU1tbwHxEUWBCLt0lscSNpcdAfFyJOVEpRYNS7EXVcTLNj/25QO8gulHC5JtTzSE2UQ==}
     engines: {node: '>= 0.6'}
     dependencies:
       mime-db: 1.45.0
-    dev: true
 
   /mime/1.6.0:
     resolution: {integrity: sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==}
@@ -5330,7 +5328,7 @@ packages:
       is-typedarray: 1.0.0
       isstream: 0.1.2
       json-stringify-safe: 5.0.1
-      mime-types: 2.1.27
+      mime-types: 2.1.28
       oauth-sign: 0.9.0
       performance-now: 2.1.0
       qs: 6.5.2
@@ -5630,10 +5628,6 @@ packages:
       shelljs: 0.8.4
     dev: true
 
-  /siginfo/2.0.0:
-    resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
-    dev: true
-
   /signal-exit/3.0.3:
     resolution: {integrity: sha512-VUJ49FC8U1OxwZLxIbTTrDvLnf/6TDgxZcK8wxR8zs13xpx7xbG60ndBlhNrFi2EMuFRoeDoJO7wthSLq42EjA==}
     dev: true
@@ -5823,10 +5817,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       escape-string-regexp: 2.0.0
-    dev: true
-
-  /stackback/0.0.2:
-    resolution: {integrity: sha1-Gsig2Ug4SNFpXkGLbQMaPDzmjjs=}
     dev: true
 
   /static-extend/0.1.2:
@@ -6757,15 +6747,6 @@ packages:
     hasBin: true
     dependencies:
       isexe: 2.0.0
-    dev: true
-
-  /why-is-node-running/2.2.0:
-    resolution: {integrity: sha512-rxtN9D0lJaYyP92BR5yoyWecK2txBKmBIuS7GRbOPP5bXsT37/hBqcmTrlrt25DBr9p4WJb6c9LuYSJd89vHRQ==}
-    engines: {node: '>=8'}
-    hasBin: true
-    dependencies:
-      siginfo: 2.0.0
-      stackback: 0.0.2
     dev: true
 
   /word-wrap/1.2.3:

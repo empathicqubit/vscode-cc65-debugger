@@ -21,8 +21,8 @@ export class ViceGrip extends EventEmitter {
     public textPort : number | undefined;
 
     private _apiVersion: number = 1;
-    public versionInfo : { 
-        viceVersion: string, 
+    public versionInfo : {
+        viceVersion: string,
         svnRevision: number,
         compoundDirectory: boolean,
         displayBuffer8BitOnly: boolean,
@@ -102,15 +102,15 @@ export class ViceGrip extends EventEmitter {
         }
     };
 
-    private _handler: debugUtils.ExecHandler;
+    private _execHandler: debugUtils.ExecHandler;
     private _pids: [number, number] = [-1, -1];
 
     constructor(
-        handler: debugUtils.ExecHandler,
+        execHandler: debugUtils.ExecHandler,
     ) {
         super();
 
-        this._handler = handler;
+        this._execHandler = execHandler;
     }
 
     public async autostart(program: string) : Promise<bin.AutostartResponse> {
@@ -253,7 +253,7 @@ export class ViceGrip extends EventEmitter {
             return;
         }
 
-        const grip = new ViceGrip(this._handler);
+        const grip = new ViceGrip(this._execHandler);
         grip._binaryConn = await ViceGrip._connect(binaryPort, grip._binaryDataHandler.bind(grip));
 
         try {
@@ -319,7 +319,7 @@ export class ViceGrip extends EventEmitter {
 
         let pids : number[];
         try {
-            pids = await this._handler(vicePath, args, opts);
+            pids = await this._execHandler(vicePath, args, opts);
         }
         catch {
             throw new Error(`Could not start VICE with "${vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
@@ -459,7 +459,7 @@ export class ViceGrip extends EventEmitter {
         console.log('Starting VICE', vicePath, args, opts);
 
         try {
-            this._pids = await this._handler(vicePath, args, opts)
+            this._pids = await this._execHandler(vicePath, args, opts)
         }
         catch {
             throw new Error(`Could not start VICE with "${vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
@@ -467,7 +467,7 @@ export class ViceGrip extends EventEmitter {
 
         // Windows only, for debugging
         if(logfile) {
-            await this._handler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {
+            await this._execHandler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {
                 title: 'Log Output'
             })
         }

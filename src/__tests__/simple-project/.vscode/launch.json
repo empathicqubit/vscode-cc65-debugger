@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "cc65-vice",
             "request": "launch",
@@ -35,7 +34,6 @@
             "stopOnEntry": true,
             "stopOnExit": true,
             "attachPort": 29784,
-            "debugServer": 4711
         },
         {
             "type": "cc65-vice",
@@ -51,11 +49,63 @@
                     "OPTIONS=mapfile,labelfile,debugfile"
                 ]
             },
-            "debugServer": 4711,
             "stopOnEntry": true,
             "stopOnExit": true,
             "viceArgs": [
             ]
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.c64",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "viceArgs": [
+            ],
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
+            "request": "attach",
+            "name": "CC65 Vice Attach (PET) (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.pet",
+            "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.pet.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "attachPort": 29784,
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (PET) (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.pet",
+            "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.pet.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "viceArgs": [
+            ],
+            "debugServer": 4711
         }
     ]
 }

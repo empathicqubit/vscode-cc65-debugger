@@ -8,7 +8,6 @@ import {
     LoggingDebugSession, OutputEvent, Scope, Source, StackFrame, StoppedEvent, TerminatedEvent, Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { DEFAULT_BUILD_COMMAND } from './compile';
 import * as debugUtils from './debug-utils';
 import { keyMappings } from './key-mappings';
 import { LaunchRequestArguments, LaunchRequestBuildArguments } from './launch-arguments';
@@ -51,16 +50,18 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     private _bounceBuf: () => void;
 
-    private _processExecHandler : debugUtils.ExecHandler = ((file, args, opts) => {
+    private _execHandler : debugUtils.ExecHandler = ((file, args, opts) => {
         const promise = new Promise<[number, number]>((res, rej) => {
             if(!path.isAbsolute(file) && path.dirname(file) != '.') {
                 file = path.join(__dirname, file);
             }
 
+            file = path.normalize(file);
+
             if(process.platform == 'win32') {
                 args.unshift('/S', '/C', file);
                 file = 'cmd.exe';
-                args = args.map(x => ['&&', '||', '>'].includes(x) ? x : `"${x}"`);
+                args = args.map(x => ['echo', '&&', '||', '>'].includes(x) ? x : `"${x}"`);
             }
 
             this.runInTerminalRequest({
@@ -94,7 +95,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.setDebuggerColumnsStartAt1(false);
 
         this._runtime = new Runtime(
-            <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts))
+            <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts))
         );
 
         this._bounceBuf = _debounce(250, async () => {
@@ -376,7 +377,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             try {
                 possibles = await compile.build(
                     args.build,
-                    <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)),
+                    <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
                     args.cc65Home
                 );
             }

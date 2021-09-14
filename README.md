@@ -239,6 +239,7 @@ All work happens on `master`, and releases are merged from pull requests using G
 
 ## Additional Credits (see also LICENSE.md)
 
+* **Terminal**: mintty, from [Git for Windows](https://github.com/git-for-windows/git/releases)
 * **Compilation**: A modified version of [CC65](https://github.com/empathicqubit/cc65) is included with this project, in order to generate detailed type information at compile time.
 * **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
 * **Font**: Font for the screen text viewer is generated using [atbrask/c64ttf](https://github.com/atbrask/c64ttf)

@@ -15,11 +15,27 @@
                     "OPTIONS=mapfile,labelfile,debugfile"
                 ]
             },
-            "debugServer": 4711,
             "stopOnEntry": true,
             "stopOnExit": true,
             "viceArgs": [
             ]
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (Debug Extension)",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "viceArgs": [
+            ],
+            "debugServer": 4711
         }
     ]
 }
