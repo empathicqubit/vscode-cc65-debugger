@@ -111,10 +111,11 @@ export async function build(build: LaunchRequestBuildArguments, execHandler: deb
 export async function make(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {
     const doBuild = async() => {
         let args = [
-            ...build.command ? (build.args || []) : DEFAULT_BUILD_ARGS,
+            ...(build.command ? (build.args || []) : DEFAULT_BUILD_ARGS),
         ];
 
-        args.push('&&', 'exit', '0');
+        const failurePath =  `${os.tmpdir()}/cc65vice_make_failure_${Math.random().toString()}`;
+        args.push('&&', 'exit', '0', '||', 'echo', '>', failurePath);
 
         const pids = await execHandler(build.command || DEFAULT_BUILD_COMMAND, args, {
             ...opts,
@@ -125,6 +126,18 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
 
         console.log('Started build', pids);
         while(true) {
+            let failure = true;
+            try {
+                await util.promisify(fs.unlink)(failurePath);
+            }
+            catch {
+                failure = false;
+            }
+
+            if(failure) {
+                throw new Error('Build failed');
+            }
+
             try {
                 pids[0] != -1 && process.kill(pids[0], 0);
                 pids[1] != -1 && process.kill(pids[1], 0);
@@ -134,6 +147,7 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
             }
             await debugUtils.delay(100);
         }
+
         console.log('Finished build', pids);
     };
 
