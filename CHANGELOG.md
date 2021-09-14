@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.0.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.11...v4.0.0) (2021-09-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* Separate build arguments in launch.json.
+
+### Features
+
+* Include cc65 in build so user doesn't have to install ([375e2e4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/375e2e44ca01ff5b2c90ba91665b7958474d6be0))
+* Separate build arguments in launch.json. ([f98a362](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f98a362a1cfe4dea7154aa624044ad36a9cb9a32))
+
 ### [3.7.11](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v3.7.10...v3.7.11) (2021-08-29)
 
 
