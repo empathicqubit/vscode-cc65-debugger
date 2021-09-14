@@ -404,16 +404,16 @@ describe('Runtime', () => {
                         assert.strictEqual(file, NONC64_C);
                         assert.strictEqual(line, 3);
                     }),
+                    waitFor('stopOnStep')
                 );
 
-                await waitFor('stopOnStep');
 
                 const wastedOnMyself = [
                     waitFor('output', (type, __, file, line, col) => {
                         assert.strictEqual(file, NONC64_C);
                         assert.strictEqual(line, 9);
                     }),
-                    waitFor('stopOnStep'),
+                    waitFor('stopOnStep')
                 ];
 
                 await all(
