@@ -36,9 +36,9 @@ If you're having trouble understanding how this extension is supposed to be used
 
 ## Setup
 
-To make sure all the features work, you'll want to install Clang, cc65 2.17
-(newer versions should work, however I was having trouble getting a correct build
-of my test project), and VICE 3.5 or later.
+To make sure all the features work, you'll want to install VICE 3.5 or later.
+A modified build of CC65 for Linux and Windows is already included, so you'll
+only need to specify your own if you're using a platform such as Mac OS.
 
 ### Windows-specific instructions
 
@@ -199,10 +199,9 @@ You may also want to look at the [full Assembly project template](src/__tests__/
 - Stepping over lines.
 - Stepping out of functions.
 - Stepping into functions.
-- Viewing structs (**You have to install clang tools on your PATH**)
-- Local variables (except for the one on the bottom of the stack, since the
-size can't be determined)
-- Global variables (2B size is assumed since the size can't be easily discovered AFAIK)
+- Viewing structs
+- Local variables
+- Global variables
 - Registers
 - Variable and memory drilldown. With any variable, even ones that were
 determined to be a single byte, you can use it as a two byte pointer to jump to
