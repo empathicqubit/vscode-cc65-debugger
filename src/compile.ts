@@ -115,9 +115,15 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
         ];
 
         const failurePath =  `${os.tmpdir()}/cc65vice_make_failure_${Math.random().toString()}`;
-        args.push('&&', 'exit', '0', '||', 'echo', '>', failurePath);
+        const successPath =  `${os.tmpdir()}/cc65vice_make_success_${Math.random().toString()}`;
+        let command = build.command || DEFAULT_BUILD_COMMAND;
+        if(process.platform == 'win32') {
+            args.unshift('/S', '/C', command);
+            command = 'cmd.exe';
+        }
+        args.push('&&', 'echo', '>', successPath, '||', 'echo', '>', failurePath);
 
-        const pids = await execHandler(build.command || DEFAULT_BUILD_COMMAND, args, {
+        const pids = await execHandler(command, args, {
             ...opts,
             shell: true,
             cwd: build.cwd,
@@ -138,13 +144,18 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
                 throw new Error('Build failed');
             }
 
+            let success = false;
             try {
-                pids[0] != -1 && process.kill(pids[0], 0);
-                pids[1] != -1 && process.kill(pids[1], 0);
+                await util.promisify(fs.unlink)(successPath);
+                success = true;
             }
             catch {
+            }
+
+            if(success) {
                 break;
             }
+
             await debugUtils.delay(100);
         }
 

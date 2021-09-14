@@ -1,6 +1,6 @@
 const shx = require('shelljs');
 shx.config.fatal = true;
-const arg = process.argv; 
+const arg = process.argv;
 console.log(arg);
 let [,, arch, cross] = arg;
 cross = cross || '';
@@ -13,7 +13,9 @@ shx.mkdir('-p', archDir)
 shx.cp('-ru', archDir + '/../../src/', archDir)
 shx.cd(archDir + '/src')
 shx.exec('make -j8 CROSS_COMPILE=' + cross)
-shx.exec(cross + 'strip ../bin/*')
+shx.find('../bin/*').forEach(binFile => {
+    shx.exec(cross + 'strip ' + binFile);
+})
 shx.mkdir('-p', distDir)
 shx.cp('-ru', '../bin/.', distDir);
 if(arch.startsWith('linux')) {

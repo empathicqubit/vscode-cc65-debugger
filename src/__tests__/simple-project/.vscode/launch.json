@@ -4,7 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
+
         {
             "type": "cc65-vice",
             "request": "launch",
@@ -17,7 +17,6 @@
                     "OPTIONS=mapfile,labelfile,debugfile"
                 ]
             },
-            "debugServer": 4711,
             "stopOnEntry": true,
             "stopOnExit": true,
             "viceArgs": [
