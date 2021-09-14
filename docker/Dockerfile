@@ -19,7 +19,7 @@ RUN PATH=$PATH:$HOME/.local/bin apt-smart -a
 # Install VICE dependencies and misc.
 RUN apt-get update && \
     apt-get build-dep --no-install-recommends -y vice && \
-    apt-get install -y --no-install-recommends curl dos2unix 7z zip gpg subversion build-essential xa65 automake autoconf && \
+    apt-get install -y --no-install-recommends curl dos2unix p7zip zip gpg subversion build-essential xa65 automake autoconf && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
 
 # Build VICE
