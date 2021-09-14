@@ -57,6 +57,12 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 file = path.join(__dirname, file);
             }
 
+            if(process.platform == 'win32') {
+                args.unshift('/S', '/C', file);
+                file = 'cmd.exe';
+                args = args.map(x => ['&&', '||', '>'].includes(x) ? x : `"${x}"`);
+            }
+
             this.runInTerminalRequest({
                 args: [file, ...args],
                 cwd: opts.cwd || __dirname,
@@ -369,7 +375,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             let possibles = <any>[];
             try {
                 possibles = await compile.build(
-                    args.build, 
+                    args.build,
                     <debugUtils.ExecHandler>((file, args, opts) => this._processExecHandler(file, args, opts)),
                     args.cc65Home
                 );
