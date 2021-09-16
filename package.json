@@ -42,7 +42,7 @@
     "submodules": "git submodule init && git submodule update || git submodule deinit --force --all",
     "compiler:arch": "npm-run-all compiler:distdir && node ./compiler-arch.js",
     "compiler:base:extract": "7z x -y 3rdparty/cc65/cc65.zip -odist/cc65",
-    "compiler:base": "npm-run-all compiler:distdir && shx rm -f cc65.zip && cd 3rdparty/cc65 && make -j8 && make zip && npm-run-all compiler:base:extract",
+    "compiler:base": "npm-run-all compiler:distdir && shx rm -f cc65.zip && make -C 3rdparty/cc65 -j8 && make -C 3rdparty/cc65 zip && npm-run-all compiler:base:extract",
     "compiler:distdir": "shx mkdir -p dist/cc65",
     "compiler:on-win32:win32_x64": "npm-run-all \"compiler:arch -- win32_x64\"",
     "compiler:on-win32": "echo \"WINDOWS CANNOT GENERATE FULL BUILDS!\" && npm-run-all -p compiler:base compiler:on-win32:*",
