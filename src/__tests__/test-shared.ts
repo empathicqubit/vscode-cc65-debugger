@@ -23,11 +23,17 @@ export const DEFAULT_TEST_EXEC_HANDLER : debugUtils.ExecHandler = (file, args, o
                 ...env
             }
         });
-        proc.stdout.pipe(process.stdout);
-        proc.stderr.pipe(process.stderr);
+        const stdout = (data: Buffer) => {
+            console.log([expect.getState().currentTestName, data.toString('ascii')]);
+        };
+        const stderr = (data: Buffer) => {
+            console.error([expect.getState().currentTestName, data.toString('ascii')]);
+        };
+        proc.stdout.on('data', stdout);
+        proc.stderr.on('data', stderr);
         const cleanup = (e) => {
-            proc.stdout.unpipe(process.stdout);
-            proc.stdout.unpipe(process.stderr);
+            proc.stdout.off('data', stdout);
+            proc.stderr.off('data', stderr);
             e && console.error(e)
         };
         proc.on('disconnect', cleanup);

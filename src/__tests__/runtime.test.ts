@@ -39,8 +39,6 @@ describe('Runtime', () => {
     console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
     console.log('VICE DIRECTORY', VICE_DIRECTORY);
 
-    let rt : Runtime;
-
     let viceArgs : string[] = [
         '-VICIIborders', '3',
         '+VICIIhwscale',
@@ -54,7 +52,7 @@ describe('Runtime', () => {
         '-sounddev', 'dummy'
     ];
 
-    const selectCTest = async (testName: string) => {
+    const selectCTest = async (rt: Runtime, testName: string) => {
         const lab = rt._dbgFile.labs.find(x => x.name == `_${testName}_main`)!;
         const buf = Buffer.alloc(2);
         buf.writeUInt16LE(lab.val);
@@ -62,11 +60,11 @@ describe('Runtime', () => {
         await rt.setMemory(0x03fc, buf);
     }
 
-    const getLabel = (name: string) : number => {
+    const getLabel = (rt: Runtime, name: string) : number => {
         return (rt._dbgFile.labs.find(x => x.name == name) || { val: 0x00 }).val;
     }
 
-    const waitFor = async(event: string, assertion?: ((...x: any[]) => void)) : Promise<void> => {
+    const waitFor = async(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> => {
         const err = new Error('Timed out waiting for assertion');
         await new Promise<void>((res, rej) => {
             let finished = false;
@@ -101,22 +99,24 @@ describe('Runtime', () => {
         return ret;
     };
 
-    beforeEach(async() => {
-        rt = new Runtime(execHandler);
+    const newRuntime = async() : Promise<Runtime> => {
+        const rt = new Runtime(execHandler);
 
         const emit = rt.emit.bind(rt);
-        rt.emit = (...args) => (console.log(args), emit(...args));
+        rt.emit = (...args) => (console.log([expect.getState().currentTestName, ...args]), emit(...args));
 
         rt.on('output', (...args) => {
             if(args[0] == 'stderr') {
-                console.log(args[1]);
+                console.log([expect.getState().currentTestName, args[1]]);
             }
         });
 
         rt.on('message', (...args) => {
-            console.log(args);
+            console.log([expect.getState().currentTestName, ...args]);
         });
-    });
+
+        return rt;
+    };
 
     afterEach(async () => {
         for(const pid of pids) {
@@ -167,7 +167,7 @@ describe('Runtime', () => {
         });
 
         test('Can attach to a running process', async() => {
-            await rt.attach(binaryPort, BUILD_CWD, false, false, false, PROGRAM, DEBUG_FILE, MAP_FILE);
+            await (await newRuntime()).attach(binaryPort, BUILD_CWD, false, false, false, PROGRAM, DEBUG_FILE, MAP_FILE);
         });
 
         afterEach(async () => {
@@ -209,6 +209,7 @@ describe('Runtime', () => {
 
         describe('Essential', () => {
             test('Starts and terminates successfully without intervention', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -223,13 +224,14 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor('stopOnEntry');
+                await waitFor(rt, 'stopOnEntry');
                 await rt.continue();
                 await debugUtils.delay(2000);
                 await rt.terminate();
             });
 
             test('Can set a breakpoint', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -244,23 +246,24 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor('stopOnEntry');
+                await waitFor(rt, 'stopOnEntry');
 
                 await rt.setBreakPoint(MAIN_S, 12);
                 await all(
                     rt.continue(),
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 12)
                     }),
                 );
 
-                await waitFor('stopOnBreakpoint');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await rt.terminate();
             });
 
             test('Can step in', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -275,33 +278,34 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor('started');
+                await waitFor(rt, 'started');
 
                 await rt.setBreakPoint(MAIN_S, 7);
                 await all(
                     rt.continue(),
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 7)
                     }),
                 );
 
-                await waitFor('stopOnBreakpoint');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 18)
                     }),
                 );
 
-                await waitFor('stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
                 await rt.terminate();
             });
 
             test('Can step out', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -316,38 +320,38 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor('stopOnEntry');
+                await waitFor(rt, 'stopOnEntry');
 
                 await rt.setBreakPoint(MAIN_S, 7);
                 await all(
                     rt.continue(),
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 7)
                     }),
                 );
 
-                await waitFor('stopOnBreakpoint');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 18)
                     }),
                 );
 
-                await waitFor('stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
                 await all(
                     rt.stepOut(),
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 9)
                     }),
                 );
 
-                await waitFor('stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
                 await rt.terminate();
             });
@@ -364,6 +368,7 @@ describe('Runtime', () => {
 
         describe('Essential', () => {
             test('Non-C64 platform works correctly', async () => {
+                const rt = await newRuntime();
                 const PROGRAM = BUILD_CWD + '/simple-project.pet';
                 const MAP_FILE = PROGRAM + '.map';
                 const DEBUG_FILE = PROGRAM + '.dbg';
@@ -389,31 +394,31 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor('stopOnEntry');
-                await selectCTest('test_non_c64');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_non_c64');
 
                 await rt.setBreakPoint(NONC64_C, 8);
                 await all(
                     rt.continue(),
-                    waitFor('stopOnBreakpoint')
+                    waitFor(rt, 'stopOnBreakpoint')
                 );
 
                 await all(
                     rt.stepIn(),
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, NONC64_C);
                         assert.strictEqual(line, 3);
                     }),
-                    waitFor('stopOnStep')
+                    waitFor(rt, 'stopOnStep')
                 );
 
 
                 const wastedOnMyself = [
-                    waitFor('output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, NONC64_C);
                         assert.strictEqual(line, 9);
                     }),
-                    waitFor('stopOnStep')
+                    waitFor(rt, 'stopOnStep')
                 ];
 
                 await all(
@@ -422,10 +427,11 @@ describe('Runtime', () => {
                 );
 
                 await rt.continue();
-                await waitFor('end');
+                await waitFor(rt, 'end');
             });
 
             test('Can modify memory correctly', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -440,13 +446,14 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor('stopOnEntry');
-                await selectCTest('test_template');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_template');
                 await rt.continue();
-                await waitFor('stopOnExit');
+                await waitFor(rt, 'stopOnExit');
             });
 
             test('Pauses correctly', async () => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -461,8 +468,8 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor('stopOnEntry');
-                await selectCTest('test_pause');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_pause');
                 const testCycle = async () => {
                     await rt.continue();
                     await debugUtils.delay(_random(100, 200));
@@ -477,6 +484,7 @@ describe('Runtime', () => {
             });
 
             test('Starts and terminates successfully without intervention', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -491,15 +499,16 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_start_terminate');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_start_terminate');
 
                 await rt.continue();
 
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Breaks at the entry point', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -514,13 +523,14 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, getLabel('_main')));
-                await selectCTest('test_break_entry');
+                await waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, getLabel(rt, '_main')));
+                await selectCTest(rt, 'test_break_entry');
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Breaks at the exit point', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -535,21 +545,22 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_break_exit');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_break_exit');
                 await rt.continue();
 
-                await waitFor( 'output', (type, __, file, line, col) => {
+                await waitFor(rt, 'output', (type, __, file, line, col) => {
                     assert.strictEqual(file, MAIN_S);
                     assert.strictEqual(line, 43);
                 });
-                await waitFor( 'stopOnExit');
+                await waitFor(rt, 'stopOnExit');
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Can set a shitton of breakpoints without them clearing', async() => {
+                const rt = await newRuntime();
                 const SHITTON_C = path.join(BUILD_CWD, "src/test_shitton_of_breakpoints.c");
 
                 await rt.start(
@@ -566,8 +577,8 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'started');
-                await selectCTest('test_shitton_of_breakpoints');
+                await waitFor(rt, 'started');
+                await selectCTest(rt, 'test_shitton_of_breakpoints');
 
                 for(let i = 0 ; i < 6 ; i++) {
                     await Promise.all([
@@ -581,6 +592,7 @@ describe('Runtime', () => {
             });
 
             test('Can step out', async() => {
+                const rt = await newRuntime();
                 const STEPOUT_C = path.join(BUILD_CWD, "src/test_step_out.c");
 
                 await rt.start(
@@ -597,41 +609,42 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_step_out');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_step_out');
 
                 await rt.setBreakPoint(STEPOUT_C, 8);
 
                 await all(
                     rt.continue(),
-                    waitFor( 'stopOnBreakpoint'),
+                    waitFor(rt, 'stopOnBreakpoint'),
                 );
 
                 await all(
                     rt.stepIn(),
-                    waitFor( 'output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, STEPOUT_C);
                         assert.strictEqual(line, 3);
                     }),
                 );
 
-                await waitFor( 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
                 await all(
                     rt.stepOut(),
-                    waitFor( 'output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, STEPOUT_C);
                         assert.strictEqual(line, 9);
                     }),
                 );
 
-                await waitFor( 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Can step in', async() => {
+                const rt = await newRuntime();
                 const STEPIN_C = path.join(BUILD_CWD, "src/test_step_in.c");
 
                 await rt.start(
@@ -648,31 +661,32 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_step_in');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_step_in');
 
                 await rt.setBreakPoint(STEPIN_C, 8);
 
                 await all(
                     rt.continue(),
-                    waitFor( 'stopOnBreakpoint'),
+                    waitFor(rt, 'stopOnBreakpoint'),
                 );
 
                 await all(
                     rt.stepIn(),
-                    waitFor( 'output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, STEPIN_C)
                         assert.strictEqual(line, 3)
                     }),
                 );
 
-                await waitFor( 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Contains the correct local variables', async() => {
+                const rt = await newRuntime();
                 const LOCALVARS_C = path.join(BUILD_CWD, "src/test_local_vars.c");
 
                 await rt.start(
@@ -689,25 +703,25 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'started');
-                await selectCTest('test_local_vars');
+                await waitFor(rt, 'started');
+                await selectCTest(rt, 'test_local_vars');
 
                 await rt.setBreakPoint(LOCALVARS_C, 31);
 
                 await all(
                     rt.continue(),
-                    waitFor( 'output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, LOCALVARS_C);
                         assert.strictEqual(line, 31);
                     }),
                 );
 
-                await waitFor( 'stopOnBreakpoint');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 const locals = await rt.getScopeVariables();
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
 
                 assert.deepStrictEqual(locals.map(x => x.name).sort(), ['cool', 'i', 'j', 'lol', 'wow']);
             });
@@ -716,6 +730,7 @@ describe('Runtime', () => {
         describe('Stack', () => {
             const STACKFRAMES_C = path.join(BUILD_CWD, "src/test_stack_frames.c");
             test('Contains the frames plus the current position', async () => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -730,20 +745,20 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_stack_frames');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_stack_frames');
 
                 await rt.setBreakPoint(STACKFRAMES_C, 4);
 
                 await all(
                     rt.continue(),
-                    waitFor( 'output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, STACKFRAMES_C);
                         assert.strictEqual(line, 4);
                     })
                 );
 
-                await waitFor( 'stopOnBreakpoint');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 const frames = await rt.stack(0, 1000);
 
@@ -781,10 +796,11 @@ describe('Runtime', () => {
                 );
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Step in', async () => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -799,28 +815,28 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_stack_frames');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_stack_frames');
 
                 await rt.setBreakPoint(STACKFRAMES_C, 8);
                 await rt.continue();
 
-                await waitFor( 'output', (type, __, file, line, col) => {
+                await waitFor(rt, 'output', (type, __, file, line, col) => {
                     assert.strictEqual(file, STACKFRAMES_C);
                     assert.strictEqual(line, 8);
                 })
 
-                await waitFor( 'stopOnBreakpoint');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
-                    waitFor( 'output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, STACKFRAMES_C);
                         assert.strictEqual(line, 3);
                     })
                 );
 
-                await waitFor( 'stopOnStep');
+                await waitFor(rt, 'stopOnStep');
 
                 const frames = await rt.stack(0, 1000);
 
@@ -858,13 +874,14 @@ describe('Runtime', () => {
                 );
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
         });
 
         describe('Runahead', () => {
             const RUNAHEAD_C = path.join(BUILD_CWD, "src/test_runahead.c");
             test('Restores the original location', async() => {
+                const rt = await newRuntime();
                 await all([
                     rt.start(
                         PROGRAM,
@@ -879,17 +896,18 @@ describe('Runtime', () => {
                         MAP_FILE,
                         LABEL_FILE
                     ),
-                    waitFor( 'runahead', () => assert.strictEqual(rt.getRegisters().pc, getLabel('_main'))),
+                    waitFor(rt, 'runahead', () => assert.strictEqual(rt.getRegisters().pc, getLabel(rt, '_main'))),
                 ])
 
-                await waitFor( 'started');
-                await selectCTest('test_runahead');
+                await waitFor(rt, 'started');
+                await selectCTest(rt, 'test_runahead');
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Triggered by breakpoint', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -904,19 +922,20 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_runahead');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_runahead');
 
                 await rt.setBreakPoint(RUNAHEAD_C, 3);
                 await all(
                     rt.continue(),
-                    waitFor( 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > getLabel('_step_runahead') && rt.getRegisters().pc < getLabel('_step_runahead') + disassembly.maxOpCodeSize * 10, true))
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > getLabel(rt, '_step_runahead') && rt.getRegisters().pc < getLabel(rt, '_step_runahead') + disassembly.maxOpCodeSize * 10, true))
                 );
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Triggered by step', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -931,18 +950,19 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'started');
-                await selectCTest('test_runahead');
+                await waitFor(rt, 'started');
+                await selectCTest(rt, 'test_runahead');
 
                 await all(
                     rt.next(),
-                    waitFor( 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > getLabel('_main') && rt.getRegisters().pc < getLabel('_main') + disassembly.maxOpCodeSize * 10, true))
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc > getLabel(rt, '_main') && rt.getRegisters().pc < getLabel(rt, '_main') + disassembly.maxOpCodeSize * 10, true))
                 );
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Triggered by pause', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -957,19 +977,20 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'started');
-                await selectCTest('test_runahead');
+                await waitFor(rt, 'started');
+                await selectCTest(rt, 'test_runahead');
 
                 await all([
-                    waitFor( 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc, getLabel('_main'))),
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(rt.getRegisters().pc, getLabel(rt, '_main'))),
                     rt.pause()
                 ])
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
 
             test('Triggered by step in', async() => {
+                const rt = await newRuntime();
                 await rt.start(
                     PROGRAM,
                     BUILD_CWD,
@@ -984,31 +1005,31 @@ describe('Runtime', () => {
                     LABEL_FILE
                 );
 
-                await waitFor( 'stopOnEntry');
-                await selectCTest('test_runahead');
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_runahead');
 
                 await rt.setBreakPoint(RUNAHEAD_C, 8);
 
                 await all(
                     rt.continue(),
-                    waitFor( 'output', (type, __, file, line, col) => {
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, RUNAHEAD_C);
                         assert.strictEqual(line, 8);
                     })
                 )
 
-                await waitFor( 'stopOnBreakpoint');
+                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
-                    waitFor( 'runahead', (args) => assert.strictEqual(
-                        rt.getRegisters().pc >= getLabel('_step_runahead')
-                        && rt.getRegisters().pc < getLabel('_step_runahead') * disassembly.maxOpCodeSize * 10, true
+                    waitFor(rt, 'runahead', (args) => assert.strictEqual(
+                        rt.getRegisters().pc >= getLabel(rt, '_step_runahead')
+                        && rt.getRegisters().pc < getLabel(rt, '_step_runahead') * disassembly.maxOpCodeSize * 10, true
                     )),
                 );
 
                 await rt.continue();
-                await waitFor( 'end');
+                await waitFor(rt, 'end');
             });
         });
     });
