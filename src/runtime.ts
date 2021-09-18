@@ -1139,19 +1139,20 @@ or define the location manually with the launch.json->mapFile setting`
                 return;
             }
 
-            this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+            const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0]
+            this.sendEvent('output', 'console', ...args);
 
             if(this._exitQueued) {
                 await this._doRunAhead();
-                this.sendEvent('stopOnExit');
+                this.sendEvent('stopOnExit', null, ...args);
             }
             else if(this._userBreak) {
                 await this._doRunAhead();
-                this.sendEvent('stopOnBreakpoint');
+                this.sendEvent('stopOnBreakpoint', null, ...args);
                 this._userBreak = false;
             }
             else {
-                this.sendEvent('stopOnStep');
+                this.sendEvent('stopOnStep', null, ...args);
             }
         }
         else if(e.type == bin.ResponseType.resumed) {
