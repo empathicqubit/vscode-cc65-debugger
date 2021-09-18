@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.0.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.2...v4.0.3) (2021-09-18)
+
+
+### Bug Fixes
+
+* Use mintty for monitor instead of regular terminal, ([d3eed01](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/d3eed012fd5fecab6362369e6ac66f5eca02c612))
+
 ### [4.0.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.1...v4.0.2) (2021-09-14)
 
 
