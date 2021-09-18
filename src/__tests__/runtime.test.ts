@@ -225,9 +225,14 @@ describe('Runtime', () => {
                 );
 
                 await waitFor(rt, 'stopOnEntry');
-                await rt.continue();
-                await debugUtils.delay(2000);
-                await rt.terminate();
+                all(
+                    waitFor(rt, 'end'),
+                    async() => {
+                        rt.continue();
+                        await debugUtils.delay(2000);
+                        rt.terminate();
+                    }
+                );
             });
 
             test('Can set a breakpoint', async() => {
