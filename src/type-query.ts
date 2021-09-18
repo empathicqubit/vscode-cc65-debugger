@@ -1,4 +1,3 @@
-import * as child_process from 'child_process';
 import * as fs from 'fs';
 import _last from 'lodash/fp/last';
 import _sum from 'lodash/fp/sum';
@@ -7,8 +6,6 @@ import * as util from 'util';
 import * as debugUtils from './debug-utils';
 import * as dbgfile from './debug-file';
 import * as tableFile from './table-file';
-
-const execFile = util.promisify(child_process.execFile);
 
 export interface FieldTypeInfo {
     name: string;
