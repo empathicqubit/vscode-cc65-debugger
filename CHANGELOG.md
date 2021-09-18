@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.0.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.3...v4.0.4) (2021-09-18)
+
+
+### Bug Fixes
+
+* Proper type handling ([f364083](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f364083bf768511837ea60a9b0759465b4be03f3))
+
 ### [4.0.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.2...v4.0.3) (2021-09-18)
 
 
