@@ -4,6 +4,7 @@ import _last from 'lodash/fp/last';
 import _sum from 'lodash/fp/sum';
 import readdir from 'recursive-readdir';
 import * as util from 'util';
+import * as debugUtils from './debug-utils';
 import * as dbgfile from './debug-file';
 import * as tableFile from './table-file';
 
@@ -160,6 +161,45 @@ export function getLocalTypes(dbgFile: dbgfile.Dbgfile, tabFiles: tableFile.Tabl
 
     return structs;
 };
+
+export function renderValue(type: TypeInfo, buf: Buffer) : string {
+    if(type.isString) {
+        const nullIndex = buf.indexOf(0x00);
+        // FIXME PETSCII conversion
+        const str = buf.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
+        return `${str} (${debugUtils.rawBufferHex(buf)})`;
+    }
+    else if(type.isChar) {
+        let val : string;
+        if(type.isSigned) {
+            val = buf.readInt8(0).toString(16);
+        }
+        else {
+            val = buf.readUInt8(0).toString(16);
+        }
+
+        const num = val.replace(/^-/g, '').padStart(2, '0');
+        return (val.startsWith('-') ? '-' : '') + "0x" + num;
+    }
+    else if(type.isInt) {
+        let val : string;
+        if(type.isSigned) {
+            val = buf.readInt16LE(0).toString(16);
+        }
+        else {
+            val = buf.readUInt16LE(0).toString(16);
+        }
+
+        const num = val.replace(/^-/g, '').padStart(4, '0');
+        return val.startsWith('-') ? '-' : '' + "0x" + num;
+    }
+    else if(type.isStruct) {
+        return type.name;
+    }
+    else {
+        return "0x" + (<any>buf.readUInt16LE(0).toString(16)).padStart(4, '0');
+    }
+}
 
 export function recurseFieldSize(fields: FieldTypeInfo[], allTypes: {[typename:string]:FieldTypeInfo[]}) : number[] {
     const dataSizes : number[] = [];

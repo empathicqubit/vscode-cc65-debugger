@@ -79,7 +79,7 @@ export class VariableManager {
         const buf = await this._vice.getMemory(sym.val, 2);
         const ptr = buf.readUInt16LE(0);
 
-        let val = debugUtils.rawBufferHex(buf);
+        let val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned int'), buf);
 
         let typeName: string = '';
         let fieldInfo: typeQuery.FieldTypeInfo[];
@@ -89,10 +89,10 @@ export class VariableManager {
 
             if(field.type.isString) {
                 const mem = await this._vice.getMemory(ptr, 24);
-                const nullIndex = mem.indexOf(0x00);
-                // FIXME PETSCII conversion
-                const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
-                val = `${str} (${debugUtils.rawBufferHex(mem)})`;
+                val = typeQuery.renderValue(field.type, mem)
+            }
+            else {
+                val = typeQuery.renderValue(field.type, buf);
             }
 
             if(!this._localTypes[typeName]) {
@@ -148,9 +148,23 @@ export class VariableManager {
             const pointerVal = await this._vice.getMemory(addr, 2);
             addr = pointerVal.readUInt16LE(0);
             fields = this._localTypes[type.pointer.baseType];
+            const val = await this._vice.getMemory(addr, 2);
+
+            if(!fields) {
+                return [{
+                    type: type.pointer.baseType,
+                    name: type.pointer.baseType,
+                    value: typeQuery.renderValue(typeQuery.parseTypeExpression(type.pointer.baseType), val),
+                    addr: addr,
+                }]
+            }
         }
         else {
             fields = this._localTypes[type.name];
+        }
+
+        if(!fields) {
+            return [];
         }
 
         const vars : VariableData[] = [];
@@ -168,26 +182,7 @@ export class VariableManager {
 
             let typeName = field.type.name;
 
-            let value = '';
-            if(fieldSize == 1) {
-                if(field.type.isSigned) {
-                    value = (<any>mem.readInt8(currentPosition).toString(16)).padStart(2, '0');
-                }
-                else {
-                    value = (<any>mem.readUInt8(currentPosition).toString(16)).padStart(2, '0');
-                }
-            }
-            else if(fieldSize == 2) {
-                if(field.type.isSigned) {
-                    value = (<any>mem.readInt16LE(currentPosition).toString(16)).padStart(4, '0');
-                }
-                else {
-                    value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
-                }
-            }
-            else {
-                value = (<any>mem.readUInt16LE(currentPosition).toString(16)).padStart(4, '0');
-            }
+            let value = typeQuery.renderValue(field.type, mem.slice(currentPosition));
 
             if(!this._localTypes[typeName] && !field.type.array && !field.type.pointer) {
                 typeName = '';
@@ -196,7 +191,7 @@ export class VariableManager {
             vars.push({
                 type: typeName,
                 name: field.name,
-                value: "0x" + value,
+                value,
                 addr: addr + currentPosition,
             });
 
@@ -246,12 +241,13 @@ export class VariableManager {
             let ptr : number | undefined;
 
             let val;
+            const slice = stack.slice(seek);
             if(seekNext - seek == 2 && stack.length > seek + 1) {
                 ptr = <any>stack.readUInt16LE(seek);
-                val = "0x" + (<any>ptr!.toString(16)).padStart(4, '0');
+                val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned int'), slice);
             }
             else {
-                val = "0x" + (<any>stack.readUInt8(seek).toString(16)).padStart(2, '0');
+                val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned char'), slice);
             }
 
             // FIXME Duplication with globals
@@ -265,13 +261,16 @@ export class VariableManager {
                     const mem = await this._vice.getMemory(ptr, 24);
                     const nullIndex = mem.indexOf(0x00);
                     const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
-                    val = `${str} (${debugUtils.rawBufferHex(mem)})`;
+                    val = typeQuery.renderValue(field.type, mem);
                 }
                 else if(field.type.isStruct) {
-                    val = typeName;
+                    val = typeQuery.renderValue(field.type, Buffer.alloc(0))
+                }
+                else {
+                    val = typeQuery.renderValue(field.type, slice);
                 }
 
-                if(!this._localTypes[typeName] && !(field.type.pointer && this._localTypes[field.type.pointer.baseType])) {
+                if(!this._localTypes[typeName] && !field.type.pointer) {
                     typeName = '';
                 }
             }

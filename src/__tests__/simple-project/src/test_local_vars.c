@@ -16,11 +16,16 @@ unsigned char globby;
 unsigned char test_local_vars_main(void) {
     unsigned char i;
     unsigned int j;
+    unsigned int *random;
     unsigned char *lol;
+    signed char whoa;
     struct hello wow;
     thingy *cool;
     cool = &wow;
+    random = 0x03fc;
+    *random = 0x3003;
     globby = 0x34;
+    whoa = -1;
     wow.j = 3;
     wow.k = 4;
     wow.l.m = 5;

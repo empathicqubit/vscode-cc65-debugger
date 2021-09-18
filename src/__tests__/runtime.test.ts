@@ -695,24 +695,40 @@ describe('Runtime', () => {
                 await waitFor(rt, 'started');
                 await selectCTest(rt, 'test_local_vars');
 
-                await rt.setBreakPoint(LOCALVARS_C, 31);
+                await rt.setBreakPoint(LOCALVARS_C, 36);
 
                 await all(
                     rt.continue(),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, LOCALVARS_C);
-                        assert.strictEqual(line, 31);
+                        assert.strictEqual(line, 36);
                     }),
                 );
 
                 await waitFor(rt, 'stopOnBreakpoint');
 
                 const locals = await rt.getScopeVariables();
+                const random = locals.find(x => x.name == 'random')!;
+                const randomVal = await rt.getTypeFields(random.addr, random.type);
+                const wow = locals.find(x => x.name == 'wow')!;
+                const wowVal = await rt.getTypeFields(wow.addr, wow.type);
 
                 await rt.continue();
                 await waitFor(rt, 'end');
 
-                assert.deepStrictEqual(locals.map(x => x.name).sort(), ['cool', 'i', 'j', 'lol', 'wow']);
+                console.log(locals);
+                assert.deepStrictEqual(locals.map(x => x.name).sort(), ['cool', 'i', 'j', 'lol', 'random', 'whoa', 'wow']);
+
+                console.log(randomVal);
+                assert.strictEqual(random.value, "0x03fc");
+                assert.strictEqual(randomVal[0].type, "unsigned int");
+                assert.strictEqual(randomVal[0].value, "0x3003");
+
+                console.log(wowVal);
+                assert.strictEqual(wowVal.find(x => x.name == 'j')!.value, "0x03");
+                assert.strictEqual(wowVal.find(x => x.name == 'k')!.value, "0x04");
+
+                assert.deepStrictEqual(locals.find(x => x.name == 'whoa')!.value, "-0x01");
             });
         });
 
