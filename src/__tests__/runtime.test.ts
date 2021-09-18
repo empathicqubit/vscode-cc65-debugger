@@ -426,8 +426,10 @@ describe('Runtime', () => {
                     ...wastedOnMyself,
                 );
 
-                await rt.continue();
-                await waitFor(rt, 'end');
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'end')
+                );
             });
 
             test('Can modify memory correctly', async() => {
