@@ -36,4 +36,3 @@ jobs:
     - run: ln -s $PWD/system /usr/share/vice
     - run: ls -l /usr/local/share
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test test:prepublish
-    - run: 7z l cc65-vice*.vsix
