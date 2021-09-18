@@ -256,13 +256,12 @@ describe('Runtime', () => {
                 await rt.setBreakPoint(MAIN_S, 12);
                 await all(
                     rt.continue(),
+                    waitFor(rt, 'stopOnBreakpoint'),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 12)
                     }),
                 );
-
-                await waitFor(rt, 'stopOnBreakpoint');
 
                 await rt.terminate();
             });
@@ -288,23 +287,21 @@ describe('Runtime', () => {
                 await rt.setBreakPoint(MAIN_S, 7);
                 await all(
                     rt.continue(),
+                    waitFor(rt, 'stopOnBreakpoint'),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 7)
                     }),
                 );
 
-                await waitFor(rt, 'stopOnBreakpoint');
-
                 await all(
                     rt.stepIn(),
+                    waitFor(rt, 'stopOnStep'),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 18)
                     }),
                 );
-
-                await waitFor(rt, 'stopOnStep');
 
                 await rt.terminate();
             });
@@ -330,33 +327,31 @@ describe('Runtime', () => {
                 await rt.setBreakPoint(MAIN_S, 7);
                 await all(
                     rt.continue(),
+                    waitFor(rt, 'stopOnBreakpoint'),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 7)
                     }),
                 );
 
-                await waitFor(rt, 'stopOnBreakpoint');
 
                 await all(
                     rt.stepIn(),
+                    waitFor(rt, 'stopOnStep'),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 18)
                     }),
                 );
 
-                await waitFor(rt, 'stopOnStep');
-
                 await all(
                     rt.stepOut(),
+                    waitFor(rt, 'stopOnStep'),
                     waitFor(rt, 'output', (type, __, file, line, col) => {
                         assert.strictEqual(file, MAIN_S)
                         assert.strictEqual(line, 9)
                     }),
                 );
-
-                await waitFor(rt, 'stopOnStep');
 
                 await rt.terminate();
             });
