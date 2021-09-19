@@ -384,7 +384,12 @@ export class Runtime extends EventEmitter {
 
         await this._postViceStart();
 
-        await this._vice.autostart(program);
+        try {
+            await this._vice.autostart(program);
+        }
+        catch {
+            throw new Error('Could not autostart program. Do you have the correct path?');
+        }
         await this.continue();
         await this._vice.waitForStop(this._dbgFile.entryAddress, undefined, true);
 
