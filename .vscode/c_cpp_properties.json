@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/__tests__/simple-project/src",
                 "${workspaceFolder}/dist/cc65/include"
             ],
             "defines": [],
