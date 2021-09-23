@@ -357,6 +357,42 @@ describe('Runtime', () => {
         });
 
         describe('Essential', () => {
+            const RUNAHEAD_C = path.join(BUILD_CWD, "src/test_runahead.c");
+            test('Runahead does not break file access', async() => {
+                const rt = await newRuntime();
+                await rt.start(
+                    PROGRAM,
+                    BUILD_CWD,
+                    true,
+                    false,
+                    true,
+                    VICE_DIRECTORY,
+                    viceArgs,
+                    false,
+                    DEBUG_FILE,
+                    MAP_FILE,
+                    LABEL_FILE
+                );
+
+                await waitFor(rt, 'stopOnEntry');
+                await selectCTest(rt, 'test_runahead');
+
+                await rt.setBreakPoint(RUNAHEAD_C, 38);
+
+                await all(
+                    rt.continue(),
+                    waitFor(rt, 'output', (type, __, file, line, col) => {
+                        assert.strictEqual(file, RUNAHEAD_C);
+                        assert.strictEqual(line, 38);
+                    })
+                )
+
+                await waitFor(rt, 'stopOnBreakpoint');
+
+                await rt.continue();
+                await waitFor(rt, 'end');
+            });
+
             test('Non-C64 platform works correctly', async () => {
                 const rt = await newRuntime();
                 const PROGRAM = BUILD_CWD + '/simple-project.pet';
@@ -1032,41 +1068,6 @@ describe('Runtime', () => {
                         && rt.getRegisters().pc < getLabel(rt, '_step_runahead') * disassembly.maxOpCodeSize * 10, true
                     )),
                 );
-
-                await rt.continue();
-                await waitFor(rt, 'end');
-            });
-
-            test('Does not break file access', async() => {
-                const rt = await newRuntime();
-                await rt.start(
-                    PROGRAM,
-                    BUILD_CWD,
-                    true,
-                    false,
-                    true,
-                    VICE_DIRECTORY,
-                    viceArgs,
-                    false,
-                    DEBUG_FILE,
-                    MAP_FILE,
-                    LABEL_FILE
-                );
-
-                await waitFor(rt, 'stopOnEntry');
-                await selectCTest(rt, 'test_runahead');
-
-                await rt.setBreakPoint(RUNAHEAD_C, 38);
-
-                await all(
-                    rt.continue(),
-                    waitFor(rt, 'output', (type, __, file, line, col) => {
-                        assert.strictEqual(file, RUNAHEAD_C);
-                        assert.strictEqual(line, 38);
-                    })
-                )
-
-                await waitFor(rt, 'stopOnBreakpoint');
 
                 await rt.continue();
                 await waitFor(rt, 'end');
