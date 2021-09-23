@@ -302,7 +302,7 @@ export class ViceGrip extends EventEmitter {
 
         const directoryOpts : string[] = [];
         try {
-            await util.promisify(fs.access)(path.dirname(vicePath) + '/../data');
+            await util.promisify(fs.access)(path.dirname(vicePath) + '/../data/GLSL');
             directoryOpts.push(...ViceGrip._getDirectoryOptions(machineType, true));
         }
         catch {}
