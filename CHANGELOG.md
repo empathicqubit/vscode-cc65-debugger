@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.1.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.0...v4.1.1) (2021-09-23)
+
+
+### Bug Fixes
+
+* Add a connection timeout. ([5f11e12](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/5f11e1292acd9148046dd3a89f57e3e968798f61))
+
 ## [4.1.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.4...v4.1.0) (2021-09-23)
 
 
