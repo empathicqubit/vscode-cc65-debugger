@@ -439,7 +439,7 @@ export class ViceGrip extends EventEmitter {
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
 
             // Hardware
-             "-autostart-warp", "-autostartprgmode", "1", "-autostart-handle-tde",
+            "-autostart-warp", "-autostartprgmode", "1", "+autostart-handle-tde",
 
             ...(
                 initBreak > -1

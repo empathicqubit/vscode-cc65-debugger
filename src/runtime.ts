@@ -1238,6 +1238,26 @@ or define the location manually with the launch.json->mapFile setting`
         const oldLine = this._registers.line;
         this._ignoreEvents = true;
         await this._vice.withAllBreaksDisabled(async() => {
+            // Try not to step through the serial line
+            // to avoid a VICE bug with snapshots
+            // messing up fs access
+            const serialLineResumeAddresses = {
+                [debugFile.MachineType.c128]: 0xEDAB,
+                [debugFile.MachineType.c64]: 0xEDAB,
+                [debugFile.MachineType.plus4]: 0xE1E7,
+                [debugFile.MachineType.vic20]: 0xEEB2,
+            };
+            const serialLineResumeAddress = serialLineResumeAddresses[this._dbgFile.machineType];
+            const serialLineCheckpoint = await this._vice.execBinary({
+                type: bin.CommandType.checkpointSet,
+                startAddress: serialLineResumeAddress,
+                endAddress: serialLineResumeAddress,
+                stop: true,
+                enabled: true,
+                operation: bin.CpuOperation.exec,
+                temporary: false,
+            });
+
             const brkRes = await this._vice.execBinary({
                 type: bin.CommandType.checkpointSet,
                 startAddress: 0x0000,
@@ -1252,18 +1272,28 @@ or define the location manually with the launch.json->mapFile setting`
                 condition: 'RL != $' + oldLine.toString(16),
                 checkpointId: brkRes.id,
             });
+
             await this._vice.exit();
-            await this._vice.waitForStop();
-            await this._vice.execBinary({
-                type: bin.CommandType.conditionSet,
-                condition: 'RL == $' + oldLine.toString(16),
-                checkpointId: brkRes.id,
-            });
-            await this._vice.exit();
-            await this._vice.waitForStop();
+            let stopped = await this._vice.waitForStop();
+
+            if(stopped.programCounter != serialLineResumeAddress) {
+                await this._vice.execBinary({
+                    type: bin.CommandType.conditionSet,
+                    condition: 'RL == $' + oldLine.toString(16),
+                    checkpointId: brkRes.id,
+                });
+
+                await this._vice.exit();
+                await this._vice.waitForStop();
+            }
+
             await this._vice.execBinary({
                 type: bin.CommandType.checkpointDelete,
                 id: brkRes.id,
+            });
+            await this._vice.execBinary({
+                type: bin.CommandType.checkpointDelete,
+                id: serialLineCheckpoint.id,
             });
         });
         this._ignoreEvents = false;
