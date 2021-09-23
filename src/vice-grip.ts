@@ -189,12 +189,14 @@ export class ViceGrip extends EventEmitter {
                 });
 
                 await new Promise<void>((res, rej) => {
+                    const timeout = setTimeout(rej, 10000);
                     binaryConn!.once('error', rej);
 
                     binaryConn!.connect({
                         host: '127.0.0.1',
                         port: binaryPort,
                     }, () => {
+                        clearTimeout(timeout);
                         binaryConn!.off('error', rej);
                         res();
                     });

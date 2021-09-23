@@ -99,6 +99,7 @@ describe('Runtime', () => {
         return ret;
     };
 
+    const rts : Runtime[] = [];
     const newRuntime = async() : Promise<Runtime> => {
         const rt = new Runtime(execHandler);
 
@@ -115,17 +116,30 @@ describe('Runtime', () => {
             console.log([expect.getState().currentTestName, ...args]);
         });
 
+        rts.push(rt);
+
         return rt;
     };
 
     afterEach(async () => {
-        for(const pid of pids) {
+        const killPids = [...pids];
+        const killRts = [...rts];
+
+        for(const rt of killRts) {
+            rt.terminate();
+            rts.splice(rts.indexOf(rt), 1);
+        }
+
+        await debugUtils.delay(1000);
+
+        for(const pid of killPids) {
             try {
                 pid != -1 && process.kill(pid, 0) && process.kill(pid, 'SIGKILL');
             }
             catch {}
+
+            pids.splice(pids.indexOf(pid), 1);
         }
-        pids = [];
     });
 
     describe('Attach', () => {
