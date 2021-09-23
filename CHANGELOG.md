@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.1.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.1...v4.1.2) (2021-09-23)
+
+
+### Bug Fixes
+
+* Better(?) icon ([f200c05](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f200c05067eca0cc9f61e06cfa26b0931f8929d7))
+
 ### [4.1.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.0...v4.1.1) (2021-09-23)
 
 
