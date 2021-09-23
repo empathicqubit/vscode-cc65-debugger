@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.1.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.4...v4.1.0) (2021-09-23)
+
+
+### Features
+
+* Add gitignore files for example projects ([99b3506](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/99b3506f7d1e52f410fef2a297a24f9144ed59d8))
+
+
+### Bug Fixes
+
+* Don't step through serial line accesses to avoid VICE bug ([d00cdb7](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/d00cdb7ef804884dd94ddbe096baa8c7b95ac3cc))
+* Infer directory options if a ../data/GLSL directory exists. ([40990bb](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/40990bb742cfbbd902a501fa1e39cf9f76e2345d))
+* More useful autostart failure message. ([2f4a19c](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/2f4a19c9f68cb35527e840cb30ff6475e76f5877))
+
 ### [4.0.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.0.3...v4.0.4) (2021-09-18)
 
 
