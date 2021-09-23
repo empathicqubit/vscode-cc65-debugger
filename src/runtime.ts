@@ -584,6 +584,9 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
+        console.log('Nexting...')
+        console.time('next');
+
         await this._vice.withAllBreaksDisabled(async () => {
             // Find the next source line and continue to it.
             const nextLine = this._getNextLine();
@@ -626,6 +629,8 @@ or define the location manually with the launch.json->mapFile setting`
         await this._doRunAhead();
 
         this.sendEvent(event);
+
+        console.timeEnd('next');
     }
 
     private _getNextLine() : debugFile.SourceLine | undefined {
@@ -1219,6 +1224,9 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
+        console.log('runahead start');
+        console.time('runahead');
+
         const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
         await this._vice.execBinary({
             type: bin.CommandType.dump,
@@ -1271,6 +1279,8 @@ or define the location manually with the launch.json->mapFile setting`
         await util.promisify(fs.unlink)(dumpFileName);
 
         this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
+
+        console.timeEnd('runahead');
     }
 
     private async _loadDebugFile(filename: string | undefined, buildDir: string) : Promise<debugFile.Dbgfile> {

@@ -863,7 +863,7 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             return r;
         }
         else {
-            const metaLength = body.readUInt32LE(0) 
+            const metaLength = body.readUInt32LE(0)
             const rawImageData = Buffer.alloc(body.readUInt32LE(metaLength + 4));
             body.copy(rawImageData, 0, 4 + metaLength + 4)
             const r : DisplayGetResponse = {
@@ -1042,16 +1042,18 @@ export function commandObjectToBytes(c: Command, buf: Buffer) : Buffer {
         buf.write(c.condition, 5, "ascii");
     }
     else if(c.type == CommandType.registersGet) {
-        length = 0;
+        length = 1;
+        buf.writeUInt8(c.memspace);
     }
     else if(c.type == CommandType.registersSet) {
-        length = 4 * c.registers.length + 2;
+        length = 4 * c.registers.length + 3;
         if(buf.length < length) {
-            buf = Buffer.alloc(4 * c.registers.length + 2);
+            buf = Buffer.alloc(length);
         }
 
-        buf.writeUInt16LE(c.registers.length, 0);
-        const itemsBuf = buf.slice(2);
+        buf.writeUInt8(c.memspace, 0);
+        buf.writeUInt16LE(c.registers.length, 1);
+        const itemsBuf = buf.slice(3);
         c.registers.forEach((reg, r) => {
             const item = itemsBuf.slice(r * 4);
             item.writeUInt8(3, 0);

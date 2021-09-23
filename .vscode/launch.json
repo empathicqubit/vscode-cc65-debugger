@@ -35,6 +35,20 @@
             ]
         },
         {
+            "name": "Server (From Deployment)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "sourceMaps": true,
+            "program": "${env:HOME}/.vscode/extensions/entan-gl.cc65-vice-4.0.4/dist/debug-adapter.js",
+            "outFiles": [
+                "${env:HOME}/.vscode/extensions/entan-gl.cc65-vice-4.0.4/dist/**/*.js"
+            ],
+            "args": [
+                "--server=4711"
+            ]
+        },
+        {
             "name": "Test Host",
             "type": "extensionHost",
             "request": "launch",

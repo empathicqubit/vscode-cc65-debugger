@@ -78,6 +78,7 @@ export class ViceGrip extends EventEmitter {
                     this._responseEmitter.emit('stopped', res);
                 }
 
+                //console.log('response', bin.ResponseType[res.type], res);
                 this._responseEmitter.emit(res.requestId.toString(16), res);
 
                 const oldResponseByteCount = this._responseByteCount;
@@ -188,6 +189,8 @@ export class ViceGrip extends EventEmitter {
                 });
 
                 await new Promise<void>((res, rej) => {
+                    binaryConn!.once('error', rej);
+
                     binaryConn!.connect({
                         host: '127.0.0.1',
                         port: binaryPort,
@@ -195,8 +198,6 @@ export class ViceGrip extends EventEmitter {
                         binaryConn!.off('error', rej);
                         res();
                     });
-
-                    binaryConn!.once('error', rej);
                 });
             } catch(e) {
                 if(binaryConn) {
@@ -293,14 +294,23 @@ export class ViceGrip extends EventEmitter {
      * to break at startup
      * @param vicePath The absolute path to VICE
      */
-    private async _versionProbeStart(vicePath: string) : Promise<void> {
+    private async _versionProbeStart(vicePath: string, machineType: debugFile.MachineType) : Promise<void> {
         const startText = _random(29170, 29400);
         const startBinary = _random(29700, 30000);
         const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
         const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
 
+        const directoryOpts : string[] = [];
+        try {
+            await util.promisify(fs.access)(path.dirname(vicePath) + '/../data');
+            directoryOpts.push(...ViceGrip._getDirectoryOptions(machineType, true));
+        }
+        catch {}
+
         let args = [
             "-default",
+
+            ...directoryOpts,
 
             '+sound',
 
@@ -328,31 +338,16 @@ export class ViceGrip extends EventEmitter {
         await this._versionProbeConnect(binaryPort, true);
     }
 
-    public async start(initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
-        await this._versionProbeStart(vicePath);
-
-        const startText = _random(29170, 29400);
-        const startBinary = _random(29700, 30000);
-        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
-        const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
-
+    private static _getDirectoryOptions(machineType: debugFile.MachineType, compoundDirectory: boolean) : string[] {
         let q = "";
         let sep = ":";
-        let logfile : string | undefined;
         if(process.platform == "win32") {
             q = '"';
             sep = ';';
-            logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
-
-            const tempdir = path.dirname(logfile!);
-            const temps = await util.promisify(fs.readdir)(tempdir);
-            temps
-                .filter(x => /^cc65-vice-/.test(x))
-                .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
         }
 
         let dirs = [""];
-        if(this.versionInfo!.compoundDirectory) {
+        if(compoundDirectory) {
             dirs = [
                 path.normalize(__dirname + "/../dist/system"),
             ];
@@ -401,8 +396,30 @@ export class ViceGrip extends EventEmitter {
             }
         }
 
+        return ["-directory", q + dirs.join(sep) + q];
+    }
+
+    public async start(initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
+        await this._versionProbeStart(vicePath, machineType);
+
+        const startText = _random(29170, 29400);
+        const startBinary = _random(29700, 30000);
+        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
+        const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
+
+        let logfile : string | undefined;
+        if(process.platform == "win32") {
+            logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
+
+            const tempdir = path.dirname(logfile!);
+            const temps = await util.promisify(fs.readdir)(tempdir);
+            temps
+                .filter(x => /^cc65-vice-/.test(x))
+                .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
+        }
+
         let args = [
-            "-directory", q + dirs.join(sep) + q,
+            ...ViceGrip._getDirectoryOptions(machineType, this.versionInfo!.compoundDirectory),
 
             '-sound',
 
@@ -608,7 +625,7 @@ export class ViceGrip extends EventEmitter {
                     const related : bin.Response[] = [];
                     const afterResponse = (b : bin.Response) => {
                         if(b.error) {
-                            const error : any = new Error(`Response error: error 0x${b.error.toString(16)}: req_type 0x${command.type.toString(16)}: req_id 0x${requestId.toString(16)}`);
+                            const error : any = new Error(`Response error: error 0x${b.error.toString(16)}: req_type 0x${command.type.toString(16)} (${bin.CommandType[command.type]}): req_id 0x${requestId.toString(16)}`);
                             error.response = b;
                             error.command = command;
                             rej(error);
