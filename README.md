@@ -199,6 +199,7 @@ You may also want to look at the [full Assembly project template](src/__tests__/
 - Stepping over lines.
 - Stepping out of functions.
 - Stepping into functions.
+- Array types
 - Viewing structs
 - Local variables
 - Global variables
@@ -213,10 +214,6 @@ can expand and get another 128 byte chunk of memory, and on and on forever...
 the middle of a library function it will look strange but the state of VICE will
 be okay, but that's pretty typical for this sort of thing (think Microsoft's
 scary "no symbols for this file" window when you pause on a compiled DLL in VS proper).
-
-## What's weird
-
-- Array types
 
 ## Building
 
