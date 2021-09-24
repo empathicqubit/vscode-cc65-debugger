@@ -1,4 +1,7 @@
 const shx = require('shelljs');
+const os = require('os');
+const threads = os.cpus().length * 4;
+console.log('THREADS', threads);
 shx.config.fatal = true;
 const arg = process.argv;
 console.log(arg);
@@ -12,7 +15,7 @@ if(shx.test('-e', distDir)) {
 shx.mkdir('-p', archDir)
 shx.cp('-ru', archDir + '/../../src/', archDir)
 shx.cd(archDir + '/src')
-shx.exec('make -j8 CROSS_COMPILE=' + cross)
+shx.exec(`make -j${threads} CROSS_COMPILE=` + cross)
 shx.find('../bin/*').forEach(binFile => {
     shx.exec(cross + 'strip ' + binFile);
 })
