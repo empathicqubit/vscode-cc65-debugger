@@ -105,14 +105,6 @@ export class CallStackManager {
         const frames = new Array<any>();
         let i = startFrame;
 
-        frames.push({
-            index: i,
-            name: '0x' + currentAddress.toString(16).padStart(4, '0'),
-            file: currentFile,
-            line: currentLine
-        });
-        i++;
-
         if(/\.s$/gi.test(currentFile)) {
             const cLine = this._dbgFile.lines.find(x => x.file && x.file.type == debugFile.SourceFileType.C && x.span && x.span.absoluteAddress <= currentAddress && currentAddress < x.span.absoluteAddress + x.span.size)
             if(cLine) {
@@ -125,6 +117,14 @@ export class CallStackManager {
                 i++;
             }
         }
+
+        frames.push({
+            index: i,
+            name: '0x' + currentAddress.toString(16).padStart(4, '0'),
+            file: currentFile,
+            line: currentLine
+        });
+        i++;
 
         for(const frame of [...this._stackFrames].reverse()) {
             frames.push({
