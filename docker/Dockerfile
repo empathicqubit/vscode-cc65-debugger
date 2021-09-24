@@ -61,3 +61,7 @@ RUN curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm
 
 RUN useradd -m -u 1000 unprivileged
 USER root
+
+# Cache pnpm packages
+ADD https://raw.githubusercontent.com/empathicqubit/vscode-cc65-vice-debug/master/package.json /app/package.json
+RUN cd /app && pnpm install
