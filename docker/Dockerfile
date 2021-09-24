@@ -36,8 +36,9 @@ RUN mkdir /vices && \
     done
 
 # Install cross build tools for CC65
-RUN apt-get update && \
-    apt-get install -y gcc-multilib-i686-linux-gnu mingw-w64 libc6-dev-arm64-cross libc6-arm64-cross gcc-aarch64-linux-gnu gcc-multilib-arm-linux-gnueabi gcc-multilib-arm-linux-gnueabihf && \
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y gcc-multilib-i686-linux-gnu mingw-w64 libc6-dev-arm64-cross libc6-arm64-cross gcc-aarch64-linux-gnu gcc-multilib-arm-linux-gnueabi gcc-multilib-arm-linux-gnueabihf libc6:i386 && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
 
 # Install Git
