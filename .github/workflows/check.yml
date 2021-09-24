@@ -35,4 +35,4 @@ jobs:
     - run: ln -s $PWD/system /usr/lib/vice
     - run: ln -s $PWD/system /usr/share/vice
     - run: ls -l /usr/local/share
-    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test test:prepublish
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test test
