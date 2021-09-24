@@ -62,6 +62,16 @@ describe('Compile', () => {
         await compile.build(BUILD, execHandler);
     });
 
+    test('Build works with assembly project', async () => {
+        const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/asm-project');
+
+        await compile.clean(BUILD_CWD, execHandler);
+        await compile.build({
+            ...BUILD,
+            cwd: BUILD_CWD,
+        }, execHandler);
+    });
+
     test('Can guess the program path', async () => {
         await compile.make(BUILD, execHandler, {
             shell: <any>true,

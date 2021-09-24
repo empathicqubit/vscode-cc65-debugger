@@ -297,17 +297,23 @@ export class ViceGrip extends EventEmitter {
      * @param vicePath The absolute path to VICE
      */
     private async _versionProbeStart(vicePath: string, machineType: debugFile.MachineType) : Promise<void> {
+        let directoryOpts : string[] = [];
+        try {
+            await util.promisify(fs.access)(path.dirname(vicePath) + '/../data/GLSL');
+            directoryOpts = ViceGrip._getDirectoryOptions(machineType, true);
+        }
+        catch {}
+
+        const opts : debugUtils.ExecFileOptions = {
+            shell: false,
+            cwd: '.',
+            title: 'VICE',
+        };
+
         const startText = _random(29170, 29400);
         const startBinary = _random(29700, 30000);
         const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
         const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
-
-        const directoryOpts : string[] = [];
-        try {
-            await util.promisify(fs.access)(path.dirname(vicePath) + '/../data/GLSL');
-            directoryOpts.push(...ViceGrip._getDirectoryOptions(machineType, true));
-        }
-        catch {}
 
         let args = [
             "-default",
@@ -320,12 +326,6 @@ export class ViceGrip extends EventEmitter {
             "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
         ];
-
-        const opts : debugUtils.ExecFileOptions = {
-            shell: false,
-            cwd: '.',
-            title: 'VICE',
-        };
 
         console.log('Probing VICE', vicePath, args, opts);
 
@@ -404,11 +404,6 @@ export class ViceGrip extends EventEmitter {
     public async start(initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
         await this._versionProbeStart(vicePath, machineType);
 
-        const startText = _random(29170, 29400);
-        const startBinary = _random(29700, 30000);
-        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
-        const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
-
         let logfile : string | undefined;
         if(process.platform == "win32") {
             logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
@@ -419,6 +414,12 @@ export class ViceGrip extends EventEmitter {
                 .filter(x => /^cc65-vice-/.test(x))
                 .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
         }
+
+        const opts : debugUtils.ExecFileOptions = {
+            shell: false,
+            cwd: cwd,
+            title: 'VICE',
+        };
 
         let args = [
             ...ViceGrip._getDirectoryOptions(machineType, this.versionInfo!.compoundDirectory),
@@ -433,12 +434,6 @@ export class ViceGrip extends EventEmitter {
                 ]
                 : []
             ),
-
-            // FIXME Double-check to see if there are caveats to omitting
-            // the -nativemonitor flag. Sometimes the GUI monitor would steal focus.
-            // Monitor
-            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
-            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
 
             // Hardware
             "-autostart-warp", "-autostartprgmode", "1", "+autostart-handle-tde",
@@ -462,18 +457,23 @@ export class ViceGrip extends EventEmitter {
             )
         ];
 
+        const startText = _random(29170, 29400);
+        const startBinary = _random(29700, 30000);
+        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
+        const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
+
+        args = [...args,
+            // Add these as late as possible so we can try to capture the unused port quickly
+            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
+            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
+        ];
+
         if(viceArgs) {
             args = [...args, ...viceArgs];
         }
         else {
             args = [...args];
         }
-
-        const opts : debugUtils.ExecFileOptions = {
-            shell: false,
-            cwd: cwd,
-            title: 'VICE',
-        };
 
         console.log('Starting VICE', vicePath, args, opts);
 

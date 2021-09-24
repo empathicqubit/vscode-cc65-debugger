@@ -1,19 +1,12 @@
+import * as path from 'path';
+import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as compile from '../compile';
+import * as disassembly from '../disassembly';
 import * as debugUtils from '../debug-utils';
 import { LaunchRequestBuildArguments } from '../launch-arguments';
-import * as metrics from '../metrics';
 
-metrics.options.disabled = true;
-
-const all = (...args) => Promise.all(args);
-
-// Line numbers are from zero, you moron.
-
-describe('Runtime', () => {
-    /* These tests require VICE to be installed on your PATH */
-    /* All values should be explicitly defined except
-        when testing the defaults */
+describe('Settings', () => {
     const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const BUILD_ARGS = testShared.DEFAULT_BUILD_ARGS;
@@ -32,13 +25,15 @@ describe('Runtime', () => {
 
     afterEach(testShared.cleanup);
 
-    test('Can modify memory correctly', async() => {
+    const MAIN_S = path.join(BUILD_CWD, "src/main.s")
+
+    test('Breaks at the entry point', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
             PROGRAM,
             BUILD_CWD,
             true,
-            true,
+            false,
             false,
             VICE_DIRECTORY,
             VICE_ARGS,
@@ -48,19 +43,19 @@ describe('Runtime', () => {
             LABEL_FILE
         );
 
-        await testShared.waitFor(rt, 'stopOnEntry');
-        await testShared.selectCTest(rt, 'test_template');
+        await testShared.waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, testShared.getLabel(rt, '_main')));
+        await testShared.selectCTest(rt, 'test_break_entry');
         await rt.continue();
-        await testShared.waitFor(rt, 'stopOnExit');
+        await testShared.waitFor(rt, 'end');
     });
 
-    test('Starts and terminates successfully without intervention', async() => {
+    test('Breaks at the exit point', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
             PROGRAM,
             BUILD_CWD,
             true,
-            false,
+            true,
             false,
             VICE_DIRECTORY,
             VICE_ARGS,
@@ -71,10 +66,15 @@ describe('Runtime', () => {
         );
 
         await testShared.waitFor(rt, 'stopOnEntry');
-        await testShared.selectCTest(rt, 'test_start_terminate');
-
+        await testShared.selectCTest(rt, 'test_break_exit');
         await rt.continue();
 
+        await testShared.waitFor(rt, 'stopOnExit', (type, __, file, line, col) => {
+            assert.strictEqual(file, MAIN_S);
+            assert.strictEqual(line, 43);
+        });
+
+        await rt.continue();
         await testShared.waitFor(rt, 'end');
     });
 });

@@ -1,4 +1,3 @@
-import { EventEmitter } from "events";
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import watch from 'node-watch';
