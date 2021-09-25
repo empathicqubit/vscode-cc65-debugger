@@ -26,8 +26,6 @@ describe('Attach', () => {
             shell: false,
         })
 
-        await debugUtils.delay(1000);
-
         const conn = await ViceGrip._connect(binaryPort);
         const buf = Buffer.from([
             0x02, 0x01,
