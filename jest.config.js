@@ -1,5 +1,6 @@
 module.exports = {
     "testTimeout": 35000,
+    "runner": "<rootDir>/jest-runner.js",
     "roots": [
         "<rootDir>/src"
     ],
