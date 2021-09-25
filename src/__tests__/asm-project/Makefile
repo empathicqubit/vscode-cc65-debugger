@@ -305,9 +305,6 @@ $(TARGETOBJDIR)/%.o: %.asm | $(TARGETOBJDIR)
 
 vpath %.a65 $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
-$(TARGETOBJDIR)/%.i: %.c | $(TARGETOBJDIR)
-	cl65 -E -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(CFLAGS) -o $@ $<
-
 $(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
 	cl65 -t $(CC65TARGET) $(LDFLAGS) -o $@ $(patsubst %.cfg,-C %.cfg,$^)
 
