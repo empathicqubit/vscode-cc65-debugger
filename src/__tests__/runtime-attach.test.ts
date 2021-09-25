@@ -7,7 +7,6 @@ import * as net from 'net';
 import * as util from 'util';
 
 describe('Attach', () => {
-    const binaryPort = 1024 + Math.floor(Math.random() * 10000);
 
     const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
@@ -24,7 +23,10 @@ describe('Attach', () => {
 
     afterEach(testShared.cleanup);
 
+    let binaryPort = -1;
     beforeEach(async () => {
+        binaryPort = testShared.portGetter();
+
         const pids = await testShared.cleanupExecHandler(path.join(VICE_DIRECTORY, 'x64sc'), ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
             cwd: '/tmp',
             shell: false,
