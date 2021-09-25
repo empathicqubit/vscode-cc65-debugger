@@ -1,5 +1,4 @@
-// serial-jest-runner.js
-const DefaultJestRunner = require('jest-runner');
+const DefaultJestRunner = require('jest-runner').default;
 
 class SerialJestRunner extends DefaultJestRunner {
   constructor(...args) {

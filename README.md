@@ -95,6 +95,12 @@ Required settings for both launch and attach:
 - **type**: Always `cc65-vice` for this debugger.
 - **build**: Attributes for the build command. You need this for attachment as
 well, so the debugger can find relative paths in your debug file.
+    - **command**: Your actual build command. Defaults to make if unspecified.
+[You will need to change your Makefile to support being debugged with this.](#changes-needed-to-your-makefile)
+    - **args**: An array with args for your command. Defaults to [] if unspecified.
+    - **cwd**: The working directory for your build command. You need this for
+attachment as well, so the debugger can find relative paths in your debug file.
+
 
 Required for attach mode only:
 
@@ -108,8 +114,6 @@ Required for launch mode only:
 - **viceArgs**: You'll want to set your C64 model here, and any other special
 hardware options that you need for your program. Either NTSC or one of the PAL
 models (jap, drean, etc). Look at the VICE manual for the full list.
-- **buildCommand**: Your actual build command. Defaults to make if unspecified.
-[You will need to change your Makefile to support being debugged with this.](#changes-needed-to-your-makefile)
 
 Other shared settings:
 
