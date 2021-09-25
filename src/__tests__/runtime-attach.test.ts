@@ -9,14 +9,7 @@ import { ViceGrip } from '../vice-grip';
 
 describe('Attach', () => {
 
-    const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
-    const BUILD_ARGS = testShared.DEFAULT_BUILD_ARGS;
-    const BUILD : LaunchRequestBuildArguments = {
-        cwd: BUILD_CWD,
-        args: BUILD_ARGS,
-        command: BUILD_COMMAND,
-    }
     const PROGRAM = testShared.DEFAULT_PROGRAM;
     const MAP_FILE = testShared.DEFAULT_MAP_FILE;
     const DEBUG_FILE = testShared.DEFAULT_DEBUG_FILE;

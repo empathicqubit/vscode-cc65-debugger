@@ -130,13 +130,11 @@ describe('Stack', () => {
 
         await Promise.all([
             rt.stepIn(),
-            testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
+            testShared.waitFor(rt, 'stopOnStep', (type, __, file, line, col) => {
                 assert.strictEqual(file, STACKFRAMES_C);
                 assert.strictEqual(line, 3);
             })
         ]);
-
-        await testShared.waitFor(rt, 'stopOnStep');
 
         const frames = await rt.stack(0, 1000);
 

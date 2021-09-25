@@ -404,6 +404,7 @@ export class CallStackManager {
                 operation: bin.CpuOperation.exec,
             });
 
+            // Breaking here
             await this._vice.waitForStop(brk.startAddress, brk.endAddress);
         });
 
