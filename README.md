@@ -98,8 +98,10 @@ well, so the debugger can find relative paths in your debug file.
 
 Required for attach mode only:
 
-- **attachPort**: The port to attach to in attach mode. This is the port
-configured with VICE's `-binarymonitoraddress` option.
+- **port**: The port to attach to in attach mode. This is the port
+configured with VICE's `-binarymonitoraddress` option. If you specify
+this for a launch, it will force it to use that port instead of a
+random one.
 
 Required for launch mode only:
 

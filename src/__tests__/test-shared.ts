@@ -4,9 +4,11 @@ import * as debugUtils from '../debug-utils';
 import * as child_process from 'child_process';
 import * as compile from '../compile';
 import * as path from 'path';
+import * as os from 'os';
 import { Runtime } from '../runtime';
 import { LaunchRequestBuildArguments } from '../launch-arguments';
 import * as metrics from '../metrics';
+import getPort from 'get-port';
 
 console.log('PROCESS', process.pid);
 
@@ -59,6 +61,36 @@ export const DEFAULT_TEST_EXEC_HANDLER : debugUtils.ExecHandler = async (file, a
     return await promise;
 };
 
+const ports = {
+    "runtime.test.ts": 0x8000,
+    "runtime-assembly.test.ts": 0x8100,
+    "runtime-execution.test.ts": 0x8200,
+    "runtime-other-platforms.test.ts": 0x8300,
+    "runtime-runahead.test.ts": 0x8400,
+    "runtime-settings.test.ts": 0x8500,
+    "runtime-stack.test.ts": 0x8600,
+    "runtime-attach.test.ts": 0x8700,
+}
+
+export async function portGetter() : Promise<number> {
+    const testName = path.basename(expect.getState().testPath);
+    const val = ports[testName];
+    if(!val) {
+        throw new Error(`You need to add a port for the test file: "${testName}"`);
+    }
+    const port = await getPort({port: getPort.makeRange(val, val + 0xff)});
+    ports[testName] = port + 1;
+
+    return port;
+}
+
+export const DEFAULT_COMMON_VICE_ARGS : string[] = [
+    '+sound',
+    '-sounddev', 'dummy',
+    '-autostart-warp',
+    '-warp',
+];
+
 export const DEFAULT_VICE_ARGS : string[] = [
     '-VICIIborders', '3',
     '+VICIIhwscale',
@@ -68,8 +100,7 @@ export const DEFAULT_VICE_ARGS : string[] = [
     '+VICIIdsize',
     '+sidfilters',
     '-residsamp', '0',
-    '+sound',
-    '-sounddev', 'dummy'
+    ...DEFAULT_COMMON_VICE_ARGS,
 ];
 
 export const DEFAULT_BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;

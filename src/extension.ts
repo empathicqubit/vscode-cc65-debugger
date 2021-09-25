@@ -27,8 +27,10 @@ import { DebugSession } from 'vscode-debugadapter';
 import * as compile from './compile';
 import { CC65ViceDebugSession } from './debug-session';
 import * as debugUtils from './debug-utils';
+import getPort from 'get-port';
 import * as metrics from './metrics';
 import { StatsWebview } from './stats-webview';
+import { LaunchRequestArguments } from './launch-arguments';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -121,7 +123,19 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    const provider = new CC65ViceConfigurationProvider();
+    const provider = new CC65ViceConfigurationProvider(
+        () => {
+            let port = context.globalState.get<number>('current-port') || 29700;
+            port++;
+            if(port > 30000) {
+                port = 29700;
+            }
+
+            context.globalState.update('current-port', port);
+
+            return port;
+        }
+    );
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('cc65-vice', provider));
 
     console.log('Running as ', runMode);
@@ -165,35 +179,42 @@ class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFact
 }
 
 class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider {
+    private _portGetter: () => number;
+    constructor(portGetter: () => number) {
+        this._portGetter = portGetter;
+    }
 
     /**
     * Massage a debug configuration just before a debug session is being launched,
     * e.g. add all missing attributes to the debug configuration.
     */
-    resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
-
+    resolveDebugConfiguration(folder: WorkspaceFolder | undefined, c: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
+        const config = <LaunchRequestArguments><any>c;
         // if launch.json is missing or empty
-        if (!config.type && !config.request && !config.name) {
+        if (!c.type && !config.request && !c.name) {
             const editor = vscode.window.activeTextEditor;
             if (editor && editor.document.languageId === 'makefile') {
-                config.type = 'cc65-vice';
-                config.name = 'Build and launch VICE';
+                c.type = 'cc65-vice';
+                c.name = 'Build and launch VICE';
                 config.request = 'launch';
                 config.build = {
                     command: compile.DEFAULT_BUILD_COMMAND,
-                    cwd: '${worspaceFolder}',
+                    cwd: '${workspaceFolder}',
                     args: compile.DEFAULT_BUILD_ARGS,
                 }
                 config.stopOnEntry = true;
             }
         }
 
+        if(!(c.request != 'attach' && config.port && config.port > 0)) {
+            config.port = this._portGetter();
+        }
         config.cc65Home = vscode.workspace.getConfiguration('cc65vice').get('cc65Home');
         config.viceDirectory = vscode.workspace.getConfiguration('cc65vice').get('viceDirectory');
         config.preferX64OverX64sc = vscode.workspace.getConfiguration('cc65vice').get('preferX64OverX64sc');
         config.runAhead = vscode.workspace.getConfiguration('cc65vice').get('runAhead');
 
-        return config;
+        return c;
     }
 }
 

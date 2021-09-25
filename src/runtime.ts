@@ -107,14 +107,15 @@ export class Runtime extends EventEmitter {
 
     /**
      * Attach to an already running program
-     * @param attachPort Binary monitor port
+     * @param port Binary monitor port
      * @param stopOnEntry Stop after attaching
+     * @param stopOnExit Stop after hitting the end of main
      * @param runAhead Step ahead one frame when stopping
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
      */
     public async attach(
-        attachPort: number,
+        port: number,
         buildCwd: string,
         stopOnEntry: boolean,
         stopOnExit: boolean,
@@ -131,7 +132,7 @@ export class Runtime extends EventEmitter {
 
         console.time('vice')
 
-        await this._vice.connect(attachPort);
+        await this._vice.connect(port);
 
         await this._postViceStart();
 
@@ -271,7 +272,7 @@ export class Runtime extends EventEmitter {
         });
 
         this._runAhead = !!runAhead;
-        console.time('loadSource')
+        console.time('loadSource');
 
         if(program && !debugUtils.programFiletypes.test(program)) {
             throw new Error("File must be a Commodore Disk image or PRoGram.");
@@ -289,12 +290,16 @@ export class Runtime extends EventEmitter {
 
         await Promise.all(promises);
 
+        console.time('parseSource');
+
         await Promise.all([
             this._loadDebugFile(debugFilePath, buildCwd),
             this._loadMapFile(mapFilePath),
         ]);
 
-        console.timeEnd('loadSource')
+        console.timeEnd('parseSource');
+
+        console.timeEnd('loadSource');
 
         console.time('preVice');
 
@@ -339,18 +344,21 @@ export class Runtime extends EventEmitter {
 
     /**
      * Start running the given program
+     * @param port Binary monitor port
      * @param program Program path
      * @param buildCwd Build path
      * @param stopOnEntry Stop after hitting main
+     * @param stopOnExit Stop after hitting the end of main
+     * @param runAhead Skip ahead one frame
      * @param viceDirectory The path with all the VICE executables
      * @param viceArgs Extra arguments to pass to VICE
      * @param preferX64OverX64sc Use x64 when appropriate
-     * @param runAhead Skip ahead one frame
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
      * @param labelFilePath Manual path to label file
      */
     public async start(
+        port: number,
         program: string,
         buildCwd: string,
         stopOnEntry: boolean,
@@ -361,7 +369,7 @@ export class Runtime extends EventEmitter {
         preferX64OverX64sc?: boolean,
         debugFilePath?: string,
         mapFilePath?: string,
-        labelFilePath?: string
+        labelFilePath?: string,
     ) : Promise<void> {
         metrics.event('runtime', 'start');
 
@@ -374,6 +382,7 @@ export class Runtime extends EventEmitter {
         }
 
         await this._vice.start(
+            port,
             this._dbgFile.entryAddress,
             path.dirname(program),
             this._dbgFile.machineType,
@@ -381,6 +390,8 @@ export class Runtime extends EventEmitter {
             viceArgs,
             labelFilePath
         )
+
+        console.timeEnd('vice');
 
         await this._postViceStart();
 
@@ -392,8 +403,6 @@ export class Runtime extends EventEmitter {
         }
         await this.continue();
         await this._vice.waitForStop(this._dbgFile.entryAddress, undefined, true);
-
-        console.timeEnd('vice')
 
         await this._postFullStart(stopOnEntry);
     }

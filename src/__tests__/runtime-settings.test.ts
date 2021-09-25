@@ -30,6 +30,7 @@ describe('Settings', () => {
     test('Breaks at the entry point', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -52,6 +53,7 @@ describe('Settings', () => {
     test('Breaks at the exit point', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,

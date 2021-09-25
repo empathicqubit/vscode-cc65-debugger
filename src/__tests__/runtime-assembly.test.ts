@@ -25,6 +25,7 @@ describe('Assembly', () => {
     test('Starts and terminates successfully without intervention', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -48,6 +49,7 @@ describe('Assembly', () => {
     test('Can set a breakpoint', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -78,6 +80,7 @@ describe('Assembly', () => {
     test('Can step in', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -116,6 +119,7 @@ describe('Assembly', () => {
     test('Can step out', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,

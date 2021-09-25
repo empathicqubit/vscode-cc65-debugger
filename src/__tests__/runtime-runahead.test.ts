@@ -28,6 +28,7 @@ describe('Runahead', () => {
         const rt = await testShared.newRuntime();
         await Promise.all([
             rt.start(
+            await testShared.portGetter(),
                 PROGRAM,
                 BUILD_CWD,
                 true,
@@ -53,6 +54,7 @@ describe('Runahead', () => {
     test('Does not break file access', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -88,6 +90,7 @@ describe('Runahead', () => {
     test('Triggered by step', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -115,6 +118,7 @@ describe('Runahead', () => {
     test('Triggered by step in', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,

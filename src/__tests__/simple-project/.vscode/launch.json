@@ -33,7 +33,7 @@
             },
             "stopOnEntry": true,
             "stopOnExit": true,
-            "attachPort": 29784,
+            "port": 29784,
         },
         {
             "type": "cc65-vice",
@@ -66,6 +66,7 @@
                     "OPTIONS=mapfile,labelfile,debugfile"
                 ]
             },
+            "port": 5050,
             "stopOnEntry": true,
             "stopOnExit": true,
             "viceArgs": [
@@ -84,7 +85,7 @@
             },
             "stopOnEntry": true,
             "stopOnExit": true,
-            "attachPort": 29784,
+            "port": 29784,
             "debugServer": 4711
         },
         {

@@ -30,6 +30,7 @@ describe('Stack', () => {
     test('Contains the frames plus the current position', async () => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -100,6 +101,7 @@ describe('Stack', () => {
     test('Step in', async () => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -180,6 +182,7 @@ describe('Stack', () => {
         const LOCALVARS_C = path.join(BUILD_CWD, "src/test_local_vars.c");
 
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,

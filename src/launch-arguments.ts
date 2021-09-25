@@ -18,7 +18,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     /** launch or attach */
     request?: 'launch' | 'attach';
     /** Port of the binary monitor to connect to */
-    attachPort: number;
+    port?: number;
     /** When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately. */
     runAhead?: boolean;
     /** Use X64 instead of X64SC when appropriate. */

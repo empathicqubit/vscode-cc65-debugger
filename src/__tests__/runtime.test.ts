@@ -35,6 +35,7 @@ describe('Runtime', () => {
     test('Can modify memory correctly', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -57,6 +58,7 @@ describe('Runtime', () => {
     test('Starts and terminates successfully without intervention', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,

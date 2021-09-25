@@ -36,6 +36,7 @@ export class ViceGrip extends EventEmitter {
     private _responseByteCount : number = 0;
     private _nextResponseLength : number = -1;
     private _responseEmitter : EventEmitter = new EventEmitter();
+    private _requestId : number = 0;
 
     private _binaryDataHandler(d : Buffer) {
         try {
@@ -295,6 +296,7 @@ export class ViceGrip extends EventEmitter {
      * Get the version info from a VICE with default settings so it's less likely
      * to break at startup
      * @param vicePath The absolute path to VICE
+     * @param machineType C64, C128, VIC20, etc.
      */
     private async _versionProbeStart(vicePath: string, machineType: debugFile.MachineType) : Promise<void> {
         let directoryOpts : string[] = [];
@@ -401,7 +403,7 @@ export class ViceGrip extends EventEmitter {
         return ["-directory", q + dirs.join(sep) + q];
     }
 
-    public async start(initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
+    public async start(port: number, initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
         await this._versionProbeStart(vicePath, machineType);
 
         let logfile : string | undefined;
@@ -458,8 +460,7 @@ export class ViceGrip extends EventEmitter {
         ];
 
         const startText = _random(29170, 29400);
-        const startBinary = _random(29700, 30000);
-        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
+        const binaryPort = await getPort({port: getPort.makeRange(port, port + 256)});
         const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
 
         args = [...args,
@@ -607,7 +608,11 @@ export class ViceGrip extends EventEmitter {
         const frags : Uint8Array[] = [];
         const results = Promise.all(commands.map(command => {
             const body = bin.commandObjectToBytes(command, this._commandBytes);
-            const requestId = _random(0, 0xffffffff);
+            this._requestId++;
+            if(this._requestId > 0x8fffffff) {
+                this._requestId = 0;
+            }
+            const requestId = this._requestId;
             const buf = Buffer.alloc(11 + body.length);
             buf.writeUInt8(0x02, 0); // start
             buf.writeUInt8(this._apiVersion, 1); // version

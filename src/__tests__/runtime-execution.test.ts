@@ -27,6 +27,7 @@ describe('Execution control', () => {
     test('Pauses correctly', async () => {
         const rt = await testShared.newRuntime();
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -60,6 +61,7 @@ describe('Execution control', () => {
         const SHITTON_C = path.join(BUILD_CWD, "src/test_shitton_of_breakpoints.c");
 
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             false,
@@ -92,6 +94,7 @@ describe('Execution control', () => {
         const STEPOUT_C = path.join(BUILD_CWD, "src/test_step_out.c");
 
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
@@ -144,6 +147,7 @@ describe('Execution control', () => {
         const STEPIN_C = path.join(BUILD_CWD, "src/test_step_in.c");
 
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,

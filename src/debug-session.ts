@@ -352,7 +352,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
         try {
-            await this._runtime.attach(args.attachPort, args.build.cwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.program, args.debugFile, args.mapFile);
+            if(!args.port) {
+                throw new Error('Attach requires a port in launch.json');
+            }
+            await this._runtime.attach(args.port, args.build.cwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.program, args.debugFile, args.mapFile);
         }
         catch (e) {
             metrics.event('session', 'attach-error');
@@ -393,6 +396,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
             // start the program in the runtime
             await this._runtime.start(
+                args.port!,
                 program,
                 args.build.cwd,
                 !!args.stopOnEntry,

@@ -256,7 +256,8 @@
         "configurationAttributes": {
           "attach": {
             "required": [
-              "build"
+              "build",
+              "port"
             ],
             "properties": {
               "stopOnEntry": {
@@ -293,7 +294,7 @@
                 "type": "string",
                 "description": "The map file path. Use this if autodetection fails."
               },
-              "attachPort": {
+              "port": {
                 "type": "number",
                 "description": "The port number to attach to in attach mode. This is the port configured with VICE's -binarymonitoraddress option.",
                 "default": 6502
@@ -359,6 +360,11 @@
               "viceArgs": {
                 "type": "array",
                 "description": "The arguments to pass to the VICE command line. You should at the very least set your model type here, since that is specific to the project."
+              },
+              "port": {
+                "type": "number",
+                "description": "The port number to use instead of a random one. This is the port configured with VICE's -binarymonitoraddress option.",
+                "default": -1
               },
               "trace": {
                 "type": "boolean",

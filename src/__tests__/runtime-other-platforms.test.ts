@@ -17,10 +17,7 @@ describe('xpet and others', () => {
     const LABEL_FILE = PROGRAM + '.lbl';
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
-    const VICE_ARGS = [
-        '+sound',
-        '-sounddev', 'dummy',
-    ];
+    const VICE_ARGS = testShared.DEFAULT_COMMON_VICE_ARGS;
 
     afterEach(testShared.cleanup);
 
@@ -30,6 +27,7 @@ describe('xpet and others', () => {
         const NONC64_C = path.join(BUILD_CWD, "src/test_non_c64.c")
 
         await rt.start(
+            await testShared.portGetter(),
             PROGRAM,
             BUILD_CWD,
             true,
