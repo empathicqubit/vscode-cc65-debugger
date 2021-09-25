@@ -300,7 +300,7 @@ export class ViceGrip extends EventEmitter {
      * @param vicePath The absolute path to VICE
      * @param machineType C64, C128, VIC20, etc.
      */
-    private async _versionProbeStart(vicePath: string, machineType: debugFile.MachineType) : Promise<void> {
+    private async _versionProbeStart(vicePath: string, machineType: debugFile.MachineType, port: number) : Promise<void> {
         let directoryOpts : string[] = [];
         try {
             await util.promisify(fs.access)(path.dirname(vicePath) + '/../data/GLSL');
@@ -314,10 +314,7 @@ export class ViceGrip extends EventEmitter {
             title: 'VICE',
         };
 
-        const startText = _random(29170, 29400);
-        const startBinary = _random(29700, 30000);
-        const binaryPort = await getPort({port: getPort.makeRange(startBinary, startBinary + 256)});
-        const textPort = await getPort({port: getPort.makeRange(startText, startText + 256)});
+        const binaryPort = await getPort({port: getPort.makeRange(port, port + 256)});
 
         let args = [
             "-default",
@@ -327,7 +324,7 @@ export class ViceGrip extends EventEmitter {
             '+sound',
 
             // Monitor
-            "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
+            "+remotemonitor",
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
         ];
 
@@ -406,7 +403,7 @@ export class ViceGrip extends EventEmitter {
     }
 
     public async start(port: number, initBreak: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) {
-        await this._versionProbeStart(vicePath, machineType);
+        await this._versionProbeStart(vicePath, machineType, port);
 
         let logfile : string | undefined;
         if(process.platform == "win32") {
