@@ -1,5 +1,6 @@
 import _transform from 'lodash/transform';
-import _random from 'lodash/fp/random'
+import _random from 'lodash/fp/random';
+import _last from 'lodash/fp/last';
 import * as debugUtils from '../debug-utils';
 import * as child_process from 'child_process';
 import * as compile from '../compile';
@@ -38,17 +39,17 @@ export const DEFAULT_TEST_EXEC_HANDLER : debugUtils.ExecHandler = async (file, a
             }
         });
         const stdout = (data: Buffer) => {
-            console.log([expect.getState().currentTestName, data.toString('ascii')]);
+            console.log([expect.getState().currentTestName, _last(data.toString('ascii').split(/[\r\n]+/gim).filter(x => x))]);
         };
         const stderr = (data: Buffer) => {
-            console.error([expect.getState().currentTestName, data.toString('ascii')]);
+            console.error([expect.getState().currentTestName, _last(data.toString('ascii').split(/[\r\n]+/gim).filter(x => x))]);
         };
         proc.stdout.on('data', stdout);
         proc.stderr.on('data', stderr);
         const cleanup = (e) => {
             proc.stdout.off('data', stdout);
             proc.stderr.off('data', stderr);
-            e && console.error(e)
+            e && console.error(e);
         };
         proc.on('disconnect', cleanup);
         proc.on('close', cleanup);
@@ -126,22 +127,27 @@ export const cleanupExecHandler : debugUtils.ExecHandler = async (f, a, o) => {
     return ret;
 };
 
+const defaultExcludedEvents = ['banks', 'palette', 'memory', 'screenText'];
+
 const rts : Runtime[] = [];
-export async function newRuntime() : Promise<Runtime> {
+export async function newRuntime(excludedEvents?: string[]) : Promise<Runtime> {
     const rt = new Runtime(cleanupExecHandler);
 
+    if(!excludedEvents) {
+        excludedEvents = defaultExcludedEvents;
+    }
+
     const emit = rt.emit.bind(rt);
-    rt.emit = (...args) => (console.log([expect.getState().currentTestName, ...args]), emit(...args));
-
-    rt.on('output', (...args) => {
-        if(args[0] == 'stderr') {
-            console.log([expect.getState().currentTestName, args[1]]);
+    rt.emit = (name : string, ...args) => {
+        if(false && !excludedEvents!.includes(name)) {
+            console.log([
+                expect.getState().currentTestName,
+                name,
+                ...args
+            ])
         }
-    });
-
-    rt.on('message', (...args) => {
-        console.log([expect.getState().currentTestName, ...args]);
-    });
+        return emit(name, ...args);
+    };
 
     rts.push(rt);
 

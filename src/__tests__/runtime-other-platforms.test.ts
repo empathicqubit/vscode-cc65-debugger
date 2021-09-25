@@ -58,7 +58,6 @@ describe('xpet and others', () => {
             }),
         ]);
 
-
         const wastedOnMyself = [
             testShared.waitFor(rt, 'stopOnStep', (type, __, file, line, col) => {
                 assert.strictEqual(file, NONC64_C);
@@ -71,9 +70,7 @@ describe('xpet and others', () => {
             ...wastedOnMyself,
         ]);
 
-        await Promise.all([
-            rt.continue(),
-            testShared.waitFor(rt, 'end')
-        ]);
+        await rt.continue();
+        await testShared.waitFor(rt, 'end');
     });
 });

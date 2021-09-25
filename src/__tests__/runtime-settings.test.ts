@@ -46,6 +46,7 @@ describe('Settings', () => {
 
         await testShared.waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, testShared.getLabel(rt, '_main')));
         await testShared.selectCTest(rt, 'test_break_entry');
+
         await rt.continue();
         await testShared.waitFor(rt, 'end');
     });

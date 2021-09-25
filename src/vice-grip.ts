@@ -203,6 +203,7 @@ export class ViceGrip extends EventEmitter {
                     });
                 });
             } catch(e) {
+                console.error('CONNECT FAILED. RETRYING', binaryTries, e);
                 if(binaryConn) {
                     try {
                         binaryConn.end();
@@ -328,7 +329,7 @@ export class ViceGrip extends EventEmitter {
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
         ];
 
-        console.log('Probing VICE', vicePath, args, opts);
+        console.log('Probing VICE', vicePath, JSON.stringify(args), opts);
 
         let pids : number[];
         try {
@@ -475,7 +476,7 @@ export class ViceGrip extends EventEmitter {
             args = [...args];
         }
 
-        console.log('Starting VICE', vicePath, args, opts);
+        console.log('Starting VICE', vicePath, JSON.stringify(args), opts);
 
         try {
             this._pids = await this._execHandler(vicePath, args, opts)
@@ -510,6 +511,7 @@ export class ViceGrip extends EventEmitter {
                     this._responseEmitter.off('stopped', handle);
                 }
                 else if(continueIfUnmatched) {
+                    console.log('NOMATCH', startAddress, endAddress, r);
                     await this.exit();
                 }
             }

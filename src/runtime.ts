@@ -389,7 +389,7 @@ export class Runtime extends EventEmitter {
             await this._getVicePath(viceDirectory, !!preferX64OverX64sc),
             viceArgs,
             labelFilePath
-        )
+        );
 
         console.timeEnd('vice');
 
@@ -721,7 +721,8 @@ or define the location manually with the launch.json->mapFile setting`
 
         await this._doRunAhead();
 
-        this.sendEvent('stopOnStep');
+        const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
+        this.sendEvent('stopOnStep', null, ...args);
     }
 
     public async stepOut(event = 'stopOnStep') : Promise<void> {
@@ -740,7 +741,9 @@ or define the location manually with the launch.json->mapFile setting`
                     level: debugUtils.ExtensionMessageLevel.warning,
                     content: 'Can\'t step out here!'
                 });
-                this.sendEvent('stopOnStep');
+
+                const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
+                this.sendEvent('stopOnStep', null, ...args);
             }
 
             return;
@@ -748,13 +751,15 @@ or define the location manually with the launch.json->mapFile setting`
 
         await this._doRunAhead();
 
-        this.sendEvent(event, 'console')
+        const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
+        this.sendEvent(event, 'console', ...args);
     }
 
     public async pause() {
         await this._vice.ping();
         await this._doRunAhead();
-        this.sendEvent('stopOnStep');
+        const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
+        this.sendEvent('stopOnStep', null, ...args);
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<any> {
