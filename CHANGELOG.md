@@ -1,5 +1,13 @@
 # Changelog
 
+### [4.1.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.2...v4.1.3) (2021-09-25)
+
+
+### Bug Fixes
+
+* Include c file first in the stack order. ([221e6d5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/221e6d501496ea6b97afd3f1ac90211c92a838ef))
+* Manual port specification in launch, sequential port assignment. ([749f3d4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/749f3d4bef603719ebb246889f703fea1b242cad))
+
 ### [4.1.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.1...v4.1.2) (2021-09-23)
 
 
