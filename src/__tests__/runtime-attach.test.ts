@@ -25,7 +25,7 @@ describe('Attach', () => {
 
     let binaryPort = -1;
     beforeEach(async () => {
-        binaryPort = testShared.portGetter();
+        binaryPort = await testShared.portGetter();
 
         const pids = await testShared.cleanupExecHandler(path.join(VICE_DIRECTORY, 'x64sc'), ['-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
             cwd: '/tmp',
