@@ -170,7 +170,7 @@ export class ViceGrip extends EventEmitter {
         });
     }
 
-    private static async _connect(binaryPort: number, listener: (data: Buffer) => void) : Promise<net.Socket> {
+    public static async _connect(binaryPort: number, listener?: (data: Buffer) => void) : Promise<net.Socket> {
         let binaryConn : net.Socket | undefined;
 
         while(binaryPort == await getPort({port: getPort.makeRange(binaryPort, binaryPort + 256)})) {};
@@ -219,7 +219,9 @@ export class ViceGrip extends EventEmitter {
             break;
         } while(true);
 
-        binaryConn.on('data', listener);
+        if(listener) {
+            binaryConn.on('data', listener);
+        }
 
         binaryConn.read();
         binaryConn.resume();
