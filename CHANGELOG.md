@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.1.5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.4...v4.1.5) (2021-09-26)
+
+
+### Bug Fixes
+
+* Make globals and locals use the same logic. ([6e20c59](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/6e20c59b9dd5cc16d941653939996a875294c34b))
+
 ### [4.1.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.3...v4.1.4) (2021-09-26)
 
 
