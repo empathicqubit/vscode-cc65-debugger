@@ -16,11 +16,3 @@ jobs:
 
     steps:
     - run: echo "Hallo Leute" > testerson.txt
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: testerson.txt
-        asset_name: testerson.txt
-        tag: ${{ github.event.inputs.tag || github.ref }}
-        overwrite: true
