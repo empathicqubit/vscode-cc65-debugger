@@ -6,6 +6,7 @@ import * as debugUtils from '../debug-utils';
 import * as net from 'net';
 import * as util from 'util';
 import { ViceGrip } from '../vice-grip';
+import * as assert from 'assert';
 
 describe('Attach', () => {
 
@@ -27,29 +28,18 @@ describe('Attach', () => {
         })
 
         await debugUtils.delay(1000);
-
-        const conn = net.connect(binaryPort, '127.0.0.1');
-        const buf = Buffer.from([
-            0x02, 0x01,
-            0xff, 0xff, 0xff, 0xff,
-            0xaf, 0xe9, 0x23, 0x3d,
-
-            0xdd,
-
-            0x01,
-            0x00, 0x00,
-
-            0xd2,
-            ...new Array<number>(0xd2).fill(0x00)
-        ]);
-        buf.writeUInt32LE(buf.length - 11, 2);
-        buf.write(PROGRAM, buf.indexOf(0xd2) + 1, 'ascii');
-        await util.promisify((buf, cb) => conn.write(buf, cb))(buf);
-        await new Promise((res, rej) => (conn.once('data', res), conn.once('error', rej)));
-        conn.destroy();
     });
 
     test('Can attach to a running process', async() => {
-        await (await testShared.newRuntime()).attach(binaryPort, BUILD_CWD, false, false, false, PROGRAM, DEBUG_FILE, MAP_FILE);
+        const rt = await testShared.newRuntime();
+        await Promise.all([
+            rt.attach(binaryPort, BUILD_CWD, false, false, false, PROGRAM, DEBUG_FILE, MAP_FILE),
+            (async () => {
+                await testShared.waitFor(rt, 'message', (msg: debugUtils.ExtensionMessage) => {
+                    assert.strictEqual(msg.items && msg.items.includes('Autostart'), true);
+                })
+                await rt.action('Autostart');
+            })(),
+        ]);
     });
 });
