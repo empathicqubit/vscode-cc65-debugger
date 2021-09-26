@@ -222,10 +222,9 @@ export class ViceGrip extends EventEmitter {
 
         if(listener) {
             binaryConn.on('data', listener);
+            binaryConn.read();
+            binaryConn.resume();
         }
-
-        binaryConn.read();
-        binaryConn.resume();
 
         return binaryConn;
     }
