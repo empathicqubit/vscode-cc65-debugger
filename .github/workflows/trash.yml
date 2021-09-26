@@ -1,0 +1,19 @@
+name: Trash
+
+on:
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: The git tag to checkout
+                required: true
+                default: 'refs/tags/vFIXME'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    container: empathicqubit/vscode-cc65-vice-debug-build
+
+    steps:
+    - env: ${{ github.events.inputs.tag || env.GITHUB_REF }}
+      run: echo "Hello $GITHUB_REF"
