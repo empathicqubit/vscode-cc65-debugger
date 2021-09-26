@@ -18,4 +18,6 @@ jobs:
     steps:
     - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$TAG_NAME/cc65-vice-$(echo "${TAG_NAME}" | sed 's/^v//g').vsix > cc65-vice.vsix
     - run: pnpx -y -p @entan.gl/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
+      continue-on-error: true
     - run: pnpx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
+      continue-on-error: true
