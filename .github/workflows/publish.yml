@@ -6,7 +6,7 @@ on:
             tag:
                 description: The git tag to checkout
                 required: true
-                default: 'refs/tags/vFIXME'
+                default: 'vFIXME'
     release:
         types:
         - edited
@@ -18,6 +18,6 @@ jobs:
     env:
       TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
     steps:
-    - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$TAG_NAME/cc65-vice-${TAG_NAME/#v/}.vsix > cc65-vice.vsix
+    - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$TAG_NAME/cc65-vice-${TAG_NAME/v/}.vsix > cc65-vice.vsix
     - run: pnpx -y -p @empathicqubit/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
     - run: pnpx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
