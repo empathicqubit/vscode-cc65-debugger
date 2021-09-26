@@ -59,4 +59,4 @@ jobs:
     steps:
     - run: VERSION=${TAG_NAME/#refs\/tags\//} ; curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$VERSION/${{ needs.build.outputs.filename } > cc65-vice.vsix
     - run: pnpx -y -p @empathicqubit/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
-    - run: pnpx -y ovsx publish ./cc65-vice-*.vsix -p ${{ secrets.OPENVSX_TOKEN }}
+    - run: pnpx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
