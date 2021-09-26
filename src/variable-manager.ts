@@ -73,29 +73,35 @@ export class VariableManager {
         this._paramStackTop = paramStackPos;
     }
 
-    private async _varFromLab(sym: debugFile.Sym) : Promise<VariableData> {
-        const symName = sym.name.replace(/^_/g, '')
+    private async _renderValue(scope: string, symName: string, addr: number) : Promise<VariableData> {
+        let val = '';
 
-        const buf = await this._vice.getMemory(sym.val, 2);
+        const buf = await this._vice.getMemory(addr, 2);
         const ptr = buf.readUInt16LE(0);
-
-        let val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned int'), buf);
 
         let typeName: string = '';
         let fieldInfo: typeQuery.FieldTypeInfo[];
-        if(this._localTypes && (fieldInfo = this._localTypes['__GLOBAL__()'])) {
+        if(this._localTypes && (fieldInfo = this._localTypes[scope])) {
             const field = ((fieldInfo.find(x => x.name == symName) || <typeQuery.FieldTypeInfo>{}));
             typeName = field.type.name || '';
 
-            if(field.type.isString) {
+            if(field.type.array) {
+                val = typeName;
+            }
+            else if(ptr && field.type.isString) {
                 const mem = await this._vice.getMemory(ptr, 24);
-                val = typeQuery.renderValue(field.type, mem)
+                const nullIndex = mem.indexOf(0x00);
+                const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
+                val = typeQuery.renderValue(field.type, mem);
+            }
+            else if(field.type.isStruct) {
+                val = typeQuery.renderValue(field.type, Buffer.alloc(0))
             }
             else {
                 val = typeQuery.renderValue(field.type, buf);
             }
 
-            if(!this._localTypes[typeName]) {
+            if(!this._localTypes[typeName] && !field.type.pointer && !field.type.array) {
                 typeName = '';
             }
         }
@@ -103,9 +109,14 @@ export class VariableManager {
         return {
             name: symName,
             value: val,
-            addr: sym.val,
+            addr: addr,
             type: typeName
         };
+    }
+
+    private async _varFromLab(sym: debugFile.Sym) : Promise<VariableData> {
+        const symName = sym.name.replace(/^_/g, '')
+        return this._renderValue('__GLOBAL__()', sym.name, sym.val);
     }
 
     private async _getLocalTypes(buildCwd: string, dbgFile: debugFile.Dbgfile) {
@@ -124,6 +135,7 @@ export class VariableManager {
         }
 
         const type = typeQuery.parseTypeExpression(typeName);
+
         if(type.array) {
             const vars : VariableData[] = [];
             const itemType = typeQuery.parseTypeExpression(type.array.itemType);
@@ -238,49 +250,7 @@ export class VariableManager {
 
             const addr = this._paramStackTop + seek
 
-            let ptr : number | undefined;
-
-            let val;
-            const slice = stack.slice(seek);
-            if(seekNext - seek == 2 && stack.length > seek + 1) {
-                ptr = <any>stack.readUInt16LE(seek);
-                val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned int'), slice);
-            }
-            else {
-                val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned char'), slice);
-            }
-
-            // FIXME Duplication with globals
-            let typeName: string = '';
-            let fieldInfo: typeQuery.FieldTypeInfo[];
-            if(this._localTypes && (fieldInfo = this._localTypes[currentScope.name + '()'])) {
-                const field = ((fieldInfo.find(x => x.name == csym.name) || <typeQuery.FieldTypeInfo>{}));
-                typeName = field.type.name || '';
-
-                if(ptr && field.type.isString) {
-                    const mem = await this._vice.getMemory(ptr, 24);
-                    const nullIndex = mem.indexOf(0x00);
-                    const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
-                    val = typeQuery.renderValue(field.type, mem);
-                }
-                else if(field.type.isStruct) {
-                    val = typeQuery.renderValue(field.type, Buffer.alloc(0))
-                }
-                else {
-                    val = typeQuery.renderValue(field.type, slice);
-                }
-
-                if(!this._localTypes[typeName] && !field.type.pointer) {
-                    typeName = '';
-                }
-            }
-
-            vars.push({
-                name: csym.name,
-                value: val,
-                addr: addr,
-                type: typeName,
-            });
+            vars.push(await this._renderValue(currentScope.name + '()', csym.name, addr));
         }
 
         if(vars.length <= 1) {
