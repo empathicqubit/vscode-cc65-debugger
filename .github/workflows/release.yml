@@ -50,7 +50,7 @@ jobs:
         tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
 
-    - run: pnpm run publish -- --packagePath ./cc65-vice-*.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
+    - run: node_modules/.bin/vsce publish --packagePath ./cc65-vice-*.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
       continue-on-error: true
     - run: pnpx -y ovsx publish ./cc65-vice-*.vsix -p ${{ secrets.OPENVSX_TOKEN }}
       continue-on-error: true
