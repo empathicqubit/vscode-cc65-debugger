@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.1.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.3...v4.1.4) (2021-09-26)
+
+
+### Bug Fixes
+
+* Make tests work on the build server again ([8f02b90](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/8f02b909d644b9ab30c81a02998e2565920d014c))
+
 ### [4.1.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.2...v4.1.3) (2021-09-25)
 
 
