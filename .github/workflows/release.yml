@@ -44,7 +44,7 @@ jobs:
       id: get_release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_REF: ${{ github.events.inputs.tag || github.ref }}
+        GITHUB_REF: ${{ github.events.inputs.tag || env.GITHUB_REF }}
 
     - uses: actions/upload-release-asset@v1
       continue-on-error: true
