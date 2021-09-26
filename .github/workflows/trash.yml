@@ -16,5 +16,5 @@ jobs:
 
     steps:
     - env:
-        GITHUB_REF: ${{ github.events.inputs.tag || env.GITHUB_REF }}
+        GITHUB_REF: ${{ github.events.inputs.tag || github.ref }}
       run: echo "Hello $GITHUB_REF"
