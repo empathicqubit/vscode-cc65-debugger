@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.1.6](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.5...v4.1.6) (2021-09-26)
+
+
+### Bug Fixes
+
+* Use correct symbol name for globals ([f2fa502](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f2fa502ae435ef81f6b09ee04f0ea7ce65903fef))
+
 ### [4.1.5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.4...v4.1.5) (2021-09-26)
 
 
