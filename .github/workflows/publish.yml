@@ -13,7 +13,6 @@ on:
 
 jobs:
   publish:
-    needs: build
     runs-on: ubuntu-latest
     container: empathicqubit/vscode-cc65-vice-debug-build
     env:
