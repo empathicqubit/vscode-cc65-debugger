@@ -5,9 +5,7 @@ import * as debugUtils from '../debug-utils';
 import * as child_process from 'child_process';
 import * as compile from '../compile';
 import * as path from 'path';
-import * as os from 'os';
 import { Runtime } from '../runtime';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
 import * as metrics from '../metrics';
 import getPort from 'get-port';
 

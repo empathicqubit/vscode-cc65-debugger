@@ -3,10 +3,9 @@ import { LaunchRequestBuildArguments } from '../launch-arguments';
 import * as testShared from './test-shared';
 import * as path from 'path';
 import * as debugUtils from '../debug-utils';
-import * as net from 'net';
-import * as util from 'util';
-import { ViceGrip } from '../vice-grip';
 import * as assert from 'assert';
+import _random from 'lodash/fp/random';
+import getPort from 'get-port';
 
 describe('Attach', () => {
 
@@ -20,7 +19,9 @@ describe('Attach', () => {
 
     let binaryPort = -1;
     beforeEach(async () => {
-        binaryPort = await testShared.portGetter();
+        binaryPort = _random(0x8700, 0x8700 + 256);
+
+        binaryPort = await getPort({ port: getPort.makeRange(binaryPort, binaryPort + 256) });
 
         const pids = await testShared.cleanupExecHandler(path.join(VICE_DIRECTORY, 'x64sc'), ['+remotemonitor', '-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
             cwd: '/tmp',
