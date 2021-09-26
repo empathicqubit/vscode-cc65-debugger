@@ -106,7 +106,7 @@
     "test": "npm-run-all jest:compile jest:noncompile",
     "testmerge": "npm-run-all -c test test || node ./testrun-merge.js ./compile.old.testrun ./compile.testrun ./noncompile.old.testrun ./noncompile.testrun",
     "package": "vsce package --packageManager pnpm",
-    "publish": "node -e \"process.exit(!process.env.GITHUB_ACTIONS)\" && vsce publish --packageManager pnpm || echo \"Do not publish on your system!\""
+    "publish": "node -e \"process.exit(!process.env.GITHUB_ACTIONS)\" && vsce publish --packageManager pnpm"
   },
   "fork-ts-checker": {
     "typescript": {
