@@ -19,5 +19,5 @@ jobs:
       TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
     steps:
     - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$TAG_NAME/cc65-vice-$(echo "${TAG_NAME}" | sed 's/^v//g').vsix > cc65-vice.vsix
-    - run: pnpx -y -p @empathicqubit/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
+    - run: pnpx -y -p @entan.gl/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
     - run: pnpx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
