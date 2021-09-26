@@ -14,6 +14,7 @@ describe('Attach', () => {
     const MAP_FILE = testShared.DEFAULT_MAP_FILE;
     const DEBUG_FILE = testShared.DEFAULT_DEBUG_FILE;
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
+    const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     afterEach(testShared.cleanup);
 
@@ -23,7 +24,7 @@ describe('Attach', () => {
 
         binaryPort = await getPort({ port: getPort.makeRange(binaryPort, binaryPort + 256) });
 
-        const pids = await testShared.cleanupExecHandler(path.join(VICE_DIRECTORY, 'x64sc'), ['+remotemonitor', '-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8'], {
+        const pids = await testShared.cleanupExecHandler(path.join(VICE_DIRECTORY, 'x64sc'), ['+remotemonitor', '-binarymonitor', '-binarymonitoraddress', `127.0.0.1:${binaryPort}`, '-iecdevice8', ...VICE_ARGS], {
             cwd: '/tmp',
             shell: false,
         })
