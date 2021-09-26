@@ -85,7 +85,7 @@
     "build:full": "npm-run-all -p vice:choose tisk webpack && npm-run-all nonjs",
     "build:test": "npm-run-all -p vice:choose tisk webpack && npm-run-all nonjs:quick",
     "build:debug": "npm-run-all -p tisk nonjs:quick",
-    "vscode:prepublish": "npm-run-all build:full test",
+    "vscode:prepublish": "npm-run-all build:full testmerge",
     "vscode:server:debug": "npm-run-all build:debug && npm-run-all extension:debug",
     "vscode:webviews:debug": "npm-run-all build:debug && npm-run-all not-extension:debug",
     "vscode:install": "npm-run-all package && codium --install-extension cc65-vice*.vsix || code --install-extension cc65-vice*.vsix",
@@ -106,7 +106,7 @@
     "test": "npm-run-all jest:compile jest:noncompile",
     "testmerge": "npm-run-all -c test test || node ./testrun-merge.js ./compile.old.testrun ./compile.testrun ./noncompile.old.testrun ./noncompile.testrun",
     "package": "vsce package --packageManager pnpm",
-    "publish": "vsce publish --packageManager pnpm"
+    "publish": "node -e \"process.exit(!process.env.GITHUB_ACTIONS)\" && vsce publish --packageManager pnpm || echo \"Do not publish on your system!\""
   },
   "fork-ts-checker": {
     "typescript": {
