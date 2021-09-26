@@ -13,6 +13,8 @@ on:
 
 jobs:
   build:
+    outputs:
+      filename: ${{ steps.get_filename.outputs.filename }}
 
     runs-on: ubuntu-latest
     container: empathicqubit/vscode-cc65-vice-debug-build
@@ -50,7 +52,10 @@ jobs:
         tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
 
-    - run: node_modules/.bin/vsce publish --packagePath ./cc65-vice-*.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
-      continue-on-error: true
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    container: empathicqubit/vscode-cc65-vice-debug-build
+    - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/${{ github.ref.replace('refs/tags/', '') }}/${{ needs.build.outputs.filename } > cc65-vice.vsix
+    - run: pnpx -y -p @empathicqubit/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
     - run: pnpx -y ovsx publish ./cc65-vice-*.vsix -p ${{ secrets.OPENVSX_TOKEN }}
-      continue-on-error: true

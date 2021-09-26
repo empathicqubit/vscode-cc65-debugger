@@ -105,8 +105,7 @@
     "jest:compile": "shx mv compile.testrun.json compile.old.testrun.json ; npm-run-all \"jest -- --json --outputFile compile.testrun.json src/__tests__/compile.test.ts\"",
     "test": "npm-run-all jest:compile jest:noncompile",
     "testmerge": "npm-run-all -c test test || node ./testrun-merge.js ./compile.old.testrun ./compile.testrun ./noncompile.old.testrun ./noncompile.testrun",
-    "package": "vsce package --packageManager pnpm",
-    "publish": "node -e \"process.exit(!process.env.GITHUB_ACTIONS)\" && vsce publish --packageManager pnpm"
+    "package": "vsce package --packageManager pnpm"
   },
   "fork-ts-checker": {
     "typescript": {
