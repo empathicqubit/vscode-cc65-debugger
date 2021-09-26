@@ -15,5 +15,6 @@ jobs:
     container: empathicqubit/vscode-cc65-vice-debug-build
 
     steps:
-    - env: ${{ github.events.inputs.tag || env.GITHUB_REF }}
+    - env:
+        GITHUB_REF: ${{ github.events.inputs.tag || env.GITHUB_REF }}
       run: echo "Hello $GITHUB_REF"
