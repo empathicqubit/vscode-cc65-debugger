@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     container: empathicqubit/vscode-cc65-vice-debug-build
     env:
-    env:
       TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
     steps:
     - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$TAG_NAME/cc65-vice-${TAG_NAME/#v/}.vsix > cc65-vice.vsix
