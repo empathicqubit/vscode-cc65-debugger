@@ -40,11 +40,6 @@ jobs:
 
     - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
       id: get_filename
-    - uses: bruceadams/get-release@v1.2.2
-      id: get_release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_REF: ${{ github.events.inputs.tag || env.GITHUB_REF }}
 
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
