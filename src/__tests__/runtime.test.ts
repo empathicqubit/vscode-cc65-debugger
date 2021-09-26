@@ -6,22 +6,13 @@ import * as metrics from '../metrics';
 
 metrics.options.disabled = true;
 
-const all = (...args) => Promise.all(args);
-
 // Line numbers are from zero, you moron.
 
 describe('Runtime', () => {
     /* These tests require VICE to be installed on your PATH */
     /* All values should be explicitly defined except
         when testing the defaults */
-    const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
-    const BUILD_ARGS = testShared.DEFAULT_BUILD_ARGS;
-    const BUILD : LaunchRequestBuildArguments = {
-        cwd: BUILD_CWD,
-        args: BUILD_ARGS,
-        command: BUILD_COMMAND,
-    }
     const PROGRAM = testShared.DEFAULT_PROGRAM
     const MAP_FILE = testShared.DEFAULT_MAP_FILE;
     const DEBUG_FILE = testShared.DEFAULT_DEBUG_FILE;
