@@ -8,8 +8,6 @@ on:
                 required: true
                 default: 'vFIXME'
     release:
-        types:
-        - edited
 
 jobs:
   publish:
