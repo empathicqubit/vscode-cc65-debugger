@@ -46,7 +46,7 @@ describe('Attach', () => {
         buf.write(PROGRAM, buf.indexOf(0xd2) + 1, 'ascii');
         await util.promisify((buf, cb) => conn.write(buf, cb))(buf);
         await new Promise((res, rej) => (conn.once('data', res), conn.once('error', rej)));
-        await util.promisify(conn.end.bind(conn))();
+        conn.destroy();
     });
 
     test('Can attach to a running process', async() => {
