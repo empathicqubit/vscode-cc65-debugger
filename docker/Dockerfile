@@ -66,3 +66,7 @@ USER root
 # Cache pnpm packages
 ADD https://raw.githubusercontent.com/empathicqubit/vscode-cc65-vice-debug/master/package.json /app/package.json
 RUN cd /app && pnpm install
+
+# Patch pnpm for Github Actions groups
+ADD pnpm.patch /app/pnpm.patch
+RUN cd /usr/pnpm-global/5/node_modules/pnpm/dist && patch -Np1 < /app/pnpm.patch
