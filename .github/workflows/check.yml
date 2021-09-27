@@ -12,7 +12,7 @@ on:
               default: 'master'
 
 jobs:
-  test:
+  kill_old_jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
