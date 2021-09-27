@@ -12,15 +12,13 @@ on:
               default: 'master'
 
 jobs:
-  build_canceller:
+  test:
     runs-on: ubuntu-latest
     steps:
-    - name: shot
-      uses: yellowmegaman/gh-build-canceller@v1.6
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        workflows_filter: "CI|pr"
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
 
   build:
 
