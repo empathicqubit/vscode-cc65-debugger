@@ -379,7 +379,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                         fil.name = path.normalize(val);
                     }
 
-                    if(/\.(s|asm|inc|a65)$/gi.test(fil.name)) {
+                    if(/\.(s|asm|inc|a65|mac)$/gi.test(fil.name)) {
                         fil.type = SourceFileType.Assembly;
                     }
                     else {
@@ -649,6 +649,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         }
     }
 
+    dbgFile.files = _sortBy([x => x.type != SourceFileType.C ], dbgFile.files);
     dbgFile.scopes = _sortBy([x => x.codeSpan, x => x.codeSpan && -x.codeSpan.absoluteAddress, x => x.codeSpan && x.codeSpan.size, x => -x.autos.length], dbgFile.scopes);
     dbgFile.lines = _sortBy([x => x.span, x => x.span && -x.span.absoluteAddress], dbgFile.lines);
 
