@@ -1,5 +1,18 @@
 # Changelog
 
+### [4.1.7](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.6...v4.1.7) (2021-09-27)
+
+
+### Bug Fixes
+
+* Avoid jumping into macro files if higher level files exist. ([d387134](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/d3871345f62dc7a2a231665dc649d067e9ae247b))
+* Kill old CI builds. ([5dd2ecf](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/5dd2ecf9bd7a3eb3e478b7ebfd1c2dee8ce18474))
+
+
+### Reverts
+
+* Revert "remove weird job cancelly thing" ([71bb6f5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/71bb6f552843943fedf3271901062d33aa0cb998))
+
 ### [4.1.6](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.5...v4.1.6) (2021-09-26)
 
 
