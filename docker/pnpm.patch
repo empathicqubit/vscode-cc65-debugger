@@ -1,0 +1,29 @@
+*** a/pnpm.cjs	2021-09-27 04:26:24.795891982 +0200
+--- b/pnpm.cjs	2021-09-27 04:27:25.829142669 +0200
+***************
+*** 104797,104803 ****
+      function runPackageLifecycle(pkg, stage, env, wd, opts, cb) {
+        const cmd = env.npm_lifecycle_script;
+        const note = `
+! > ${pkg._id} ${stage} ${wd}
+  > ${cmd}
+  `;
+        runCmd(note, cmd, pkg, env, stage, wd, opts, cb);
+--- 104797,104803 ----
+      function runPackageLifecycle(pkg, stage, env, wd, opts, cb) {
+        const cmd = env.npm_lifecycle_script;
+        const note = `
+! ::group::${pkg._id} ${stage} ${wd}
+  > ${cmd}
+  `;
+        runCmd(note, cmd, pkg, env, stage, wd, opts, cb);
+***************
+*** 104842,104847 ****
+--- 104842,104848 ----
+      }
+      function runCmd_(cmd, pkg, env, wd, opts, stage, unsafe, uid, gid, cb_) {
+        function cb(er) {
++         console.log(`::endgroup::${pkg._id} ${stage} ${wd}`);
+          cb_.apply(null, arguments);
+          opts.log.resume();
+          process.nextTick(dequeue);
