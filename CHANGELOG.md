@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.7...v4.2.0) (2021-09-28)
+
+
+### Features
+
+* Line cycle counter ([0e18d91](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/0e18d9131257e0b7f19053040e14a7f3d0a51335))
+
 ### [4.1.7](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.6...v4.1.7) (2021-09-27)
 
 
