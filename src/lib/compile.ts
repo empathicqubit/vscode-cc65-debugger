@@ -9,13 +9,26 @@ import * as util from 'util';
 import readdir from 'recursive-readdir';
 import * as path from 'path';
 import * as os from 'os';
+import * as tmp from 'tmp';
 import { LaunchRequestBuildArguments } from "./launch-arguments";
 import { __basedir } from '../basedir';
 
 export const DEFAULT_BUILD_COMMAND = 'make';
 export const DEFAULT_BUILD_ARGS = ['OPTIONS=mapfile,labelfile,debugfile'];
 
-export async function guessProgramPath(workspaceDir: string) {
+export async function getBinaryFromProgram(program: string) : Promise<Buffer> {
+    if(/\.d[0-9]{2}$/.test(program)) {
+        const fileName = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-program-'})
+        await util.promisify(child_process.execFile)('c1541', ['-attach', program, '-read', '*', fileName])
+        const buf = await util.promisify(fs.readFile)(fileName);
+        await util.promisify(fs.unlink)(fileName);
+        return buf;
+    }
+
+    return await util.promisify(fs.readFile)(program);
+}
+
+export async function guessProgramPath(workspaceDir: string) : Promise<string[]> {
     const filenames : string[] = await readdir(workspaceDir);
 
     const programs = filenames.filter(x => debugUtils.programFiletypes.test(x))

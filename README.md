@@ -140,17 +140,18 @@ There are also some user settings to note:
 
 <img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/user_config.png?raw=true" />
 
-- **cc65.viceDirectory**: Set this to specify the directory that contains the
+- **cc65vice.enableCycleCounters**: Enable cycle counters next to each code line.
+- **cc65vice.viceDirectory**: Set this to specify the directory that contains the
 VICE executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
-- **cc65.cc65Home**: Set this to specify the directory that contains the
+- **cc65vice.cc65Home**: Set this to specify the directory that contains the
 CC65 build. This is the `CC65_HOME` directory, and not the bin directory, so the
 folder above bin.  If your system doesn't have prebuilt binaries, you probably 
 want to use CC65 on your PATH, and *not* this.
-- **cc65.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
-- **cc65.disableMetrics**: This disables metric reporting, which tracks when the
+- **cc65vice.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
+- **cc65vice.disableMetrics**: This disables metric reporting, which tracks when the
 extension is activated or a debug session is requested or fails.
-- **cc65.runAhead**: When hitting a breakpoint, step ahead by one frame so that
+- **cc65vice.runAhead**: When hitting a breakpoint, step ahead by one frame so that
 any screen updates that may have been made become visible immediately.
 
 You may have some problems with `autostart-warp` working correctly. The way

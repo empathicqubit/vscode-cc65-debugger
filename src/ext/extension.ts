@@ -30,6 +30,7 @@ import * as debugUtils from '../lib/debug-utils';
 import * as metrics from '../lib/metrics';
 import { StatsWebview } from './stats-webview';
 import { LaunchRequestArguments } from '../lib/launch-arguments';
+import cycleAnnotationProvider from './cycle-annotation-provider';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -37,17 +38,31 @@ import { LaunchRequestArguments } from '../lib/launch-arguments';
  */
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
+let cycleCommand : vscode.Disposable;
+
 export function activate(context: vscode.ExtensionContext) {
+    // BELOW LINES MUST BE FIRST
     const disableMetrics : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('disableMetrics');
     metrics.options.disabled = disableMetrics;
+    // ABOVE LINES MUST BE FIRST
 
     vscode.workspace.onDidChangeConfiguration(e => {
         if(!e.affectsConfiguration('cc65vice')) {
             return;
         }
 
+        // BELOW LINES MUST BE FIRST
         const disableMetrics : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('disableMetrics');
         metrics.options.disabled = disableMetrics;
+        // ABOVE LINES MUST BE FIRST
+
+        const enableCycleCounters : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('enableCycleCounters');
+        if(enableCycleCounters) {
+            cycleAnnotationProvider.activate();
+        }
+        else {
+            cycleAnnotationProvider.deactivate()
+        }
     }) ;
 
     metrics.event('extension', 'activated');
@@ -122,6 +137,10 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    cycleCommand = vscode.commands.registerCommand('cc65-vice.toggleCycleCounters', () => {
+        cycleAnnotationProvider.toggle();
+    });
+
     const provider = new CC65ViceConfigurationProvider(
         () => {
             let port = context.globalState.get<number>('current-port') || 29700;
@@ -159,10 +178,13 @@ export function activate(context: vscode.ExtensionContext) {
     if ('dispose' in factory) {
         context.subscriptions.push(factory);
     }
+
+    setImmediate(() => cycleAnnotationProvider.activate());
 }
 
 export function deactivate() {
-    // nothing to do
+    cycleCommand.dispose();
+    cycleAnnotationProvider.deactivate();
 }
 
 const newSession = () : DebugSession => {

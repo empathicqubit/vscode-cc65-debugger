@@ -2,6 +2,7 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
+import readdir from 'recursive-readdir';
 import * as dbgfile from './debug-file';
 import * as debugFile from './debug-file';
 import * as runtime from '../dbg/runtime';
@@ -38,23 +39,22 @@ export function rawBufferHex(buf: Buffer) {
     return buf.toString('hex').replace(/([0-9a-f]{8})/gi, '$1 ').replace(/([0-9a-f]{2})/gi, '$1 ');
 }
 
-export async function getDebugFilePath(programName?: string, buildDir?: string) : Promise<string | undefined> {
-    if(!programName || !buildDir) {
+export async function getDebugFilePath(programName?: string, buildCwd?: string) : Promise<string | undefined> {
+    if(!programName || !buildCwd) {
         return;
     }
 
-    const progDir = path.dirname(programName);
     const progFile = path.basename(programName, path.extname(programName));
 
-    const possibles = await util.promisify(fs.readdir)(progDir);
+    const possibles : string[] = await util.promisify(readdir)(buildCwd);
     const filename : string | undefined = possibles
-        .find(x => path.extname(x) == '.dbg' && path.basename(x).startsWith(progFile));
+        .find(x => /\.dbg$/gi.test(x) && path.basename(x).startsWith(progFile));
 
     if(!filename) {
         return;
     }
 
-    return path.join(progDir, filename);
+    return filename;
 }
 
 export async function loadDebugFile(filename: string, buildDir: string) {

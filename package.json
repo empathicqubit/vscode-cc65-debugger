@@ -176,13 +176,17 @@
     "onDebug",
     "onLanguage:c",
     "onLanguage:cpp",
-    "onLanguage:ca65",
-    "onCommand:cc65-vice.stats"
+    "onLanguage:ca65"
   ],
   "contributes": {
     "configuration": {
       "title": "CC65 VICE Debugger",
       "properties": {
+        "cc65vice.enableCycleCounters": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show cycle counts next to lines and when selecting lines."
+        },
         "cc65vice.cc65Home": {
           "type": [
             "string",
@@ -216,7 +220,12 @@
         }
       }
     },
-    "commands": [],
+    "commands": [
+        {
+            "command": "cc65-vice.toggleCycleCounters",
+            "title": "CC65 VICE: Toggle cycle counters"
+        }
+    ],
     "breakpoints": [
       {
         "language": "c"
