@@ -7,7 +7,6 @@ on:
                 description: The git tag to checkout
                 required: true
                 default: 'vFIXME'
-    release:
 
 jobs:
   publish:
