@@ -10,6 +10,7 @@ import readdir from 'recursive-readdir';
 import * as path from 'path';
 import * as os from 'os';
 import { LaunchRequestBuildArguments } from "./launch-arguments";
+import { __basedir } from '../basedir';
 
 export const DEFAULT_BUILD_COMMAND = 'make';
 export const DEFAULT_BUILD_ARGS = ['OPTIONS=mapfile,labelfile,debugfile'];
@@ -77,7 +78,7 @@ export async function build(build: LaunchRequestBuildArguments, execHandler: deb
     let binDir : string | undefined;
     if(!cc65Home) {
         if(['linux', 'win32'].includes(process.platform) && ['arm', 'arm64', 'x32', 'x64'].includes(os.arch())) {
-            cc65Home = path.normalize(__dirname + '/../dist/cc65');
+            cc65Home = path.normalize(__basedir + '/../dist/cc65');
             binDir = cc65Home + '/bin_' + process.platform + '_' + os.arch();
         }
     }

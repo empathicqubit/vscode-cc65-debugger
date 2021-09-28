@@ -1,10 +1,10 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
-import * as compile from '../compile';
-import * as disassembly from '../disassembly';
-import * as debugUtils from '../debug-utils';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
+import * as compile from '../lib/compile';
+import * as disassembly from '../lib/disassembly';
+import * as debugUtils from '../lib/debug-utils';
+import { LaunchRequestBuildArguments } from '../lib/launch-arguments';
 
 describe('Settings', () => {
     const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;

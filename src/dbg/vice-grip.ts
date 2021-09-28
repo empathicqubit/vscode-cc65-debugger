@@ -12,8 +12,9 @@ import { Readable, Writable } from 'stream'
 import * as tmp from 'tmp'
 import * as util from 'util'
 import * as bin from './binary-dto'
-import * as debugFile from './debug-file'
-import * as debugUtils from './debug-utils'
+import * as debugFile from '../lib/debug-file'
+import * as debugUtils from '../lib/debug-utils'
+import { __basedir } from '../basedir'
 
 const waitPort = require('wait-port');
 
@@ -352,49 +353,49 @@ export class ViceGrip extends EventEmitter {
         let dirs = [""];
         if(compoundDirectory) {
             dirs = [
-                path.normalize(__dirname + "/../dist/system"),
+                path.normalize(__basedir + "/../dist/system"),
             ];
         }
         else {
             if(machineType == debugFile.MachineType.c64) {
                 dirs = [
-                    path.normalize(__dirname + "/../dist/system/C64"),
-                    path.normalize(__dirname + "/../dist/system/DRIVES"),
-                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                    path.normalize(__basedir + "/../dist/system/C64"),
+                    path.normalize(__basedir + "/../dist/system/DRIVES"),
+                    path.normalize(__basedir + "/../dist/system/PRINTER"),
                 ];
             }
             else if(machineType == debugFile.MachineType.c128) {
                 dirs = [
-                    path.normalize(__dirname + "/../dist/system/C128"),
-                    path.normalize(__dirname + "/../dist/system/DRIVES"),
-                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                    path.normalize(__basedir + "/../dist/system/C128"),
+                    path.normalize(__basedir + "/../dist/system/DRIVES"),
+                    path.normalize(__basedir + "/../dist/system/PRINTER"),
                 ];
             }
             else if(machineType == debugFile.MachineType.pet) {
                 dirs = [
-                    path.normalize(__dirname + "/../dist/system/PET"),
-                    path.normalize(__dirname + "/../dist/system/DRIVES"),
-                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                    path.normalize(__basedir + "/../dist/system/PET"),
+                    path.normalize(__basedir + "/../dist/system/DRIVES"),
+                    path.normalize(__basedir + "/../dist/system/PRINTER"),
                 ];
             }
             else if(machineType == debugFile.MachineType.vic20) {
                 dirs = [
-                    path.normalize(__dirname + "/../dist/system/VIC20"),
-                    path.normalize(__dirname + "/../dist/system/DRIVES"),
-                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                    path.normalize(__basedir + "/../dist/system/VIC20"),
+                    path.normalize(__basedir + "/../dist/system/DRIVES"),
+                    path.normalize(__basedir + "/../dist/system/PRINTER"),
                 ];
             }
             else if(machineType == debugFile.MachineType.plus4) {
                 dirs = [
-                    path.normalize(__dirname + "/../dist/system/PLUS4"),
-                    path.normalize(__dirname + "/../dist/system/DRIVES"),
-                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                    path.normalize(__basedir + "/../dist/system/PLUS4"),
+                    path.normalize(__basedir + "/../dist/system/DRIVES"),
+                    path.normalize(__basedir + "/../dist/system/PRINTER"),
                 ];
             }
             else {
                 dirs = [
-                    path.normalize(__dirname + "/../dist/system/DRIVES"),
-                    path.normalize(__dirname + "/../dist/system/PRINTER"),
+                    path.normalize(__basedir + "/../dist/system/DRIVES"),
+                    path.normalize(__basedir + "/../dist/system/PRINTER"),
                 ];
             }
         }

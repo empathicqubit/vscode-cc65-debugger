@@ -1,15 +1,16 @@
 import * as assert from 'assert';
-import * as compile from '../compile';
+import * as compile from '../lib/compile';
 import * as path from 'path';
-import * as debugUtils from '../debug-utils';
+import * as debugUtils from '../lib/debug-utils';
 import _transform from 'lodash/transform';
 import * as child_process from 'child_process';
 import * as testShared from './test-shared';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
+import { LaunchRequestBuildArguments } from '../lib/launch-arguments';
+import { __basedir } from '../basedir';
 
 describe('Compile', () => {
     const BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
-    const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/simple-project');
+    const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/simple-project');
     const PROGRAM = BUILD_CWD + '/simple-project.c64';
     const BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
     const BUILD : LaunchRequestBuildArguments = {
@@ -63,7 +64,7 @@ describe('Compile', () => {
     });
 
     test('Build works with assembly project', async () => {
-        const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/asm-project');
+        const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/asm-project');
 
         await compile.clean(BUILD_CWD, execHandler);
         await compile.build({

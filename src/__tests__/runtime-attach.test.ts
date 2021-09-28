@@ -1,8 +1,6 @@
-import * as child_process from 'child_process';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
 import * as testShared from './test-shared';
 import * as path from 'path';
-import * as debugUtils from '../debug-utils';
+import * as debugUtils from '../lib/debug-utils';
 import * as assert from 'assert';
 import _random from 'lodash/fp/random';
 import getPort from 'get-port';

@@ -1,16 +1,8 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
 describe('xpet and others', () => {
-    const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
-    const BUILD_ARGS = testShared.DEFAULT_BUILD_ARGS;
-    const BUILD : LaunchRequestBuildArguments = {
-        cwd: BUILD_CWD,
-        args: BUILD_ARGS,
-        command: BUILD_COMMAND,
-    }
     const PROGRAM = BUILD_CWD + '/simple-project.pet';
     const MAP_FILE = PROGRAM + '.map';
     const DEBUG_FILE = PROGRAM + '.dbg';

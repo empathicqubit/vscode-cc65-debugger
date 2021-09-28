@@ -35,7 +35,7 @@
   },
   "scripts": {
     "distclean": "npm-run-all clean && shx rm -rf node_modules .pnpm_store 3rdparty/cc65 3rdparty/c64tff",
-    "clean": "shx rm -r dist out obj || echo Done && cd 3rdparty/cc65 && make clean",
+    "clean": "shx rm -r dist out obj || echo Done && make -C 3rdparty/cc65 clean && make -C src/__tests__/simple-project clean && make -C src/__tests__/asm-project clean",
     "chargen": "split-file -s ./system/C64/chargen 2",
     "pip": "pip3 install --user fonttools || pip install --user fonttools",
     "c64ttf": "npm-run-all pip && cd ./system/C64 && python3 ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf || python ../../3rdparty/c64ttf/c64ttf.py -u chargen.sf-part1 -l chargen.sf-part2 -a -o ../../dist/c64.ttf",
@@ -61,7 +61,7 @@
     "compiler:quick": "node ./compiler.js --quick",
     "fontgen:force": "npm-run-all chargen c64ttf",
     "fontgen": "shx test -e ./dist/c64.ttf || npm-run-all fontgen:force",
-    "styles": "shx cp -u src/styles.css dist/styles.css",
+    "styles": "shx cp -u src/ext/styles.css dist/styles.css",
     "kernal": "shx test -e dist/system || shx mkdir -p dist/system && shx cp -ru system/. dist/system",
     "mintty:arch": "node ./mintty-arch.js",
     "mintty:win32_x32": "npm-run-all \"mintty:arch -- win32_x32 PortableGit-2.33.0.2-32-bit.7z.exe\"",

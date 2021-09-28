@@ -1,8 +1,8 @@
 import * as testShared from './test-shared';
-import * as compile from '../compile';
-import * as debugUtils from '../debug-utils';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
-import * as metrics from '../metrics';
+import * as compile from '../lib/compile';
+import * as debugUtils from '../lib/debug-utils';
+import { LaunchRequestBuildArguments } from '../lib/launch-arguments';
+import * as metrics from '../lib/metrics';
 
 metrics.options.disabled = true;
 

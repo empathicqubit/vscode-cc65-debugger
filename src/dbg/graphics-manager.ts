@@ -6,8 +6,9 @@ import * as path from 'path';
 import * as pngjs from 'pngjs';
 import * as util from 'util';
 import * as bin from './binary-dto';
-import * as debugFile from './debug-file';
+import * as debugFile from '../lib/debug-file';
 import { ViceGrip } from './vice-grip';
+import { __basedir } from '../basedir';
 
 export class GraphicsManager {
     private _currentPng: any;
@@ -35,7 +36,7 @@ export class GraphicsManager {
                 type: bin.CommandType.resourceGet,
                 resourceName: 'VICIIPaletteFile',
             });
-            const paletteFile = await util.promisify(fs.readFile)(path.normalize(path.join(__dirname, "../dist/system/C64", paletteFileName.stringValue + '.vpl')), 'utf8');
+            const paletteFile = await util.promisify(fs.readFile)(path.normalize(path.join(__basedir, "../dist/system/C64", paletteFileName.stringValue + '.vpl')), 'utf8');
             const paletteLines = paletteFile.split(/[\r\n]+\s*/gim);
             const paletteActiveLines = paletteLines.filter(x => !/^#/.test(x));
             const paletteLinePattern = /^\s*([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s*$/i;

@@ -1,6 +1,6 @@
 import * as child_process from 'child_process';
 import * as colors from 'colors/safe';
-import * as compile from './compile';
+import * as compile from '../lib/compile';
 import _debounce from 'lodash/fp/debounce';
 import { basename } from 'path';
 import {
@@ -8,12 +8,13 @@ import {
     LoggingDebugSession, OutputEvent, Scope, Source, StackFrame, StoppedEvent, TerminatedEvent, Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import * as debugUtils from './debug-utils';
-import { keyMappings } from './key-mappings';
-import { LaunchRequestArguments, LaunchRequestBuildArguments } from './launch-arguments';
-import * as metrics from './metrics';
+import * as debugUtils from '../lib/debug-utils';
+import { keyMappings } from '../lib/key-mappings';
+import { LaunchRequestArguments, LaunchRequestBuildArguments } from '../lib/launch-arguments';
+import * as metrics from '../lib/metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
 import * as path from 'path';
+import { __basedir } from '../basedir';
 const { Subject } = require('await-notify');
 
 enum VariablesReferenceFlag {
@@ -53,7 +54,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     private _execHandler : debugUtils.ExecHandler = ((file, args, opts) => {
         const promise = new Promise<[number, number]>((res, rej) => {
             if(!path.isAbsolute(file) && path.dirname(file) != '.') {
-                file = path.join(__dirname, file);
+                file = path.join(__basedir, file);
             }
 
             file = path.normalize(file);
@@ -66,7 +67,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
             this.runInTerminalRequest({
                 args: [file, ...args],
-                cwd: opts.cwd || __dirname,
+                cwd: opts.cwd || __basedir,
                 env: Object.assign({}, <any>opts.env || {}, { ELECTRON_RUN_AS_NODE: "1" }),
                 title: opts.title || undefined,
                 kind: (this._consoleType || 'integratedConsole').includes('external') ? 'external': 'integrated'

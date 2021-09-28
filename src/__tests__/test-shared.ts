@@ -1,13 +1,14 @@
 import _transform from 'lodash/transform';
 import _random from 'lodash/fp/random';
 import _last from 'lodash/fp/last';
-import * as debugUtils from '../debug-utils';
+import * as debugUtils from '../lib/debug-utils';
 import * as child_process from 'child_process';
-import * as compile from '../compile';
+import * as compile from '../lib/compile';
 import * as path from 'path';
-import { Runtime } from '../runtime';
-import * as metrics from '../metrics';
+import { Runtime } from '../dbg/runtime';
+import * as metrics from '../lib/metrics';
 import getPort from 'get-port';
+import { __basedir } from '../basedir';
 
 console.log('PROCESS', process.pid);
 
@@ -103,7 +104,7 @@ export const DEFAULT_VICE_ARGS : string[] = [
 ];
 
 export const DEFAULT_BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
-export const DEFAULT_BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/simple-project');
+export const DEFAULT_BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/simple-project');
 export const DEFAULT_BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
 export const DEFAULT_PROGRAM = DEFAULT_BUILD_CWD + '/simple-project.c64'
 export const DEFAULT_MAP_FILE = DEFAULT_PROGRAM + '.map';

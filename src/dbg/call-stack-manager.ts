@@ -3,9 +3,9 @@ import _findLastIndex from 'lodash/fp/findLastIndex';
 import _remove from 'lodash/fp/remove';
 import _uniqBy from 'lodash/fp/uniqBy';
 import * as bin from './binary-dto';
-import * as debugFile from './debug-file';
-import * as disassembly from './disassembly';
-import * as mapFile from './map-file';
+import * as debugFile from '../lib/debug-file';
+import * as disassembly from '../lib/disassembly';
+import * as mapFile from '../lib/map-file';
 import { ViceGrip } from './vice-grip';
 
 export class CallStackManager {

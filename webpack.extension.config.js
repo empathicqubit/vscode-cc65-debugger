@@ -14,8 +14,8 @@ const config = {
     __dirname: false,
   },
   entry: {
-    extension: './src/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
-    'debug-adapter': './src/debug-adapter.ts',
+    extension: './src/ext/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+    'debug-adapter': './src/dbg/debug-adapter.ts',
   },
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/

@@ -1,17 +1,10 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
-import * as debugUtils from '../debug-utils';
+import * as debugUtils from '../lib/debug-utils';
+import { __basedir } from '../basedir';
 describe('Assembly', () => {
-    const BUILD_CWD = path.normalize(__dirname + '/../../src/__tests__/asm-project');
-    const BUILD_ARGS = testShared.DEFAULT_BUILD_ARGS;
-    const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
-    const BUILD : LaunchRequestBuildArguments = {
-        cwd: BUILD_CWD,
-        args: BUILD_ARGS,
-        command: BUILD_COMMAND,
-    }
+    const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/asm-project');
     const MAP_FILE = BUILD_CWD + '/asm-project.c64.map';
     const DEBUG_FILE = BUILD_CWD + '/asm-project.c64.dbg';
     const LABEL_FILE = BUILD_CWD + '/asm-project.c64.lbl';

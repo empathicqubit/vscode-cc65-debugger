@@ -24,13 +24,12 @@ import * as Net from 'net';
 import * as vscode from 'vscode';
 import { CancellationToken, DebugConfiguration, ProviderResult, WorkspaceFolder } from 'vscode';
 import { DebugSession } from 'vscode-debugadapter';
-import * as compile from './compile';
-import { CC65ViceDebugSession } from './debug-session';
-import * as debugUtils from './debug-utils';
-import getPort from 'get-port';
-import * as metrics from './metrics';
+import * as compile from '../lib/compile';
+import { CC65ViceDebugSession } from '../dbg/debug-session';
+import * as debugUtils from '../lib/debug-utils';
+import * as metrics from '../lib/metrics';
 import { StatsWebview } from './stats-webview';
-import { LaunchRequestArguments } from './launch-arguments';
+import { LaunchRequestArguments } from '../lib/launch-arguments';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.

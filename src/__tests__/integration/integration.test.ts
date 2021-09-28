@@ -1,10 +1,11 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as compile from '../../compile';
+import { __basedir } from '../../basedir';
+import * as compile from '../../lib/compile';
 describe('Integration', () => {
     test('Verify that the session finishes successfully without intervention', async () => {
-        const root = vscode.Uri.file(path.normalize(__dirname + '/../../../src/tests/simple-project'));
+        const root = vscode.Uri.file(path.normalize(__basedir + '/../src/__tests__/simple-project'));
         await vscode.commands.executeCommand('vscode.openFolder', root);
         const ws = vscode.workspace.getWorkspaceFolder(root);
         await vscode.debug.startDebugging(ws, {

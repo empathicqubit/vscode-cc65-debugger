@@ -1,8 +1,8 @@
-import * as tableFile from '../table-file';
+import * as tableFile from '../lib/table-file';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as assert from 'assert';
-import * as typeQuery from '../type-query';
+import * as typeQuery from '../lib/type-query';
 
 describe('Type query mechanics', () => {
     describe('Table File', () => {

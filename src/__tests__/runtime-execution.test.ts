@@ -1,19 +1,10 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
-import * as compile from '../compile';
-import { LaunchRequestBuildArguments } from '../launch-arguments';
-import * as debugUtils from '../debug-utils';
+import * as debugUtils from '../lib/debug-utils';
 import _random from 'lodash/fp/random';
 describe('Execution control', () => {
-    const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
-    const BUILD_ARGS = testShared.DEFAULT_BUILD_ARGS;
-    const BUILD : LaunchRequestBuildArguments = {
-        cwd: BUILD_CWD,
-        args: BUILD_ARGS,
-        command: BUILD_COMMAND,
-    }
     const PROGRAM = testShared.DEFAULT_PROGRAM;
     const MAP_FILE = testShared.DEFAULT_MAP_FILE;
     const DEBUG_FILE = testShared.DEFAULT_DEBUG_FILE;

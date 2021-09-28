@@ -25,7 +25,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "sourceMaps": true,
-            "program": "${workspaceFolder}/src/debug-adapter.ts",
+            "program": "${workspaceFolder}/src/dbg/debug-adapter.ts",
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],

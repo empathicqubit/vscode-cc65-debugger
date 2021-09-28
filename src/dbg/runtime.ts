@@ -14,15 +14,16 @@ import * as util from 'util';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as bin from './binary-dto';
 import { CallStackManager } from './call-stack-manager';
-import * as debugFile from './debug-file';
-import * as debugUtils from './debug-utils';
-import * as disassembly from './disassembly';
+import * as debugFile from '../lib/debug-file';
+import * as debugUtils from '../lib/debug-utils';
+import * as disassembly from '../lib/disassembly';
 import { GraphicsManager } from './graphics-manager';
-import * as mapFile from './map-file';
-import * as metrics from './metrics';
+import * as mapFile from '../lib/map-file';
+import * as metrics from '../lib/metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
 import * as child_process from 'child_process';
+import { __basedir } from '../basedir';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -412,10 +413,10 @@ export class Runtime extends EventEmitter {
 
         if(this._vice.textPort) {
             let command = process.execPath;
-            let args = [__dirname + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`];
+            let args = [__basedir + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`];
             if(process.platform == 'win32') {
                 args.unshift(command);
-                command = __dirname + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
+                command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
             }
 
             command = path.normalize(command);

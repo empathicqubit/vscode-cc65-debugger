@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as util from 'util';
 import * as dbgfile from './debug-file';
 import * as debugFile from './debug-file';
-import * as runtime from './runtime';
+import * as runtime from '../dbg/runtime';
 
 export interface ExtensionMessage {
     level: ExtensionMessageLevel,
