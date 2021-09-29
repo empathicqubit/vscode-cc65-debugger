@@ -9,6 +9,16 @@ struct hello {
     struct l l;
 };
 
+struct sub {
+    unsigned char x;
+    unsigned char y;
+};
+
+union xy {
+    struct sub xy;
+    unsigned int mem;
+};
+
 typedef struct hello thingy;
 
 unsigned char globby;
@@ -21,6 +31,9 @@ unsigned char test_local_vars_main(void) {
     signed char whoa;
     struct hello wow;
     thingy *cool;
+    union xy xy;
+    xy.xy.x = 0x01;
+    xy.xy.y = 0x02;
     cool = &wow;
     random = 0x03fc;
     *random = 0x3003;
