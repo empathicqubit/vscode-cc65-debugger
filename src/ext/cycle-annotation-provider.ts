@@ -54,9 +54,6 @@ class CycleAnnotationProvider {
                 return;
             }
 
-            const lineStart = textEditor.selection.start.line;
-            const lineEnd = textEditor.selection.end.line;
-
             const file = this._dbgFile.files
                 .find(x => x.name == textEditor.document.uri.fsPath.toString())
             if(!file) {
@@ -82,8 +79,15 @@ class CycleAnnotationProvider {
                     return false;
                 });
 
-                if(lineStart && lineEnd && lineStart != lineEnd && lineStart <= line.num && line.num <= lineEnd) {
-                    total += count;
+                if(textEditor.selections.length > 1 || !textEditor.selection.isSingleLine) {
+                    for(const selection of textEditor.selections) {
+                        if(
+                            textDocument.lineAt(line.num).range.intersection(selection)
+                            || textDocument.lineAt(line.num).range.intersection(selection)
+                            ) {
+                            total += count;
+                        }
+                    }
                 }
 
                 try {
@@ -105,13 +109,14 @@ class CycleAnnotationProvider {
             }
 
             textEditor.setDecorations(this._individualCycleDecoration, opts);
-            if(lineStart && lineEnd && total) {
+            if(total) {
+                const union = textEditor.selections.reduce((last : {union(input: vscode.Range)}, cur) => last.union(cur));
                 const opt : vscode.DecorationOptions = {
                     range: new vscode.Range(
-                        textDocument.lineAt(lineStart).range.start,
-                        textDocument.lineAt(textEditor.selection.end.line).range.end
+                        textDocument.lineAt(union.start.line).range.start,
+                        textDocument.lineAt(union.end.line).range.end
                     ),
-                    hoverMessage: `✅ Selection cycles: ${total}`,
+                    hoverMessage: `✅ Selection (ALT+🖱️) cycles: ${total}`,
                     renderOptions: {
                         after: {
                             contentText: `✅ ${total}`,
@@ -143,7 +148,7 @@ class CycleAnnotationProvider {
         const startLine = selectionEvent.selections[0].start.line;
         const endLine = selectionEvent.selections[0].end.line;
 
-        if(startLine == endLine) {
+        if(!(selectionEvent.selections.length > 1 || startLine != endLine)) {
             return;
         }
 
