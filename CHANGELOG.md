@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.3.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.2.0...v4.3.0) (2021-09-29)
+
+
+### Features
+
+* Allow multi-selecting lines ([d181889](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/d1818899c9faf0672c21d456a1703b000624478d))
+
+
+### Bug Fixes
+
+* Honor cycle configuration at startup ([ddb5606](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/ddb560608175a6ee9a0f2e654624edf3e76f57c4))
+
 ## [4.2.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.1.7...v4.2.0) (2021-09-28)
 
 
