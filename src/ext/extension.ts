@@ -40,29 +40,32 @@ const runMode: 'external' | 'server' | 'inline' = 'external';
 
 let cycleCommand : vscode.Disposable;
 
-export function activate(context: vscode.ExtensionContext) {
-    // BELOW LINES MUST BE FIRST
+const updateConfiguration = () => {
+    // THIS MUST BE FIRST
     const disableMetrics : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('disableMetrics');
     metrics.options.disabled = disableMetrics;
-    // ABOVE LINES MUST BE FIRST
+    // THIS MUST BE FIRST
 
-    vscode.workspace.onDidChangeConfiguration(e => {
+    const enableCycleCounters : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('enableCycleCounters');
+    if(enableCycleCounters) {
+        setImmediate(() => cycleAnnotationProvider.activate());
+    }
+    else {
+        setImmediate(() => cycleAnnotationProvider.deactivate())
+    }
+}
+
+export function activate(context: vscode.ExtensionContext) {
+    // THIS MUST BE FIRST
+    updateConfiguration();
+    // THIS MUST BE FIRST
+
+    vscode.workspace.onDidChangeConfiguration(async e => {
         if(!e.affectsConfiguration('cc65vice')) {
             return;
         }
 
-        // BELOW LINES MUST BE FIRST
-        const disableMetrics : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('disableMetrics');
-        metrics.options.disabled = disableMetrics;
-        // ABOVE LINES MUST BE FIRST
-
-        const enableCycleCounters : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('enableCycleCounters');
-        if(enableCycleCounters) {
-            cycleAnnotationProvider.activate();
-        }
-        else {
-            cycleAnnotationProvider.deactivate()
-        }
+        updateConfiguration();
     }) ;
 
     metrics.event('extension', 'activated');
@@ -178,8 +181,6 @@ export function activate(context: vscode.ExtensionContext) {
     if ('dispose' in factory) {
         context.subscriptions.push(factory);
     }
-
-    setImmediate(() => cycleAnnotationProvider.activate());
 }
 
 export function deactivate() {
