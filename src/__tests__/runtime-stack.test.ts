@@ -186,13 +186,13 @@ describe('Stack', () => {
         await testShared.waitFor(rt, 'started');
         await testShared.selectCTest(rt, 'test_local_vars');
 
-        await rt.setBreakPoint(LOCALVARS_C, 36);
+        await rt.setBreakPoint(LOCALVARS_C, 49);
 
         await Promise.all([
             rt.continue(),
             testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
                 assert.strictEqual(file, LOCALVARS_C);
-                assert.strictEqual(line, 36);
+                assert.strictEqual(line, 49);
             }),
         ]);
 
@@ -204,11 +204,14 @@ describe('Stack', () => {
         const wow = locals.find(x => x.name == 'wow')!;
         const wowVal = await rt.getTypeFields(wow.addr, wow.type);
 
+        const xy = locals.find(x => x.name == 'xy')!;
+        const xyVal = await rt.getTypeFields(xy.addr, xy.type);
+
         await rt.continue();
         await testShared.waitFor(rt, 'end');
 
         console.log(locals);
-        assert.deepStrictEqual(locals.map(x => x.name).sort(), ['cool', 'i', 'j', 'lol', 'random', 'whoa', 'wow']);
+        assert.deepStrictEqual(locals.map(x => x.name).sort(), ['cool', 'i', 'j', 'lol', 'random', 'whoa', 'wow', 'xy']);
 
         console.log(randomVal);
         assert.strictEqual(random.value, "0x03fc");
@@ -218,6 +221,14 @@ describe('Stack', () => {
         console.log(wowVal);
         assert.strictEqual(wowVal.find(x => x.name == 'j')!.value, "0x03");
         assert.strictEqual(wowVal.find(x => x.name == 'k')!.value, "0x04");
+
+        console.log(xyVal);
+        assert.deepStrictEqual(xyVal[0].type, 'struct sub');
+        assert.deepStrictEqual(xyVal[0].name, 'xy');
+
+        assert.deepStrictEqual(xyVal[1].type, '')
+        assert.deepStrictEqual(xyVal[1].name, 'mem');
+        assert.deepStrictEqual(xyVal[1].value, '0x0201');
 
         assert.deepStrictEqual(locals.find(x => x.name == 'whoa')!.value, "-0x01");
     });
