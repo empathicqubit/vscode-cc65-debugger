@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.3.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.3.0...v4.3.1) (2021-09-29)
+
+
+### Bug Fixes
+
+* Handle union types correctly ([edbed02](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/edbed020585dddf7c26e7ba4d9a2032eaaf7ce45))
+
 ## [4.3.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.2.0...v4.3.0) (2021-09-29)
 
 
