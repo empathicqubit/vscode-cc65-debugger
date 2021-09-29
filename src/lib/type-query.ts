@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import _last from 'lodash/fp/last';
 import _sum from 'lodash/fp/sum';
+import _max from 'lodash/fp/max';
 import readdir from 'recursive-readdir';
 import * as util from 'util';
 import * as debugUtils from './debug-utils';
@@ -153,6 +154,10 @@ export function getLocalTypes(dbgFile: dbgfile.Dbgfile, tabFiles: tableFile.Tabl
             else if(scope.tableType == tableFile.TableType.tag && scope.type == tableFile.LexicalType.SC_STRUCT) {
                 structs['struct ' + scope.name || ''] = vars;
             }
+            // Union
+            else if(scope.tableType == tableFile.TableType.tag && scope.type == tableFile.LexicalType.SC_UNION) {
+                structs['union ' + scope.name || ''] = vars;
+            }
         }
     }
 
@@ -190,7 +195,7 @@ export function renderValue(type: TypeInfo, buf: Buffer) : string {
         const num = val.replace(/^-/g, '').padStart(4, '0');
         return val.startsWith('-') ? '-' : '' + "0x" + num;
     }
-    else if(type.isStruct) {
+    else if(type.isStruct || type.isUnion) {
         return type.name;
     }
     else {
@@ -221,7 +226,12 @@ export function recurseFieldSize(fields: FieldTypeInfo[], allTypes: {[typename:s
                 break; // We can't determine the rest of the fields if one is missing
             }
 
-            dataSizes.push(_sum(recurseFieldSize(type, allTypes)));
+            if(!realType.isUnion) {
+                dataSizes.push(_sum(recurseFieldSize(type, allTypes)));
+            }
+            else {
+                dataSizes.push(_max(recurseFieldSize(type, allTypes)) || 0);
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 import _sum from 'lodash/fp/sum'
+import _max from 'lodash/fp/max'
 import * as debugFile from '../lib/debug-file'
 import * as debugUtils from '../lib/debug-utils'
 import * as typeQuery from '../lib/type-query'
@@ -98,7 +99,7 @@ export class VariableManager {
                     const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
                     val = typeQuery.renderValue(field.type, mem);
                 }
-                else if(field.type.isStruct) {
+                else if(field.type.isStruct || field.type.isUnion) {
                     val = typeQuery.renderValue(field.type, Buffer.alloc(0))
                 }
                 else {
@@ -188,7 +189,13 @@ export class VariableManager {
 
         const fieldSizes = typeQuery.recurseFieldSize(fields, this._localTypes);
 
-        const totalSize = _sum(fieldSizes);
+        let totalSize : number;
+        if(!type.isUnion) {
+            totalSize = _sum(fieldSizes);
+        }
+        else {
+            totalSize = _max(fieldSizes) || 0;
+        }
 
         const mem = await this._vice.getMemory(addr, totalSize);
 
@@ -212,7 +219,9 @@ export class VariableManager {
                 addr: addr + currentPosition,
             });
 
-            currentPosition += fieldSize;
+            if(!type.isUnion) {
+                currentPosition += fieldSize;
+            }
         }
 
         return vars;

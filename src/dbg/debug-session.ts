@@ -556,6 +556,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         };
     }
 
+    private _addAddressType(addr: number, type: string) {
+        this._addressTypes[addr.toString(16)] = type || this._addressTypes[addr.toString(16)] || '';
+    }
+
     protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
         const variables: DebugProtocol.Variable[] = [];
 
@@ -575,7 +579,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             else if (ref & VariablesReferenceFlag.LOCAL) {
                 const vars = await this._runtime.getScopeVariables();
                 for(const v of vars) {
-                    this._addressTypes[v.addr.toString(16)] = v.type || '';
+                    this._addAddressType(v.addr, v.type)
 
                     variables.push({
                         name: v.name,
@@ -589,7 +593,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             else if(ref & VariablesReferenceFlag.GLOBAL) {
                 const vars = await this._runtime.getGlobalVariables();
                 for(const v of vars) {
-                    this._addressTypes[v.addr.toString(16)] = v.type || '';
+                    this._addAddressType(v.addr, v.type)
 
                     variables.push({
                         name: v.name,
@@ -629,7 +633,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 else if(ref & VariablesReferenceFlag.FOLLOW_TYPE) {
                     const fields = await this._runtime.getTypeFields(ref & VariablesReferenceFlag.ADDR_MASK, this._addressTypes[(ref & VariablesReferenceFlag.ADDR_MASK).toString(16)]);
                     for(const field of fields) {
-                        this._addressTypes[field.addr.toString(16)] = field.type || '';
+                        this._addAddressType(field.addr, field.type)
                         variables.push({
                             type: field.type,
                             name: field.name,

@@ -3,6 +3,7 @@ export enum LexicalType {
     SC_FUNC,
     SC_STRUCT,
     SC_GLOBAL,
+    SC_UNION
 }
 
 export enum TableType {
@@ -50,7 +51,7 @@ export function parse(path: string, text: string) : TableFile {
         scopes: [],
     };
 
-    const rex =  /((SC_FUNC|SC_STRUCT)\s*:\s*(\S+)\b[^\n\r]*|Global\s+(\w+)\s+table)\s+\=+\s+([\S\s]*?)[\n\r]{2,}/gim
+    const rex =  /((SC_FUNC|SC_STRUCT|SC_UNION)\s*:\s*(\S+)\b[^\n\r]*|Global\s+(\w+)\s+table)\s+\=+\s+([\S\s]*?)[\n\r]{2,}/gim
     let match;
     let tableCount = 0;
     while(match = rex.exec(text)) {
@@ -61,6 +62,9 @@ export function parse(path: string, text: string) : TableFile {
             tableType = TableType.symbol;
         }
         else if(type == LexicalType.SC_STRUCT) {
+            tableType = TableType.tag;
+        }
+        else if(type == LexicalType.SC_UNION) {
             tableType = TableType.tag;
         }
         else {
