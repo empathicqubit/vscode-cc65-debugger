@@ -787,42 +787,28 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     }
 
     protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): Promise<void> {
-        let vars = _flatten(await Promise.all([
-            this._runtime.getScopeVariables(),
-            this._runtime.getGlobalVariables(),
-            this._runtime.getStaticVariables(),
-        ]));
-
-        const parts = args.expression.replace(/^\W+/gi, '').split(/\s*(\.|->)\s*/gi);
-        let v : VariableData | undefined;
-        for(const part of parts) {
-            if(['.', '->'].includes(part)) {
-                continue;
+        try {
+            const lastVal = await this._runtime.evaluate(args.expression);
+            if(!lastVal) {
+                response.body = {
+                    result: 'Not found',
+                    variablesReference: 0,
+                };
+                this.sendResponse(response);
+                return;
             }
 
-            v = vars.find(x => x.name == part);
-            if(!v) {
-                break;
-            }
-
-            vars = await this._runtime.getTypeFields(v.addr, v.type);
-        }
-
-        if(!v) {
+            this._addAddressType(lastVal.addr, lastVal.type);
             response.body = {
-                result: 'Not found',
-                variablesReference: 0,
+                type: lastVal.type,
+                result: lastVal.value,
+                variablesReference: lastVal.addr | (lastVal.type ? VariablesReferenceFlag.HAS_TYPE : 0),
             };
-            this.sendResponse(response);
-            return;
         }
-
-        this._addAddressType(v.addr, v.type);
-        response.body = {
-            type: v.type,
-            result: v.value,
-            variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
-        };
+        catch(e) {
+            response.success = false;
+            response.message = e.toString();
+        }
         this.sendResponse(response);
     }
 

@@ -2,8 +2,8 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as hotel from 'hasbin';
 import _first from 'lodash/fp/first';
-import _flatten from 'lodash/fp/flatten';
 import _flow from 'lodash/fp/flow';
+import _flatten from 'lodash/fp/flatten';
 import _last from 'lodash/fp/last';
 import _map from 'lodash/fp/map';
 import _uniq from 'lodash/fp/uniq';
@@ -1007,6 +1007,11 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     // Variables
+
+    public async evaluate(exp: string) : Promise<VariableData | undefined> {
+        const currentScope = this._getCurrentScope();
+        return this._variableManager.evaluate(exp, currentScope);
+    }
 
     public async getStaticVariables() : Promise<VariableData[]> {
         const currentScope = this._getCurrentScope();
