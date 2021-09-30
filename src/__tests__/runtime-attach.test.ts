@@ -16,6 +16,11 @@ describe('Attach', () => {
 
     afterEach(testShared.cleanup);
 
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
+
+
     let binaryPort = -1;
     beforeEach(async () => {
         binaryPort = _random(0x8700, 0x8700 + 256);

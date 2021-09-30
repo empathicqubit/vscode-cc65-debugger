@@ -1,8 +1,6 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
-import * as compile from '../lib/compile';
-import * as disassembly from '../lib/disassembly';
 import * as debugUtils from '../lib/debug-utils';
 import { LaunchRequestBuildArguments } from '../lib/launch-arguments';
 
@@ -24,6 +22,11 @@ describe('Settings', () => {
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     afterEach(testShared.cleanup);
+
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
+
 
     const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 

@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
+import * as debugUtils from '../lib/debug-utils';
 describe('xpet and others', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const PROGRAM = BUILD_CWD + '/simple-project.pet';
@@ -12,6 +13,11 @@ describe('xpet and others', () => {
     const VICE_ARGS = testShared.DEFAULT_COMMON_VICE_ARGS;
 
     afterEach(testShared.cleanup);
+
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
+
 
     test('xpet works correctly', async () => {
         const rt = await testShared.newRuntime();

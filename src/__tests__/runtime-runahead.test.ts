@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as disassembly from '../lib/disassembly';
+import * as debugUtils from '../lib/debug-utils';
 
 describe('Runahead', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
@@ -14,6 +15,11 @@ describe('Runahead', () => {
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     afterEach(testShared.cleanup);
+
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
+
 
     const RUNAHEAD_C = path.join(BUILD_CWD, "src/test_runahead.c");
     test('Restores the original location', async() => {

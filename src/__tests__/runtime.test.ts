@@ -23,6 +23,11 @@ describe('Runtime', () => {
 
     afterEach(testShared.cleanup);
 
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
+
+
     test('Can modify memory correctly', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
