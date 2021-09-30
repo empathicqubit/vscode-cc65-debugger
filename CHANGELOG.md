@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.3.1...v4.4.0) (2021-09-30)
+
+
+### Features
+
+* Add variable section for statics. ([f75f4bc](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f75f4bc42809a4ffef91cb3bd3f77284ed5225fa))
+
 ### [4.3.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.3.0...v4.3.1) (2021-09-29)
 
 
