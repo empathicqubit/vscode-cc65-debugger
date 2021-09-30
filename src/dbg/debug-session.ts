@@ -2,6 +2,7 @@ import * as child_process from 'child_process';
 import * as colors from 'colors/safe';
 import * as compile from '../lib/compile';
 import _debounce from 'lodash/fp/debounce';
+import _flatten from 'lodash/fp/flatten';
 import { basename } from 'path';
 import {
     Breakpoint, BreakpointEvent, ContinuedEvent, Event, InitializedEvent, Logger, logger,
@@ -15,6 +16,7 @@ import * as metrics from '../lib/metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
 import * as path from 'path';
 import { __basedir } from '../basedir';
+import { VariableData } from './variable-manager';
 const { Subject } = require('await-notify');
 
 enum VariablesReferenceFlag {
@@ -272,7 +274,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         response.body.supportsConfigurationDoneRequest = true;
 
         // make VS Code to use 'evaluate' when hovering over source
-        response.body.supportsEvaluateForHovers = false;
+        response.body.supportsEvaluateForHovers = true;
 
         response.body.supportsStepBack = false;
 
@@ -785,27 +787,41 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     }
 
     protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): Promise<void> {
+        let vars = _flatten(await Promise.all([
+            this._runtime.getScopeVariables(),
+            this._runtime.getGlobalVariables(),
+            this._runtime.getStaticVariables(),
+        ]));
 
-        let reply: string | undefined = undefined;
-        if (args.context == "hover") {
-            const vars = [...await this._runtime.getScopeVariables(), ...await this._runtime.getGlobalVariables()];
-            const v = vars.find(x => x.name == args.expression);
-            if(v) {
-                reply = v.value;
+        const parts = args.expression.replace(/^\W+/gi, '').split(/\s*(\.|->)\s*/gi);
+        let v : VariableData | undefined;
+        for(const part of parts) {
+            if(['.', '->'].includes(part)) {
+                continue;
             }
+
+            v = vars.find(x => x.name == part);
+            if(!v) {
+                break;
+            }
+
+            vars = await this._runtime.getTypeFields(v.addr, v.type);
         }
 
-        if (args.context === 'repl') {
-            reply = `Please use the monitor from the terminal tab. It can do colors and stuff.`;
+        if(!v) {
+            response.body = {
+                result: 'Not found',
+                variablesReference: 0,
+            };
+            this.sendResponse(response);
+            return;
         }
 
-        reply = reply || "No command entered."
-
-        reply = reply.replace(/(\s+LDA\s+)/g, colors.green("$1"));
-
+        this._addAddressType(v.addr, v.type);
         response.body = {
-            result: reply,
-            variablesReference: 0
+            type: v.type,
+            result: v.value,
+            variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
         };
         this.sendResponse(response);
     }
