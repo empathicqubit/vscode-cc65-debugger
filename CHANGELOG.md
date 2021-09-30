@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.4.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.4.0...v4.4.1) (2021-09-30)
+
+
+### Bug Fixes
+
+* Use common value rendering code for array values. ([34b6581](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/34b6581e56c6186908053af4d1148f44c55b34e5))
+
 ## [4.4.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.3.1...v4.4.0) (2021-09-30)
 
 
