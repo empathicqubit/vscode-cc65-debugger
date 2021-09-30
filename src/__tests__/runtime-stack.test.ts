@@ -13,6 +13,8 @@ describe('Stack', () => {
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
+    const LOCALVARS_C = path.join(BUILD_CWD, "src/test_local_vars.c");
+
     afterEach(testShared.cleanup);
 
     beforeEach(async () => {
@@ -21,6 +23,55 @@ describe('Stack', () => {
 
     const MAIN_C = path.join(BUILD_CWD, "src/main.c");
     const STACKFRAMES_C = path.join(BUILD_CWD, "src/test_stack_frames.c");
+
+    describe('Variable expressions evaluate correctly', () => {
+        const data : Array<[string, {}]> = [
+            ['25 * 25', 625],
+            ['25 * weehah', 2225],
+            ['2 * j', 9838],
+        ];
+        test.each(data)('%s', async (expression, expected) => {
+            const rt = await testShared.newRuntime();
+
+            await rt.start(
+                await testShared.portGetter(),
+                PROGRAM,
+                BUILD_CWD,
+                true,
+                false,
+                false,
+                VICE_DIRECTORY,
+                VICE_ARGS,
+                false,
+                DEBUG_FILE,
+                MAP_FILE,
+                LABEL_FILE
+            );
+
+            await testShared.waitFor(rt, 'started');
+            await testShared.selectCTest(rt, 'test_local_vars');
+
+            await rt.setBreakPoint(LOCALVARS_C, 51);
+
+            await Promise.all([
+                rt.continue(),
+                testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
+                    assert.strictEqual(file, LOCALVARS_C);
+                    assert.strictEqual(line, 51);
+                }),
+            ]);
+
+            await testShared.waitFor(rt, 'stopOnBreakpoint');
+
+            const actual = await rt.evaluate(expression);
+
+            assert.equal(actual!.value, expected);
+
+            await rt.continue();
+            await testShared.waitFor(rt, 'end');
+        });
+    })
+
     test('Contains the frames plus the current position', async () => {
         const rt = await testShared.newRuntime();
         await rt.start(
@@ -171,7 +222,6 @@ describe('Stack', () => {
 
     test('Contains the correct local variables', async() => {
         const rt = await testShared.newRuntime();
-        const LOCALVARS_C = path.join(BUILD_CWD, "src/test_local_vars.c");
 
         await rt.start(
             await testShared.portGetter(),
