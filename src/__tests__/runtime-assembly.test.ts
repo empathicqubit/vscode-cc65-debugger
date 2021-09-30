@@ -15,6 +15,13 @@ describe('Assembly', () => {
 
     const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
+    afterEach(testShared.cleanup);
+
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
+
+
     test('Starts and terminates successfully without intervention', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(

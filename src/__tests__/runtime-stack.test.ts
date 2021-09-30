@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
+import * as debugUtils from '../lib/debug-utils';
 
 describe('Stack', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
@@ -13,6 +14,10 @@ describe('Stack', () => {
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     afterEach(testShared.cleanup);
+
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
 
     const MAIN_C = path.join(BUILD_CWD, "src/main.c");
     const STACKFRAMES_C = path.join(BUILD_CWD, "src/test_stack_frames.c");

@@ -15,6 +15,11 @@ describe('Execution control', () => {
 
     afterEach(testShared.cleanup);
 
+    beforeEach(async () => {
+        await debugUtils.delay(Math.random() * 1000);
+    });
+
+
     test('Pauses correctly', async () => {
         const rt = await testShared.newRuntime();
         await rt.start(
