@@ -28,7 +28,6 @@ If you're having trouble understanding how this extension is supposed to be used
   * [Changes needed to your Makefile](#changes-needed-to-your-makefile)
   * [Changes needed to your code](#changes-needed-to-your-code)
   * [What works](#what-works)
-  * [What's weird](#what-s-weird)
   * [Building](#building)
   * [Additional Credits (see also LICENSE.md)](#additional-credits--see-also-licensemd-)
 
@@ -209,6 +208,7 @@ You may also want to look at the [full Assembly project template](src/__tests__/
 - Array types
 - Viewing structs
 - Local variables
+- Static local variables
 - Global variables
 - Registers
 - Variable and memory drilldown. With any variable, even ones that were
