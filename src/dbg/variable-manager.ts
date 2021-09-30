@@ -170,10 +170,11 @@ export class VariableManager {
                 type: itemType,
             }], this._localTypes)[0];
             for(let i = 0; i < type.array.length; i++) {
+                const buf = await this._vice.getMemory(addr, 2);
                 vars.push({
                     type: itemType.name,
                     name: i.toString(),
-                    value: itemType.name,
+                    value: typeQuery.renderValue(itemType, buf),
                     addr: addr + i * itemSize,
                 });
             }
