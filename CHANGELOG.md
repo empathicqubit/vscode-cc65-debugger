@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.4.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.4.1...v4.4.2) (2021-09-30)
+
+
+### Bug Fixes
+
+* Missing address offset for array values. ([573281f](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/573281fda81425615d35c29d02d746ca94341db1))
+
 ### [4.4.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.4.0...v4.4.1) (2021-09-30)
 
 
