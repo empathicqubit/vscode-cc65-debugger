@@ -124,6 +124,7 @@
     "hasbin": "^1.2.3",
     "lodash": "^4.17.15",
     "marked": "^3.0.2",
+    "mathjs": "^9.5.0",
     "node-watch": "^0.7.1",
     "performance-now": "^2.1.0",
     "pngjs": "^5.0.0",

@@ -146,6 +146,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const provider = new CC65ViceConfigurationProvider(
         () => {
+            console.log('GETTING PORT...');
             let port = context.globalState.get<number>('current-port') || 29700;
             port++;
             if(port > 30000) {
@@ -228,7 +229,7 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
             }
         }
 
-        if(!(c.request != 'attach' && config.port && config.port > 0)) {
+        if(c.request != 'attach' && !(config.port && config.port > 0)) {
             config.port = this._portGetter();
         }
         config.cc65Home = vscode.workspace.getConfiguration('cc65vice').get('cc65Home');

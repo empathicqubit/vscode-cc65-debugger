@@ -1,5 +1,9 @@
+import * as mathjs from 'mathjs';
+import _flatten from 'lodash/fp/flatten';
 import _sum from 'lodash/fp/sum'
+import _isNaN from 'lodash/fp/isNaN';
 import _max from 'lodash/fp/max'
+import _set from 'lodash/fp/set';
 import * as debugFile from '../lib/debug-file'
 import * as debugUtils from '../lib/debug-utils'
 import * as typeQuery from '../lib/type-query'
@@ -246,6 +250,84 @@ export class VariableManager {
         }
 
         return vars;
+    }
+
+    public async evaluate(exp: string, currentScope: debugFile.Scope | undefined) : Promise<VariableData | undefined> {
+        const matchParts = async (parts: string[], vars: VariableData[]) : Promise<VariableData | undefined> => {
+            let v : VariableData | undefined;
+            for(const part of parts) {
+                if(part == '.') {
+                    continue;
+                }
+
+                v = vars.find(x => x.name == part);
+                if(!v) {
+                    break;
+                }
+
+                vars = await this.getTypeFields(v.addr, v.type);
+            }
+
+            return v;
+        };
+
+        let vars = _flatten(await Promise.all([
+            this.getScopeVariables(currentScope),
+            this.getGlobalVariables(),
+            this.getStaticVariables(currentScope),
+        ]));
+
+        let refMatch : RegExpExecArray | null;
+        let parts : string[] = [];
+        let expression = exp.replace(/\s*->\s*/gi, '.');
+        let lastVal : VariableData | undefined;
+        const rex = /(([a-z_]\w*)|(\.))/gi;
+        let scope : any = {};
+        while(refMatch = rex.exec(expression)) {
+            if(refMatch[2] && parts.length && /^[a-z_]\w*$/gi.test(parts[parts.length - 1])) {
+                lastVal = await matchParts(parts, vars);
+                let intVal = 0;
+                if(lastVal && (intVal = parseInt(lastVal.value, 16)) === NaN) {
+                    parts = [];
+                    break;
+                }
+
+                scope = _set(parts.filter(x => x != '.'), intVal, scope);
+                parts = [];
+            }
+
+            parts.push(refMatch[0]);
+        }
+
+        if(parts.length) {
+            lastVal = await matchParts(parts, vars);
+            let intVal = 0;
+            if(lastVal && (intVal = parseInt(lastVal.value, 16)) === NaN) {
+                parts = [];
+            }
+            else {
+                scope = _set(parts.filter(x => x != '.'), intVal, scope);
+            }
+        }
+
+        const res = mathjs.evaluate(expression, scope);
+        let addr = 0;
+        let name = '';
+        let type = '';
+        let val = '';
+        if(lastVal) {
+            addr = lastVal.addr;
+            name = lastVal.name;
+            type = lastVal.type;
+            val = lastVal.value;
+        }
+
+        return {
+            addr,
+            name,
+            type,
+            value: !_isNaN(res) ? res.toString() : val,
+        }
     }
 
     public async getGlobalVariables() : Promise<VariableData[]> {
