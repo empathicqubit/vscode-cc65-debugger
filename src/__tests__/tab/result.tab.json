@@ -3,96 +3,109 @@
     "scopes": [
         {
             "type": 1,
-            "name": "_main",
             "tableType": 1,
             "syms": [
                 {
                     "name": "__fixargs__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned int"
                 },
                 {
                     "name": "__argsize__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned char"
                 },
                 {
                     "name": "wow",
+                    "assemblyName": "",
                     "flags": 14,
                     "type": "struct hello"
                 }
-            ]
+            ],
+            "name": "_main"
         },
         {
             "type": 1,
-            "name": "_steps",
             "tableType": 1,
             "syms": [
                 {
                     "name": "__fixargs__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned int"
                 },
                 {
                     "name": "__argsize__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned char"
                 },
                 {
                     "name": "i",
+                    "assemblyName": "",
                     "flags": 14,
                     "type": "unsigned char"
                 },
                 {
                     "name": "j",
+                    "assemblyName": "",
                     "flags": 14,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "_steps"
         },
         {
             "type": 1,
-            "name": "_open_a_thing",
             "tableType": 1,
             "syms": [
                 {
                     "name": "__fixargs__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned int"
                 },
                 {
                     "name": "__argsize__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned char"
                 },
                 {
                     "name": "barg",
+                    "assemblyName": "M0001",
                     "flags": 22,
                     "type": "unsigned char"
                 },
                 {
                     "name": "i",
+                    "assemblyName": "",
                     "flags": 14,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "_open_a_thing"
         },
         {
             "type": 1,
-            "name": "_pause_test",
             "tableType": 1,
             "syms": [
                 {
                     "name": "__fixargs__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned int"
                 },
                 {
                     "name": "__argsize__",
+                    "assemblyName": "",
                     "flags": 3,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "_pause_test"
         },
         {
             "type": 3,
@@ -100,851 +113,1021 @@
             "syms": [
                 {
                     "name": "ptrdiff_t",
+                    "assemblyName": "_ptrdiff_t",
                     "flags": 64,
                     "type": "int"
                 },
                 {
                     "name": "wchar_t",
+                    "assemblyName": "_wchar_t",
                     "flags": 64,
                     "type": "char"
                 },
                 {
                     "name": "size_t",
+                    "assemblyName": "_size_t",
                     "flags": 64,
                     "type": "unsigned int"
                 },
                 {
                     "name": "va_list",
+                    "assemblyName": "_va_list",
                     "flags": 64,
                     "type": "unsigned char *"
                 },
                 {
                     "name": "FILE",
+                    "assemblyName": "_FILE",
                     "flags": 64,
                     "type": "struct _FILE"
                 },
                 {
                     "name": "fpos_t",
+                    "assemblyName": "_fpos_t",
                     "flags": 64,
                     "type": "unsigned long"
                 },
                 {
                     "name": "stdin",
+                    "assemblyName": "_stdin",
                     "flags": 176,
                     "type": "struct _FILE *"
                 },
                 {
                     "name": "stdout",
+                    "assemblyName": "_stdout",
                     "flags": 176,
                     "type": "struct _FILE *"
                 },
                 {
                     "name": "stderr",
+                    "assemblyName": "_stderr",
                     "flags": 176,
                     "type": "struct _FILE *"
                 },
                 {
                     "name": "clearerr",
+                    "assemblyName": "_clearerr",
                     "flags": 432,
                     "type": "void (struct _FILE *)"
                 },
                 {
                     "name": "fclose",
+                    "assemblyName": "_fclose",
                     "flags": 432,
                     "type": "int (struct _FILE *)"
                 },
                 {
                     "name": "feof",
+                    "assemblyName": "_feof",
                     "flags": 432,
                     "type": "int (struct _FILE *)"
                 },
                 {
                     "name": "ferror",
+                    "assemblyName": "_ferror",
                     "flags": 432,
                     "type": "int (struct _FILE *)"
                 },
                 {
                     "name": "fflush",
+                    "assemblyName": "_fflush",
                     "flags": 432,
                     "type": "int (struct _FILE *)"
                 },
                 {
                     "name": "fgetc",
+                    "assemblyName": "_fgetc",
                     "flags": 432,
                     "type": "int (struct _FILE *)"
                 },
                 {
                     "name": "fgets",
+                    "assemblyName": "_fgets",
                     "flags": 432,
                     "type": "char *(char *, unsigned int, struct _FILE *)"
                 },
                 {
                     "name": "fopen",
+                    "assemblyName": "_fopen",
                     "flags": 432,
                     "type": "struct _FILE *(const char *, const char *)"
                 },
                 {
                     "name": "fprintf",
+                    "assemblyName": "_fprintf",
                     "flags": 432,
                     "type": "int (struct _FILE *, const char *, ...)"
                 },
                 {
                     "name": "fputc",
+                    "assemblyName": "_fputc",
                     "flags": 432,
                     "type": "int (int, struct _FILE *)"
                 },
                 {
                     "name": "fputs",
+                    "assemblyName": "_fputs",
                     "flags": 432,
                     "type": "int (const char *, struct _FILE *)"
                 },
                 {
                     "name": "fread",
+                    "assemblyName": "_fread",
                     "flags": 432,
                     "type": "unsigned int (void *, unsigned int, unsigned int, struct _FILE *)"
                 },
                 {
                     "name": "freopen",
+                    "assemblyName": "_freopen",
                     "flags": 432,
                     "type": "struct _FILE *(const char *, const char *, struct _FILE *)"
                 },
                 {
                     "name": "fwrite",
+                    "assemblyName": "_fwrite",
                     "flags": 432,
                     "type": "unsigned int (const void *, unsigned int, unsigned int, struct _FILE *)"
                 },
                 {
                     "name": "fgetpos",
+                    "assemblyName": "_fgetpos",
                     "flags": 432,
                     "type": "int (struct _FILE *, unsigned long *)"
                 },
                 {
                     "name": "fsetpos",
+                    "assemblyName": "_fsetpos",
                     "flags": 432,
                     "type": "int (struct _FILE *, const unsigned long *)"
                 },
                 {
                     "name": "ftell",
+                    "assemblyName": "_ftell",
                     "flags": 432,
                     "type": "long (struct _FILE *)"
                 },
                 {
                     "name": "fseek",
+                    "assemblyName": "_fseek",
                     "flags": 432,
                     "type": "int (struct _FILE *, long, int)"
                 },
                 {
                     "name": "rewind",
+                    "assemblyName": "_rewind",
                     "flags": 432,
                     "type": "void (struct _FILE *)"
                 },
                 {
                     "name": "getchar",
+                    "assemblyName": "_getchar",
                     "flags": 432,
                     "type": "int (void)"
                 },
                 {
                     "name": "gets",
+                    "assemblyName": "_gets",
                     "flags": 432,
                     "type": "char *(char *)"
                 },
                 {
                     "name": "perror",
+                    "assemblyName": "_perror",
                     "flags": 432,
                     "type": "void (const char *)"
                 },
                 {
                     "name": "printf",
+                    "assemblyName": "_printf",
                     "flags": 436,
                     "type": "int (const char *, ...)"
                 },
                 {
                     "name": "putchar",
+                    "assemblyName": "_putchar",
                     "flags": 432,
                     "type": "int (int)"
                 },
                 {
                     "name": "puts",
+                    "assemblyName": "_puts",
                     "flags": 436,
                     "type": "int (const char *)"
                 },
                 {
                     "name": "remove",
+                    "assemblyName": "_remove",
                     "flags": 432,
                     "type": "int (const char *)"
                 },
                 {
                     "name": "rename",
+                    "assemblyName": "_rename",
                     "flags": 432,
                     "type": "int (const char *, const char *)"
                 },
                 {
                     "name": "snprintf",
+                    "assemblyName": "_snprintf",
                     "flags": 432,
                     "type": "int (char *, unsigned int, const char *, ...)"
                 },
                 {
                     "name": "sprintf",
+                    "assemblyName": "_sprintf",
                     "flags": 432,
                     "type": "int (char *, const char *, ...)"
                 },
                 {
                     "name": "ungetc",
+                    "assemblyName": "_ungetc",
                     "flags": 432,
                     "type": "int (int, struct _FILE *)"
                 },
                 {
                     "name": "vfprintf",
+                    "assemblyName": "_vfprintf",
                     "flags": 432,
                     "type": "int (struct _FILE *, const char *, unsigned char *)"
                 },
                 {
                     "name": "vprintf",
+                    "assemblyName": "_vprintf",
                     "flags": 432,
                     "type": "int (const char *, unsigned char *)"
                 },
                 {
                     "name": "vsnprintf",
+                    "assemblyName": "_vsnprintf",
                     "flags": 432,
                     "type": "int (char *, unsigned int, const char *, unsigned char *)"
                 },
                 {
                     "name": "vsprintf",
+                    "assemblyName": "_vsprintf",
                     "flags": 432,
                     "type": "int (char *, const char *, unsigned char *)"
                 },
                 {
                     "name": "scanf",
+                    "assemblyName": "_scanf",
                     "flags": 432,
                     "type": "int (const char *, ...)"
                 },
                 {
                     "name": "fscanf",
+                    "assemblyName": "_fscanf",
                     "flags": 432,
                     "type": "int (struct _FILE *, const char *, ...)"
                 },
                 {
                     "name": "sscanf",
+                    "assemblyName": "_sscanf",
                     "flags": 432,
                     "type": "int (const char *, const char *, ...)"
                 },
                 {
                     "name": "vscanf",
+                    "assemblyName": "_vscanf",
                     "flags": 432,
                     "type": "int (const char *, unsigned char *)"
                 },
                 {
                     "name": "vsscanf",
+                    "assemblyName": "_vsscanf",
                     "flags": 432,
                     "type": "int (const char *, const char *, unsigned char *)"
                 },
                 {
                     "name": "vfscanf",
+                    "assemblyName": "_vfscanf",
                     "flags": 432,
                     "type": "int (struct _FILE *, const char *, unsigned char *)"
                 },
                 {
                     "name": "fdopen",
+                    "assemblyName": "_fdopen",
                     "flags": 432,
                     "type": "struct _FILE *(int, const char *)"
                 },
                 {
                     "name": "fileno",
+                    "assemblyName": "_fileno",
                     "flags": 432,
                     "type": "int (struct _FILE *)"
                 },
                 {
                     "name": "_poserror",
+                    "assemblyName": "__poserror",
                     "flags": 432,
                     "type": "void (const char *)"
                 },
                 {
                     "name": "c64_65816_emd",
+                    "assemblyName": "_c64_65816_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_c256k_emd",
+                    "assemblyName": "_c64_c256k_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_dqbb_emd",
+                    "assemblyName": "_c64_dqbb_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_georam_emd",
+                    "assemblyName": "_c64_georam_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_isepic_emd",
+                    "assemblyName": "_c64_isepic_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_kerberos_emd",
+                    "assemblyName": "_c64_kerberos_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_ram_emd",
+                    "assemblyName": "_c64_ram_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_ramcart_emd",
+                    "assemblyName": "_c64_ramcart_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_reu_emd",
+                    "assemblyName": "_c64_reu_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_vdc_emd",
+                    "assemblyName": "_c64_vdc_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "dtv_himem_emd",
+                    "assemblyName": "_dtv_himem_emd",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_hitjoy_joy",
+                    "assemblyName": "_c64_hitjoy_joy",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_numpad_joy",
+                    "assemblyName": "_c64_numpad_joy",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_ptvjoy_joy",
+                    "assemblyName": "_c64_ptvjoy_joy",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_stdjoy_joy",
+                    "assemblyName": "_c64_stdjoy_joy",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_1351_mou",
+                    "assemblyName": "_c64_1351_mou",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_joy_mou",
+                    "assemblyName": "_c64_joy_mou",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_inkwell_mou",
+                    "assemblyName": "_c64_inkwell_mou",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_pot_mou",
+                    "assemblyName": "_c64_pot_mou",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_swlink_ser",
+                    "assemblyName": "_c64_swlink_ser",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "c64_hi_tgi",
+                    "assemblyName": "_c64_hi_tgi",
                     "flags": 176,
                     "type": "void[]"
                 },
                 {
                     "name": "get_ostype",
+                    "assemblyName": "_get_ostype",
                     "flags": 432,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "_cbm_filetype",
+                    "assemblyName": "__cbm_filetype",
                     "flags": 432,
                     "type": "unsigned char (unsigned char)"
                 },
                 {
                     "name": "_filetype",
+                    "assemblyName": "__filetype",
                     "flags": 176,
                     "type": "char"
                 },
                 {
                     "name": "get_tv",
+                    "assemblyName": "_get_tv",
                     "flags": 432,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "kbrepeat",
+                    "assemblyName": "_kbrepeat",
                     "flags": 432,
                     "type": "unsigned char (unsigned char)"
                 },
                 {
                     "name": "waitvsync",
+                    "assemblyName": "_waitvsync",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "cbm_k_acptr",
+                    "assemblyName": "_cbm_k_acptr",
                     "flags": 432,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "cbm_k_basin",
+                    "assemblyName": "_cbm_k_basin",
                     "flags": 432,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "cbm_k_bsout",
+                    "assemblyName": "_cbm_k_bsout",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_chkin",
+                    "assemblyName": "_cbm_k_chkin",
                     "flags": 432,
                     "type": "unsigned char (unsigned char)"
                 },
                 {
                     "name": "cbm_k_chrin",
+                    "assemblyName": "_cbm_k_chrin",
                     "flags": 432,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "cbm_k_chrout",
+                    "assemblyName": "_cbm_k_chrout",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_ciout",
+                    "assemblyName": "_cbm_k_ciout",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_ckout",
+                    "assemblyName": "_cbm_k_ckout",
                     "flags": 432,
                     "type": "unsigned char (unsigned char)"
                 },
                 {
                     "name": "cbm_k_clall",
+                    "assemblyName": "_cbm_k_clall",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "cbm_k_close",
+                    "assemblyName": "_cbm_k_close",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_clrch",
+                    "assemblyName": "_cbm_k_clrch",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "cbm_k_getin",
+                    "assemblyName": "_cbm_k_getin",
                     "flags": 432,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "cbm_k_iobase",
+                    "assemblyName": "_cbm_k_iobase",
                     "flags": 432,
                     "type": "unsigned int (void)"
                 },
                 {
                     "name": "cbm_k_listen",
+                    "assemblyName": "_cbm_k_listen",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_load",
+                    "assemblyName": "_cbm_k_load",
                     "flags": 432,
                     "type": "unsigned int (unsigned char, unsigned int)"
                 },
                 {
                     "name": "cbm_k_open",
+                    "assemblyName": "_cbm_k_open",
                     "flags": 436,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "cbm_k_readst",
+                    "assemblyName": "_cbm_k_readst",
                     "flags": 432,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "cbm_k_save",
+                    "assemblyName": "_cbm_k_save",
                     "flags": 432,
                     "type": "unsigned char (unsigned int, unsigned int)"
                 },
                 {
                     "name": "cbm_k_scnkey",
+                    "assemblyName": "_cbm_k_scnkey",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "cbm_k_second",
+                    "assemblyName": "_cbm_k_second",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_setlfs",
+                    "assemblyName": "_cbm_k_setlfs",
                     "flags": 432,
                     "type": "void (unsigned char, unsigned char, unsigned char)"
                 },
                 {
                     "name": "cbm_k_setnam",
+                    "assemblyName": "_cbm_k_setnam",
                     "flags": 432,
                     "type": "void (const char *)"
                 },
                 {
                     "name": "cbm_k_settim",
+                    "assemblyName": "_cbm_k_settim",
                     "flags": 432,
                     "type": "void (unsigned long)"
                 },
                 {
                     "name": "cbm_k_talk",
+                    "assemblyName": "_cbm_k_talk",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_tksa",
+                    "assemblyName": "_cbm_k_tksa",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_k_udtim",
+                    "assemblyName": "_cbm_k_udtim",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "cbm_k_unlsn",
+                    "assemblyName": "_cbm_k_unlsn",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "cbm_k_untlk",
+                    "assemblyName": "_cbm_k_untlk",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "cbm_load",
+                    "assemblyName": "_cbm_load",
                     "flags": 432,
                     "type": "unsigned int (const char *, unsigned char, void *)"
                 },
                 {
                     "name": "cbm_save",
+                    "assemblyName": "_cbm_save",
                     "flags": 432,
                     "type": "unsigned char (const char *, unsigned char, const void *, unsigned int)"
                 },
                 {
                     "name": "cbm_open",
+                    "assemblyName": "_cbm_open",
                     "flags": 432,
                     "type": "unsigned char (unsigned char, unsigned char, unsigned char, const char *)"
                 },
                 {
                     "name": "cbm_close",
+                    "assemblyName": "_cbm_close",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "cbm_read",
+                    "assemblyName": "_cbm_read",
                     "flags": 432,
                     "type": "int (unsigned char, void *, unsigned int)"
                 },
                 {
                     "name": "cbm_write",
+                    "assemblyName": "_cbm_write",
                     "flags": 432,
                     "type": "int (unsigned char, const void *, unsigned int)"
                 },
                 {
                     "name": "cbm_opendir",
+                    "assemblyName": "_cbm_opendir",
                     "flags": 432,
                     "type": "unsigned char (unsigned char, unsigned char, ...)"
                 },
                 {
                     "name": "cbm_readdir",
+                    "assemblyName": "_cbm_readdir",
                     "flags": 432,
                     "type": "unsigned char (unsigned char, struct cbm_dirent *)"
                 },
                 {
                     "name": "cbm_closedir",
+                    "assemblyName": "_cbm_closedir",
                     "flags": 432,
                     "type": "void (unsigned char)"
                 },
                 {
                     "name": "div_t",
+                    "assemblyName": "_div_t",
                     "flags": 64,
                     "type": "struct $anon-struct-000D"
                 },
                 {
                     "name": "ldiv_t",
+                    "assemblyName": "_ldiv_t",
                     "flags": 64,
                     "type": "struct $anon-struct-000E"
                 },
                 {
                     "name": "malloc",
+                    "assemblyName": "_malloc",
                     "flags": 432,
                     "type": "void *(unsigned int)"
                 },
                 {
                     "name": "calloc",
+                    "assemblyName": "_calloc",
                     "flags": 432,
                     "type": "void *(unsigned int, unsigned int)"
                 },
                 {
                     "name": "realloc",
+                    "assemblyName": "_realloc",
                     "flags": 432,
                     "type": "void *(void *, unsigned int)"
                 },
                 {
                     "name": "free",
+                    "assemblyName": "_free",
                     "flags": 432,
                     "type": "void (void *)"
                 },
                 {
                     "name": "posix_memalign",
+                    "assemblyName": "_posix_memalign",
                     "flags": 432,
                     "type": "int (void **, unsigned int, unsigned int)"
                 },
                 {
                     "name": "_heapadd",
+                    "assemblyName": "__heapadd",
                     "flags": 432,
                     "type": "void (void *, unsigned int)"
                 },
                 {
                     "name": "_heapblocksize",
+                    "assemblyName": "__heapblocksize",
                     "flags": 432,
                     "type": "unsigned int (const void *)"
                 },
                 {
                     "name": "_heapmemavail",
+                    "assemblyName": "__heapmemavail",
                     "flags": 432,
                     "type": "unsigned int (void)"
                 },
                 {
                     "name": "_heapmaxavail",
+                    "assemblyName": "__heapmaxavail",
                     "flags": 432,
                     "type": "unsigned int (void)"
                 },
                 {
                     "name": "rand",
+                    "assemblyName": "_rand",
                     "flags": 432,
                     "type": "int (void)"
                 },
                 {
                     "name": "srand",
+                    "assemblyName": "_srand",
                     "flags": 432,
                     "type": "void (unsigned int)"
                 },
                 {
                     "name": "_randomize",
+                    "assemblyName": "__randomize",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "abort",
+                    "assemblyName": "_abort",
                     "flags": 432,
                     "type": "void (void)"
                 },
                 {
                     "name": "abs",
+                    "assemblyName": "_abs",
                     "flags": 432,
                     "type": "int (int)"
                 },
                 {
                     "name": "labs",
+                    "assemblyName": "_labs",
                     "flags": 432,
                     "type": "long (long)"
                 },
                 {
                     "name": "atoi",
+                    "assemblyName": "_atoi",
                     "flags": 432,
                     "type": "int (const char *)"
                 },
                 {
                     "name": "atol",
+                    "assemblyName": "_atol",
                     "flags": 432,
                     "type": "long (const char *)"
                 },
                 {
                     "name": "atexit",
+                    "assemblyName": "_atexit",
                     "flags": 432,
                     "type": "int (void (*)(void))"
                 },
                 {
                     "name": "bsearch",
+                    "assemblyName": "_bsearch",
                     "flags": 432,
                     "type": "void *(const void *, const void *, unsigned int, unsigned int, int (*)(const void *, const void *))"
                 },
                 {
                     "name": "div",
+                    "assemblyName": "_div",
                     "flags": 432,
                     "type": "struct $anon-struct-000D (int, int)"
                 },
                 {
                     "name": "exit",
+                    "assemblyName": "_exit",
                     "flags": 432,
                     "type": "void (int)"
                 },
                 {
                     "name": "getenv",
+                    "assemblyName": "_getenv",
                     "flags": 432,
                     "type": "char *(const char *)"
                 },
                 {
                     "name": "qsort",
+                    "assemblyName": "_qsort",
                     "flags": 432,
                     "type": "void (void *, unsigned int, unsigned int, int (*)(const void *, const void *))"
                 },
                 {
                     "name": "strtol",
+                    "assemblyName": "_strtol",
                     "flags": 432,
                     "type": "long (const char *, char **, int)"
                 },
                 {
                     "name": "strtoul",
+                    "assemblyName": "_strtoul",
                     "flags": 432,
                     "type": "unsigned long (const char *, char **, int)"
                 },
                 {
                     "name": "system",
+                    "assemblyName": "_system",
                     "flags": 432,
                     "type": "int (const char *)"
                 },
                 {
                     "name": "_swap",
+                    "assemblyName": "__swap",
                     "flags": 432,
                     "type": "void (void *, void *, unsigned int)"
                 },
                 {
                     "name": "itoa",
+                    "assemblyName": "_itoa",
                     "flags": 432,
                     "type": "char *(int, char *, int)"
                 },
                 {
                     "name": "utoa",
+                    "assemblyName": "_utoa",
                     "flags": 432,
                     "type": "char *(unsigned int, char *, int)"
                 },
                 {
                     "name": "ltoa",
+                    "assemblyName": "_ltoa",
                     "flags": 432,
                     "type": "char *(long, char *, int)"
                 },
                 {
                     "name": "ultoa",
+                    "assemblyName": "_ultoa",
                     "flags": 432,
                     "type": "char *(unsigned long, char *, int)"
                 },
                 {
                     "name": "putenv",
+                    "assemblyName": "_putenv",
                     "flags": 432,
                     "type": "int (char *)"
                 },
                 {
                     "name": "off_t",
+                    "assemblyName": "_off_t",
                     "flags": 64,
                     "type": "long"
                 },
                 {
                     "name": "optarg",
+                    "assemblyName": "_optarg",
                     "flags": 176,
                     "type": "char *"
                 },
                 {
                     "name": "optind",
+                    "assemblyName": "_optind",
                     "flags": 176,
                     "type": "int"
                 },
                 {
                     "name": "opterr",
+                    "assemblyName": "_opterr",
                     "flags": 176,
                     "type": "int"
                 },
                 {
                     "name": "optopt",
+                    "assemblyName": "_optopt",
                     "flags": 176,
                     "type": "int"
                 },
                 {
                     "name": "write",
+                    "assemblyName": "_write",
                     "flags": 432,
                     "type": "int (int, const void *, unsigned int)"
                 },
                 {
                     "name": "read",
+                    "assemblyName": "_read",
                     "flags": 432,
                     "type": "int (int, void *, unsigned int)"
                 },
                 {
                     "name": "lseek",
+                    "assemblyName": "_lseek",
                     "flags": 432,
                     "type": "long (int, long, int)"
                 },
                 {
                     "name": "unlink",
+                    "assemblyName": "_unlink",
                     "flags": 432,
                     "type": "int (const char *)"
                 },
                 {
                     "name": "chdir",
+                    "assemblyName": "_chdir",
                     "flags": 432,
                     "type": "int (const char *)"
                 },
                 {
                     "name": "getcwd",
+                    "assemblyName": "_getcwd",
                     "flags": 432,
                     "type": "char *(char *, unsigned int)"
                 },
                 {
                     "name": "mkdir",
+                    "assemblyName": "_mkdir",
                     "flags": 432,
                     "type": "int (const char *, ...)"
                 },
                 {
                     "name": "rmdir",
+                    "assemblyName": "_rmdir",
                     "flags": 432,
                     "type": "int (const char *)"
                 },
                 {
                     "name": "sleep",
+                    "assemblyName": "_sleep",
                     "flags": 436,
                     "type": "unsigned int (unsigned int)"
                 },
                 {
                     "name": "getopt",
+                    "assemblyName": "_getopt",
                     "flags": 432,
                     "type": "int (int, char * const *, const char *)"
                 },
                 {
                     "name": "exec",
+                    "assemblyName": "_exec",
                     "flags": 432,
                     "type": "int (const char *, const char *)"
                 },
                 {
                     "name": "steps",
+                    "assemblyName": "_steps",
                     "flags": 438,
                     "type": "void (void)"
                 },
                 {
                     "name": "pause_test",
+                    "assemblyName": "_pause_test",
                     "flags": 438,
                     "type": "void (void)"
                 },
                 {
                     "name": "main",
+                    "assemblyName": "_main",
                     "flags": 306,
                     "type": "unsigned char (void)"
                 },
                 {
                     "name": "open_a_thing",
+                    "assemblyName": "_open_a_thing",
                     "flags": 306,
                     "type": "void (void)"
                 }
@@ -956,111 +1139,133 @@
             "syms": [
                 {
                     "name": "_FILE",
+                    "assemblyName": "",
                     "flags": 0,
                     "type": "(none)"
                 },
                 {
                     "name": "__vic2",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0001",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0002",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0003",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0004",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0005",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0006",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0007",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0008",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0009",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "000A",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "000B",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "000C",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "__sid_voice",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "__sid",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "__6526",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "cbm_dirent",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "000D",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "000E",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "hello",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 },
                 {
                     "name": "0013",
+                    "assemblyName": "",
                     "flags": 2,
                     "type": "(none)"
                 }
@@ -1068,810 +1273,949 @@
         },
         {
             "type": 2,
-            "name": "__vic2",
             "tableType": 2,
             "syms": [
                 {
                     "name": "0000",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "union $anon-union-0001"
                 },
                 {
                     "name": "spr0_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr0_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr1_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr1_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr2_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr2_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr3_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr3_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr4_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr4_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr5_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr5_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr6_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr6_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr7_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr7_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_pos",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "struct $anon-struct-0003[8]"
                 },
                 {
                     "name": "spr_hi_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ctrl1",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "rasterline",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "0001",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "union $anon-union-0004"
                 },
                 {
                     "name": "strobe_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "strobe_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "strobe",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "struct $anon-struct-0006"
                 },
                 {
                     "name": "spr_ena",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ctrl2",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_exp_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "addr",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "irr",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "imr",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_bg_prio",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_mcolor",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_exp_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_coll",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_bg_coll",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bordercolor",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "0002",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "union $anon-union-0007"
                 },
                 {
                     "name": "bgcolor0",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bgcolor1",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bgcolor2",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bgcolor3",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bgcolor",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char[4]"
                 },
                 {
                     "name": "0003",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "union $anon-union-0009"
                 },
                 {
                     "name": "spr_mcolor0",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_mcolor1",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_mcolors",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char[2]"
                 },
                 {
                     "name": "0004",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "union $anon-union-000B"
                 },
                 {
                     "name": "spr0_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr1_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr2_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr3_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr4_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr5_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr6_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr7_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char[8]"
                 },
                 {
                     "name": "x_kbd",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "clock",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "__vic2"
         },
         {
             "type": 2,
-            "name": "$anon-struct-0002",
             "tableType": 2,
             "syms": [
                 {
                     "name": "spr0_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr0_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr1_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr1_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr2_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr2_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr3_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr3_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr4_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr4_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr5_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr5_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr6_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr6_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr7_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr7_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-0002"
         },
         {
             "type": 2,
-            "name": "$anon-struct-0003",
             "tableType": 2,
             "syms": [
                 {
                     "name": "x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-0003"
         },
         {
             "type": 2,
-            "name": "$anon-struct-0005",
             "tableType": 2,
             "syms": [
                 {
                     "name": "strobe_x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "strobe_y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-0005"
         },
         {
             "type": 2,
-            "name": "$anon-struct-0006",
             "tableType": 2,
             "syms": [
                 {
                     "name": "x",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "y",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-0006"
         },
         {
             "type": 2,
-            "name": "$anon-struct-0008",
             "tableType": 2,
             "syms": [
                 {
                     "name": "bgcolor0",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bgcolor1",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bgcolor2",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "bgcolor3",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-0008"
         },
         {
             "type": 2,
-            "name": "$anon-struct-000A",
             "tableType": 2,
             "syms": [
                 {
                     "name": "spr_mcolor0",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr_mcolor1",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-000A"
         },
         {
             "type": 2,
-            "name": "$anon-struct-000C",
             "tableType": 2,
             "syms": [
                 {
                     "name": "spr0_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr1_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr2_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr3_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr4_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr5_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr6_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "spr7_color",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-000C"
         },
         {
             "type": 2,
-            "name": "__sid_voice",
             "tableType": 2,
             "syms": [
                 {
                     "name": "freq",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned int"
                 },
                 {
                     "name": "pw",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned int"
                 },
                 {
                     "name": "ctrl",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ad",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "sr",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "__sid_voice"
         },
         {
             "type": 2,
-            "name": "__sid",
             "tableType": 2,
             "syms": [
                 {
                     "name": "v1",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "struct __sid_voice"
                 },
                 {
                     "name": "v2",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "struct __sid_voice"
                 },
                 {
                     "name": "v3",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "struct __sid_voice"
                 },
                 {
                     "name": "flt_freq",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned int"
                 },
                 {
                     "name": "flt_ctrl",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "amp",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ad1",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ad2",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "noise",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "read3",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "__sid"
         },
         {
             "type": 2,
-            "name": "__6526",
             "tableType": 2,
             "syms": [
                 {
                     "name": "pra",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "prb",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ddra",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ddrb",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ta_lo",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "ta_hi",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "tb_lo",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "tb_hi",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "tod_10",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "tod_sec",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "tod_min",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "tod_hour",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "sdr",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "icr",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "cra",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "crb",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "__6526"
         },
         {
             "type": 2,
-            "name": "cbm_dirent",
             "tableType": 2,
             "syms": [
                 {
                     "name": "name",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "char[17]"
                 },
                 {
                     "name": "size",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned int"
                 },
                 {
                     "name": "type",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "access",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "cbm_dirent"
         },
         {
             "type": 2,
-            "name": "$anon-struct-000D",
             "tableType": 2,
             "syms": [
                 {
                     "name": "rem",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "int"
                 },
                 {
                     "name": "quot",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "int"
                 }
-            ]
+            ],
+            "name": "$anon-struct-000D"
         },
         {
             "type": 2,
-            "name": "$anon-struct-000E",
             "tableType": 2,
             "syms": [
                 {
                     "name": "rem",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "long"
                 },
                 {
                     "name": "quot",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "long"
                 }
-            ]
+            ],
+            "name": "$anon-struct-000E"
         },
         {
             "type": 2,
-            "name": "hello",
             "tableType": 2,
             "syms": [
                 {
                     "name": "j",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "k",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "l",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "struct $anon-struct-0013"
                 }
-            ]
+            ],
+            "name": "hello"
         },
         {
             "type": 2,
-            "name": "$anon-struct-0013",
             "tableType": 2,
             "syms": [
                 {
                     "name": "m",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 },
                 {
                     "name": "n",
+                    "assemblyName": "",
                     "flags": 512,
                     "type": "unsigned char"
                 }
-            ]
+            ],
+            "name": "$anon-struct-0013"
         }
     ]
 }
