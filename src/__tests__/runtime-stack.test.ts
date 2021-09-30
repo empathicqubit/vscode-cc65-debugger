@@ -186,13 +186,13 @@ describe('Stack', () => {
         await testShared.waitFor(rt, 'started');
         await testShared.selectCTest(rt, 'test_local_vars');
 
-        await rt.setBreakPoint(LOCALVARS_C, 49);
+        await rt.setBreakPoint(LOCALVARS_C, 51);
 
         await Promise.all([
             rt.continue(),
             testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
                 assert.strictEqual(file, LOCALVARS_C);
-                assert.strictEqual(line, 49);
+                assert.strictEqual(line, 51);
             }),
         ]);
 
@@ -206,6 +206,8 @@ describe('Stack', () => {
 
         const xy = locals.find(x => x.name == 'xy')!;
         const xyVal = await rt.getTypeFields(xy.addr, xy.type);
+
+        const statics = await rt.getStaticVariables();
 
         await rt.continue();
         await testShared.waitFor(rt, 'end');
@@ -231,5 +233,9 @@ describe('Stack', () => {
         assert.deepStrictEqual(xyVal[1].value, '0x0201');
 
         assert.deepStrictEqual(locals.find(x => x.name == 'whoa')!.value, "-0x01");
+
+        console.log(statics)
+        assert.deepStrictEqual(statics.map(x => x.name).sort(), ['weehah']);
+        assert.deepStrictEqual(statics[0].value, "0x59");
     });
 });

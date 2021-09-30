@@ -29,6 +29,7 @@ export enum TableSymFlags {
 
 export interface TableSym {
     name: string;
+    assemblyName: string;
     flags: TableSymFlags;
     type: string;
 }
@@ -88,11 +89,13 @@ export function parse(path: string, text: string) : TableFile {
         const entryRex = /(\w+):\s+(AsmName\s*:\s*(\S+)\s+)?Flags\s*:\s*(((SC_\w+\b|0x[0-9a-f]+)[\t ]*)+)\s+Type\s*:\s*([^\n\r]+)\s*/gim;
         while(itemMatch = entryRex.exec(body)) {
             const itemName = itemMatch[1];
+            const assemblyName = itemMatch[3] || '';
             const itemFlags = itemMatch[4].split(/\s+/g).map(x => <TableSymFlags>TableSymFlags[<string>x]).filter(x => x).reduce((a, c) => a | c, TableSymFlags.SC_NONE);
             const itemType = itemMatch[itemMatch.length - 1];
 
             const sym : TableSym = {
                 name: itemName,
+                assemblyName: assemblyName,
                 flags: itemFlags,
                 type: itemType,
             };

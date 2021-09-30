@@ -24,6 +24,7 @@ typedef struct hello thingy;
 unsigned char globby;
 
 unsigned char test_local_vars_main(void) {
+    static unsigned char weehah;
     unsigned char i;
     unsigned int j;
     unsigned int *random;
@@ -45,6 +46,7 @@ unsigned char test_local_vars_main(void) {
     wow.l.n = 6;
     i = 0x23;
     j = 0x1337;
+    weehah = 0x59;
     lol = "copter";
 
     return 0;

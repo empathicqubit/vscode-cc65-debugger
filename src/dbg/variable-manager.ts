@@ -4,6 +4,7 @@ import * as debugFile from '../lib/debug-file'
 import * as debugUtils from '../lib/debug-utils'
 import * as typeQuery from '../lib/type-query'
 import { ViceGrip } from './vice-grip'
+import * as tableFile from '../lib/table-file'
 
 export interface VariableData {
     name : string;
@@ -19,6 +20,7 @@ export class VariableManager {
     private _vice: ViceGrip;
     private _bssLabs: debugFile.Sym[] = [];
     private _globalLabs: debugFile.Sym[] = [];
+    private _tableFiles: tableFile.TableFile[];
 
     private _localTypes: { [typename: string]: typeQuery.FieldTypeInfo[]; } | undefined;
 
@@ -81,14 +83,16 @@ export class VariableManager {
         const ptr = buf.readUInt16LE(0);
 
         let typeName = '';
+        let name = symName;
         let fieldInfo: typeQuery.FieldTypeInfo[];
         if(this._localTypes && (fieldInfo = this._localTypes[scope])) {
-            const field = fieldInfo.find(x => x.name == symName);
+            const field = fieldInfo.find(x => x.name == symName || x.assemblyName == symName);
             if(!field) {
                 val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned int'), buf);
                 typeName = 'unsigned int';
             }
             else {
+                name = field.name;
                 typeName = field.type.name;
                 if(field.type.array) {
                     val = field.type.name;
@@ -113,7 +117,7 @@ export class VariableManager {
         }
 
         return {
-            name: symName,
+            name: name,
             value: val,
             addr: addr,
             type: typeName
@@ -125,13 +129,28 @@ export class VariableManager {
         return this._renderValue('__GLOBAL__()', symName, sym.val);
     }
 
+    private async _getTableFiles(buildCwd: string) : Promise<tableFile.TableFile[]> {
+        if(!this._tableFiles) {
+            try {
+                this._tableFiles = await typeQuery.getTabFiles(buildCwd);
+            }
+            catch (e) {
+                console.error(e);
+                console.error('Problem loading tab files.');
+                this._tableFiles = [];
+            }
+        }
+
+        return this._tableFiles;
+    }
+
     private async _getLocalTypes(buildCwd: string, dbgFile: debugFile.Dbgfile) {
         try {
-            this._localTypes = typeQuery.getLocalTypes(dbgFile, await typeQuery.getTabFiles(buildCwd));
+            this._localTypes = typeQuery.getLocalTypes(dbgFile, await this._getTableFiles(buildCwd));
         }
         catch(e) {
             console.error(e);
-            throw new Error('Not using Clang tools. Are they installed?');
+            throw new Error('Problem loading local types.');
         }
     }
 
@@ -147,6 +166,7 @@ export class VariableManager {
             const itemType = typeQuery.parseTypeExpression(type.array.itemType);
             const itemSize = typeQuery.recurseFieldSize([{
                 name: '',
+                assemblyName: '',
                 type: itemType,
             }], this._localTypes)[0];
             for(let i = 0; i < type.array.length; i++) {
@@ -231,6 +251,22 @@ export class VariableManager {
         return await Promise.all(this._globalLabs.map(x => this._varFromLab(x)));
     }
 
+    public async getStaticVariables(currentScope: debugFile.Scope | undefined) : Promise<VariableData[]> {
+        if(!currentScope) {
+            return [];
+        }
+
+        const scopeLabs = this._bssLabs.filter(x => x.scope == currentScope);
+
+        const vars : VariableData[] = [];
+
+        for(const scopeLab of scopeLabs) {
+            vars.push(await this._renderValue(currentScope.name + '()', scopeLab.name, scopeLab.val));
+        }
+
+        return vars;
+    }
+
     public async getScopeVariables(currentScope: debugFile.Scope | undefined) : Promise<VariableData[]> {
         let stack: Buffer;
         try {
@@ -264,6 +300,7 @@ export class VariableManager {
 
             const addr = this._paramStackTop + seek
 
+            // FIXME Parallelize this?
             vars.push(await this._renderValue(currentScope.name + '()', csym.name, addr));
         }
 

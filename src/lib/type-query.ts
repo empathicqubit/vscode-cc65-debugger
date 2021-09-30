@@ -10,6 +10,7 @@ import * as tableFile from './table-file';
 
 export interface FieldTypeInfo {
     name: string;
+    assemblyName: string;
     type: TypeInfo;
 }
 
@@ -138,6 +139,7 @@ export function getLocalTypes(dbgFile: dbgfile.Dbgfile, tabFiles: tableFile.Tabl
 
                 vars.push({
                     name: sym.name,
+                    assemblyName: sym.assemblyName,
                     type: parseTypeExpression(sym.type),
                 });
             }
@@ -211,6 +213,7 @@ export function recurseFieldSize(fields: FieldTypeInfo[], allTypes: {[typename:s
         if(realType.array) {
             dataSizes.push(recurseFieldSize([{
                 name: '',
+                assemblyName: '',
                 type: parseTypeExpression(realType.array.itemType),
             }], allTypes)[0] * realType.array.length);
         }

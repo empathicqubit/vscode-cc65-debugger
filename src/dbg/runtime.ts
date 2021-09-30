@@ -1008,6 +1008,11 @@ or define the location manually with the launch.json->mapFile setting`
 
     // Variables
 
+    public async getStaticVariables() : Promise<VariableData[]> {
+        const currentScope = this._getCurrentScope();
+        return await this._variableManager.getStaticVariables(currentScope);
+    }
+
     public async getScopeVariables() : Promise<VariableData[]> {
         const currentScope = this._getCurrentScope()
         return await this._variableManager.getScopeVariables(currentScope);

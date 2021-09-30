@@ -18,18 +18,19 @@ import { __basedir } from '../basedir';
 const { Subject } = require('await-notify');
 
 enum VariablesReferenceFlag {
-    HAS_TYPE    =    0x10000,
-    FOLLOW_TYPE =    0x20000,
+    HAS_TYPE = 0x10000,
+    FOLLOW_TYPE = 0x20000,
     FOLLOW_POINTER = 0x40000,
-    EXPAND_DATA =    0x80000,
-    EXPAND_BYTES =  0x100000,
+    EXPAND_DATA = 0x80000,
+    EXPAND_BYTES = 0x100000,
 
-    LOCAL =         0x200000,
-    GLOBAL =        0x400000,
-    //PARAM =         0x800000,
-    REGISTERS =    0x1000000,
+    LOCAL =     0x0200000,
+    GLOBAL =    0x0400000,
+    //PARAM =   0x0800000,
+    REGISTERS = 0x1000000,
+    STATICS =   0x2000000,
 
-    ADDR_MASK =     0x00FFFF,
+    ADDR_MASK = 0x00FFFF,
 }
 // MAX = 0x8000000000000
 
@@ -527,6 +528,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             scopes: [
                 new Scope("Registers", VariablesReferenceFlag.REGISTERS, false),
                 new Scope("Local", VariablesReferenceFlag.LOCAL, false),
+                new Scope("Statics", VariablesReferenceFlag.STATICS, false),
                 new Scope("Global", VariablesReferenceFlag.GLOBAL, true),
             ]
         };
@@ -573,6 +575,20 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                         name: k.toUpperCase(),
                         value: '0x' + regs[k].toString(16).padStart(2, '0'),
                         variablesReference: 0,
+                    });
+                }
+            }
+            else if (ref & VariablesReferenceFlag.STATICS) {
+                const vars = await this._runtime.getStaticVariables();
+                for(const v of vars) {
+                    this._addAddressType(v.addr, v.type)
+
+                    variables.push({
+                        name: v.name,
+                        value: v.value,
+                        type: v.type,
+                        memoryReference: v.addr.toString(16),
+                        variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
                     });
                 }
             }
