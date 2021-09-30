@@ -28,6 +28,7 @@ describe('Stack', () => {
         const data : Array<[string, {}]> = [
             ['25 * 25', 625],
             ['25 * weehah', 2225],
+            ['j', 0x1337],
             ['2 * j', 9838],
         ];
         test.each(data)('%s', async (expression, expected) => {
