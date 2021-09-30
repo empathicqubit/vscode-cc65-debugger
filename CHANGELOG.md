@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.5.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.4.2...v4.5.0) (2021-09-30)
+
+
+### Features
+
+* Enhance hover behavior and allow expressions on debugging console ([f075606](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/f075606abdc91acf50291e82e3c4d20e97c4df25))
+
 ### [4.4.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.4.1...v4.4.2) (2021-09-30)
 
 
