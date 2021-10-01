@@ -25,18 +25,27 @@ jobs:
     - name: update release
       if: steps.vsce.outcome == 'success' && steps.ovsx.outcome == 'success'
       id: update_release_success
-      uses: tubone24/update_release@v1.0
+      run: |
+          curl -sL "https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/tags/${TAG_NAME}" \
+          | node -e 'process.stdin.once("data", data => { console.log(JSON.parse(data.toString()).id ) })' \
+          | xargs -I'{}' curl -X PATCH -u "empathicqubit:${GITHUB_TOKEN}"
+            -H "Accept: application/vnd.github.v3+json" \
+            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}'
+            -d '{"name": "cc65-vice '"${TAG_NAME}"' (Published)"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
-      with:
-          release_name: cc65-vice ${{ github.event.release.tag_name || github.event.inputs.tag }} (Published)
+          RELEASE_NAME: cc65-vice ${{ github.event.release.tag_name || github.event.inputs.tag }} (Published)
     - name: update release
       if: steps.vsce.outcome == 'failure' || steps.ovsx.outcome == 'failure'
       id: update_release_failed
-      uses: tubone24/update_release@v1.0
+      run: |
+          curl -sL "https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/tags/${TAG_NAME}" \
+          | node -e 'process.stdin.once("data", data => { console.log(JSON.parse(data.toString()).id ) })' \
+          | xargs -I'{}' curl -X PATCH -u "empathicqubit:${GITHUB_TOKEN}"
+            -H "Accept: application/vnd.github.v3+json" \
+            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}'
+            -d '{"name": "cc65-vice '"${TAG_NAME}"' (Failed Publish)"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
-      with:
-          release_name: cc65-vice ${{ github.event.release.tag_name || github.event.inputs.tag }} (Failed Publish)
