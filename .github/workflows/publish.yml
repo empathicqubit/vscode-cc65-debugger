@@ -31,7 +31,7 @@ jobs:
           | xargs -I'{}' curl -X PATCH \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}'
+            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}' \
             -d '{"name": "cc65-vice '"${TAG_NAME}"' (Published)"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -45,7 +45,7 @@ jobs:
           | xargs -I'{}' curl -X PATCH \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}'
+            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}' \
             -d '{"name": "cc65-vice '"${TAG_NAME}"' (Failed Publish)"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}
