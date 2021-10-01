@@ -28,6 +28,7 @@ jobs:
       uses: tubone24/update_release@v1.0
       env:
           GITHUB_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
       with:
           release_name: cc65-vice ${{ github.event.release.tag_name || github.event.inputs.tag }} (Published)
     - name: update release
@@ -36,5 +37,6 @@ jobs:
       uses: tubone24/update_release@v1.0
       env:
           GITHUB_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
       with:
           release_name: cc65-vice ${{ github.event.release.tag_name || github.event.inputs.tag }} (Failed Publish)
