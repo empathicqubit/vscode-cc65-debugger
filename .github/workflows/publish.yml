@@ -17,6 +17,24 @@ jobs:
     steps:
     - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$TAG_NAME/cc65-vice-$(echo "${TAG_NAME}" | sed 's/^v//g').vsix > cc65-vice.vsix
     - run: pnpx -y -p @entan.gl/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
+      id: vsce
       continue-on-error: true
     - run: pnpx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
+      id: ovsx
       continue-on-error: true
+    - name: update release
+      if: steps.vsce.outcome == 'success' && steps.ovsx.outcome == 'success'
+      id: update_release_success
+      uses: tubone24/update_release@v1.0
+      env:
+          GITHUB_TOKEN: ${{ github.token }}
+      with:
+          release_name: cc65-vice ${{ github.event.release.tag_name || github.event.inputs.tag }} (Published)
+    - name: update release
+      if: steps.vsce.outcome == 'failure' || steps.ovsx.outcome == 'failure'
+      id: update_release_failed
+      uses: tubone24/update_release@v1.0
+      env:
+          GITHUB_TOKEN: ${{ github.token }}
+      with:
+          release_name: cc65-vice ${{ github.event.release.tag_name || github.event.inputs.tag }} (Failed Publish)

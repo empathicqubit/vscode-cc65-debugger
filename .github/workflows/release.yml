@@ -6,7 +6,7 @@ on:
             tag:
                 description: The git tag to checkout
                 required: true
-                default: 'refs/tags/vFIXME'
+                default: 'vFIXME'
     release:
         types:
         - published
@@ -28,7 +28,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-          ref: ${{ github.events.inputs.tag }}
+          ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
     - run: pnpm install --shamefully-hoist
     - run: ln -s $PWD/system /usr/local/share/vice
     - run: ln -s $PWD/system /usr/local/lib/vice
@@ -44,8 +44,9 @@ jobs:
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
+        release_name: cc65-vice ${{ github.event.inputs.tag || github.event.release.tag_name }} (Unpublished)
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.get_filename.outputs.filename }}
         asset_name: ${{ steps.get_filename.outputs.filename }}
-        tag: ${{ github.event.inputs.tag || github.ref }}
+        tag: ${{ github.event.inputs.tag || github.event.release.tag_name }}
         overwrite: true
