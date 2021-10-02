@@ -885,27 +885,27 @@ or define the location manually with the launch.json->mapFile setting`
             })
         }
 
-        const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
+        await this._vice.lock(async () => {
+            const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
 
-        const condCmds : bin.ConditionSetCommand[] = [];
-        for(const brk of brks) {
-            const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
-            if(!bp) {
-                continue;
+            const condCmds : bin.ConditionSetCommand[] = [];
+            for(const brk of brks) {
+                const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
+                if(!bp) {
+                    continue;
+                }
+
+                bp.viceIndex = brk.id;
+                bp.verified = true;
+                this.sendEvent('breakpointValidated', bp);
+
+                condCmds.push({
+                    type: bin.CommandType.conditionSet,
+                    checkpointId: brk.id,
+                    condition: '$574c == $574c',
+                });
             }
 
-            bp.viceIndex = brk.id;
-            bp.verified = true;
-            this.sendEvent('breakpointValidated', bp);
-
-            condCmds.push({
-                type: bin.CommandType.conditionSet,
-                checkpointId: brk.id,
-                condition: '$574c == $574c',
-            });
-        }
-
-        await this._vice.lock(async () => {
             await this._vice.multiExecBinary(condCmds);
         });
     }
@@ -1010,7 +1010,9 @@ or define the location manually with the launch.json->mapFile setting`
         dels = _uniqBy(x => x.id, dels);
 
         if(dels.length) {
-            await this._vice.multiExecBinary(dels);
+            this._vice.lock(async () => {
+                await this._vice.multiExecBinary(dels);
+            });
         }
     }
 
