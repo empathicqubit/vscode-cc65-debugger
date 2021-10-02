@@ -1,5 +1,13 @@
 # Changelog
 
+### [4.5.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.5.0...v4.5.1) (2021-10-02)
+
+
+### Bug Fixes
+
+* If we can't find any exit addresses, use the CPU stack. ([5e62f49](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/5e62f4983175fea00fde36262756bc92ccbca7c9))
+* Step out at end of function. Fix assembly step out. ([b48c2cc](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/b48c2ccc7235ca8d082ba331392e8ffe68a691fe))
+
 ## [4.5.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.4.2...v4.5.0) (2021-09-30)
 
 
