@@ -905,7 +905,9 @@ or define the location manually with the launch.json->mapFile setting`
             });
         }
 
-        await this._vice.multiExecBinary(condCmds);
+        await this._vice.lock(async () => {
+            await this._vice.multiExecBinary(condCmds);
+        });
     }
 
     public getBreakpointLength() : number {
