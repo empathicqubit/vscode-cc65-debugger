@@ -42,8 +42,8 @@ describe('Assembly', () => {
         await testShared.waitFor(rt, 'stopOnEntry');
 
         await rt.continue();
-        await debugUtils.delay(2000);
-        await rt.terminate();
+
+        await testShared.waitFor(rt, 'end');
     });
 
     test('Can set a breakpoint', async() => {

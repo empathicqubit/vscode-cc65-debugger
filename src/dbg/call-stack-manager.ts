@@ -24,6 +24,9 @@ export class CallStackManager {
     private _queuedFrames: ({id: number, startAddress: number, line: (() => debugFile.SourceLine) | undefined })[] = new Array(1000).fill(undefined).map(() => ({id: -1, startAddress: -1, line: undefined }));
     private _queuedFramesCount = 0;
 
+    private _cpuStackBottom: number = 0x1ff;
+    private _cpuStackTop?: number;
+
     constructor(vice: ViceGrip, mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile) {
         this._vice = vice;
         this._dbgFile = dbgFile;
@@ -143,23 +146,30 @@ export class CallStackManager {
     }
 
     public setCpuStackTop(value: number) {
+        this._cpuStackTop = value;
     }
 
     public async getExitAddresses() : Promise<number[]> {
+        const defAddr: number[] = [];
+        if(this._cpuStackTop) {
+            const returnPointer = await this._vice.getMemory(this._cpuStackTop + 1, 2);
+            defAddr.push(returnPointer.readUInt16LE(0) + 1);
+        }
+
         const codeSeg = this._dbgFile.codeSeg;
         if(!codeSeg) {
-            return [];
+            return defAddr;
+        }
+
+        if(!this._dbgFile.mainScope) {
+            return defAddr;
         }
 
         const codeSegMem = await this._vice.getMemory(codeSeg.start, codeSeg.size);
 
-        if(!this._dbgFile.mainScope) {
-            return [];
-        }
-
         const mainFrames = await this._getStackFramesForScope(this._dbgFile.mainScope, this._dbgFile.mainScope, codeSegMem);
         if(!mainFrames) {
-            return [];
+            return defAddr;
         }
         const exitAddresses = mainFrames.ends.map(x => x.address);
 
