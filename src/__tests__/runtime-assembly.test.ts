@@ -146,19 +146,19 @@ describe('Assembly', () => {
 
 
         await Promise.all([
-            rt.stepIn(),
             testShared.waitFor(rt, 'stopOnStep', (type, __, file, line, col) => {
                 assert.strictEqual(file, MAIN_S);
                 assert.strictEqual(line, 18);
             }),
+            rt.stepIn(),
         ]);
 
         await Promise.all([
-            rt.stepOut(),
             testShared.waitFor(rt, 'stopOnStep', (type, __, file, line, col) => {
                 assert.strictEqual(file, MAIN_S);
                 assert.strictEqual(line, 9);
             }),
+            rt.stepOut(),
         ]);
 
         await rt.terminate();

@@ -38,6 +38,7 @@ export class ViceGrip extends EventEmitter {
     private _nextResponseLength : number = -1;
     private _responseEmitter : EventEmitter = new EventEmitter();
     private _requestId : number = 0;
+    private _lockChain : Promise<any> = Promise.resolve();
 
     private _binaryDataHandler(d : Buffer) {
         try {
@@ -136,6 +137,11 @@ export class ViceGrip extends EventEmitter {
             type: bin.CommandType.checkpointList,
             responseType: bin.ResponseType.checkpointList,
         });
+    }
+
+    public async lock<T>(fn: () => Promise<T>) : Promise<T> {
+        this._lockChain = this._lockChain.then(fn, fn);
+        return this._lockChain;
     }
 
     public async getMemory(addr: number, length: number, bankId: number = 0) : Promise<Buffer> {

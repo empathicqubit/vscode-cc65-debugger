@@ -115,62 +115,88 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
         // setup event handlers
         this._runtime.on('stopOnEntry', () => {
-            this.sendEvent(new StoppedEvent('entry', CC65ViceDebugSession.THREAD_ID));
+            const e = new StoppedEvent('entry', CC65ViceDebugSession.THREAD_ID);
+            //console.log(e);
+            this.sendEvent(e);
         });
         this._runtime.on('stopOnExit', () => {
-            this.sendEvent(new StoppedEvent('exit', CC65ViceDebugSession.THREAD_ID));
+            const e = new StoppedEvent('exit', CC65ViceDebugSession.THREAD_ID);
+            //console.log(e);
+            this.sendEvent(e);
         });
         this._runtime.on('stopOnStep', () => {
-            this.sendEvent(new StoppedEvent('step', CC65ViceDebugSession.THREAD_ID));
+            const e = new StoppedEvent('step', CC65ViceDebugSession.THREAD_ID)
+            //console.log(e);
+            this.sendEvent(e);
         });
         this._runtime.on('continued', () => {
-            this.sendEvent(new ContinuedEvent(CC65ViceDebugSession.THREAD_ID));
+            const e = new ContinuedEvent(CC65ViceDebugSession.THREAD_ID);
+            //console.log(e)
+            this.sendEvent(e);
         });
         this._runtime.on('stopOnBreakpoint', () => {
-            this.sendEvent(new StoppedEvent('breakpoint', CC65ViceDebugSession.THREAD_ID));
+            const e = new StoppedEvent('breakpoint', CC65ViceDebugSession.THREAD_ID);
+            //console.log(e)
+            this.sendEvent(e);
         });
         this._runtime.on('stopOnDataBreakpoint', () => {
-            this.sendEvent(new StoppedEvent('data breakpoint', CC65ViceDebugSession.THREAD_ID));
+            const e = new StoppedEvent('data breakpoint', CC65ViceDebugSession.THREAD_ID)
+            //console.log(e);
+            this.sendEvent(e);
         });
         this._runtime.on('stopOnException', () => {
-            this.sendEvent(new StoppedEvent('exception', CC65ViceDebugSession.THREAD_ID));
+            const e = new StoppedEvent('exception', CC65ViceDebugSession.THREAD_ID);
+            //console.log(e);
+            this.sendEvent(e);
         });
         this._runtime.on('breakpointValidated', (bp: CC65ViceBreakpoint) => {
-            this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
+            const e = new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id });
+            //console.log(e);
+            this.sendEvent(e);
         });
         this._runtime.on('palette', data => {
             const e = new Event('palette', data);
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('banks', data => {
             const e = new Event('banks', data);
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('runahead', data => {
             const e = new Event('runahead', data);
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('screenText', data => {
             const e = new Event('screenText', data);
+            //console.log(e);
             this.sendEvent(e);
         })
         this._runtime.on('sprites', data => {
             const e = new Event('sprites', data);
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('memory', data => {
             const e = new Event('memory', data);
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('current', data => {
             const e = new Event('current', data);
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('started', () => {
-            this.sendEvent(new Event('started'));
+            const e = new Event('started');
+            //console.log(e);
+            this.sendEvent(e);
         });
         this._runtime.on('message', (msg: debugUtils.ExtensionMessage) => {
             const e = new Event('message', msg);
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('output', (category, text, filePath, line, column) => {
@@ -190,6 +216,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             else {
                 e.body.column = 0;
             }
+            //console.log(e);
             this.sendEvent(e);
         });
         this._runtime.on('end', () => {

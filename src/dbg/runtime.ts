@@ -456,19 +456,21 @@ export class Runtime extends EventEmitter {
     }
 
     private async _screenUpdateHandler() : Promise<void> {
-        try {
-            const wasRunning = this.viceRunning;
+        await this._vice.lock(async() => {
+            try {
+                const wasRunning = this.viceRunning;
 
-            if(wasRunning) {
-                await this._updateUI();
-                await this.continue();
+                if(wasRunning) {
+                    await this._updateUI();
+                    await this.continue();
+                }
             }
-        }
-        catch(e) {
-            console.error(e);
-        }
+            catch(e) {
+                console.error(e);
+            }
 
-        this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), UPDATE_INTERVAL);
+            this._screenUpdateTimer = setTimeout(() => this._screenUpdateHandler(), UPDATE_INTERVAL);
+        });
     }
 
     private async _updateUI() : Promise<void> {
@@ -590,55 +592,59 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async next(reverse = false, event = 'stopOnStep') : Promise<void> {
-        if(this.viceRunning) {
-            return;
-        }
-
-        console.log('Nexting...')
-        console.time('next');
-
-        await this._vice.withAllBreaksDisabled(async () => {
-            // Find the next source line and continue to it.
-            const nextLine = this._getNextLine();
-            if(!nextLine || (nextLine.file && nextLine.file.type == debugFile.SourceFileType.Assembly)) {
-                await this._vice.execBinary({
-                    type: bin.CommandType.advanceInstructions,
-                    stepOverSubroutines: true,
-                    count: 1,
-                });
+        await this._vice.lock(async () => {
+            if(this.viceRunning) {
+                return;
             }
-            else {
-                const nextAddress = nextLine.span!.absoluteAddress;
-                let breaks : bin.CheckpointInfoResponse[] | null;
-                if(breaks = await this._setLineGuard(this._currentPosition, nextLine)) {
-                    await this.continue();
-                    await this._vice.waitForStop();
 
-                    const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
-                        type: bin.CommandType.checkpointDelete,
-                        id: x.id,
-                    }));
+            console.log('Nexting...')
+            console.time('next');
 
-                    await this._vice.multiExecBinary(delBrks);
+            await this._vice.withAllBreaksDisabled(async () => {
+                // Find the next source line and continue to it.
+                const nextLine = this._getNextLine();
+                if(!nextLine || (nextLine.file && nextLine.file.type == debugFile.SourceFileType.Assembly)) {
+                    await this._vice.execBinary({
+                        type: bin.CommandType.advanceInstructions,
+                        stepOverSubroutines: true,
+                        count: 1,
+                    });
+                }
+                else if (this._getCurrentScope() != this._getScope(nextLine)) {
+                    await this._stepOut(event);
                 }
                 else {
-                    await this._vice.execBinary({
-                        type: bin.CommandType.checkpointSet,
-                        startAddress: nextAddress,
-                        endAddress: nextAddress,
-                        stop: true,
-                        temporary: true,
-                        enabled: true,
-                        operation: bin.CpuOperation.exec,
-                    })
-                }
-            }
+                    const nextAddress = nextLine.span!.absoluteAddress;
+                    let breaks : bin.CheckpointInfoResponse[] | null;
+                    if(breaks = await this._setLineGuard(this._currentPosition, nextLine)) {
+                        await this.continue();
+                        await this._vice.waitForStop();
 
+                        const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
+                            type: bin.CommandType.checkpointDelete,
+                            id: x.id,
+                        }));
+
+                        await this._vice.multiExecBinary(delBrks);
+                    }
+                    else {
+                        await this._vice.execBinary({
+                            type: bin.CommandType.checkpointSet,
+                            startAddress: nextAddress,
+                            endAddress: nextAddress,
+                            stop: true,
+                            temporary: true,
+                            enabled: true,
+                            operation: bin.CpuOperation.exec,
+                        })
+                    }
+                }
+            });
+
+            await this._doRunAhead();
+            this.sendEvent(event);
         });
 
-        await this._doRunAhead();
-
-        this.sendEvent(event);
 
         console.timeEnd('next');
     }
@@ -685,57 +691,64 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async stepIn() : Promise<void> {
-        if(this.viceRunning) {
-            return;
-        }
+        await this._vice.lock(async() => {
+            if(this.viceRunning) {
+                return;
+            }
 
-        if(!this._dbgFile.codeSeg) {
-            return;
-        }
+            if(!this._dbgFile.codeSeg) {
+                return;
+            }
 
-        if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
-            await this._vice.execBinary({
-                type: bin.CommandType.advanceInstructions,
-                stepOverSubroutines: false,
-                count: 1,
-            });
-            await this._vice.waitForStop();
-        }
-        else {
-            await this._callStackManager.withFrameBreaksEnabled(async () => {
-                const nextLine = this._getNextLine();
-                const breaks = await this._setLineGuard(this._currentPosition, nextLine);
+            if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
+                await Promise.all([
+                    this._vice.waitForStop(),
+                    this._vice.execBinary({
+                        type: bin.CommandType.advanceInstructions,
+                        stepOverSubroutines: false,
+                        count: 1,
+                    }),
+                ]);
+            }
+            else {
+                await this._callStackManager.withFrameBreaksEnabled(async () => {
+                    const nextLine = this._getNextLine();
+                    const breaks = await this._setLineGuard(this._currentPosition, nextLine);
 
-                await this.continue();
-                await this._vice.waitForStop();
+                    await this.continue();
+                    await this._vice.waitForStop();
 
-                if(breaks) {
-                    const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
-                        type: bin.CommandType.checkpointDelete,
-                        id: x.id,
-                    }));
+                    if(breaks) {
+                        const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
+                            type: bin.CommandType.checkpointDelete,
+                            id: x.id,
+                        }));
 
-                    await this._vice.multiExecBinary(delBrks);
-                }
-            });
-        }
+                        await this._vice.multiExecBinary(delBrks);
+                    }
+                });
+            }
 
-        await this._doRunAhead();
+            await this._doRunAhead();
 
-        const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
-        this.sendEvent('stopOnStep', null, ...args);
+            const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
+            this.sendEvent('stopOnStep', null, ...args);
+        });
     }
 
-    public async stepOut(event = 'stopOnStep') : Promise<void> {
+    private async _stepOut(event = 'stopOnStep') : Promise<void> {
         if(this.viceRunning) {
             return;
         }
 
         if(!await this._callStackManager.returnToLastStackFrame()) {
             if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
-                await this._vice.execBinary({
-                    type: bin.CommandType.executeUntilReturn,
-                });
+                await Promise.all([
+                    this._vice.waitForStop(),
+                    this._vice.execBinary({
+                        type: bin.CommandType.executeUntilReturn,
+                    }),
+                ]);
             }
             else {
                 this.sendMessage({
@@ -744,16 +757,20 @@ or define the location manually with the launch.json->mapFile setting`
                 });
 
                 const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
-                this.sendEvent('stopOnStep', null, ...args);
+                this.sendEvent(event, null, ...args);
             }
-
-            return;
         }
+    }
 
-        await this._doRunAhead();
+    public async stepOut(event = 'stopOnStep') : Promise<void> {
+        await this._vice.lock(async() => {
+            await this._stepOut();
 
-        const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
-        this.sendEvent(event, 'console', ...args);
+            await this._doRunAhead();
+
+            const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
+            this.sendEvent(event, 'console', ...args);
+        });
     }
 
     public async pause() {
@@ -1031,12 +1048,16 @@ or define the location manually with the launch.json->mapFile setting`
         return await this._variableManager.getTypeFields(addr, typeName);
     }
 
-    private _getCurrentScope() : debugFile.Scope | undefined {
+    private _getScope(line: debugFile.SourceLine) : debugFile.Scope | undefined {
         return this._dbgFile.scopes
             .find(x => x.codeSpan &&
-                x.codeSpan.absoluteAddress <= this._currentPosition.span!.absoluteAddress
-                && this._currentPosition.span!.absoluteAddress < x.codeSpan.absoluteAddress + x.codeSpan.size
+                x.codeSpan.absoluteAddress <= line.span!.absoluteAddress
+                && line.span!.absoluteAddress < x.codeSpan.absoluteAddress + x.codeSpan.size
             );
+    }
+
+    private _getCurrentScope() : debugFile.Scope | undefined {
+        return this._getScope(this._currentPosition);
     }
 
     private async _getVicePath(viceDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
