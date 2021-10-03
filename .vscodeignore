@@ -5,3 +5,5 @@
 !README.md
 !LICENSE.md
 !syntaxes/**/*
+!make.sh
+!make.bat

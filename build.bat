@@ -4,6 +4,6 @@ popd
 
 for %%i in (code) do @set CODE=%%~$PATH:i
 
-set BUILD=%SCRIPT_DIR%/dist/build.js
+set BUILD=%SCRIPT_DIR%/dist/debug-adapter.js
 set ELECTRON_RUN_AS_NODE=1
-"%CODE%" "%BUILD%" %*
+"%CODE%" "%BUILD%" build %*

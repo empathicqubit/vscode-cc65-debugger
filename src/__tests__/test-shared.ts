@@ -1,4 +1,3 @@
-import _transform from 'lodash/transform';
 import _random from 'lodash/fp/random';
 import _last from 'lodash/fp/last';
 import * as debugUtils from '../lib/debug-utils';
@@ -13,53 +12,6 @@ import { __basedir } from '../basedir';
 console.log('PROCESS', process.pid);
 
 metrics.options.disabled = true;
-
-export const DEFAULT_TEST_EXEC_HANDLER : debugUtils.ExecHandler = async (file, args, opts) => {
-    const promise = new Promise<[number, number]>((res, rej) => {
-
-        if(args.find(x => x.includes("monitor.js"))) {
-            console.log(args);
-            res([-1, -1]);
-            return;
-        }
-
-        const env : { [key: string]: string | undefined } =
-            _transform(opts.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
-
-        const proc = child_process.spawn(file, args, {
-            cwd: opts.cwd,
-            stdio: "pipe",
-            shell: true,
-            //shell: __dirname + "/xterm-c",
-            detached: false,
-            env: {
-                ...process.env,
-                ...env
-            }
-        });
-        const stdout = (data: Buffer) => {
-            console.log([expect.getState().currentTestName, _last(data.toString('ascii').split(/[\r\n]+/gim).filter(x => x))]);
-        };
-        const stderr = (data: Buffer) => {
-            console.error([expect.getState().currentTestName, _last(data.toString('ascii').split(/[\r\n]+/gim).filter(x => x))]);
-        };
-        proc.stdout.on('data', stdout);
-        proc.stderr.on('data', stderr);
-        const cleanup = (e) => {
-            proc.stdout.off('data', stdout);
-            proc.stderr.off('data', stderr);
-            e && console.error(e);
-        };
-        proc.on('disconnect', cleanup);
-        proc.on('close', cleanup);
-        proc.on('error', cleanup);
-        proc.on('exit', cleanup);
-
-        res([proc.pid, proc.pid]);
-    });
-
-    return await promise;
-};
 
 const ports = {
     "runtime.test.ts": 0x8000,
@@ -119,8 +71,9 @@ console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
 console.log('VICE DIRECTORY', DEFAULT_VICE_DIRECTORY);
 
 let pids : number[] = [];
+const defaultHandler = debugUtils.DEFAULT_HEADLESS_EXEC_HANDLER(buf => console.log(buf.toString("utf8")), buf => console.error(buf.toString("utf8")))
 export const cleanupExecHandler : debugUtils.ExecHandler = async (f, a, o) => {
-    const ret = await DEFAULT_TEST_EXEC_HANDLER(f, a, o)
+    const ret = await defaultHandler(f, a, o);
     pids.push(...ret);
 
     return ret;

@@ -22,8 +22,9 @@ describe('Compile', () => {
     let pids : number[] = [];
     let execHandler : debugUtils.ExecHandler;
     beforeEach(() => {
+        const defaultHandler = debugUtils.DEFAULT_HEADLESS_EXEC_HANDLER(buf => console.log(buf.toString("utf8")), buf => console.error(buf.toString("utf8")));
         execHandler = async (f, a, o) => {
-            const ret = await testShared.DEFAULT_TEST_EXEC_HANDLER(f, a, o)
+            const ret = await defaultHandler(f, a, o)
             pids.push(...ret);
 
             return ret;

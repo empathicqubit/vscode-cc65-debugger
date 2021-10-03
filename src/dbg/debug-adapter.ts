@@ -18,6 +18,27 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
- import { CC65ViceDebugSession } from './debug-session';
+import * as compile from '../lib/compile';
+import { CC65ViceDebugSession } from './debug-session';
+import * as debugUtils from '../lib/debug-utils';
 
- CC65ViceDebugSession.run(CC65ViceDebugSession);
+const build = async() => {
+    await compile.build({
+        cwd: process.cwd(),
+        command: rest[0],
+        args: rest.slice(1),
+    }, debugUtils.DEFAULT_HEADLESS_EXEC_HANDLER(buf => process.stdout.write(buf), buf => process.stderr.write(buf)));
+}
+
+const [,,command,...rest] = process.argv;
+if(command == 'build') {
+    build().then(() => {
+        process.exit(0);
+    }).catch((e) => {
+        console.error(e);
+        process.exit(1);
+    });
+}
+else {
+    CC65ViceDebugSession.run(CC65ViceDebugSession);
+}

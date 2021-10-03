@@ -173,8 +173,6 @@ VICE detects this may be to blame. To turn it off, just add `+warp` and
 If you've used the default `Makefile` at
 [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself),
 it's required to use a [slightly modified Makefile](src/__tests__/simple-project/Makefile).
-Otherwise you only need to add the `-g` option to your `CFLAGS` **and** `LDFLAGS`
-variables at the top of the file.
 
 If instead you made a custom Makefile, you will need to tell the linker that
 you want a debug file and a map file. You would add the following options to
@@ -196,7 +194,14 @@ name (minus the extension, of course) as your main program!
 If you have included any optimizations (`-Osir`) you should probably turn those
 off, however, effort has been made to trace some of them.
 
-You may also want to look at the [full Assembly project template](src/__tests__/asm-project), and the [C project template](src/__tests__/simple-project).
+You may also want to look at the [full Assembly project template](src/__tests__/asm-project),
+and the [C project template](src/__tests__/simple-project).
+
+Please also note the [make.sh](src/__tests__/simple-project/make.sh)
+and [make.bat](src/__tests__/simple-project/make.bat).
+These will help you run make (or anything else with minor modifications) from
+the proper context outside of vscode, so that you use the builtin cc65 compiler
+when possible, instead of the one installed on your machine.
 
 ## What works
 

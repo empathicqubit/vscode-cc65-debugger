@@ -1,3 +1,5 @@
+import _transform from 'lodash/transform';
+import _last from 'lodash/fp/last';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -80,4 +82,47 @@ export function getLineFromAddress(breakPoints: runtime.CC65ViceBreakpoint[], db
 
     return curSpan.lines.find(x => x.file)
         || curSpan.lines[0];
+}
+
+export function DEFAULT_HEADLESS_EXEC_HANDLER(stdout: (data: Buffer) => void, stderr: (data: Buffer) => void) : ExecHandler {
+    return async (file, args, opts) => {
+        const promise = new Promise<[number, number]>((res, rej) => {
+
+            if(args.find(x => x.includes("monitor.js"))) {
+                console.log(args);
+                res([-1, -1]);
+                return;
+            }
+
+            const env : { [key: string]: string | undefined } =
+                _transform(opts.env || {}, (a, c, k) => a[k] = c === null ? undefined : c);
+
+            const proc = child_process.spawn(file, args, {
+                cwd: opts.cwd,
+                stdio: "pipe",
+                shell: true,
+                //shell: __dirname + "/xterm-c",
+                detached: false,
+                env: {
+                    ...process.env,
+                    ...env
+                }
+            });
+            proc.stdout.on('data', stdout);
+            proc.stderr.on('data', stderr);
+            const cleanup = (e) => {
+                proc.stdout.off('data', stdout);
+                proc.stderr.off('data', stderr);
+                e && console.error(e);
+            };
+            proc.on('disconnect', cleanup);
+            proc.on('close', cleanup);
+            proc.on('error', cleanup);
+            proc.on('exit', cleanup);
+
+            res([proc.pid, proc.pid]);
+        });
+
+        return await promise;
+    };
 }
