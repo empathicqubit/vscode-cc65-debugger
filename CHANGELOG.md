@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.6.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.6.0...v4.6.1) (2021-10-03)
+
+
+### Bug Fixes
+
+* Actually add build entrypoint to zip ([3457391](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/3457391cd40aa1be5a4d178b49e18a1018450ad8))
+
 ## [4.6.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.5.1...v4.6.0) (2021-10-03)
 
 
