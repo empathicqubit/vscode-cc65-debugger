@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.5.1...v4.6.0) (2021-10-03)
+
+
+### Features
+
+* Added scripts to allow running builds in proper context. ([86b0b0e](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/86b0b0ebe5e366b569e8c310d5287106fa861435))
+
 ### [4.5.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.5.0...v4.5.1) (2021-10-02)
 
 
