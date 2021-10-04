@@ -77,15 +77,15 @@ export class ViceGrip extends EventEmitter {
             if(this._responseByteCount >= this._nextResponseLength) {
                 const res = bin.responseBufferToObject(this._responseBytes, this._nextResponseLength);
 
-                //console.log('response', bin.ResponseType[res.type], res);
-                this._responseEmitter.emit(res.requestId.toString(16), res);
-
                 if(res.type == bin.ResponseType.stopped) {
                     this._responseEmitter.emit('stopped', res);
                 }
                 else if(res.type == bin.ResponseType.resumed) {
                     this._responseEmitter.emit('resumed', res);
                 }
+
+                //console.log('response', bin.ResponseType[res.type], res);
+                this._responseEmitter.emit(res.requestId.toString(16), res);
 
                 const oldResponseByteCount = this._responseByteCount;
                 this._responseByteCount = 0;
