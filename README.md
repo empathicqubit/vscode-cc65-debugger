@@ -1,3 +1,5 @@
+<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.gif?raw=true" />
+
 # vscode-cc65-vice-debug
 
 [![Version](https://vsmarketplacebadge.apphb.com/version/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
@@ -17,8 +19,6 @@ This is an extension to let you debug CC65 C code (and ASM code to a small degre
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 
 If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-vice-debug/issues) or [messaging me on Twitter](https://twitter.com/intent/tweet?screen_name=empathicqubit).
-
-<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.gif?raw=true" />
 
 - [vscode-cc65-vice-debug](#vscode-cc65-vice-debug)
   * [Setup](#setup)
