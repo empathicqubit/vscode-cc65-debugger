@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.7.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.2...v4.7.3) (2021-10-04)
+
+
+### Bug Fixes
+
+* Move action image to the top of the README ([4d5e643](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/4d5e643622fff0756016f643937f2b861a6777ac))
+
 ### [4.7.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.1...v4.7.2) (2021-10-04)
 
 
