@@ -22,12 +22,15 @@ import * as mapFile from '../lib/map-file';
 import * as metrics from '../lib/metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
+import * as mathjs from 'mathjs';
 import * as child_process from 'child_process';
 import { __basedir } from '../basedir';
 
 export interface CC65ViceBreakpoint {
     id: number;
     line: debugFile.SourceLine;
+    // FIXME This should probably be preparsed
+    logMessage: string | undefined;
     viceIndex: number;
     verified: boolean;
 }
@@ -110,7 +113,7 @@ export class Runtime extends EventEmitter {
 
     private _registerMeta : {[key: string]: bin.SingleRegisterMeta };
     private _bankMeta : {[key: string]: bin.SingleBankMeta };
-    private _userBreak: boolean = false;
+    private _userBreak: CC65ViceBreakpoint | undefined;
     private _execHandler: debugUtils.ExecHandler;
 
     constructor(execHandler: debugUtils.ExecHandler) {
@@ -842,7 +845,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._stopOnExit = false;
         this._exitQueued = false;
-        this._userBreak = false;
+        this._userBreak = undefined;
 
         this._callStackManager = <any>undefined;
         this._variableManager = <any>undefined;
@@ -931,19 +934,23 @@ or define the location manually with the launch.json->mapFile setting`
         return this._breakPoints.filter(x => x.line.num == line && x.line.file && !path.relative(x.line.file.name, p)).map(x => x.line.num);
     }
 
-    public async setBreakPoint(breakPath: string, ...lines: number[]) : Promise<{[key:string]:CC65ViceBreakpoint}> {
+    public async setBreakPoint(breakPath: string, ...lines: {line: number, logMessage?: string }[]) : Promise<{[key:string]:CC65ViceBreakpoint}> {
         return await this._vice.lock(async () => {
             const wasRunning = this._viceRunning;
             await this._dbgFilePromise;
 
-            let lineSyms : { [key:string]: debugFile.SourceLine | null } = {};
+            let lineSyms : { [key:string]: { sym: debugFile.SourceLine, logMessage: string | undefined } | null } = {};
             for(const line of lines) {
-                const lineSym = this._dbgFile.lines.find(x => x.num == line && !path.relative(breakPath, x.file!.name));
+                const lineSym = this._dbgFile.lines.find(x => x.num == line.line && !path.relative(breakPath, x.file!.name));
                 if(!lineSym){
-                    lineSyms[line] = null;
+                    lineSyms[line.line] = null;
                     continue;
                 }
-                lineSyms[line] = lineSym;
+
+                lineSyms[line.line] = {
+                    sym: lineSym,
+                    logMessage: line.logMessage,
+                };
             }
 
             if(!Object.keys(lineSyms).length) {
@@ -965,18 +972,21 @@ or define the location manually with the launch.json->mapFile setting`
                         type: debugFile.SourceFileType.C
                     };
                     lineSym = {
-                        count: 0,
-                        id: 0,
-                        num: parseInt(line),
-                        span: undefined,
-                        spanId: 0,
-                        file: fil,
-                        fileId: 0,
-                        type: 0,
+                        sym: {
+                            count: 0,
+                            id: 0,
+                            num: parseInt(line),
+                            span: undefined,
+                            spanId: 0,
+                            file: fil,
+                            fileId: 0,
+                            type: 0,
+                        },
+                        logMessage: undefined,
                     };
                 }
 
-                const bp = <CC65ViceBreakpoint> { verified: false, line: lineSym, viceIndex: -1, id: this._breakpointId++ };
+                const bp = <CC65ViceBreakpoint> { verified: false, logMessage: lineSym.logMessage, line: lineSym.sym, viceIndex: -1, id: this._breakpointId++ };
                 bps[line] = bp;
             }
             this._breakPoints.push(...Object.values(bps))
@@ -1060,7 +1070,30 @@ or define the location manually with the launch.json->mapFile setting`
 
     // Variables
 
-    public async evaluate(exp: string) : Promise<VariableData | undefined> {
+    public async evaluateLogMessage(exp: string) : Promise<void> {
+        try {
+            const rex = /(\{.*?\})/g;
+            const frags = exp.split(rex);
+            const reses : string[] = [];
+            for(const frag of frags) {
+                let res : string;
+                if(rex.test(frag)) {
+                    const subexp = frag.substr(1, frag.length - 2);
+                    res = (await this.evaluate(subexp)).value;
+                }
+                else {
+                    res = frag;
+                }
+
+                reses.push(res);
+            }
+
+            this.sendEvent('output', 'stdout', reses.join('') + '\n');
+        }
+        catch {}
+    }
+
+    public async evaluate(exp: string) : Promise<VariableData> {
         const currentScope = this._getCurrentScope();
         return this._variableManager.evaluate(exp, currentScope);
     }
@@ -1212,7 +1245,7 @@ or define the location manually with the launch.json->mapFile setting`
                 }
                 else {
                     // We save this event for later, because it happens before the stop
-                    this._userBreak = !!this._breakPoints.find(x => x.viceIndex == index);
+                    this._userBreak = this._breakPoints.find(x => x.viceIndex == index);
                 }
 
                 this._viceRunning = false;
@@ -1239,8 +1272,11 @@ or define the location manually with the launch.json->mapFile setting`
             }
             else if(this._userBreak) {
                 await this._doRunAhead();
+                if(this._userBreak.logMessage) {
+                    await this.evaluateLogMessage(this._userBreak.logMessage);
+                }
                 !this._silenceEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
-                this._userBreak = false;
+                this._userBreak = undefined;
             }
             else {
                 !this._silenceEvents && this.sendEvent('stopOnStep', null, ...args);

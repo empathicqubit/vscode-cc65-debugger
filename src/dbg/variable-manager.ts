@@ -252,7 +252,7 @@ export class VariableManager {
         return vars;
     }
 
-    public async evaluate(exp: string, currentScope: debugFile.Scope | undefined) : Promise<VariableData | undefined> {
+    public async evaluate(exp: string, currentScope: debugFile.Scope | undefined) : Promise<VariableData> {
         const matchParts = async (parts: string[], vars: VariableData[]) : Promise<VariableData | undefined> => {
             let v : VariableData | undefined;
             for(const part of parts) {

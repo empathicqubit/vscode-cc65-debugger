@@ -453,13 +453,24 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
 
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
         try {
+            if(!args.breakpoints) {
+                // send back the actual breakpoint positions
+                response.body = {
+                    breakpoints: [],
+                };
+                this.sendResponse(response);
+                return;
+            }
+
             const path = args.source.path!;
-            const clientLines = args.lines || [];
 
             await this._runtime.clearBreakpoints(path);
 
             // set and verify breakpoint locations
-            const brks = await this._runtime.setBreakPoint(path, ...clientLines.map(l => this.convertClientLineToDebugger(l)));
+            const brks = await this._runtime.setBreakPoint(path, ...args.breakpoints.map(x => ({
+                line: this.convertClientLineToDebugger(x.line),
+                logMessage: x.logMessage
+            })));
 
             const actualBreakpoints : DebugProtocol.Breakpoint[] = [];
             for(const b in brks) {
