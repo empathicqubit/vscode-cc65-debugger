@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.7.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.6.2...v4.7.0) (2021-10-04)
+
+
+### Features
+
+* Conditional breakpoints work to a small extent. ([28e90ee](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/28e90ee135fb230387a38670f9b3fa15a014dc6d))
+* Evaluate log message breakpoints ([c082da6](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/c082da6c798ad71bd0ec8753d393c3a321257370))
+
 ### [4.6.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.6.1...v4.6.2) (2021-10-04)
 
 
