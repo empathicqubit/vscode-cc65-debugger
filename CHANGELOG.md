@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.7.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.3...v4.7.4) (2021-10-04)
+
+
+### Bug Fixes
+
+* Include preassigned statics. ([5b98b99](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/5b98b9920c96f450392f897adc80d0772a87cbbb))
+
 ### [4.7.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.2...v4.7.3) (2021-10-04)
 
 
