@@ -138,9 +138,85 @@ describe('Execution control', () => {
         }
     });
 
+    const SHITTON_C = path.join(BUILD_CWD, "src/test_shitton_of_breakpoints.c");
+    test('Conditional breakpoints work', async() => {
+        const rt = await testShared.newRuntime();
+
+        await rt.start(
+            await testShared.portGetter(),
+            PROGRAM,
+            BUILD_CWD,
+            true,
+            false,
+            false,
+            VICE_DIRECTORY,
+            VICE_ARGS,
+            false,
+            DEBUG_FILE,
+            MAP_FILE,
+            LABEL_FILE
+        );
+
+        await testShared.waitFor(rt, 'stopOnEntry');
+        await testShared.selectCTest(rt, 'test_shitton_of_breakpoints');
+
+        // This breakpoint shouldn't get hit
+        await rt.setBreakPoint(SHITTON_C,
+            {
+                line: 12,
+                condition: 'i == 2',
+            }
+        );
+
+        await rt.setBreakPoint(SHITTON_C,
+            {
+                line: 17,
+                condition: 'i == 2',
+            }
+        );
+
+        await Promise.all([
+            rt.continue(),
+            testShared.waitFor(rt, 'stopOnBreakpoint', (type, __, file, line, col) => {
+                assert.strictEqual(file, SHITTON_C);
+                assert.strictEqual(line, 17);
+            }),
+        ]);
+    });
+
+    test('Breakpoints can be set very early', async() => {
+        const rt = await testShared.newRuntime();
+
+        await Promise.all([
+            rt.start(
+                await testShared.portGetter(),
+                PROGRAM,
+                BUILD_CWD,
+                false,
+                true,
+                false,
+                VICE_DIRECTORY,
+                VICE_ARGS,
+                false,
+                DEBUG_FILE,
+                MAP_FILE,
+                LABEL_FILE
+            ),
+            (async() => {
+                for(let i = 0 ; i < 6 ; i++) {
+                    await Promise.all([
+                        rt.setBreakPoint(SHITTON_C, 7 + i * 5),
+                        rt.setBreakPoint(SHITTON_C, 9 + i * 5),
+                        rt.setBreakPoint(SHITTON_C, 10 + i * 5),
+                    ]);
+                }
+
+            })()
+        ]);
+    });
+
     test('Can set a shitton of breakpoints without them clearing', async() => {
         const rt = await testShared.newRuntime();
-        const SHITTON_C = path.join(BUILD_CWD, "src/test_shitton_of_breakpoints.c");
 
         await rt.start(
             await testShared.portGetter(),

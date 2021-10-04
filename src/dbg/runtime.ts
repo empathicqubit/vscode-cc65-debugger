@@ -31,6 +31,8 @@ export interface CC65ViceBreakpoint {
     line: debugFile.SourceLine;
     // FIXME This should probably be preparsed
     logMessage: string | undefined;
+    // FIXME This should probably be preparsed
+    condition: string | undefined;
     viceIndex: number;
     verified: boolean;
 }
@@ -47,6 +49,12 @@ export interface Registers {
 }
 
 const UPDATE_INTERVAL = 1000;
+
+interface _lineData {
+    line: number
+    logMessage?: string
+    condition?: string
+}
 
 /**
  * A CC65Vice runtime with debugging functionality.
@@ -89,7 +97,7 @@ export class Runtime extends EventEmitter {
     private _breakpointId = 1;
 
     private _viceRunning : boolean = false;
-    private _viceStarting : boolean = false;
+    private _viceStarting : boolean = true;
     public _vice : ViceGrip;
 
     private _colorTermPids: [number, number] = [-1, -1];
@@ -874,56 +882,65 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
-        const checkCmds : bin.CheckpointSetCommand[] = [];
-        for(const bp of this._breakPoints) {
-            const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.num == bp.line.num) && !path.relative(x.name, bp.line.file!.name));
-            if (!(sourceFile && !bp.verified && bp.line.num <= sourceFile.lines[sourceFile.lines.length - 1].num)) {
-                continue;
+        return await this._vice.lock(async () => {
+            const wasRunning = this._viceRunning;
+
+            const checkCmds : bin.CheckpointSetCommand[] = [];
+            for(const bp of this._breakPoints) {
+                const sourceFile = this._dbgFile.files.find(x => x.lines.find(x => x.num == bp.line.num) && !path.relative(x.name, bp.line.file!.name));
+                if (!(sourceFile && !bp.verified && bp.line.num <= sourceFile.lines[sourceFile.lines.length - 1].num)) {
+                    continue;
+                }
+
+                const srcLine = sourceFile.lines.find(x => x.num >= bp.line.num);
+
+                if(!srcLine || !srcLine.span) {
+                    continue;
+                }
+
+                bp.line = srcLine;
+
+                checkCmds.push({
+                    type: bin.CommandType.checkpointSet,
+                    startAddress: srcLine.span!.absoluteAddress,
+                    endAddress: srcLine.span!.absoluteAddress,
+                    enabled: true,
+                    stop: true,
+                    temporary: false,
+                    operation: bin.CpuOperation.exec,
+                })
             }
 
-            const srcLine = sourceFile.lines.find(x => x.num >= bp.line.num);
+            this._silenceEvents = true;
+            await this._vice.ping();
+            const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
 
-            if(!srcLine || !srcLine.span) {
-                continue;
+            const condCmds : bin.ConditionSetCommand[] = [];
+            for(const brk of brks) {
+                const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
+                if(!bp) {
+                    continue;
+                }
+
+                bp.viceIndex = brk.id;
+                bp.verified = true;
+                this.sendEvent('breakpointValidated', bp);
+
+                condCmds.push({
+                    type: bin.CommandType.conditionSet,
+                    checkpointId: brk.id,
+                    condition: '$574c == $574c',
+                });
             }
 
-            bp.line = srcLine;
+            await this._vice.multiExecBinary(condCmds);
+            this._silenceEvents = false;
 
-            checkCmds.push({
-                type: bin.CommandType.checkpointSet,
-                startAddress: srcLine.span!.absoluteAddress,
-                endAddress: srcLine.span!.absoluteAddress,
-                enabled: true,
-                stop: true,
-                temporary: false,
-                operation: bin.CpuOperation.exec,
-            })
-        }
-
-        this._silenceEvents = true;
-        await this._vice.ping();
-        const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
-
-        const condCmds : bin.ConditionSetCommand[] = [];
-        for(const brk of brks) {
-            const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
-            if(!bp) {
-                continue;
+            if(wasRunning) {
+                await this._vice.exit();
+                this._viceRunning = true;
             }
-
-            bp.viceIndex = brk.id;
-            bp.verified = true;
-            this.sendEvent('breakpointValidated', bp);
-
-            condCmds.push({
-                type: bin.CommandType.conditionSet,
-                checkpointId: brk.id,
-                condition: '$574c == $574c',
-            });
-        }
-
-        await this._vice.multiExecBinary(condCmds);
-        this._silenceEvents = false;
+        });
     }
 
     public getBreakpointLength() : number {
@@ -934,75 +951,81 @@ or define the location manually with the launch.json->mapFile setting`
         return this._breakPoints.filter(x => x.line.num == line && x.line.file && !path.relative(x.line.file.name, p)).map(x => x.line.num);
     }
 
-    public async setBreakPoint(breakPath: string, ...lines: {line: number, logMessage?: string }[]) : Promise<{[key:string]:CC65ViceBreakpoint}> {
-        return await this._vice.lock(async () => {
-            const wasRunning = this._viceRunning;
-            await this._dbgFilePromise;
+    public async setBreakPoint(breakPath: string, ...lines: (_lineData | number)[]) : Promise<{[key:string]:CC65ViceBreakpoint}> {
+        await this._dbgFilePromise;
 
-            let lineSyms : { [key:string]: { sym: debugFile.SourceLine, logMessage: string | undefined } | null } = {};
-            for(const line of lines) {
-                const lineSym = this._dbgFile.lines.find(x => x.num == line.line && !path.relative(breakPath, x.file!.name));
-                if(!lineSym){
-                    lineSyms[line.line] = null;
-                    continue;
-                }
+        let lineSyms : { [key:string]: { sym: debugFile.SourceLine, logMessage: string | undefined, condition: string | undefined } | null } = {};
+        for(const l of lines) {
+            let line : _lineData;
+            if(typeof l === 'number') {
+                line = { line: l };
+            }
+            else {
+                line = l;
+            }
 
-                lineSyms[line.line] = {
-                    sym: lineSym,
-                    logMessage: line.logMessage,
+            const lineSym = this._dbgFile.lines.find(x => x.num == line.line && !path.relative(breakPath, x.file!.name));
+            if(!lineSym){
+                lineSyms[line.line] = null;
+                continue;
+            }
+
+            lineSyms[line.line] = {
+                sym: lineSym,
+                logMessage: line.logMessage,
+                condition: line.condition,
+            };
+        }
+
+        if(!Object.keys(lineSyms).length) {
+            return {};
+        }
+
+        const bps : {[key:string]:CC65ViceBreakpoint} = {};
+        for(const line in lineSyms) {
+            let lineSym = lineSyms[line];
+
+            if(!lineSym) {
+                const fil : debugFile.SourceFile = {
+                    mtime: new Date(),
+                    name: breakPath,
+                    mod: "",
+                    lines: [],
+                    id: 0,
+                    size: 0,
+                    type: debugFile.SourceFileType.C
+                };
+                lineSym = {
+                    sym: {
+                        count: 0,
+                        id: 0,
+                        num: parseInt(line),
+                        span: undefined,
+                        spanId: 0,
+                        file: fil,
+                        fileId: 0,
+                        type: 0,
+                    },
+                    logMessage: undefined,
+                    condition: undefined,
                 };
             }
 
-            if(!Object.keys(lineSyms).length) {
-                return {};
-            }
+            const bp = <CC65ViceBreakpoint> { verified: false, logMessage: lineSym.logMessage, condition: lineSym.condition, line: lineSym.sym, viceIndex: -1, id: this._breakpointId++ };
+            bps[line] = bp;
+        }
+        this._breakPoints.push(...Object.values(bps))
 
-            const bps : {[key:string]:CC65ViceBreakpoint} = {};
-            for(const line in lineSyms) {
-                let lineSym = lineSyms[line];
+        await this._verifyBreakpoints();
 
-                if(!lineSym) {
-                    const fil : debugFile.SourceFile = {
-                        mtime: new Date(),
-                        name: breakPath,
-                        mod: "",
-                        lines: [],
-                        id: 0,
-                        size: 0,
-                        type: debugFile.SourceFileType.C
-                    };
-                    lineSym = {
-                        sym: {
-                            count: 0,
-                            id: 0,
-                            num: parseInt(line),
-                            span: undefined,
-                            spanId: 0,
-                            file: fil,
-                            fileId: 0,
-                            type: 0,
-                        },
-                        logMessage: undefined,
-                    };
-                }
-
-                const bp = <CC65ViceBreakpoint> { verified: false, logMessage: lineSym.logMessage, line: lineSym.sym, viceIndex: -1, id: this._breakpointId++ };
-                bps[line] = bp;
-            }
-            this._breakPoints.push(...Object.values(bps))
-
-            await this._verifyBreakpoints();
-
-            if(wasRunning) {
-                await this._vice.exit();
-                this._viceRunning = true;
-            }
-
-            return bps;
-        });
+        return bps;
     }
 
     public async clearBreakpoints(p : string): Promise<void> {
+        if(this._viceStarting) {
+            return;
+        }
+
         await this._vice.lock(async () => {
             const wasRunning = this._viceRunning;
             this._silenceEvents = true;
@@ -1275,7 +1298,23 @@ or define the location manually with the launch.json->mapFile setting`
                 if(this._userBreak.logMessage) {
                     await this.evaluateLogMessage(this._userBreak.logMessage);
                 }
-                !this._silenceEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
+                if(this._userBreak.condition) {
+                    try {
+                        const res = await this.evaluate(this._userBreak.condition);
+                        if(res.value == "true") {
+                            throw new Error("Hit break");
+                        }
+                        else {
+                            await this._vice.exit();
+                        }
+                    }
+                    catch {
+                        !this._silenceEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
+                    }
+                }
+                else {
+                    !this._silenceEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
+                }
                 this._userBreak = undefined;
             }
             else {

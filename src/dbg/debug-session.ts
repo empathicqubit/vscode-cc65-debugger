@@ -469,7 +469,8 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             // set and verify breakpoint locations
             const brks = await this._runtime.setBreakPoint(path, ...args.breakpoints.map(x => ({
                 line: this.convertClientLineToDebugger(x.line),
-                logMessage: x.logMessage
+                logMessage: x.logMessage,
+                condition: x.condition,
             })));
 
             const actualBreakpoints : DebugProtocol.Breakpoint[] = [];
