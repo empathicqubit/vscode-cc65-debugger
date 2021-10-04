@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.6.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.6.1...v4.6.2) (2021-10-04)
+
+
+### Bug Fixes
+
+* Setting a breakpoint doesn't cause the execution cursor to flash. ([9c1d14e](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/9c1d14edd4c1363edb7f3b0d566e7e9c100aa2ba))
+
 ### [4.6.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.6.0...v4.6.1) (2021-10-03)
 
 
