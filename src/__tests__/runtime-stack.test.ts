@@ -14,6 +14,7 @@ describe('Stack', () => {
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     const LOCALVARS_C = path.join(BUILD_CWD, "src/test_local_vars.c");
+    const LOCALVARS_LASTLINE = 52;
 
     afterEach(testShared.cleanup);
 
@@ -52,13 +53,13 @@ describe('Stack', () => {
             await testShared.waitFor(rt, 'started');
             await testShared.selectCTest(rt, 'test_local_vars');
 
-            await rt.setBreakPoint(LOCALVARS_C, 51);
+            await rt.setBreakPoint(LOCALVARS_C, LOCALVARS_LASTLINE);
 
             await Promise.all([
                 rt.continue(),
                 testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
                     assert.strictEqual(file, LOCALVARS_C);
-                    assert.strictEqual(line, 51);
+                    assert.strictEqual(line, LOCALVARS_LASTLINE);
                 }),
             ]);
 
@@ -242,13 +243,13 @@ describe('Stack', () => {
         await testShared.waitFor(rt, 'started');
         await testShared.selectCTest(rt, 'test_local_vars');
 
-        await rt.setBreakPoint(LOCALVARS_C, 51);
+        await rt.setBreakPoint(LOCALVARS_C, LOCALVARS_LASTLINE);
 
         await Promise.all([
             rt.continue(),
             testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
                 assert.strictEqual(file, LOCALVARS_C);
-                assert.strictEqual(line, 51);
+                assert.strictEqual(line, LOCALVARS_LASTLINE);
             }),
         ]);
 
@@ -291,7 +292,7 @@ describe('Stack', () => {
         assert.deepStrictEqual(locals.find(x => x.name == 'whoa')!.value, "-0x01");
 
         console.log(statics)
-        assert.deepStrictEqual(statics.map(x => x.name).sort(), ['weehah']);
-        assert.deepStrictEqual(statics[0].value, "0x59");
+        assert.deepStrictEqual(statics.map(x => x.name).sort(), ['bonza', 'weehah']);
+        assert.deepStrictEqual(statics.map(x => x.value), ["0x42", "0x59"]);
     });
 });

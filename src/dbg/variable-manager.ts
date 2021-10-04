@@ -22,7 +22,7 @@ export class VariableManager {
     private _paramStackTop?: number;
     private _paramStackPointer?: number;
     private _vice: ViceGrip;
-    private _bssLabs: debugFile.Sym[] = [];
+    private _staticLabs: debugFile.Sym[] = [];
     private _globalLabs: debugFile.Sym[] = [];
     private _tableFiles: tableFile.TableFile[];
 
@@ -35,7 +35,7 @@ export class VariableManager {
         }
 
         if(labs && labs.length) {
-            this._bssLabs = labs.filter(x => x.seg && x.seg.name == "BSS");
+            this._staticLabs = labs.filter(x => x.seg && (x.seg.name == "BSS" || x.seg.name == "DATA"));
             this._globalLabs = labs.filter(sym => sym.name.startsWith("_") && sym.seg != codeSeg);
         }
     }
@@ -339,7 +339,7 @@ export class VariableManager {
             return [];
         }
 
-        const scopeLabs = this._bssLabs.filter(x => x.scope == currentScope);
+        const scopeLabs = this._staticLabs.filter(x => x.scope == currentScope);
 
         const vars : VariableData[] = [];
 
@@ -385,17 +385,6 @@ export class VariableManager {
 
             // FIXME Parallelize this?
             vars.push(await this._renderValue(currentScope.name + '()', csym.name, addr));
-        }
-
-        if(vars.length <= 1) {
-            const labs = this._bssLabs.filter(x => x.scope == currentScope)
-            console.log(`Total labs: ${labs.length}`);
-            for(const lab of labs) {
-                vars.push(await this._varFromLab(lab));
-            }
-        }
-        else {
-            console.log('We had vars');
         }
 
         return vars;
