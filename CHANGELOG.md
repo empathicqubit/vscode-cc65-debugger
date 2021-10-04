@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.7.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.0...v4.7.1) (2021-10-04)
+
+
+### Bug Fixes
+
+* Event handling was breaking sprites. ([2f4cb79](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/2f4cb79f0087ba94886a86398687e4590c2914eb))
+
 ## [4.7.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.6.2...v4.7.0) (2021-10-04)
 
 
