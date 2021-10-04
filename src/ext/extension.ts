@@ -96,7 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
-        if(!vscode.debug.activeDebugSession || vscode.debug.activeDebugSession.type != 'cc65-vice') {
+        if(!e.session || e.session.type != 'cc65-vice') {
             return;
         }
 
