@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.7.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.1...v4.7.2) (2021-10-04)
+
+
+### Bug Fixes
+
+* Update gif to show off expression features. ([fd68d01](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/fd68d016970956c1e5f05a6ec5f3c7435011a70b))
+
 ### [4.7.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.0...v4.7.1) (2021-10-04)
 
 
