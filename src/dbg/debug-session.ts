@@ -456,8 +456,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             const path = args.source.path!;
             const clientLines = args.lines || [];
 
-            const wasRunning = this._runtime.viceRunning;
-
             await this._runtime.clearBreakpoints(path);
 
             // set and verify breakpoint locations
@@ -470,10 +468,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 const bp = <DebugProtocol.Breakpoint> new Breakpoint(verified, this.convertDebuggerLineToClient(line.num));
                 bp.id = id;
                 actualBreakpoints.push(bp);
-            }
-
-            if(wasRunning) {
-                await this._runtime.continue();
             }
 
             // send back the actual breakpoint positions

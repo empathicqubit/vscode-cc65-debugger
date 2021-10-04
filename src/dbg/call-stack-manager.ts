@@ -352,6 +352,8 @@ export class CallStackManager {
     }
 
     public addFrame(info: bin.CheckpointInfoResponse, line: () => debugFile.SourceLine) {
+        // FIXME These really need to be clearly marked to keep the user from messing them up
+        // by adding their own.
         if(info.stop) {
             return;
         }

@@ -85,13 +85,25 @@ export class Runtime extends EventEmitter {
     // so that the frontend can match events with breakpoints.
     private _breakpointId = 1;
 
-    public viceRunning : boolean = false;
+    private _viceRunning : boolean = false;
     private _viceStarting : boolean = false;
     public _vice : ViceGrip;
 
     private _colorTermPids: [number, number] = [-1, -1];
     private _runAhead: boolean;
+    /**
+     * Completely prevent events from having any impact on the runtime state.
+     * This is used to prevent running the machine state ahead from interfering
+     * with the stack trace or registers.
+     */
     private _ignoreEvents: boolean = false;
+
+    /**
+     * Setting this allows machine events to be properly handled, but will
+     * prevent them from updating the execution position in the editor.
+     */
+    private _silenceEvents: boolean = false;
+
     private _screenUpdateTimer: NodeJS.Timeout | undefined;
     private _terminated: boolean = false;
     private _attachProgram: string | undefined;
@@ -458,7 +470,7 @@ export class Runtime extends EventEmitter {
     private async _screenUpdateHandler() : Promise<void> {
         await this._vice.lock(async() => {
             try {
-                const wasRunning = this.viceRunning;
+                const wasRunning = this._viceRunning;
 
                 if(wasRunning) {
                     await this._updateUI();
@@ -474,14 +486,14 @@ export class Runtime extends EventEmitter {
     }
 
     private async _updateUI() : Promise<void> {
-        this._ignoreEvents = true;
+        this._silenceEvents = true;
         await this._vice.ping();
         await this._graphicsManager.updateUI(this);
-        this._ignoreEvents = false;
+        this._silenceEvents = false;
     }
 
     public async updateMemoryOffset(offset: number) {
-        const wasRunning = this.viceRunning;
+        const wasRunning = this._viceRunning;
 
         await this._graphicsManager.updateMemoryOffset(offset);
         if(!wasRunning) {
@@ -490,7 +502,7 @@ export class Runtime extends EventEmitter {
     }
 
     public async updateMemoryBank(bank: number) {
-        const wasRunning = this.viceRunning;
+        const wasRunning = this._viceRunning;
 
         await this._graphicsManager.updateMemoryBank(bank);
         if(!wasRunning) {
@@ -509,13 +521,13 @@ export class Runtime extends EventEmitter {
     }
 
     public async keypress(key: string) : Promise<void> {
-        const wasRunning = this.viceRunning;
-        this._ignoreEvents = true;
+        const wasRunning = this._viceRunning;
+        this._silenceEvents = true;
         await this._vice.execBinary({
             type: bin.CommandType.keyboardFeed,
             text: key,
         });
-        this._ignoreEvents = false;
+        this._silenceEvents = false;
         if(wasRunning) {
             await this.continue();
         }
@@ -593,7 +605,7 @@ or define the location manually with the launch.json->mapFile setting`
 
     public async next(reverse = false, event = 'stopOnStep') : Promise<void> {
         await this._vice.lock(async () => {
-            if(this.viceRunning) {
+            if(this._viceRunning) {
                 return;
             }
 
@@ -692,7 +704,7 @@ or define the location manually with the launch.json->mapFile setting`
 
     public async stepIn() : Promise<void> {
         await this._vice.lock(async() => {
-            if(this.viceRunning) {
+            if(this._viceRunning) {
                 return;
             }
 
@@ -737,7 +749,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     private async _stepOut(event = 'stopOnStep') : Promise<void> {
-        if(this.viceRunning) {
+        if(this._viceRunning) {
             return;
         }
 
@@ -826,7 +838,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._vice = <any>undefined;
 
-        this.viceRunning = false;
+        this._viceRunning = false;
 
         this._stopOnExit = false;
         this._exitQueued = false;
@@ -885,29 +897,30 @@ or define the location manually with the launch.json->mapFile setting`
             })
         }
 
-        await this._vice.lock(async () => {
-            const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
+        this._silenceEvents = true;
+        await this._vice.ping();
+        const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
 
-            const condCmds : bin.ConditionSetCommand[] = [];
-            for(const brk of brks) {
-                const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
-                if(!bp) {
-                    continue;
-                }
-
-                bp.viceIndex = brk.id;
-                bp.verified = true;
-                this.sendEvent('breakpointValidated', bp);
-
-                condCmds.push({
-                    type: bin.CommandType.conditionSet,
-                    checkpointId: brk.id,
-                    condition: '$574c == $574c',
-                });
+        const condCmds : bin.ConditionSetCommand[] = [];
+        for(const brk of brks) {
+            const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
+            if(!bp) {
+                continue;
             }
 
-            await this._vice.multiExecBinary(condCmds);
-        });
+            bp.viceIndex = brk.id;
+            bp.verified = true;
+            this.sendEvent('breakpointValidated', bp);
+
+            condCmds.push({
+                type: bin.CommandType.conditionSet,
+                checkpointId: brk.id,
+                condition: '$574c == $574c',
+            });
+        }
+
+        await this._vice.multiExecBinary(condCmds);
+        this._silenceEvents = false;
     }
 
     public getBreakpointLength() : number {
@@ -919,101 +932,119 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async setBreakPoint(breakPath: string, ...lines: number[]) : Promise<{[key:string]:CC65ViceBreakpoint}> {
-        await this._dbgFilePromise;
+        return await this._vice.lock(async () => {
+            const wasRunning = this._viceRunning;
+            await this._dbgFilePromise;
 
-        let lineSyms : { [key:string]: debugFile.SourceLine | null } = {};
-        for(const line of lines) {
-            const lineSym = this._dbgFile.lines.find(x => x.num == line && !path.relative(breakPath, x.file!.name));
-            if(!lineSym){
-                lineSyms[line] = null;
-                continue;
-            }
-            lineSyms[line] = lineSym;
-        }
-
-        if(!Object.keys(lineSyms).length) {
-            return {};
-        }
-
-        const bps : {[key:string]:CC65ViceBreakpoint} = {};
-        for(const line in lineSyms) {
-            let lineSym = lineSyms[line];
-
-            if(!lineSym) {
-                const fil : debugFile.SourceFile = {
-                    mtime: new Date(),
-                    name: breakPath,
-                    mod: "",
-                    lines: [],
-                    id: 0,
-                    size: 0,
-                    type: debugFile.SourceFileType.C
-                };
-                lineSym = {
-                    count: 0,
-                    id: 0,
-                    num: parseInt(line),
-                    span: undefined,
-                    spanId: 0,
-                    file: fil,
-                    fileId: 0,
-                    type: 0,
-                };
+            let lineSyms : { [key:string]: debugFile.SourceLine | null } = {};
+            for(const line of lines) {
+                const lineSym = this._dbgFile.lines.find(x => x.num == line && !path.relative(breakPath, x.file!.name));
+                if(!lineSym){
+                    lineSyms[line] = null;
+                    continue;
+                }
+                lineSyms[line] = lineSym;
             }
 
-            const bp = <CC65ViceBreakpoint> { verified: false, line: lineSym, viceIndex: -1, id: this._breakpointId++ };
-            bps[line] = bp;
-        }
-        this._breakPoints.push(...Object.values(bps))
+            if(!Object.keys(lineSyms).length) {
+                return {};
+            }
 
-        await this._verifyBreakpoints();
+            const bps : {[key:string]:CC65ViceBreakpoint} = {};
+            for(const line in lineSyms) {
+                let lineSym = lineSyms[line];
 
-        return bps;
+                if(!lineSym) {
+                    const fil : debugFile.SourceFile = {
+                        mtime: new Date(),
+                        name: breakPath,
+                        mod: "",
+                        lines: [],
+                        id: 0,
+                        size: 0,
+                        type: debugFile.SourceFileType.C
+                    };
+                    lineSym = {
+                        count: 0,
+                        id: 0,
+                        num: parseInt(line),
+                        span: undefined,
+                        spanId: 0,
+                        file: fil,
+                        fileId: 0,
+                        type: 0,
+                    };
+                }
+
+                const bp = <CC65ViceBreakpoint> { verified: false, line: lineSym, viceIndex: -1, id: this._breakpointId++ };
+                bps[line] = bp;
+            }
+            this._breakPoints.push(...Object.values(bps))
+
+            await this._verifyBreakpoints();
+
+            if(wasRunning) {
+                await this._vice.exit();
+                this._viceRunning = true;
+            }
+
+            return bps;
+        });
     }
 
     public async clearBreakpoints(p : string): Promise<void> {
-        let dels : bin.CheckpointDeleteCommand[] = [];
-        for(const bp of [...this._breakPoints]) {
-            if(path.relative(p, bp.line.file!.name)) {
-                continue;
-            }
+        await this._vice.lock(async () => {
+            const wasRunning = this._viceRunning;
+            this._silenceEvents = true;
+            await this._vice.ping();
 
-            const index = this._breakPoints.indexOf(bp);
-            if(index == -1) {
-                continue;
-            }
-            this._breakPoints.splice(index, 1);
-
-            if(bp.viceIndex <= 0) {
-                continue;
-            }
-
-            dels.push({
-                type: bin.CommandType.checkpointDelete,
-                id: bp.viceIndex,
-            })
-
-            // Also clean up breakpoints with the same address.
-            // FIXME: This smells weird. Reassess and document reasoning.
-            const bks = await this._vice.checkpointList();
-            for(const bk of bks.related) {
-                if(bk.startAddress == bp.line.span!.absoluteAddress) {
-                    dels.push({
-                        type: bin.CommandType.checkpointDelete,
-                        id: bk.id,
-                    });
+            let dels : bin.CheckpointDeleteCommand[] = [];
+            for(const bp of [...this._breakPoints]) {
+                if(path.relative(p, bp.line.file!.name)) {
+                    continue;
                 }
+
+                const index = this._breakPoints.indexOf(bp);
+                if(index == -1) {
+                    continue;
+                }
+                this._breakPoints.splice(index, 1);
+
+                if(bp.viceIndex <= 0) {
+                    continue;
+                }
+
+                dels.push({
+                    type: bin.CommandType.checkpointDelete,
+                    id: bp.viceIndex,
+                })
+
+                // Also clean up breakpoints with the same address.
+                // FIXME: This smells weird. Reassess and document reasoning.
+                const bks = await this._vice.checkpointList();
+                for(const bk of bks.related) {
+                    if(bk.startAddress == bp.line.span!.absoluteAddress) {
+                        dels.push({
+                            type: bin.CommandType.checkpointDelete,
+                            id: bk.id,
+                        });
+                    }
+                }
+
             }
 
-        }
+            dels = _uniqBy(x => x.id, dels);
 
-        dels = _uniqBy(x => x.id, dels);
-
-        if(dels.length) {
-            this._vice.lock(async () => {
+            if(dels.length) {
                 await this._vice.multiExecBinary(dels);
-            });
-        }
+            }
+
+            this._silenceEvents = false;
+            if(wasRunning) {
+                await this._vice.exit();
+                this._viceRunning = true;
+            }
+        });
     }
 
     public setDataBreakpoint(address: string): boolean {
@@ -1184,14 +1215,14 @@ or define the location manually with the launch.json->mapFile setting`
                     this._userBreak = !!this._breakPoints.find(x => x.viceIndex == index);
                 }
 
-                this.viceRunning = false;
+                this._viceRunning = false;
             }
         }
         else if(e.type == bin.ResponseType.registerInfo) {
             this._updateRegisters(e.registers);
         }
         else if(e.type == bin.ResponseType.stopped) {
-            this.viceRunning = false;
+            this._viceRunning = false;
 
             this._updateCurrentAddress(e.programCounter);
 
@@ -1200,19 +1231,19 @@ or define the location manually with the launch.json->mapFile setting`
             }
 
             const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0]
-            this.sendEvent('output', 'console', ...args);
+            !this._silenceEvents && this.sendEvent('output', 'console', ...args);
 
             if(this._exitQueued) {
                 await this._doRunAhead();
-                this.sendEvent('stopOnExit', null, ...args);
+                !this._silenceEvents && this.sendEvent('stopOnExit', null, ...args);
             }
             else if(this._userBreak) {
                 await this._doRunAhead();
-                this.sendEvent('stopOnBreakpoint', null, ...args);
+                !this._silenceEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
                 this._userBreak = false;
             }
             else {
-                this.sendEvent('stopOnStep', null, ...args);
+                !this._silenceEvents && this.sendEvent('stopOnStep', null, ...args);
             }
         }
         else if(e.type == bin.ResponseType.resumed) {
@@ -1221,10 +1252,10 @@ or define the location manually with the launch.json->mapFile setting`
                 return;
             }
 
-            this.viceRunning = true;
+            this._viceRunning = true;
             this._updateCurrentAddress(e.programCounter);
 
-            if(!this._viceStarting) {
+            if(!this._viceStarting && !this._silenceEvents) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
         }
@@ -1298,15 +1329,18 @@ or define the location manually with the launch.json->mapFile setting`
                 [debugFile.MachineType.vic20]: 0xEEB2,
             };
             const serialLineResumeAddress = serialLineResumeAddresses[this._dbgFile.machineType];
-            const serialLineCheckpoint = await this._vice.execBinary({
-                type: bin.CommandType.checkpointSet,
-                startAddress: serialLineResumeAddress,
-                endAddress: serialLineResumeAddress,
-                stop: true,
-                enabled: true,
-                operation: bin.CpuOperation.exec,
-                temporary: false,
-            });
+            let serialLineCheckpoint : bin.CheckpointInfoResponse | undefined;
+            if(serialLineResumeAddress) {
+                serialLineCheckpoint = await this._vice.execBinary({
+                    type: bin.CommandType.checkpointSet,
+                    startAddress: serialLineResumeAddress,
+                    endAddress: serialLineResumeAddress,
+                    stop: true,
+                    enabled: true,
+                    operation: bin.CpuOperation.exec,
+                    temporary: false,
+                });
+            }
 
             const brkRes = await this._vice.execBinary({
                 type: bin.CommandType.checkpointSet,
@@ -1341,10 +1375,12 @@ or define the location manually with the launch.json->mapFile setting`
                 type: bin.CommandType.checkpointDelete,
                 id: brkRes.id,
             });
-            await this._vice.execBinary({
-                type: bin.CommandType.checkpointDelete,
-                id: serialLineCheckpoint.id,
-            });
+            if(serialLineCheckpoint) {
+                await this._vice.execBinary({
+                    type: bin.CommandType.checkpointDelete,
+                    id: serialLineCheckpoint.id,
+                });
+            }
         });
         this._ignoreEvents = false;
 
