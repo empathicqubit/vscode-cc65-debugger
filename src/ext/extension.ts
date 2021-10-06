@@ -89,6 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
         'memory',
         'palette',
         'banks',
+        'registers',
         'screenText',
         'runahead',
         'current',

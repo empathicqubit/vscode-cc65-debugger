@@ -279,6 +279,8 @@ export function _statsWebviewContent() {
         memColor3: number;
         memBank: number;
         banks: {id: number, name: string}[];
+        metas: {id: number, name: string}[];
+        registers: {id: number, value: number}[];
     };
 
     class Hider extends React.Component<unknown, { visible: boolean }, unknown> {
@@ -303,6 +305,15 @@ export function _statsWebviewContent() {
 
     class Main extends React.PureComponent<RenderProps> {
         render() {
+            let rasterPosition = -1;
+            const linMeta = this.props.metas.find(x => x.name == "LIN");
+            if(linMeta && this.props.registers.length) {
+                const reg = this.props.registers.find(x => x.id == linMeta.id)
+                if(reg) {
+                    rasterPosition = reg.value / 0xff * 100;
+                }
+            }
+
             return r(reactTabs.Tabs, { className: 'all-tabs'},
                 r(reactTabs.TabList, null,
                     r(reactTabs.Tab, null, 'Display (Current)'),
@@ -312,7 +323,7 @@ export function _statsWebviewContent() {
                     r(reactTabs.Tab, null, 'Memory'),
                 ),
                 r(reactTabs.TabPanel, {
-                    className: 'current-frame',
+                    className: 'current-frame display-frame',
                     onKeyDown: keydown,
                     onKeyUp: keyup,
                 },
@@ -326,12 +337,22 @@ similar to VICE's default. Tab is C=.
                     ),
                     !this.props.current
                         ? r('h1', null, 'Loading...')
-                        : r('img', { src: this.props.current.blobUrl }),
+                        : r('div', { className: 'display' },
+                            r('img', { src: this.props.current.blobUrl }),
+                            rasterPosition != -1
+                            ? r('hr', {
+                                className: 'display__rasterline',
+                                style: {
+                                    top: rasterPosition + '%',
+                                },
+                            })
+                            : null,
+                        )
                 ),
                 !this.props.runAhead
                     ? null
                     : r(reactTabs.TabPanel, {
-                        className: 'next-frame',
+                        className: 'next-frame display-frame',
                     },
                         r(Hider, null,
                             r('div', { dangerouslySetInnerHTML: { __html: marked(`
@@ -534,6 +555,8 @@ or disable colors. You can select the text and copy it to your clipboard.
         sprites: [],
         palette: [],
         banks: [],
+        metas: [],
+        registers: [],
         enableColors: true,
         preferredTextType: PreferredTextType.Graphics,
         memory: [],
@@ -603,6 +626,17 @@ or disable colors. You can select the text and copy it to your clipboard.
             if(msgData.banks) {
                 if(!data.banks || !data.banks.length) {
                     data.banks = msgData.banks;
+                }
+            }
+            if(msgData.registers) {
+                const r = msgData.registers;
+                if(!data.registers || data.registers.length != r.length || !data.registers.every((x, i) => r[i].id == x.id && r[i].value == x.value)) {
+                    data.registers = r;
+                }
+            }
+            if(msgData.metas) {
+                if(!data.metas || !data.metas.length) {
+                    data.metas = msgData.metas;
                 }
             }
             if(msgData.palette) {

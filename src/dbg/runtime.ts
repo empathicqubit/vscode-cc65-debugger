@@ -188,7 +188,7 @@ export class Runtime extends EventEmitter {
         registersAvailable.registers.forEach(x => this._registerMeta[x.name] = x);
         banksAvailable.banks.forEach(x => this._bankMeta[x.name] = x);
 
-        await this._graphicsManager.postViceStart(this, this._bankMeta['io'], this._bankMeta['ram'], Object.values(this._bankMeta)),
+        await this._graphicsManager.postViceStart(this, this._bankMeta['io'], this._bankMeta['ram'], Object.values(this._bankMeta), Object.values(this._registerMeta)),
         await this._setupViceEventHandler();
 
         await this._updateUI();
