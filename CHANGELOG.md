@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.7.5](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.4...v4.7.5) (2021-10-06)
+
+
+### Bug Fixes
+
+* Timeout the VICE lock so that a stuck command can't break the app. ([0a986fa](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/0a986fabd43a2d5608e906ad9fad7a0d17cf9f5f))
+
 ### [4.7.4](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.3...v4.7.4) (2021-10-04)
 
 
