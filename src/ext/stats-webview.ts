@@ -13,7 +13,9 @@ export class StatsWebview {
 		screenText?: ImageData,
 		memory?: number[],
 		palette?: number[],
-		banks?: bin.SingleRegisterMeta[]
+		banks?: bin.SingleBankMeta[]
+		registers?: bin.SingleRegisterInfo[]
+		metas?: bin.SingleRegisterMeta[]
 	} = {};
 	private static _emitter: EventEmitter = new EventEmitter();
 
@@ -33,6 +35,8 @@ export class StatsWebview {
 		StatsWebview._state.memory = [];
 		StatsWebview._state.palette = [];
 		StatsWebview._state.banks = [];
+		StatsWebview._state.registers = [];
+		StatsWebview._state.metas = [];
 		if(StatsWebview._currentPanel) {
 			StatsWebview._currentPanel._panel.webview.postMessage({
 				reset: true,
@@ -48,6 +52,8 @@ export class StatsWebview {
 		StatsWebview._state.memory = update.memory         || StatsWebview._state.memory;
 		StatsWebview._state.palette = update.palette       || StatsWebview._state.palette;
 		StatsWebview._state.banks = update.banks           || StatsWebview._state.banks;
+		StatsWebview._state.registers = update.registers   || StatsWebview._state.registers;
+		StatsWebview._state.metas = update.metas           || StatsWebview._state.metas;
         if(StatsWebview._currentPanel) {
             StatsWebview._currentPanel._panel.webview.postMessage(StatsWebview._state);
         }

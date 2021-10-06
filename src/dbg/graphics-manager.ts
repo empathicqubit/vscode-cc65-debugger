@@ -13,6 +13,7 @@ import { __basedir } from '../basedir';
 export class GraphicsManager {
     private _currentPng: any;
     private _runAheadPng: any;
+    private _metas: bin.SingleRegisterMeta[];
     private _banks: bin.SingleBankMeta[];
     private _ioBank: bin.SingleBankMeta;
     private _vice: ViceGrip;
@@ -27,10 +28,11 @@ export class GraphicsManager {
         this._machineType = machineType;
     }
 
-    public async postViceStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[]) {
+    public async postViceStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[], metas?: bin.SingleRegisterMeta[]) {
         this._ioBank = ioBank!;
         this._ramBank = ramBank!;
         this._banks = banks!;
+        this._metas = metas!;
         if(this._machineType == debugFile.MachineType.c64) {
             const paletteFileName = await this._vice.execBinary({
                 type: bin.CommandType.resourceGet,
@@ -77,8 +79,23 @@ export class GraphicsManager {
         });
     }
 
+    public async updateRegisters(emitter: events.EventEmitter): Promise<void> {
+        const regs = await this._vice.execBinary(
+            {
+                type: bin.CommandType.registersGet,
+                memspace: bin.ViceMemspace.main,
+            }
+        );
+
+        emitter.emit('registers', {
+            registers: regs.registers,
+            metas: this._metas,
+        });
+    }
+
     public async updateUI(emitter: events.EventEmitter) : Promise<void> {
         await Promise.all([
+            this.updateRegisters(emitter),
             this.updateCurrent(emitter),
             this.updateMemory(emitter),
             this.updateBanks(emitter),

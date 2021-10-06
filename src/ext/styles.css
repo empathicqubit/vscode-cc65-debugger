@@ -148,22 +148,31 @@ button:hover {
     padding: 1em;
     flex-grow: 1;
     overflow: scroll;
+    position: relative;
 }
 
 /* Everything else */
 
-.display-frames {
-    display: flex;
-    flex-direction: column;
-}
-
-.current-frame, .next-frame {
+.display-frame {
     padding: 0;
     margin: 0;
 }
 
-.current-frame img, .next-frame img {
+.display {
+    position: relative;
+}
+
+.display img {
     width: 100%;
+}
+
+.display__rasterline {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border-color: #f00;
 }
 
 .sprite {
