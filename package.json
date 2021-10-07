@@ -19,7 +19,7 @@
     "debug"
   ],
   "engines": {
-    "vscode": "^1.42.0"
+    "vscode": "^1.49.0"
   },
   "icon": "images/icon.png",
   "categories": [
@@ -149,7 +149,7 @@
     "@types/react-tabs": "^2.3.2",
     "@types/semver": "^7.3.4",
     "@types/universal-analytics": "^0.4.4",
-    "@types/vscode": "1.42",
+    "@types/vscode": "1.49",
     "@types/webpack": "^4.41.25",
     "@types/webpack-dev-server": "^3.11.1",
     "dotenv": "^8.2.0",
@@ -168,8 +168,8 @@
     "tslint": "5.18.0",
     "tslint-etc": "^1.13.9",
     "typescript": "^3.7.5",
-    "vscode-debugadapter-testsupport": "1.40.1",
-    "vscode-debugprotocol": "^1.41.0",
+    "vscode-debugadapter-testsupport": "^1.49.0",
+    "vscode-debugprotocol": "^1.49.0",
     "webpack": "^5.11.1",
     "webpack-cli": "^4.3.0",
     "webpack-dev-server": "^3.11.1"

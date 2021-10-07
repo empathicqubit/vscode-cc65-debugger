@@ -145,12 +145,12 @@ export class ViceGrip extends EventEmitter {
     public async lock<T>(fn: () => Promise<T>) : Promise<T> {
         this._lockChain = new Promise<void>((res, rej) => {
             const timeout = setTimeout(rej, 5000);
-            this._lockChain.then(() => {
+            this._lockChain.then((t) => {
                 clearTimeout(timeout);
-                res();
-            }, () => {
+                res(t);
+            }, (err) => {
                 clearTimeout(timeout);
-                rej();
+                rej(err);
             });
         }).then(fn, fn);
 

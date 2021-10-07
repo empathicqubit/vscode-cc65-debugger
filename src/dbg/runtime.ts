@@ -496,11 +496,30 @@ export class Runtime extends EventEmitter {
         });
     }
 
+    private async _silenced<T>(fn: () => Promise<T>) : Promise<T> {
+        return new Promise<T>((res, rej) => {
+            this._silenceEvents = true;
+            const timeout = setTimeout(() => {
+                this._silenceEvents = false;
+            }, 5000);
+
+            fn().then((t) => {
+                this._silenceEvents = false;
+                clearTimeout(timeout);
+                res(t);
+            }, (err) => {
+                this._silenceEvents = false;
+                clearTimeout(timeout);
+                rej(err);
+            });
+        });
+    }
+
     private async _updateUI() : Promise<void> {
-        this._silenceEvents = true;
-        await this._vice.ping();
-        await this._graphicsManager.updateUI(this);
-        this._silenceEvents = false;
+        await this._silenced(async() => {
+            await this._vice.ping();
+            await this._graphicsManager.updateUI(this);
+        });
     }
 
     public async updateMemoryOffset(offset: number) {
@@ -533,12 +552,12 @@ export class Runtime extends EventEmitter {
 
     public async keypress(key: string) : Promise<void> {
         const wasRunning = this._viceRunning;
-        this._silenceEvents = true;
-        await this._vice.execBinary({
-            type: bin.CommandType.keyboardFeed,
-            text: key,
+        await this._silenced(async() => {
+            await this._vice.execBinary({
+                type: bin.CommandType.keyboardFeed,
+                text: key,
+            });
         });
-        this._silenceEvents = false;
         if(wasRunning) {
             await this.continue();
         }
@@ -911,30 +930,30 @@ or define the location manually with the launch.json->mapFile setting`
                 })
             }
 
-            this._silenceEvents = true;
-            await this._vice.ping();
-            const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
+            await this._silenced(async () => {
+                await this._vice.ping();
+                const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
 
-            const condCmds : bin.ConditionSetCommand[] = [];
-            for(const brk of brks) {
-                const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
-                if(!bp) {
-                    continue;
+                const condCmds : bin.ConditionSetCommand[] = [];
+                for(const brk of brks) {
+                    const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
+                    if(!bp) {
+                        continue;
+                    }
+
+                    bp.viceIndex = brk.id;
+                    bp.verified = true;
+                    this.sendEvent('breakpointValidated', bp);
+
+                    condCmds.push({
+                        type: bin.CommandType.conditionSet,
+                        checkpointId: brk.id,
+                        condition: '$574c == $574c',
+                    });
                 }
 
-                bp.viceIndex = brk.id;
-                bp.verified = true;
-                this.sendEvent('breakpointValidated', bp);
-
-                condCmds.push({
-                    type: bin.CommandType.conditionSet,
-                    checkpointId: brk.id,
-                    condition: '$574c == $574c',
-                });
-            }
-
-            await this._vice.multiExecBinary(condCmds);
-            this._silenceEvents = false;
+                await this._vice.multiExecBinary(condCmds);
+            });
 
             if(wasRunning) {
                 await this._vice.exit();
@@ -1028,51 +1047,50 @@ or define the location manually with the launch.json->mapFile setting`
 
         await this._vice.lock(async () => {
             const wasRunning = this._viceRunning;
-            this._silenceEvents = true;
-            await this._vice.ping();
+            await this._silenced(async() => {
+                await this._vice.ping();
 
-            let dels : bin.CheckpointDeleteCommand[] = [];
-            for(const bp of [...this._breakPoints]) {
-                if(path.relative(p, bp.line.file!.name)) {
-                    continue;
-                }
-
-                const index = this._breakPoints.indexOf(bp);
-                if(index == -1) {
-                    continue;
-                }
-                this._breakPoints.splice(index, 1);
-
-                if(bp.viceIndex <= 0) {
-                    continue;
-                }
-
-                dels.push({
-                    type: bin.CommandType.checkpointDelete,
-                    id: bp.viceIndex,
-                })
-
-                // Also clean up breakpoints with the same address.
-                // FIXME: This smells weird. Reassess and document reasoning.
-                const bks = await this._vice.checkpointList();
-                for(const bk of bks.related) {
-                    if(bk.startAddress == bp.line.span!.absoluteAddress) {
-                        dels.push({
-                            type: bin.CommandType.checkpointDelete,
-                            id: bk.id,
-                        });
+                let dels : bin.CheckpointDeleteCommand[] = [];
+                for(const bp of [...this._breakPoints]) {
+                    if(path.relative(p, bp.line.file!.name)) {
+                        continue;
                     }
+
+                    const index = this._breakPoints.indexOf(bp);
+                    if(index == -1) {
+                        continue;
+                    }
+                    this._breakPoints.splice(index, 1);
+
+                    if(bp.viceIndex <= 0) {
+                        continue;
+                    }
+
+                    dels.push({
+                        type: bin.CommandType.checkpointDelete,
+                        id: bp.viceIndex,
+                    })
+
+                    // Also clean up breakpoints with the same address.
+                    // FIXME: This smells weird. Reassess and document reasoning.
+                    const bks = await this._vice.checkpointList();
+                    for(const bk of bks.related) {
+                        if(bk.startAddress == bp.line.span!.absoluteAddress) {
+                            dels.push({
+                                type: bin.CommandType.checkpointDelete,
+                                id: bk.id,
+                            });
+                        }
+                    }
+
                 }
 
-            }
+                dels = _uniqBy(x => x.id, dels);
 
-            dels = _uniqBy(x => x.id, dels);
-
-            if(dels.length) {
-                await this._vice.multiExecBinary(dels);
-            }
-
-            this._silenceEvents = false;
+                if(dels.length) {
+                    await this._vice.multiExecBinary(dels);
+                }
+            });
             if(wasRunning) {
                 await this._vice.exit();
                 this._viceRunning = true;
