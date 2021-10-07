@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.8.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.8.0...v4.8.1) (2021-10-07)
+
+
+### Bug Fixes
+
+* Add timeout to event silencing so the debugger isn't stuck permanently. ([c6a18f2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/c6a18f2231dd2ae13c721c9926e7ac876784d02e))
+
 ## [4.8.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.7.4...v4.8.0) (2021-10-06)
 
 
