@@ -709,8 +709,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                     const val = await this._runtime.getMemory(ref & VariablesReferenceFlag.ADDR_MASK, 2);
                     const pointerVal = val.readUInt16LE(0);
 
+                    const addr = ref & VariablesReferenceFlag.ADDR_MASK;
+
                     if(ref & VariablesReferenceFlag.HAS_TYPE) {
-                        const addr = ref & VariablesReferenceFlag.ADDR_MASK;
                         if(pointerVal || !(this._addressTypes[addr.toString(16)] || '').endsWith('*')) {
                             variables.push({
                                 name: `Type at this address`,
@@ -736,7 +737,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                     variables.push(this._pointerMenu(pointerVal))
 
                     variables.push({
-                        name: `Mem @ 0x${(<any>ref.toString(16)).padStart(4, '0')} (Direct)`,
+                        name: `Mem @ 0x${(<any>addr.toString(16)).padStart(4, '0')} (Direct)`,
                         value: "",
                         variablesReference: VariablesReferenceFlag.EXPAND_DATA | ref,
                         presentationHint: {
