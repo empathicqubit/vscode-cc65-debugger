@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.8.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.8.1...v4.8.2) (2021-10-10)
+
+
+### Bug Fixes
+
+* Properly display the direct memory address. ([7d369ad](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/7d369adb31eab554cc3733c7ba4f6304ac567243))
+
 ### [4.8.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.8.0...v4.8.1) (2021-10-07)
 
 
