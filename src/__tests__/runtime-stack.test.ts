@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
+import * as bin from '../dbg/binary-dto';
 
 describe('Stack', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
@@ -294,5 +295,93 @@ describe('Stack', () => {
         console.log(statics)
         assert.deepStrictEqual(statics.map(x => x.name).sort(), ['bonza', 'weehah']);
         assert.deepStrictEqual(statics.map(x => x.value), ["0x42", "0x59"]);
+    });
+
+    test('Can set globals', async() => {
+        const rt = await testShared.newRuntime();
+
+        await rt.start(
+            await testShared.portGetter(),
+            PROGRAM,
+            BUILD_CWD,
+            true,
+            false,
+            false,
+            VICE_DIRECTORY,
+            VICE_ARGS,
+            false,
+            DEBUG_FILE,
+            MAP_FILE,
+            LABEL_FILE
+        );
+
+        await testShared.waitFor(rt, 'started');
+        await testShared.selectCTest(rt, 'test_local_vars');
+
+        await rt.setBreakPoint(LOCALVARS_C, LOCALVARS_LASTLINE);
+
+        await Promise.all([
+            rt.continue(),
+            testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
+                assert.strictEqual(file, LOCALVARS_C);
+                assert.strictEqual(line, LOCALVARS_LASTLINE);
+            }),
+        ]);
+
+        await testShared.waitFor(rt, 'stopOnBreakpoint');
+
+        const globalsBefore = await rt.getGlobalVariables();
+        assert.strictEqual(globalsBefore.find(x => x.name == 'globby')!.value, '0x34');
+
+        await rt.setGlobalVariable('globby', 0xff);
+
+        const globalsAfter = await rt.getGlobalVariables();
+        assert.strictEqual(globalsAfter.find(x => x.name == 'globby')!.value, '0xff');
+    });
+
+    test('Can set registers', async() => {
+        const rt = await testShared.newRuntime();
+
+        await rt.start(
+            await testShared.portGetter(),
+            PROGRAM,
+            BUILD_CWD,
+            true,
+            false,
+            false,
+            VICE_DIRECTORY,
+            VICE_ARGS,
+            false,
+            DEBUG_FILE,
+            MAP_FILE,
+            LABEL_FILE
+        );
+
+        await testShared.waitFor(rt, 'started');
+        await testShared.selectCTest(rt, 'test_local_vars');
+
+        await rt.setBreakPoint(LOCALVARS_C, LOCALVARS_LASTLINE);
+
+        await Promise.all([
+            rt.continue(),
+            testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
+                assert.strictEqual(file, LOCALVARS_C);
+                assert.strictEqual(line, LOCALVARS_LASTLINE);
+            }),
+        ]);
+
+        await testShared.waitFor(rt, 'stopOnBreakpoint');
+
+        const registersBefore = await rt.getRegisters();
+        const a = registersBefore.a + 1;
+
+        await rt.setRegisterVariable('A', a);
+
+        const registersAfter = await rt._vice.execBinary({
+            type: bin.CommandType.registersGet,
+            memspace: bin.ViceMemspace.main,
+        });
+
+        assert.strictEqual(registersAfter.registers.find(x => x.id == 0)!.value, a);
     });
 });

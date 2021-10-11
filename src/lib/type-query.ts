@@ -128,7 +128,7 @@ export function getLocalTypes(dbgFile: dbgfile.Dbgfile, tabFiles: tableFile.Tabl
         return {};
     }
 
-    const structs : {[typename:string]:FieldTypeInfo[]} = {};
+    const structs : {[typename:string]:FieldTypeInfo[]} = { "__GLOBAL__()": [] };
     for(const tabFile of tabFiles) {
         for(const scope of tabFile.scopes) {
             const vars : FieldTypeInfo[] = [];
@@ -150,7 +150,7 @@ export function getLocalTypes(dbgFile: dbgfile.Dbgfile, tabFiles: tableFile.Tabl
             }
             // Global
             else if(scope.tableType == tableFile.TableType.symbol && scope.type == tableFile.LexicalType.SC_GLOBAL) {
-                structs[`__GLOBAL__()`] = vars;
+                structs[`__GLOBAL__()`] = structs[`__GLOBAL__()`].concat(vars);
             }
             // Struct
             else if(scope.tableType == tableFile.TableType.tag && scope.type == tableFile.LexicalType.SC_STRUCT) {
