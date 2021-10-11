@@ -331,6 +331,48 @@ export class VariableManager {
         }
     }
 
+    public async setGlobalVariable(name: string, value: number) : Promise<VariableData | undefined> {
+        if(!this._localTypes) {
+            return;
+        }
+
+        const field = this._localTypes['__GLOBAL__()'].find(x => x.name == name);
+
+        if(!field || field.type.pointer || field.type.isUnion || field.type.isString || field.type.isStruct) {
+            return;
+        }
+
+        const size = typeQuery.recurseFieldSize([field], this._localTypes)[0];
+
+        const buf = Buffer.alloc(size);
+
+        if(size == 1) {
+            if(field.type.isSigned) {
+                buf.writeInt8(value);
+            }
+            else {
+                buf.writeUInt8(value);
+            }
+        }
+        else {
+            if(field.type.isSigned) {
+                buf.writeInt16LE(value);
+            }
+            else {
+                buf.writeUInt16LE(value);
+            }
+        }
+
+        const currentLab = this._globalLabs.find(x => x.name == "_" + name);
+        if(!currentLab) {
+            return;
+        }
+
+        this._vice.setMemory(currentLab.val, buf);
+
+        return this._varFromLab(currentLab);
+    }
+
     public async getGlobalVariables() : Promise<VariableData[]> {
         return await Promise.all(this._globalLabs.map(x => this._varFromLab(x)));
     }

@@ -1204,6 +1204,10 @@ or define the location manually with the launch.json->mapFile setting`
         };
     }
 
+    public async setGlobalVariable(name: string, value: number) : Promise<VariableData | undefined> {
+        return await this._variableManager.setGlobalVariable(name, value);
+    }
+
     public async getStaticVariables() : Promise<VariableData[]> {
         const currentScope = this._getCurrentScope();
         return await this._variableManager.getStaticVariables(currentScope);

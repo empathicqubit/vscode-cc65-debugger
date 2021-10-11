@@ -843,8 +843,20 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                     variablesReference: 0,
                 };
             }
+            else if(ref & VariablesReferenceFlag.GLOBAL) {
+                const v = await this._runtime.setGlobalVariable(args.name, parseInt(args.value));
+                if(!v) {
+                    throw new Error('This type of variable cannot be set yet');
+                }
+
+                response.body = {
+                    value: v.value,
+                    type: v.type,
+                    variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
+                };
+            }
             else {
-                throw new Error('You can only modify the registers');
+                throw new Error('You can only modify registers and globals');
             }
 
             response.success = true;
