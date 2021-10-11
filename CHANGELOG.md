@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.9.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.8.2...v4.9.0) (2021-10-11)
+
+
+### Features
+
+* Set global variables ([d4196fb](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/d4196fbe93601c85296e2a1d63765668a684c74f))
+* Set the registers through the UI. ([cb4df33](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/cb4df33a2277de8dadd951838cf08e4d76ca07c7))
+
+
+### Bug Fixes
+
+* Global types work more reliably. ([b6beae2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/b6beae2b262c2cceec901bf2a7eeaf6a7898e3cd))
+
 ### [4.8.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.8.1...v4.8.2) (2021-10-10)
 
 
