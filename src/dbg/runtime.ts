@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as hotel from 'hasbin';
+import * as typeQuery from '../lib/type-query';
 import _first from 'lodash/fp/first';
 import _flow from 'lodash/fp/flow';
 import _flatten from 'lodash/fp/flatten';
@@ -1111,6 +1112,39 @@ or define the location manually with the launch.json->mapFile setting`
 
     // Variables
 
+    public async getRegisterVariables() : Promise<VariableData[]> {
+        const res = await this._vice.execBinary({
+            type: bin.CommandType.registersGet,
+            memspace: bin.ViceMemspace.main,
+        });
+
+        const regs : VariableData[] = [];
+        for(const reg of res.registers) {
+            let name = reg.id.toString(16);
+            let size = 1;
+            for(const k in this._registerMeta) {
+                const meta = this._registerMeta[k];
+
+                if(meta.id == reg.id) {
+                    name = k;
+                    size = meta.size / 8;
+                    break;
+                }
+            }
+
+            const buf = Buffer.alloc(2);
+            buf.writeUInt16LE(reg.value);
+            regs.push({
+                name: name,
+                type: '',
+                addr: reg.id,
+                value: typeQuery.renderValue(typeQuery.parseTypeExpression(size > 1 ? 'unsigned int' : 'unsigned char'), buf),
+            });
+        }
+
+        return regs;
+    }
+
     public async evaluateLogMessage(exp: string) : Promise<void> {
         try {
             const rex = /(\{.*?\})/g;
@@ -1137,6 +1171,37 @@ or define the location manually with the launch.json->mapFile setting`
     public async evaluate(exp: string) : Promise<VariableData> {
         const currentScope = this._getCurrentScope();
         return this._variableManager.evaluate(exp, currentScope);
+    }
+
+    public async setRegisterVariable(name: string, value: number) : Promise<VariableData> {
+        const meta = this._registerMeta[name];
+        if(!meta) {
+            throw new Error('Invalid variable name');
+        }
+
+        const res = await this._vice.execBinary({
+            type: bin.CommandType.registersSet,
+            memspace: bin.ViceMemspace.main,
+            registers: [
+                {
+                    id: meta.id,
+                    value,
+                }
+            ]
+        })
+
+        const reg = res.registers.find(x => x.id == meta.id)!;
+        let size = meta.size / 8;
+
+        const buf = Buffer.alloc(2);
+        buf.writeUInt16LE(reg.value);
+
+        return {
+            type: '',
+            name: name,
+            addr: reg.id,
+            value: typeQuery.renderValue(typeQuery.parseTypeExpression(size > 1 ? 'unsigned int' : 'unsigned char'), buf),
+        };
     }
 
     public async getStaticVariables() : Promise<VariableData[]> {

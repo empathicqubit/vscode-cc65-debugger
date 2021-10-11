@@ -16,21 +16,20 @@ import * as metrics from '../lib/metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
 import * as path from 'path';
 import { __basedir } from '../basedir';
-import { VariableData } from './variable-manager';
 const { Subject } = require('await-notify');
 
 enum VariablesReferenceFlag {
-    HAS_TYPE = 0x10000,
-    FOLLOW_TYPE = 0x20000,
+    HAS_TYPE =       0x10000,
+    FOLLOW_TYPE =    0x20000,
     FOLLOW_POINTER = 0x40000,
-    EXPAND_DATA = 0x80000,
-    EXPAND_BYTES = 0x100000,
+    EXPAND_DATA =    0x80000,
+    EXPAND_BYTES =  0x100000,
 
-    LOCAL =     0x0200000,
-    GLOBAL =    0x0400000,
-    //PARAM =   0x0800000,
-    REGISTERS = 0x1000000,
-    STATICS =   0x2000000,
+    LOCAL =          0x0200000,
+    GLOBAL =         0x0400000,
+    //PARAM =        0x0800000,
+    REGISTERS =      0x1000000,
+    STATICS =        0x2000000,
 
     ADDR_MASK = 0x00FFFF,
 }
@@ -311,6 +310,8 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         response.body.supportsDisassembleRequest = true;
 
         response.body.supportsStepBack = false;
+
+        response.body.supportsSetVariable = true;
 
         // make VS Code to support data breakpoints
         response.body.supportsDataBreakpoints = false;
@@ -615,11 +616,11 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             const ref = args.variablesReference;
 
             if (ref & VariablesReferenceFlag.REGISTERS) {
-                const regs = this._runtime.getRegisters();
-                for(const k in regs) {
+                const regs = await this._runtime.getRegisterVariables();
+                for(const reg of regs) {
                     variables.push({
-                        name: k.toUpperCase(),
-                        value: '0x' + regs[k].toString(16).padStart(2, '0'),
+                        name: reg.name,
+                        value: reg.value,
                         variablesReference: 0,
                     });
                 }
@@ -826,6 +827,31 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         catch(e) {
             response.success = false;
             response.message = e.message;
+        }
+
+        this.sendResponse(response);
+    }
+
+    protected async setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): Promise<void> {
+        try {
+            const ref = args.variablesReference;
+            const addr = ref & VariablesReferenceFlag.ADDR_MASK
+            if(ref & VariablesReferenceFlag.REGISTERS) {
+                const res = await this._runtime.setRegisterVariable(args.name, parseInt(args.value));
+                response.body = {
+                    value: res.value,
+                    variablesReference: 0,
+                };
+            }
+            else {
+                throw new Error('You can only modify the registers');
+            }
+
+            response.success = true;
+        }
+        catch(e) {
+            response.success = false;
+            response.message = e.toString();
         }
 
         this.sendResponse(response);
