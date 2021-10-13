@@ -99,20 +99,26 @@ export class VariableManager {
             else {
                 name = field.name;
                 typeName = field.type.name;
-                if(field.type.array) {
-                    val = field.type.name;
+
+                try {
+                    if(field.type.array) {
+                        val = field.type.name;
+                    }
+                    else if(ptr && field.type.isString) {
+                        const mem = await this._vice.getMemory(ptr, 24);
+                        const nullIndex = mem.indexOf(0x00);
+                        const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
+                        val = typeQuery.renderValue(field.type, mem);
+                    }
+                    else if(field.type.isStruct || field.type.isUnion) {
+                        val = typeQuery.renderValue(field.type, Buffer.alloc(0))
+                    }
+                    else {
+                        val = typeQuery.renderValue(field.type, buf);
+                    }
                 }
-                else if(ptr && field.type.isString) {
-                    const mem = await this._vice.getMemory(ptr, 24);
-                    const nullIndex = mem.indexOf(0x00);
-                    const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
-                    val = typeQuery.renderValue(field.type, mem);
-                }
-                else if(field.type.isStruct || field.type.isUnion) {
-                    val = typeQuery.renderValue(field.type, Buffer.alloc(0))
-                }
-                else {
-                    val = typeQuery.renderValue(field.type, buf);
+                catch(e) {
+                    val = e.toString();
                 }
 
                 if(!this._localTypes[field.type.name] && !field.type.pointer && !field.type.array) {
