@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.9.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.9.0...v4.9.1) (2021-10-13)
+
+
+### Bug Fixes
+
+* Prevent a broken value render from breaking the entire list. ([59fa50d](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/59fa50d50f0658a152e6b7e4de510f3e504c6b01))
+
 ## [4.9.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.8.2...v4.9.0) (2021-10-11)
 
 
