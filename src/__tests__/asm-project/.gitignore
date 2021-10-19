@@ -17,3 +17,4 @@ disk/
 *.dbg
 *.map
 *~
+*.session

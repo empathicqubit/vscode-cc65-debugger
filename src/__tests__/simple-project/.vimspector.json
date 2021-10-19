@@ -1,0 +1,25 @@
+{
+    "configurations": {
+        "CC65 VICE Launch": {
+            "adapter": "cust_cc65-vice",
+            "configuration": {
+                "type": "cc65-vice",
+                "request": "launch",
+                "name": "CC65 Vice Launch",
+                "program": "${workspaceFolder}/simple-project.c64",
+                "build": {
+                    "cwd": "${workspaceFolder}",
+                    "command": "make",
+                    "skip": true,
+                    "args": [
+                        "OPTIONS=mapfile,labelfile,debugfile"
+                    ]
+                },
+                "stopOnEntry": true,
+                "stopOnExit": true,
+                "viceArgs": [
+                ]
+            },
+        }
+    }
+}
