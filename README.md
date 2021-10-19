@@ -20,16 +20,17 @@ This is an extension to let you debug CC65 C code (and ASM code to a small degre
 
 If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-vice-debug/issues) or [messaging me on Twitter](https://twitter.com/intent/tweet?screen_name=empathicqubit).
 
-- [vscode-cc65-vice-debug](#vscode-cc65-vice-debug)
+* [vscode-cc65-vice-debug](#vscode-cc65-vice-debug)
   * [Setup](#setup)
-    + [Windows-specific instructions](#windows-specific-instructions)
-    + [Linux-specific instructions (Debian \[and probably also Ubuntu\])](#linux-specific-instructions--debian---and-probably-also-ubuntu---)
+    * [Windows-specific instructions](#windows-specific-instructions)
+    * [Linux-specific instructions (Debian \[and probably also Ubuntu\])](#linux-specific-instructions-(debian-%5C[and-probably-also-ubuntu%5C]))
   * [Project Configuration](#project-configuration)
   * [Changes needed to your Makefile](#changes-needed-to-your-makefile)
-  * [Changes needed to your code](#changes-needed-to-your-code)
   * [What works](#what-works)
   * [Building](#building)
-  * [Additional Credits (see also LICENSE.md)](#additional-credits--see-also-licensemd-)
+  * [Contributing](#contributing)
+  * [Usage in Vim with Vimspector (experimental)](#usage-in-vim-with-vimspector-(experimental))
+  * [Additional Credits (see also LICENSE.md)](#additional-credits-(see-also-license.md))
 
 <a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
 
@@ -245,6 +246,16 @@ pnpm package
 ## Contributing
 
 All work happens on `master`, and releases are merged from pull requests using Google's Release Please. Commit messages should start with `fix:` for bug fixes or `feat:` for new features, which will appear as bullet points in the changelogs. You can only have one `fix:` or `feat:` per commit message, and it must be on the first line. Do not manually edit the version or the CHANGELOG, unless your name is `empathicqubit`. **Breaking changes** should use `fix!:` and `feat!:`. Force pushes occassionally happen on `master` because I forget to add the tags to my commit messages.
+
+## Usage in Vim with Vimspector (experimental)
+
+Download the file `vimspector-gadget.json` from the Release page and run a command similar to the following:
+
+```sh
+.vim/plugged/vimspector/install_gadget.py --enable-custom ./vimspector-gadget.json
+```
+
+An example `.vimspector.json` is included in the example projects. Note that you will need to set `build.skip` to `true`.
 
 ## Additional Credits (see also LICENSE.md)
 
