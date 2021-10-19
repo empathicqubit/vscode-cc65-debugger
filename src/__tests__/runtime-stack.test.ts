@@ -192,13 +192,11 @@ describe('Stack', () => {
 
         const frames = await rt.stack(0, 1000);
 
-        assert.deepStrictEqual(
-            frames,
+        const expected =
             {
                 frames: [
                     {
                         index: 0,
-                        name: '0x0894',
                         file: STACKFRAMES_C,
                         line: 3
                     },
@@ -222,8 +220,17 @@ describe('Stack', () => {
                     }
                 ],
                 count: 4
+            };
+
+        assert.strictEqual(frames.count, expected.count);
+
+        for(const f in expected.frames) {
+            const frame = expected.frames[f];
+            for(const p in frame) {
+                const prop = frame[p];
+                assert.strictEqual(frames.frames[f][p], prop);
             }
-        );
+        }
 
         await rt.continue();
         await testShared.waitFor(rt, 'end');
