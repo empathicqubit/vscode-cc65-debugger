@@ -12,7 +12,6 @@ import _uniqBy from 'lodash/fp/uniqBy';
 import * as path from 'path';
 import * as tmp from 'tmp';
 import * as util from 'util';
-import { DebugProtocol } from 'vscode-debugprotocol';
 import * as bin from './binary-dto';
 import { CallStackManager } from './call-stack-manager';
 import * as debugFile from '../lib/debug-file';
@@ -23,8 +22,6 @@ import * as mapFile from '../lib/map-file';
 import * as metrics from '../lib/metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
-import * as mathjs from 'mathjs';
-import * as child_process from 'child_process';
 import { __basedir } from '../basedir';
 
 export interface CC65ViceBreakpoint {
@@ -539,6 +536,10 @@ export class Runtime extends EventEmitter {
         if(!wasRunning) {
             await this._graphicsManager.updateMemory(this);
         }
+    }
+
+    public async enableStats() : Promise<void> {
+        await this._graphicsManager.enableStats();
     }
 
     public async action(name: string) {

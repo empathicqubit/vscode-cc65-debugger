@@ -106,6 +106,8 @@ export function activate(context: vscode.ExtensionContext) {
             StatsWebview.update(e.body);
         }
         else if(e.event == 'started') {
+            await e.session.customRequest('enableStats');
+
             const terminal =
                 vscode.window.terminals.find(x => x.name.includes('VICE Monitor'))
                 || vscode.window.terminals.find(x => x.name.includes('VICE'))

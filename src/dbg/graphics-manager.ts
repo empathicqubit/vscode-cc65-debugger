@@ -22,10 +22,15 @@ export class GraphicsManager {
     private _memoryOffset: number = 0x0000;
     private _memoryLength: number = 0x1000;
     private _memoryBank: number = 0;
+    private _enableStats: boolean = false;
 
     constructor(vice: ViceGrip, machineType: debugFile.MachineType) {
         this._vice = vice;
         this._machineType = machineType;
+    }
+
+    public async enableStats() : Promise<void> {
+        this._enableStats = true;
     }
 
     public async postViceStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[], metas?: bin.SingleRegisterMeta[]) {
@@ -34,6 +39,7 @@ export class GraphicsManager {
         this._banks = banks!;
         this._metas = metas!;
         if(this._machineType == debugFile.MachineType.c64) {
+            // FIXME Replace with palette command.
             const paletteFileName = await this._vice.execBinary({
                 type: bin.CommandType.resourceGet,
                 resourceName: 'VICIIPaletteFile',
@@ -68,13 +74,13 @@ export class GraphicsManager {
 
     public async updateMemory(emitter: events.EventEmitter) {
         const buf = await this._vice.getMemory(this._memoryOffset, this._memoryLength, this._memoryBank);
-        emitter.emit('memory', {
+        this._enableStats && emitter.emit('memory', {
             memory: Array.from(buf),
         })
     }
 
     public async updateBanks(emitter: events.EventEmitter) : Promise<void> {
-        emitter.emit('banks', {
+        this._enableStats && emitter.emit('banks', {
             banks: this._banks
         });
     }
@@ -87,7 +93,7 @@ export class GraphicsManager {
             }
         );
 
-        emitter.emit('registers', {
+        this._enableStats && emitter.emit('registers', {
             registers: regs.registers,
             metas: this._metas,
         });
@@ -133,7 +139,7 @@ export class GraphicsManager {
 
         this._runAheadPng.data = aheadRes;
 
-        emitter.emit('runahead', {
+        this._enableStats && emitter.emit('runahead', {
             runAhead: {
                 data: Array.from(pngjs.PNG.sync.write(this._runAheadPng)),
                 width: aheadRes.debugWidth,
@@ -154,7 +160,7 @@ export class GraphicsManager {
 
         this._currentPng.data = currentRes.rawImageData;
 
-        emitter.emit('current', {
+        this._enableStats && emitter.emit('current', {
             current: {
                 data: Array.from(pngjs.PNG.sync.write(this._currentPng)),
                 width: currentRes.debugWidth,
@@ -174,7 +180,7 @@ export class GraphicsManager {
         const screenMemory = await this._vice.getMemory(screenStart, 40 * 25);
         const colorRam = ioMemory.slice(0x800, 0xbe8);
 
-        emitter.emit('screenText', {
+        this._enableStats && emitter.emit('screenText', {
             screenText: {
                 colors: Array.from(colorRam),
                 data: Array.from(screenMemory),
@@ -240,7 +246,7 @@ export class GraphicsManager {
             sprites.push(sprite);
         }
 
-        emitter.emit('sprites', {
+        this._enableStats && emitter.emit('sprites', {
             sprites: sprites,
         });
     }

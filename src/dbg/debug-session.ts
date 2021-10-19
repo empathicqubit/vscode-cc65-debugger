@@ -279,6 +279,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             else if(command == 'messageActioned') {
                 await this._runtime.action(request.arguments.name);
             }
+            else if(command == 'enableStats') {
+                await this._runtime.enableStats();
+            }
             else {
                 response.success = false;
                 response.message = 'Unknown command';
