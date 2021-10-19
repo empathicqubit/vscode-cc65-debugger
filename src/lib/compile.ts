@@ -84,6 +84,10 @@ export async function clean(buildCwd: string, execHandler: debugUtils.ExecHandle
 * @returns The possible output files of types d81, prg, and d64.
 */
 export async function build(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<string[]> {
+    if(build.skip) {
+        return await guessProgramPath(build.cwd);
+    }
+
     let sep = ':';
     if(process.platform == 'win32') {
         sep = ';';

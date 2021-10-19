@@ -99,7 +99,7 @@ well, so the debugger can find relative paths in your debug file.
     - **args**: An array with args for your command. Defaults to [] if unspecified.
     - **cwd**: The working directory for your build command. You need this for
 attachment as well, so the debugger can find relative paths in your debug file.
-
+    - **skip**: Should we skip building before execution?
 
 Required for attach mode only:
 

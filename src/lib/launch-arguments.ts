@@ -1,6 +1,8 @@
 import { DebugProtocol } from 'vscode-debugprotocol';
 
 export interface LaunchRequestBuildArguments {
+    /** Should we skip the build completely? */
+    skip?: boolean;
     /** The executable to run */
     command?: string;
     /** The arguments to use */

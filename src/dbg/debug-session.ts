@@ -307,7 +307,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         // make VS Code to use 'evaluate' when hovering over source
         response.body.supportsEvaluateForHovers = true;
 
-        response.body.supportsDisassembleRequest = true;
+        response.body.supportsDisassembleRequest = false;
 
         response.body.supportsStepBack = false;
 
@@ -405,10 +405,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
-    }
-
-    protected async disassembleRequest(response: DebugProtocol.DisassembleResponse, args: DebugProtocol.DisassembleArguments) {
-        debugger;
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
