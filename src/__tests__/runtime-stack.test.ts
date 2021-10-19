@@ -109,38 +109,44 @@ describe('Stack', () => {
 
         const frames = await rt.stack(0, 1000);
 
-        assert.deepStrictEqual(
-            frames,
-            {
-                frames: [
-                    {
-                        index: 0,
-                        name: '0x08a0',
-                        file: STACKFRAMES_C,
-                        line: 4
-                    },
-                    {
-                        index: 1,
-                        name: 'step_frames',
-                        file: STACKFRAMES_C,
-                        line: 3
-                    },
-                    {
-                        index: 2,
-                        name: 'test_stack_frames_main',
-                        file: STACKFRAMES_C,
-                        line: 8
-                    },
-                    {
-                        index: 3,
-                        name: 'main',
-                        file: MAIN_C,
-                        line: 5
-                    }
-                ],
-                count: 4
+        const expected = {
+            frames: [
+                {
+                    index: 0,
+                    file: STACKFRAMES_C,
+                    line: 4
+                },
+                {
+                    index: 1,
+                    name: 'step_frames',
+                    file: STACKFRAMES_C,
+                    line: 3
+                },
+                {
+                    index: 2,
+                    name: 'test_stack_frames_main',
+                    file: STACKFRAMES_C,
+                    line: 8
+                },
+                {
+                    index: 3,
+                    name: 'main',
+                    file: MAIN_C,
+                    line: 5
+                }
+            ],
+            count: 4
+        };
+
+        assert.strictEqual(frames.count, expected.count);
+
+        for(const f in expected.frames) {
+            const frame = expected.frames[f];
+            for(const p in frame) {
+                const prop = frame[p];
+                assert.strictEqual(frames.frames[f][p], prop);
             }
-        );
+        }
 
         await rt.continue();
         await testShared.waitFor(rt, 'end');
