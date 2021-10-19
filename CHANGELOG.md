@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.10.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.9.1...v4.10.0) (2021-10-19)
+
+
+### Features
+
+* Allow skipping the build process for launch. ([0d0d3a0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/0d0d3a0d4f7ccc0dd37d95c6f16423e585a4adc3))
+
 ### [4.9.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.9.0...v4.9.1) (2021-10-13)
 
 
