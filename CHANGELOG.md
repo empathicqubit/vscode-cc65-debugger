@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.10.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.1...v4.10.2) (2021-10-20)
+
+
+### Bug Fixes
+
+* Output event should always include text. ([e24cf19](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/e24cf199ba2df06d06cc84eef82fb52e4a2d3ae8))
+
 ### [4.10.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.0...v4.10.1) (2021-10-19)
 
 
