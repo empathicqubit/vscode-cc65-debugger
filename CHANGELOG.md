@@ -1,5 +1,12 @@
 # Changelog
 
+### [4.10.1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.0...v4.10.1) (2021-10-19)
+
+
+### Bug Fixes
+
+* Do not broadcast UI events unless requested. ([346857c](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/346857cb428f3d6c2f7dc94a8e0106c516ab7144))
+
 ## [4.10.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.9.1...v4.10.0) (2021-10-19)
 
 
