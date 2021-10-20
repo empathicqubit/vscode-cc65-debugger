@@ -204,7 +204,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             this.sendEvent(e);
         });
         this._runtime.on('output', (category, text, filePath, line, column) => {
-            const e: DebugProtocol.OutputEvent = new OutputEvent(text);
+            const e: DebugProtocol.OutputEvent = new OutputEvent(text || '');
 
             e.body.category = category;
 

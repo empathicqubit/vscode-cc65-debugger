@@ -35,6 +35,18 @@
             ]
         },
         {
+            "name": "Server (Attach)",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "cwd": "${workspaceFolder}",
+            "sourceMaps": true,
+            "program": "${workspaceFolder}/src/dbg/debug-adapter.ts",
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ]
+        },
+        {
             "name": "Server (From Deployment)",
             "type": "node",
             "request": "launch",
