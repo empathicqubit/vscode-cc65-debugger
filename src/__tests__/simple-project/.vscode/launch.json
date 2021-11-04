@@ -75,6 +75,26 @@
         },
         {
             "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (NES) (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.nes",
+            "debugFile": "${workspaceFolder}/simple-project.nes.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.nes.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "viceArgs": [
+            ],
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
             "request": "attach",
             "name": "CC65 Vice Attach (PET) (Debug Extension)",
             "program": "${workspaceFolder}/simple-project.pet",

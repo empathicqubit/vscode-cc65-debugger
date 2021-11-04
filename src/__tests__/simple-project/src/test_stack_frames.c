@@ -1,13 +1,13 @@
-#include <stdio.h>
+#include <conio.h>
 
 void step_frames() {
-    printf("If you see this after step\n");
-    printf("in, you failed\n");
+    cputs("If you see this after step\n");
+    cputs("in, you failed\n");
 }
 
 unsigned char test_stack_frames_main(void) {
     step_frames();
-    printf("If you see this after step\n");
-    printf("out, you failed\n");
+    cputs("If you see this after step\n");
+    cputs("out, you failed\n");
     return 0;
 }

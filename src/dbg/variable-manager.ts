@@ -8,8 +8,8 @@ import _set from 'lodash/fp/set';
 import * as debugFile from '../lib/debug-file'
 import * as debugUtils from '../lib/debug-utils'
 import * as typeQuery from '../lib/type-query'
-import { ViceGrip } from './vice-grip'
 import * as tableFile from '../lib/table-file'
+import { AbstractGrip } from './abstract-grip';
 
 export interface VariableData {
     name : string;
@@ -22,15 +22,15 @@ export class VariableManager {
     private _paramStackBottom?: number;
     private _paramStackTop?: number;
     private _paramStackPointer?: number;
-    private _vice: ViceGrip;
+    private _emulator: AbstractGrip;
     private _staticLabs: debugFile.Sym[] = [];
     private _globalLabs: debugFile.Sym[] = [];
     private _tableFiles: tableFile.TableFile[];
 
     private _localTypes: { [typename: string]: typeQuery.FieldTypeInfo[]; } | undefined;
 
-    constructor(vice: ViceGrip, codeSeg?: debugFile.Segment, zeroPage?: debugFile.Segment, labs?: debugFile.Sym[]) {
-        this._vice = vice;
+    constructor(emulator: AbstractGrip, codeSeg?: debugFile.Segment, zeroPage?: debugFile.Segment, labs?: debugFile.Sym[]) {
+        this._emulator = emulator;
         if(zeroPage) {
             this._paramStackPointer = zeroPage.start;
         }
@@ -47,7 +47,7 @@ export class VariableManager {
             throw new Error('Cannot find parameter stack bottom or top');
         }
 
-        return await this._vice.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
+        return await this._emulator.getMemory(this._paramStackTop, this._paramStackBottom - this._paramStackTop)
     }
 
     public async preStart(buildCwd: string, dbgFile: debugFile.Dbgfile) : Promise<debugUtils.ExtensionMessage[]> {
@@ -73,7 +73,7 @@ export class VariableManager {
             return;
         }
 
-        const paramStackPos = (await this._vice.getMemory(this._paramStackPointer, 2)).readUInt16LE(0);
+        const paramStackPos = (await this._emulator.getMemory(this._paramStackPointer, 2)).readUInt16LE(0);
         if(!this._paramStackBottom) {
             this._paramStackBottom = paramStackPos;
         }
@@ -84,7 +84,7 @@ export class VariableManager {
     private async _renderValue(scope: string, symName: string, addr: number) : Promise<VariableData> {
         let val = '';
 
-        const buf = await this._vice.getMemory(addr, 2);
+        const buf = await this._emulator.getMemory(addr, 2);
         const ptr = buf.readUInt16LE(0);
 
         let typeName = '';
@@ -105,7 +105,7 @@ export class VariableManager {
                         val = field.type.name;
                     }
                     else if(ptr && field.type.isString) {
-                        const mem = await this._vice.getMemory(ptr, 24);
+                        const mem = await this._emulator.getMemory(ptr, 24);
                         const nullIndex = mem.indexOf(0x00);
                         const str = mem.slice(0, nullIndex === -1 ? undefined: nullIndex).toString();
                         val = typeQuery.renderValue(field.type, mem);
@@ -181,7 +181,7 @@ export class VariableManager {
                 type: itemType,
             }], this._localTypes)[0];
             for(let i = 0; i < type.array.length; i++) {
-                const buf = await this._vice.getMemory(addr + i * itemSize, 2);
+                const buf = await this._emulator.getMemory(addr + i * itemSize, 2);
                 vars.push({
                     type: itemType.name,
                     name: i.toString(),
@@ -195,10 +195,10 @@ export class VariableManager {
 
         let fields : typeQuery.FieldTypeInfo[];
         if(type.pointer) {
-            const pointerVal = await this._vice.getMemory(addr, 2);
+            const pointerVal = await this._emulator.getMemory(addr, 2);
             addr = pointerVal.readUInt16LE(0);
             fields = this._localTypes[type.pointer.baseType];
-            const val = await this._vice.getMemory(addr, 2);
+            const val = await this._emulator.getMemory(addr, 2);
 
             if(!fields) {
                 return [{
@@ -229,7 +229,7 @@ export class VariableManager {
             totalSize = _max(fieldSizes) || 0;
         }
 
-        const mem = await this._vice.getMemory(addr, totalSize);
+        const mem = await this._emulator.getMemory(addr, totalSize);
 
         let currentPosition = 0;
         for(const f in fieldSizes) {
@@ -374,7 +374,7 @@ export class VariableManager {
             return;
         }
 
-        this._vice.setMemory(currentLab.val, buf);
+        this._emulator.setMemory(currentLab.val, buf);
 
         return this._varFromLab(currentLab);
     }

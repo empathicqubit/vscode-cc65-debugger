@@ -197,7 +197,7 @@ export interface MemoryGetCommand extends AbstractCommand {
     sidefx: boolean;
     startAddress: number;
     endAddress: number;
-    memspace: ViceMemspace;
+    memspace: EmulatorMemspace;
     bankId: number;
 }
 
@@ -211,7 +211,7 @@ export interface MemorySetCommand extends AbstractCommand {
     sidefx: boolean;
     startAddress: number;
     endAddress: number;
-    memspace: ViceMemspace;
+    memspace: EmulatorMemspace;
     bankId: number;
     memory: Buffer;
 }
@@ -277,12 +277,12 @@ export interface ConditionSetResponse extends AbstractResponse {
 
 export interface RegistersGetCommand extends RegisterCommand {
     type: CommandType.registersGet;
-    memspace: ViceMemspace;
+    memspace: EmulatorMemspace;
 }
 
 export interface RegistersSetCommand extends RegisterCommand {
     type: CommandType.registersSet;
-    memspace: ViceMemspace;
+    memspace: EmulatorMemspace;
     registers: SingleRegisterInfo[];
 }
 
@@ -381,7 +381,7 @@ export interface BanksAvailableResponse extends AbstractResponse {
 
 export interface RegistersAvailableCommand extends AbstractCommand {
     type: CommandType.registersAvailable;
-    memspace: ViceMemspace;
+    memspace: EmulatorMemspace;
 }
 
 export interface RegistersAvailableResponse extends AbstractResponse {
@@ -544,7 +544,7 @@ export enum CpuOperation {
     exec = 0x04
 }
 
-export enum ViceMemspace {
+export enum EmulatorMemspace {
     main = 0x00,
     drive8 = 0x01,
     drive9 = 0x02,

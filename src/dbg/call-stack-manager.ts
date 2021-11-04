@@ -6,7 +6,7 @@ import * as bin from './binary-dto';
 import * as debugFile from '../lib/debug-file';
 import * as disassembly from '../lib/disassembly';
 import * as mapFile from '../lib/map-file';
-import { ViceGrip } from './vice-grip';
+import { AbstractGrip } from './abstract-grip';
 
 export class CallStackManager {
 
@@ -17,7 +17,7 @@ export class CallStackManager {
     private _stackFrameBreakIndexes : number[] = [];
 
     private _stackFrames: {line: debugFile.SourceLine, scope: debugFile.Scope}[] = [];
-    private _vice: ViceGrip;
+    private _emulator: AbstractGrip;
     private _mapFile: mapFile.MapRef[];
     private _dbgFile: debugFile.Dbgfile;
 
@@ -27,8 +27,8 @@ export class CallStackManager {
     private _cpuStackBottom: number = 0x1ff;
     private _cpuStackTop?: number;
 
-    constructor(vice: ViceGrip, mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile) {
-        this._vice = vice;
+    constructor(emulator: AbstractGrip, mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile) {
+        this._emulator = emulator;
         this._dbgFile = dbgFile;
         this._mapFile = mpFile;
     }
@@ -152,7 +152,7 @@ export class CallStackManager {
     public async getExitAddresses() : Promise<number[]> {
         const defAddr: number[] = [];
         if(this._cpuStackTop) {
-            const returnPointer = await this._vice.getMemory(this._cpuStackTop + 1, 2);
+            const returnPointer = await this._emulator.getMemory(this._cpuStackTop + 1, 2);
             defAddr.push(returnPointer.readUInt16LE(0) + 1);
         }
 
@@ -165,7 +165,7 @@ export class CallStackManager {
             return defAddr;
         }
 
-        const codeSegMem = await this._vice.getMemory(codeSeg.start, codeSeg.size);
+        const codeSegMem = await this._emulator.getMemory(codeSeg.start, codeSeg.size);
 
         const mainFrames = await this._getStackFramesForScope(this._dbgFile.mainScope, this._dbgFile.mainScope, codeSegMem);
         if(!mainFrames) {
@@ -192,7 +192,7 @@ export class CallStackManager {
             return;
         }
 
-        const codeSegMem = await this._vice.getMemory(codeSeg.start, codeSeg.size);
+        const codeSegMem = await this._emulator.getMemory(codeSeg.start, codeSeg.size);
         const reses = await Promise.all(this._dbgFile.scopes.map(x => this._getStackFramesForScope(x, x, codeSegMem)))
         for(const res of reses) {
             if(!res) {
@@ -216,7 +216,7 @@ export class CallStackManager {
                         stop: false,
                         enabled: true,
                     }));
-                return await this._vice.multiExecBinary(traceStarts) as bin.CheckpointInfoResponse[];
+                return await this._emulator.multiExecBinary(traceStarts) as bin.CheckpointInfoResponse[];
             })(),
             (async() => {
                 const traceEnds : bin.CheckpointSetCommand[] =
@@ -230,7 +230,7 @@ export class CallStackManager {
                         enabled: true,
                     }));
 
-                return await this._vice.multiExecBinary(traceEnds) as bin.CheckpointInfoResponse[];
+                return await this._emulator.multiExecBinary(traceEnds) as bin.CheckpointInfoResponse[];
             })(),
             (async() => {
                 const traceJumps : bin.CheckpointSetCommand[] =
@@ -243,7 +243,7 @@ export class CallStackManager {
                         stop: false,
                         enabled: true,
                     }));
-                return await this._vice.multiExecBinary(traceJumps) as bin.CheckpointInfoResponse[];
+                return await this._emulator.multiExecBinary(traceJumps) as bin.CheckpointInfoResponse[];
             })(),
             (async() => {
                 const breakStarts : bin.CheckpointSetCommand[] =
@@ -257,7 +257,7 @@ export class CallStackManager {
                         enabled: false,
                     }));
 
-                return await this._vice.multiExecBinary(breakStarts) as bin.CheckpointInfoResponse[];
+                return await this._emulator.multiExecBinary(breakStarts) as bin.CheckpointInfoResponse[];
             })()
         ]);
 
@@ -381,7 +381,7 @@ export class CallStackManager {
                 id,
             }));
 
-        await this._vice.multiExecBinary(cmd);
+        await this._emulator.multiExecBinary(cmd);
     }
 
     public async withFrameBreaksEnabled<T>(func: () => Promise<T>) : Promise<T> {
@@ -405,8 +405,8 @@ export class CallStackManager {
         const begin = lastFrame.scope.codeSpan!.absoluteAddress;
         const end = lastFrame.scope.codeSpan!.absoluteAddress + lastFrame.scope.codeSpan!.size - 1;
 
-        await this._vice.withAllBreaksDisabled(async() => {
-            const brk = await this._vice.execBinary({
+        await this._emulator.withAllBreaksDisabled(async() => {
+            const brk = await this._emulator.execBinary({
                 type: bin.CommandType.checkpointSet,
                 startAddress: begin,
                 endAddress: end,
@@ -417,7 +417,7 @@ export class CallStackManager {
             });
 
             // Breaking here
-            await this._vice.waitForStop(brk.startAddress, brk.endAddress);
+            await this._emulator.waitForStop(brk.startAddress, brk.endAddress);
         });
 
         return true;

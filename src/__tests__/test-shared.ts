@@ -45,7 +45,7 @@ export const DEFAULT_COMMON_VICE_ARGS : string[] = [
 
 export const DEFAULT_VICE_ARGS : string[] = [
     '-VICIIborders', '3',
-    '+VICIIhwscale',
+    //'+VICIIhwscale',
     '-VICIIcrtblur', '0',
     '-VICIIfilter', '0',
     '+VICIIdscan',

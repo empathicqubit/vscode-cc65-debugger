@@ -22,7 +22,9 @@ import * as mapFile from '../lib/map-file';
 import * as metrics from '../lib/metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
+import { MesenGrip } from './mesen-grip';
 import { __basedir } from '../basedir';
+import { AbstractGrip } from './abstract-grip';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -31,7 +33,7 @@ export interface CC65ViceBreakpoint {
     logMessage: string | undefined;
     // FIXME This should probably be preparsed
     condition: string | undefined;
-    viceIndex: number;
+    emulatorIndex: number;
     verified: boolean;
 }
 
@@ -94,9 +96,9 @@ export class Runtime extends EventEmitter {
     // so that the frontend can match events with breakpoints.
     private _breakpointId = 1;
 
-    private _viceRunning : boolean = false;
-    private _viceStarting : boolean = true;
-    public _vice : ViceGrip;
+    private _emulatorRunning : boolean = false;
+    private _emulatorStarting : boolean = true;
+    public _emulator : AbstractGrip;
 
     private _colorTermPids: [number, number] = [-1, -1];
     private _runAhead: boolean;
@@ -152,33 +154,33 @@ export class Runtime extends EventEmitter {
 
         await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath);
 
-        console.time('vice')
+        console.time('emulator')
 
-        await this._vice.connect(port);
+        await this._emulator.connect(port);
 
-        await this._postViceStart();
+        await this._postEmulatorStart();
 
         // Try to determine if we are loaded and wait if not
         await this._attachWait();
 
-        console.timeEnd('vice');
+        console.timeEnd('emulator');
 
         await this._postFullStart(stopOnEntry);
     }
 
-    private async _postViceStart() : Promise<void> {
-        this._vice.on('error', (res) => {
+    private async _postEmulatorStart() : Promise<void> {
+        this._emulator.on('error', (res) => {
             console.error(res);
         })
 
-        this._vice.once('end', () => this.terminate());
+        this._emulator.once('end', () => this.terminate());
 
         const [registersAvailable, banksAvailable] = await Promise.all([
-            this._vice.execBinary({
+            this._emulator.execBinary({
                 type: bin.CommandType.registersAvailable,
-                memspace: bin.ViceMemspace.main,
+                memspace: bin.EmulatorMemspace.main,
             }),
-            this._vice.execBinary({
+            this._emulator.execBinary({
                 type: bin.CommandType.banksAvailable,
             })
         ]);
@@ -186,8 +188,18 @@ export class Runtime extends EventEmitter {
         registersAvailable.registers.forEach(x => this._registerMeta[x.name] = x);
         banksAvailable.banks.forEach(x => this._bankMeta[x.name] = x);
 
-        await this._graphicsManager.postViceStart(this, this._bankMeta['io'], this._bankMeta['ram'], Object.values(this._bankMeta), Object.values(this._registerMeta)),
-        await this._setupViceEventHandler();
+        await this._graphicsManager.postEmulatorStart(this, this._bankMeta['io'], this._bankMeta['ram'], Object.values(this._bankMeta), Object.values(this._registerMeta)),
+        await this._setupEmulatorEventHandler();
+
+        await this._emulator.execBinary({
+            type: bin.CommandType.checkpointSet,
+            startAddress: this._dbgFile.entryAddress,
+            endAddress: this._dbgFile.entryAddress,
+            stop: true,
+            enabled: true,
+            operation: bin.CpuOperation.exec,
+            temporary: false,
+        });
 
         await this._updateUI();
     }
@@ -211,7 +223,7 @@ export class Runtime extends EventEmitter {
                 content: 'Waiting for program to start...',
                 items: this._attachProgram ? ['Autostart'] : [],
             });
-            await this._vice.withAllBreaksDisabled(async () => {
+            await this._emulator.withAllBreaksDisabled(async () => {
                 const storeCmds = _flow(
                     _map((x: typeof firstLastScopes[0]) => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1]),
                     _flatten,
@@ -229,12 +241,12 @@ export class Runtime extends EventEmitter {
                     })
                 )(firstLastScopes);
 
-                const storeReses : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(storeCmds);
+                const storeReses : bin.CheckpointInfoResponse[] = await this._emulator.multiExecBinary(storeCmds);
 
                 this._ignoreEvents = true;
                 do {
                     await this.continue();
-                    await this._vice.waitForStop();
+                    await this._emulator.waitForStop();
                 } while(!await this._validateLoad(firstLastScopes))
                 this._ignoreEvents = false;
 
@@ -243,7 +255,7 @@ export class Runtime extends EventEmitter {
                             type: bin.CommandType.checkpointDelete,
                             id: x.id,
                     }));
-                await this._vice.multiExecBinary(delCmds);
+                await this._emulator.multiExecBinary(delCmds);
             });
 
             this.sendMessage({
@@ -253,7 +265,7 @@ export class Runtime extends EventEmitter {
         }
 
         await this.continue();
-        await this._vice.ping();
+        await this._emulator.ping();
     }
 
     private async _validateLoad(scopes: debugFile.Scope[]) : Promise<boolean> {
@@ -266,7 +278,7 @@ export class Runtime extends EventEmitter {
         }
 
         for(const scope of scopes) {
-            const mem = await this._vice.getMemory(scope.codeSpan!.absoluteAddress, scope.size);
+            const mem = await this._emulator.getMemory(scope.codeSpan!.absoluteAddress, scope.size);
             if(!disassembly.verifyScope(this._dbgFile, scope, mem)) {
                 return false;
             }
@@ -323,25 +335,25 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('loadSource');
 
-        console.time('preVice');
+        console.time('preEmulator');
 
         this._resetRegisters();
 
-        console.timeEnd('preVice');
+        console.timeEnd('preEmulator');
 
-        this._vice = new ViceGrip(
+        this._emulator = new ViceGrip(
             <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
         );
 
         this._registerMeta = {};
         this._bankMeta = {};
 
-        this._callStackManager = new CallStackManager(this._vice, this._mapFile, this._dbgFile);
+        this._callStackManager = new CallStackManager(this._emulator, this._mapFile, this._dbgFile);
 
-        const graphicsManager = new GraphicsManager(this._vice, this._dbgFile.machineType);
+        const graphicsManager = new GraphicsManager(this._emulator, this._dbgFile.machineType);
 
         const variableManager = new VariableManager(
-            this._vice,
+            this._emulator,
             this._dbgFile.codeSeg,
             this._dbgFile.segs.find(x => x.name == "ZEROPAGE"),
             this._dbgFile.labs
@@ -356,7 +368,7 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('graphics+variables');
 
-        this._viceStarting = true;
+        this._emulatorStarting = true;
 
         this._variableManager = variableManager;
         this._graphicsManager = graphicsManager;
@@ -397,34 +409,34 @@ export class Runtime extends EventEmitter {
 
         await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath)
 
-        console.time('vice');
+        console.time('emulator');
 
         if(!labelFilePath) {
             labelFilePath = await this._getLabelsPath(program);
         }
 
-        await this._vice.start(
+        await this._emulator.start(
             port,
-            this._dbgFile.entryAddress,
             path.dirname(program),
             this._dbgFile.machineType,
-            await this._getVicePath(viceDirectory, !!preferX64OverX64sc),
+            await this._getEmulatorPath(viceDirectory, !!preferX64OverX64sc),
             viceArgs,
             labelFilePath
         );
 
-        console.timeEnd('vice');
-
-        await this._postViceStart();
+        console.timeEnd('emulator');
 
         try {
-            await this._vice.autostart(program);
+            await this._emulator.autostart(program);
         }
         catch {
             throw new Error('Could not autostart program. Do you have the correct path?');
         }
+
+        await this._postEmulatorStart();
+
         await this.continue();
-        await this._vice.waitForStop(this._dbgFile.entryAddress, undefined, true);
+        await this._emulator.waitForStop(this._dbgFile.entryAddress, undefined, true);
 
         await this._postFullStart(stopOnEntry);
     }
@@ -432,9 +444,9 @@ export class Runtime extends EventEmitter {
     private async _postFullStart(stopOnEntry: boolean) : Promise<void> {
         console.time('postStart')
 
-        if(this._vice.textPort) {
+        if(this._emulator.textPort) {
             let command = process.execPath;
-            let args = [__basedir + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._vice.textPort}`, `-condensedtrace`];
+            let args = [__basedir + '/../dist/monitor.js', '-remotemonitoraddress', `127.0.0.1:${this._emulator.textPort}`, `-condensedtrace`];
             if(process.platform == 'win32') {
                 args.unshift(command);
                 command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
@@ -443,7 +455,7 @@ export class Runtime extends EventEmitter {
             command = path.normalize(command);
 
             this._colorTermPids = await this._execHandler(command, args, {
-                title: 'VICE Monitor',
+                title: 'Text Monitor',
             });
         }
 
@@ -456,12 +468,12 @@ export class Runtime extends EventEmitter {
 
         await this.pause();
 
-        this._viceStarting = false;
+        this._emulatorStarting = false;
 
         await this._verifyBreakpoints();
 
         if (stopOnEntry) {
-            // We don't do anything here since VICE should already be in the
+            // We don't do anything here since the emulator should already be in the
             // correct position after thestartup routine.
             this.sendEvent('stopOnEntry');
         } else {
@@ -477,9 +489,9 @@ export class Runtime extends EventEmitter {
     }
 
     private async _screenUpdateHandler() : Promise<void> {
-        await this._vice.lock(async() => {
+        await this._emulator.lock(async() => {
             try {
-                const wasRunning = this._viceRunning;
+                const wasRunning = this._emulatorRunning;
 
                 if(wasRunning) {
                     await this._updateUI();
@@ -515,13 +527,13 @@ export class Runtime extends EventEmitter {
 
     private async _updateUI() : Promise<void> {
         await this._silenced(async() => {
-            await this._vice.ping();
+            await this._emulator.ping();
             await this._graphicsManager.updateUI(this);
         });
     }
 
     public async updateMemoryOffset(offset: number) {
-        const wasRunning = this._viceRunning;
+        const wasRunning = this._emulatorRunning;
 
         await this._graphicsManager.updateMemoryOffset(offset);
         if(!wasRunning) {
@@ -530,7 +542,7 @@ export class Runtime extends EventEmitter {
     }
 
     public async updateMemoryBank(bank: number) {
-        const wasRunning = this._viceRunning;
+        const wasRunning = this._emulatorRunning;
 
         await this._graphicsManager.updateMemoryBank(bank);
         if(!wasRunning) {
@@ -544,7 +556,7 @@ export class Runtime extends EventEmitter {
 
     public async action(name: string) {
         if(name == 'Autostart' && this._attachProgram) {
-            await this._vice.autostart(this._attachProgram);
+            await this._emulator.autostart(this._attachProgram);
             await this.continue();
         }
         else {
@@ -553,9 +565,9 @@ export class Runtime extends EventEmitter {
     }
 
     public async keypress(key: string) : Promise<void> {
-        const wasRunning = this._viceRunning;
+        const wasRunning = this._emulatorRunning;
         await this._silenced(async() => {
-            await this._vice.execBinary({
+            await this._emulator.execBinary({
                 type: bin.CommandType.keyboardFeed,
                 text: key,
             });
@@ -580,7 +592,7 @@ export class Runtime extends EventEmitter {
             temporary: false,
             operation: bin.CpuOperation.exec,
         }));
-        const resExits = await this._vice.multiExecBinary(exits) as bin.CheckpointInfoResponse[];
+        const resExits = await this._emulator.multiExecBinary(exits) as bin.CheckpointInfoResponse[];
 
         for(const exit of resExits) {
             this._exitIndexes.push(exit.id);
@@ -592,7 +604,7 @@ export class Runtime extends EventEmitter {
             return;
         }
 
-        const res = await this._vice.execBinary({
+        const res = await this._emulator.execBinary({
             type: bin.CommandType.checkpointSet,
             operation: bin.CpuOperation.store,
             startAddress: this._dbgFile.codeSeg.start,
@@ -631,24 +643,24 @@ or define the location manually with the launch.json->mapFile setting`
      * Note: only call this if you actually want the UI to think you've resumed.
      */
     public async continue(reverse = false) {
-        await this._vice.exit();
-        !this._viceStarting && this.sendEvent('continued');
+        await this._emulator.exit();
+        !this._emulatorStarting && this.sendEvent('continued');
     }
 
     public async next(reverse = false, event = 'stopOnStep') : Promise<void> {
-        await this._vice.lock(async () => {
-            if(this._viceRunning) {
+        await this._emulator.lock(async () => {
+            if(this._emulatorRunning) {
                 return;
             }
 
             console.log('Nexting...')
             console.time('next');
 
-            await this._vice.withAllBreaksDisabled(async () => {
+            await this._emulator.withAllBreaksDisabled(async () => {
                 // Find the next source line and continue to it.
                 const nextLine = this._getNextLine();
                 if(!nextLine || (nextLine.file && nextLine.file.type == debugFile.SourceFileType.Assembly)) {
-                    await this._vice.execBinary({
+                    await this._emulator.execBinary({
                         type: bin.CommandType.advanceInstructions,
                         stepOverSubroutines: true,
                         count: 1,
@@ -662,17 +674,17 @@ or define the location manually with the launch.json->mapFile setting`
                     let breaks : bin.CheckpointInfoResponse[] | null;
                     if(breaks = await this._setLineGuard(this._currentPosition, nextLine)) {
                         await this.continue();
-                        await this._vice.waitForStop();
+                        await this._emulator.waitForStop();
 
                         const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
                             type: bin.CommandType.checkpointDelete,
                             id: x.id,
                         }));
 
-                        await this._vice.multiExecBinary(delBrks);
+                        await this._emulator.multiExecBinary(delBrks);
                     }
                     else {
-                        await this._vice.execBinary({
+                        await this._emulator.execBinary({
                             type: bin.CommandType.checkpointSet,
                             startAddress: nextAddress,
                             endAddress: nextAddress,
@@ -731,12 +743,12 @@ or define the location manually with the launch.json->mapFile setting`
             operation: bin.CpuOperation.exec,
         }));
 
-        return await this._vice.multiExecBinary(setBreaks);
+        return await this._emulator.multiExecBinary(setBreaks);
     }
 
     public async stepIn() : Promise<void> {
-        await this._vice.lock(async() => {
-            if(this._viceRunning) {
+        await this._emulator.lock(async() => {
+            if(this._emulatorRunning) {
                 return;
             }
 
@@ -746,8 +758,8 @@ or define the location manually with the launch.json->mapFile setting`
 
             if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
                 await Promise.all([
-                    this._vice.waitForStop(),
-                    this._vice.execBinary({
+                    this._emulator.waitForStop(),
+                    this._emulator.execBinary({
                         type: bin.CommandType.advanceInstructions,
                         stepOverSubroutines: false,
                         count: 1,
@@ -760,7 +772,7 @@ or define the location manually with the launch.json->mapFile setting`
                     const breaks = await this._setLineGuard(this._currentPosition, nextLine);
 
                     await this.continue();
-                    await this._vice.waitForStop();
+                    await this._emulator.waitForStop();
 
                     if(breaks) {
                         const delBrks : bin.CheckpointDeleteCommand[] = breaks.map(x => ({
@@ -768,7 +780,7 @@ or define the location manually with the launch.json->mapFile setting`
                             id: x.id,
                         }));
 
-                        await this._vice.multiExecBinary(delBrks);
+                        await this._emulator.multiExecBinary(delBrks);
                     }
                 });
             }
@@ -781,15 +793,15 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     private async _stepOut(event = 'stopOnStep') : Promise<void> {
-        if(this._viceRunning) {
+        if(this._emulatorRunning) {
             return;
         }
 
         if(!await this._callStackManager.returnToLastStackFrame()) {
             if(this._currentPosition.file && this._currentPosition.file.type == debugFile.SourceFileType.Assembly) {
                 await Promise.all([
-                    this._vice.waitForStop(),
-                    this._vice.execBinary({
+                    this._emulator.waitForStop(),
+                    this._emulator.execBinary({
                         type: bin.CommandType.executeUntilReturn,
                     }),
                 ]);
@@ -807,7 +819,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async stepOut(event = 'stopOnStep') : Promise<void> {
-        await this._vice.lock(async() => {
+        await this._emulator.lock(async() => {
             await this._stepOut();
 
             await this._doRunAhead();
@@ -818,7 +830,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async pause() {
-        await this._vice.ping();
+        await this._emulator.ping();
         await this._doRunAhead();
         const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
         this.sendEvent('stopOnStep', null, ...args);
@@ -841,9 +853,9 @@ or define the location manually with the launch.json->mapFile setting`
             return;
         }
 
-        this._vice && await this._vice.terminate();
+        this._emulator && await this._emulator.terminate();
 
-        this._vice = <any>null;
+        this._emulator = <any>null;
 
         await this.disconnect();
 
@@ -866,11 +878,11 @@ or define the location manually with the launch.json->mapFile setting`
         }).catch(() => {});
         this._colorTermPids = [-1, -1];
 
-        this._vice && await this._vice.disconnect();
+        this._emulator && await this._emulator.disconnect();
 
-        this._vice = <any>undefined;
+        this._emulator = <any>undefined;
 
-        this._viceRunning = false;
+        this._emulatorRunning = false;
 
         this._stopOnExit = false;
         this._exitQueued = false;
@@ -889,22 +901,22 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async getMemory(addr: number, length: number) : Promise<Buffer> {
-        return await this._vice.getMemory(addr, length);
+        return await this._emulator.getMemory(addr, length);
     }
 
     public async setMemory(addr: number, memory: Buffer) : Promise<void> {
-        await this._vice.setMemory(addr, memory);
+        await this._emulator.setMemory(addr, memory);
     }
 
     // Breakpoints
 
     private async _verifyBreakpoints() : Promise<void> {
-        if(!this._dbgFile || !this._vice || this._viceStarting) {
+        if(!this._dbgFile || !this._emulator || this._emulatorStarting) {
             return;
         }
 
-        return await this._vice.lock(async () => {
-            const wasRunning = this._viceRunning;
+        return await this._emulator.lock(async () => {
+            const wasRunning = this._emulatorRunning;
 
             const checkCmds : bin.CheckpointSetCommand[] = [];
             for(const bp of this._breakPoints) {
@@ -933,8 +945,8 @@ or define the location manually with the launch.json->mapFile setting`
             }
 
             await this._silenced(async () => {
-                await this._vice.ping();
-                const brks : bin.CheckpointInfoResponse[] = await this._vice.multiExecBinary(checkCmds);
+                await this._emulator.ping();
+                const brks : bin.CheckpointInfoResponse[] = await this._emulator.multiExecBinary(checkCmds);
 
                 const condCmds : bin.ConditionSetCommand[] = [];
                 for(const brk of brks) {
@@ -943,7 +955,7 @@ or define the location manually with the launch.json->mapFile setting`
                         continue;
                     }
 
-                    bp.viceIndex = brk.id;
+                    bp.emulatorIndex = brk.id;
                     bp.verified = true;
                     this.sendEvent('breakpointValidated', bp);
 
@@ -954,12 +966,12 @@ or define the location manually with the launch.json->mapFile setting`
                     });
                 }
 
-                await this._vice.multiExecBinary(condCmds);
+                await this._emulator.multiExecBinary(condCmds);
             });
 
             if(wasRunning) {
-                await this._vice.exit();
-                this._viceRunning = true;
+                await this._emulator.exit();
+                this._emulatorRunning = true;
             }
         });
     }
@@ -1032,7 +1044,7 @@ or define the location manually with the launch.json->mapFile setting`
                 };
             }
 
-            const bp = <CC65ViceBreakpoint> { verified: false, logMessage: lineSym.logMessage, condition: lineSym.condition, line: lineSym.sym, viceIndex: -1, id: this._breakpointId++ };
+            const bp = <CC65ViceBreakpoint> { verified: false, logMessage: lineSym.logMessage, condition: lineSym.condition, line: lineSym.sym, emulatorIndex: -1, id: this._breakpointId++ };
             bps[line] = bp;
         }
         this._breakPoints.push(...Object.values(bps))
@@ -1043,14 +1055,14 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async clearBreakpoints(p : string): Promise<void> {
-        if(this._viceStarting) {
+        if(this._emulatorStarting) {
             return;
         }
 
-        await this._vice.lock(async () => {
-            const wasRunning = this._viceRunning;
+        await this._emulator.lock(async () => {
+            const wasRunning = this._emulatorRunning;
             await this._silenced(async() => {
-                await this._vice.ping();
+                await this._emulator.ping();
 
                 let dels : bin.CheckpointDeleteCommand[] = [];
                 for(const bp of [...this._breakPoints]) {
@@ -1064,18 +1076,18 @@ or define the location manually with the launch.json->mapFile setting`
                     }
                     this._breakPoints.splice(index, 1);
 
-                    if(bp.viceIndex <= 0) {
+                    if(bp.emulatorIndex <= 0) {
                         continue;
                     }
 
                     dels.push({
                         type: bin.CommandType.checkpointDelete,
-                        id: bp.viceIndex,
+                        id: bp.emulatorIndex,
                     })
 
                     // Also clean up breakpoints with the same address.
                     // FIXME: This smells weird. Reassess and document reasoning.
-                    const bks = await this._vice.checkpointList();
+                    const bks = await this._emulator.checkpointList();
                     for(const bk of bks.related) {
                         if(bk.startAddress == bp.line.span!.absoluteAddress) {
                             dels.push({
@@ -1090,12 +1102,12 @@ or define the location manually with the launch.json->mapFile setting`
                 dels = _uniqBy(x => x.id, dels);
 
                 if(dels.length) {
-                    await this._vice.multiExecBinary(dels);
+                    await this._emulator.multiExecBinary(dels);
                 }
             });
             if(wasRunning) {
-                await this._vice.exit();
-                this._viceRunning = true;
+                await this._emulator.exit();
+                this._emulatorRunning = true;
             }
         });
     }
@@ -1114,9 +1126,9 @@ or define the location manually with the launch.json->mapFile setting`
     // Variables
 
     public async getRegisterVariables() : Promise<VariableData[]> {
-        const res = await this._vice.execBinary({
+        const res = await this._emulator.execBinary({
             type: bin.CommandType.registersGet,
-            memspace: bin.ViceMemspace.main,
+            memspace: bin.EmulatorMemspace.main,
         });
 
         const regs : VariableData[] = [];
@@ -1180,9 +1192,9 @@ or define the location manually with the launch.json->mapFile setting`
             throw new Error('Invalid variable name');
         }
 
-        const res = await this._vice.execBinary({
+        const res = await this._emulator.execBinary({
             type: bin.CommandType.registersSet,
-            memspace: bin.ViceMemspace.main,
+            memspace: bin.EmulatorMemspace.main,
             registers: [
                 {
                     id: meta.id,
@@ -1239,51 +1251,55 @@ or define the location manually with the launch.json->mapFile setting`
         return this._getScope(this._currentPosition);
     }
 
-    private async _getVicePath(viceDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
-        let viceBaseName : string;
+    private async _getEmulatorPath(viceDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
+        let emulatorBaseName : string;
         const mt = this._dbgFile.machineType;
-        if(mt == debugFile.MachineType.c128) {
-            viceBaseName = 'x128';
+        if(mt == debugFile.MachineType.nes) {
+            // FIXME
+            emulatorBaseName = 'Mesen.exe';
+        }
+        else if(mt == debugFile.MachineType.c128) {
+            emulatorBaseName = 'x128';
         }
         else if(mt == debugFile.MachineType.cbm5x0) {
-            viceBaseName = 'xcbm5x0';
+            emulatorBaseName = 'xcbm5x0';
         }
         else if(mt == debugFile.MachineType.pet) {
-            viceBaseName = 'xpet';
+            emulatorBaseName = 'xpet';
         }
         else if(mt == debugFile.MachineType.plus4) {
-            viceBaseName = 'xplus4';
+            emulatorBaseName = 'xplus4';
         }
         else if(mt == debugFile.MachineType.vic20) {
-            viceBaseName = 'xvic';
+            emulatorBaseName = 'xvic';
         }
         else {
-            viceBaseName = preferX64OverX64sc ? 'x64' : 'x64sc';
+            emulatorBaseName = preferX64OverX64sc ? 'x64' : 'x64sc';
         }
 
-        let vicePath : string;
+        let emulatorPath : string;
         if(viceDirectory) {
-            vicePath = path.normalize(path.join(viceDirectory, viceBaseName));
+            emulatorPath = path.normalize(path.join(viceDirectory, emulatorBaseName));
         }
         else {
-            vicePath = viceBaseName;
+            emulatorPath = emulatorBaseName;
         }
 
         try {
             try {
-                await util.promisify(fs.access)(vicePath)
+                await util.promisify(fs.access)(emulatorPath)
             }
             catch {
                 await util.promisify((i, cb) =>
                     hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null))
-                )([vicePath])
+                )([emulatorPath])
             }
         }
         catch (e) {
-            throw new Error(`Couldn't find VICE. Make sure your \`cc65vice.viceDirectory\` user setting is pointing to the directory containing VICE executables. ${vicePath} ${e}`);
+            throw new Error(`Couldn't find the emulator. Make sure your \`cc65vice.viceDirectory\` user setting is pointing to the directory containing emulator executables. ${emulatorPath} ${e}`);
         }
 
-        return vicePath;
+        return emulatorPath;
     }
 
     // Get the labels file if it exists
@@ -1336,7 +1352,7 @@ or define the location manually with the launch.json->mapFile setting`
                 if(this._codeSegGuardIndex == index) {
                     const guard = this._codeSegGuardIndex;
                     this._codeSegGuardIndex = -1;
-                    await this._vice.execBinary({
+                    await this._emulator.execBinary({
                         type: bin.CommandType.checkpointDelete,
                         id: guard,
                     });
@@ -1356,21 +1372,21 @@ or define the location manually with the launch.json->mapFile setting`
                 }
                 else {
                     // We save this event for later, because it happens before the stop
-                    this._userBreak = this._breakPoints.find(x => x.viceIndex == index);
+                    this._userBreak = this._breakPoints.find(x => x.emulatorIndex == index);
                 }
 
-                this._viceRunning = false;
+                this._emulatorRunning = false;
             }
         }
         else if(e.type == bin.ResponseType.registerInfo) {
             this._updateRegisters(e.registers);
         }
         else if(e.type == bin.ResponseType.stopped) {
-            this._viceRunning = false;
+            this._emulatorRunning = false;
 
             this._updateCurrentAddress(e.programCounter);
 
-            if(this._viceStarting) {
+            if(this._emulatorStarting) {
                 return;
             }
 
@@ -1393,7 +1409,7 @@ or define the location manually with the launch.json->mapFile setting`
                             throw new Error("Hit break");
                         }
                         else {
-                            await this._vice.exit();
+                            await this._emulator.exit();
                         }
                     }
                     catch {
@@ -1415,10 +1431,10 @@ or define the location manually with the launch.json->mapFile setting`
                 return;
             }
 
-            this._viceRunning = true;
+            this._emulatorRunning = true;
             this._updateCurrentAddress(e.programCounter);
 
-            if(!this._viceStarting && !this._silenceEvents) {
+            if(!this._emulatorStarting && !this._silenceEvents) {
                 this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
             }
         }
@@ -1457,8 +1473,8 @@ or define the location manually with the launch.json->mapFile setting`
         }
     }
 
-    private async _setupViceEventHandler() {
-        this._vice.on(0xffffffff.toString(16), async e => this._eventHandler(e));
+    private async _setupEmulatorEventHandler() {
+        this._emulator.on(0xffffffff.toString(16), async e => this._eventHandler(e));
     }
 
     private async _doRunAhead() : Promise<void>{
@@ -1472,7 +1488,7 @@ or define the location manually with the launch.json->mapFile setting`
         console.time('runahead');
 
         const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
-        await this._vice.execBinary({
+        await this._emulator.execBinary({
             type: bin.CommandType.dump,
             saveDisks: false,
             saveRoms: false,
@@ -1481,7 +1497,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         const oldLine = this._registers.line;
         this._ignoreEvents = true;
-        await this._vice.withAllBreaksDisabled(async() => {
+        await this._emulator.withAllBreaksDisabled(async() => {
             // Try not to step through the serial line
             // to avoid a VICE bug with snapshots
             // messing up fs access
@@ -1494,7 +1510,7 @@ or define the location manually with the launch.json->mapFile setting`
             const serialLineResumeAddress = serialLineResumeAddresses[this._dbgFile.machineType];
             let serialLineCheckpoint : bin.CheckpointInfoResponse | undefined;
             if(serialLineResumeAddress) {
-                serialLineCheckpoint = await this._vice.execBinary({
+                serialLineCheckpoint = await this._emulator.execBinary({
                     type: bin.CommandType.checkpointSet,
                     startAddress: serialLineResumeAddress,
                     endAddress: serialLineResumeAddress,
@@ -1505,7 +1521,7 @@ or define the location manually with the launch.json->mapFile setting`
                 });
             }
 
-            const brkRes = await this._vice.execBinary({
+            const brkRes = await this._emulator.execBinary({
                 type: bin.CommandType.checkpointSet,
                 startAddress: 0x0000,
                 endAddress: 0xffff,
@@ -1514,32 +1530,32 @@ or define the location manually with the launch.json->mapFile setting`
                 operation: bin.CpuOperation.exec,
                 temporary: false,
             });
-            await this._vice.execBinary({
+            await this._emulator.execBinary({
                 type: bin.CommandType.conditionSet,
                 condition: 'RL != $' + oldLine.toString(16),
                 checkpointId: brkRes.id,
             });
 
-            await this._vice.exit();
-            let stopped = await this._vice.waitForStop();
+            await this._emulator.exit();
+            let stopped = await this._emulator.waitForStop();
 
             if(stopped.programCounter != serialLineResumeAddress) {
-                await this._vice.execBinary({
+                await this._emulator.execBinary({
                     type: bin.CommandType.conditionSet,
                     condition: 'RL == $' + oldLine.toString(16),
                     checkpointId: brkRes.id,
                 });
 
-                await this._vice.exit();
-                await this._vice.waitForStop();
+                await this._emulator.exit();
+                await this._emulator.waitForStop();
             }
 
-            await this._vice.execBinary({
+            await this._emulator.execBinary({
                 type: bin.CommandType.checkpointDelete,
                 id: brkRes.id,
             });
             if(serialLineCheckpoint) {
-                await this._vice.execBinary({
+                await this._emulator.execBinary({
                     type: bin.CommandType.checkpointDelete,
                     id: serialLineCheckpoint.id,
                 });
@@ -1549,7 +1565,7 @@ or define the location manually with the launch.json->mapFile setting`
 
         await this._graphicsManager.updateRunAhead(this);
 
-        const undumpRes = await this._vice.execBinary({
+        const undumpRes = await this._emulator.execBinary({
             type: bin.CommandType.undump,
             filename: dumpFileName,
         });

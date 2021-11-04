@@ -125,6 +125,7 @@ export interface SourceFile {
 
 export enum MachineType {
     unknown = 0x00,
+    nes,
     c128,
     cbm5x0,
     pet,
@@ -501,7 +502,10 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         dbgFile.systemLibBaseName = path.basename(libPath).replace(/\.lib$/gi, '');
 
         const ln = dbgFile.systemLibBaseName;
-        if(ln == 'c128') {
+        if(ln == 'nes') {
+            dbgFile.machineType = MachineType.nes;
+        }
+        else if(ln == 'c128') {
             dbgFile.machineType = MachineType.c128;
         }
         else if(ln == 'cbm510') {

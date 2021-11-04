@@ -7,8 +7,8 @@ import * as pngjs from 'pngjs';
 import * as util from 'util';
 import * as bin from './binary-dto';
 import * as debugFile from '../lib/debug-file';
-import { ViceGrip } from './vice-grip';
 import { __basedir } from '../basedir';
+import { AbstractGrip } from './abstract-grip';
 
 export class GraphicsManager {
     private _currentPng: any;
@@ -16,7 +16,7 @@ export class GraphicsManager {
     private _metas: bin.SingleRegisterMeta[];
     private _banks: bin.SingleBankMeta[];
     private _ioBank: bin.SingleBankMeta;
-    private _vice: ViceGrip;
+    private _emulator: AbstractGrip;
     private _machineType: debugFile.MachineType = debugFile.MachineType.unknown;
     private _ramBank: bin.SingleBankMeta;
     private _memoryOffset: number = 0x0000;
@@ -24,8 +24,8 @@ export class GraphicsManager {
     private _memoryBank: number = 0;
     private _enableStats: boolean = false;
 
-    constructor(vice: ViceGrip, machineType: debugFile.MachineType) {
-        this._vice = vice;
+    constructor(emulator: AbstractGrip, machineType: debugFile.MachineType) {
+        this._emulator = emulator;
         this._machineType = machineType;
     }
 
@@ -33,14 +33,14 @@ export class GraphicsManager {
         this._enableStats = true;
     }
 
-    public async postViceStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[], metas?: bin.SingleRegisterMeta[]) {
+    public async postEmulatorStart(emitter: events.EventEmitter, ioBank?: bin.SingleBankMeta, ramBank?: bin.SingleBankMeta, banks?: bin.SingleBankMeta[], metas?: bin.SingleRegisterMeta[]) {
         this._ioBank = ioBank!;
         this._ramBank = ramBank!;
         this._banks = banks!;
         this._metas = metas!;
         if(this._machineType == debugFile.MachineType.c64) {
             // FIXME Replace with palette command.
-            const paletteFileName = await this._vice.execBinary({
+            const paletteFileName = await this._emulator.execBinary({
                 type: bin.CommandType.resourceGet,
                 resourceName: 'VICIIPaletteFile',
             });
@@ -73,7 +73,7 @@ export class GraphicsManager {
     }
 
     public async updateMemory(emitter: events.EventEmitter) {
-        const buf = await this._vice.getMemory(this._memoryOffset, this._memoryLength, this._memoryBank);
+        const buf = await this._emulator.getMemory(this._memoryOffset, this._memoryLength, this._memoryBank);
         this._enableStats && emitter.emit('memory', {
             memory: Array.from(buf),
         })
@@ -86,10 +86,10 @@ export class GraphicsManager {
     }
 
     public async updateRegisters(emitter: events.EventEmitter): Promise<void> {
-        const regs = await this._vice.execBinary(
+        const regs = await this._emulator.execBinary(
             {
                 type: bin.CommandType.registersGet,
-                memspace: bin.ViceMemspace.main,
+                memspace: bin.EmulatorMemspace.main,
             }
         );
 
@@ -111,10 +111,10 @@ export class GraphicsManager {
             return;
         }
 
-        const ioRes = await this._vice.execBinary({
+        const ioRes = await this._emulator.execBinary({
             type: bin.CommandType.memoryGet,
             bankId: this._ioBank.id,
-            memspace: bin.ViceMemspace.main,
+            memspace: bin.EmulatorMemspace.main,
             sidefx: false,
             startAddress: 0xd000,
             endAddress: 0xdfff,
@@ -128,7 +128,7 @@ export class GraphicsManager {
     }
 
     public async updateRunAhead(emitter: events.EventEmitter) : Promise<void> {
-        const aheadRes = await this._vice.displayGetRGBA();
+        const aheadRes = await this._emulator.displayGetRGBA();
 
         if(!this._runAheadPng) {
             this._runAheadPng = new pngjs.PNG({
@@ -149,7 +149,7 @@ export class GraphicsManager {
     }
 
     public async updateCurrent(emitter: events.EventEmitter) : Promise<void> {
-        const currentRes = await this._vice.displayGetRGBA();
+        const currentRes = await this._emulator.displayGetRGBA();
 
         if(!this._currentPng) {
             this._currentPng = new pngjs.PNG({
@@ -177,7 +177,7 @@ export class GraphicsManager {
         const vicBankStart = vicBankMult * 0x4000;
         const screenMult = (vicSetup >>> 4) & 0b1111;
         const screenStart = vicBankStart + screenMult * 0x400;
-        const screenMemory = await this._vice.getMemory(screenStart, 40 * 25);
+        const screenMemory = await this._emulator.getMemory(screenStart, 40 * 25);
         const colorRam = ioMemory.slice(0x800, 0xbe8);
 
         this._enableStats && emitter.emit('screenText', {
@@ -198,7 +198,7 @@ export class GraphicsManager {
         const screenMult = (vicSetup >>> 4) & 0b1111;
         const screenStart = vicBankStart + screenMult * 0x400;
         const spriteMultsStart = screenStart + 0x3f8;
-        const spriteMults = await this._vice.getMemory(spriteMultsStart, VIC_SPRITE_COUNT);
+        const spriteMults = await this._emulator.getMemory(spriteMultsStart, VIC_SPRITE_COUNT);
         const spriteMulticolorFlags = ioMemory.readUInt8(0x01c);
         const spriteEnableFlags = ioMemory.readUInt8(0x015);
         const enabledMults = spriteMults.filter((x, i, a) => spriteEnableFlags & (1 << i));
@@ -212,11 +212,11 @@ export class GraphicsManager {
             type: bin.CommandType.memoryGet,
             startAddress: vicBankStart + 0x40 * minMult,
             endAddress: vicBankStart + 0x40 * spriteCount - 1,
-            memspace: bin.ViceMemspace.main,
+            memspace: bin.EmulatorMemspace.main,
             sidefx: false,
             bankId: this._ramBank.id,
         }
-        const spriteData : Buffer = (await this._vice.execBinary(spriteDataCmd)).memory;
+        const spriteData : Buffer = (await this._emulator.execBinary(spriteDataCmd)).memory;
         const sprites : any[] = [];
         for(let i = 0; i < spriteData.length / 0x40; i++) {
             const spriteBuf = spriteData.slice(i * 0x40, (i + 1) * 0x40);
