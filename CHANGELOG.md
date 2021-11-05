@@ -1,5 +1,13 @@
 # Changelog
 
+### [4.10.3](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.2...v4.10.3) (2021-11-05)
+
+
+### Bug Fixes
+
+* Doubled up home path on Windows ([aa42bc0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/aa42bc038452244dba62680914f7a7ff9044109f))
+* Remove dither field from palette command ([1f02d52](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/1f02d52d9b0d31a94ebd66e8b17bc5a506a80a03))
+
 ### [4.10.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.1...v4.10.2) (2021-10-20)
 
 
