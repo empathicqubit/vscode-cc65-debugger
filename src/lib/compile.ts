@@ -110,7 +110,7 @@ export async function build(build: LaunchRequestBuildArguments, execHandler: deb
         shell: <any>true,
         env: {
             PATH: [binDir, process.env.PATH].filter(x => x).join(sep),
-            CC65_HOME: [process.env.CC65_HOME, cc65Home].filter(x => x).join(sep),
+            CC65_HOME: [process.env.CC65_HOME, cc65Home].find(x => x),
         }
     };
 
