@@ -74,8 +74,8 @@ export class MesenGrip extends AbstractGrip {
 
         let mesenSettingsDir =
             process.env.USERPROFILE
-            // FIXME
-            ? process.env.USERPROFILE + '/My Documents/Mesen'
+            // FIXME This shouldn't assume the Documents folder location
+            ? process.env.USERPROFILE + '/Documents/Mesen'
             : process.env.HOME + '/Mesen';
 
         try {

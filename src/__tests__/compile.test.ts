@@ -11,7 +11,7 @@ import { __basedir } from '../basedir';
 describe('Compile', () => {
     const BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
     const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/simple-project');
-    const PROGRAM = BUILD_CWD + '/simple-project.c64';
+    const PROGRAM = path.normalize(BUILD_CWD + '/simple-project.c64');
     const BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
     const BUILD : LaunchRequestBuildArguments = {
         cwd: BUILD_CWD,
@@ -75,10 +75,12 @@ describe('Compile', () => {
     });
 
     test('Can guess the program path', async () => {
-        await compile.make(BUILD, execHandler, {
-            shell: <any>true,
-        });
+        await compile.clean(BUILD_CWD, execHandler);
+        await compile.build({
+            ...BUILD,
+            cwd: BUILD_CWD,
+        }, execHandler);
         const possibles = await compile.guessProgramPath(BUILD_CWD);
-        assert.strictEqual(possibles.includes(PROGRAM), true);
+        expect(possibles).toContain(PROGRAM);
     });
 });

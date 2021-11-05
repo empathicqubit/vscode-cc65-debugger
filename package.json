@@ -46,7 +46,7 @@
     "compiler:distdir": "shx mkdir -p dist/cc65",
     "compiler:on-win32:win32_x64": "npm-run-all \"compiler:arch -- win32_x64\"",
     "compiler:on-win32": "echo \"WINDOWS CANNOT GENERATE FULL BUILDS!\" && npm-run-all --aggregate-output -p compiler:base compiler:on-win32:*",
-    "compiler:quick:on-win32": "npm-run-all --aggregate-output -p compiler:base compiler:on-win32:win32_x64 compiler:on-win32:win32_x64",
+    "compiler:quick:on-win32": "npm-run-all compiler:base compiler:on-win32:win32_x64",
     "compiler:on-linux:linux_x32": "npm-run-all \"compiler:arch -- linux_x32 i686-linux-gnu-\"",
     "compiler:on-linux:linux_x64": "npm-run-all \"compiler:arch -- linux_x64\"",
     "compiler:on-linux:linux_arm": "npm-run-all \"compiler:arch -- linux_arm arm-linux-gnueabi-\"",
