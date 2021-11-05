@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.0.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.2...v5.0.0) (2021-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* Change launch arguments to reflect multiple emulators.
+
+### Features
+
+* Change launch arguments to reflect multiple emulators. ([441e51c](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/441e51cf726afb7a6d67651ae6fe9ea900da8df8))
+* NES support with Mesen ([e139c20](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/e139c20d639f38592eccda024e92bc0a0fac56a4))
+
+
+### Bug Fixes
+
+* Doubled up home path on Windows ([aa42bc0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/aa42bc038452244dba62680914f7a7ff9044109f))
+* issue with Windows file formatting with table files ([3b95aa1](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/3b95aa10a5e6ff184826c6444c1d057101f61406))
+* Remove dither field from palette command ([1f02d52](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/commit/1f02d52d9b0d31a94ebd66e8b17bc5a506a80a03))
+
 ### [4.10.2](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.1...v4.10.2) (2021-10-20)
 
 
