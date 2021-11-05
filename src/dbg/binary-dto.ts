@@ -434,7 +434,6 @@ export interface PaletteEntry {
     red: number;
     green: number;
     blue: number;
-    dither: number;
 }
 
 export interface PaletteGetResponse extends AbstractResponse {
@@ -908,7 +907,6 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
                 red: body.readUInt8(cursor + 1),
                 green: body.readUInt8(cursor + 2),
                 blue: body.readUInt8(cursor + 3),
-                dither: body.readUInt8(cursor + 4),
             }
             r.entries.push(item);
             cursor += item_size + 1;

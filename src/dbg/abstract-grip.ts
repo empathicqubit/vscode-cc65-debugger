@@ -19,7 +19,7 @@ const waitPort = require('wait-port');
 export abstract class AbstractGrip extends EventEmitter {
     public textPort : number | undefined;
 
-    protected _apiVersion: number = 1;
+    protected _apiVersion: number = 2;
 
     protected _binaryConn: Readable & Writable;
 
@@ -74,7 +74,7 @@ export abstract class AbstractGrip extends EventEmitter {
                     this._responseEmitter.emit('resumed', res);
                 }
 
-                console.log('response', bin.ResponseType[res.type], res);
+                //console.log('response', bin.ResponseType[res.type], res, new Error());
                 this._responseEmitter.emit(res.requestId.toString(16), res);
 
                 const oldResponseByteCount = this._responseByteCount;

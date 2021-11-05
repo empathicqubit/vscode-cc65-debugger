@@ -331,6 +331,8 @@ export class Runtime extends EventEmitter {
             this._loadMapFile(mapFilePath),
         ]);
 
+        console.log('Entry address: ', this._dbgFile.entryAddress.toString(16))
+
         console.timeEnd('parseSource');
 
         console.timeEnd('loadSource');
@@ -341,7 +343,7 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('preEmulator');
 
-        this._emulator = new ViceGrip(
+        this._emulator = new MesenGrip(
             <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
         );
 
@@ -1386,16 +1388,14 @@ or define the location manually with the launch.json->mapFile setting`
 
             this._updateCurrentAddress(e.programCounter);
 
-            if(this._emulatorStarting) {
-                return;
-            }
-
             const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0]
-            !this._silenceEvents && this.sendEvent('output', 'console', ...args);
+            const sendEvents = !this._emulatorStarting && !this._silenceEvents
+
+            sendEvents && this.sendEvent('output', 'console', ...args);
 
             if(this._exitQueued) {
                 await this._doRunAhead();
-                !this._silenceEvents && this.sendEvent('stopOnExit', null, ...args);
+                sendEvents && this.sendEvent('stopOnExit', null, ...args);
             }
             else if(this._userBreak) {
                 await this._doRunAhead();
@@ -1413,16 +1413,16 @@ or define the location manually with the launch.json->mapFile setting`
                         }
                     }
                     catch {
-                        !this._silenceEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
+                        sendEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
                     }
                 }
                 else {
-                    !this._silenceEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
+                    sendEvents && this.sendEvent('stopOnBreakpoint', null, ...args);
                 }
                 this._userBreak = undefined;
             }
             else {
-                !this._silenceEvents && this.sendEvent('stopOnStep', null, ...args);
+                sendEvents && this.sendEvent('stopOnStep', null, ...args);
             }
         }
         else if(e.type == bin.ResponseType.resumed) {
