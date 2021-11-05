@@ -13,8 +13,9 @@
 Dependencies and date last changed:
 
 [![VICE](https://img.shields.io/badge/VICE-3.5%202020%2f12%2f24-blue)](https://chocolatey.org/packages/winvice-nightly/3.5.2021010401) 
+[![Mesen](https://img.shields.io/badge/Mesen-0.9.9%202021%2f11%2f05-blue)](https://github.com/SourMesen/Mesen/releases/tag/0.9.9) 
 
-This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms, including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
+This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms (well-tested) and NES (experimental), including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
 
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 

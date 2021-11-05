@@ -1,21 +1,24 @@
 {
   "name": "cc65-vice",
-  "displayName": "C64 CC65/VICE Debugger",
+  "displayName": "VS65 Debugger",
   "version": "5.0.0",
   "publisher": "entan-gl",
-  "description": "An extension to unify VSCode, CC65, and VICE monitor.",
+  "description": "An extension to debug CC65 running in VICE (Commodore) or Mesen (Nintendo) emulators.",
   "author": {
     "name": "empathicqubit",
     "email": "empathicqubit@entan.gl"
   },
   "license": "MIT",
   "keywords": [
+    "nes",
+    "mesen",
     "cc65",
     "vice",
     "c64",
     "cbm",
     "pet",
     "commodore",
+    "nintendo",
     "debug"
   ],
   "engines": {
