@@ -67,7 +67,7 @@
     "mintty:win32_x32": "npm-run-all \"mintty:arch -- win32_x32 PortableGit-2.33.0.2-32-bit.7z.exe\"",
     "mintty:win32_x64": "npm-run-all \"mintty:arch -- win32_x64 PortableGit-2.33.0.2-64-bit.7z.exe\"",
     "mintty": "npm-run-all --aggregate-output -p mintty:win32_x32 mintty:win32_x64",
-    "mesen": "shx test -e dist/mesen || shx mkdir -p dist/mesen && shx cp -ru 3rdparty/mesen-binary-monitor/. dist/mesen",
+    "mesen": "shx test -e dist/mesen || shx mkdir -p dist/mesen && shx cp -ru 3rdparty/mesen-binary-monitor/. dist/mesen && shx cp -ru mesen-settings.xml dist/mesen/settings.xml",
     "nonjs:quick": "npm-run-all submodules && npm-run-all --aggregate-output -p styles fontgen kernal compiler:quick mintty mesen",
     "nonjs": "npm-run-all submodules && npm-run-all --aggregate-output -p styles fontgen kernal compiler mintty mesen",
     "monitor": "webpack --config webpack.monitor.config.js --mode production",

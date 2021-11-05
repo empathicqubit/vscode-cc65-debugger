@@ -87,7 +87,7 @@
                     "OPTIONS=mapfile,labelfile,debugfile"
                 ]
             },
-            "stopOnEntry": true,
+            "stopOnEntry": false,
             "stopOnExit": true,
             "viceArgs": [
             ],

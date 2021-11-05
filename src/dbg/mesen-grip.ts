@@ -1,6 +1,7 @@
 
 import { AbstractGrip } from "./abstract-grip";
 import _random from 'lodash/fp/random'
+import * as fs from 'fs'
 import * as bin from './binary-dto'
 import * as util from 'util'
 import * as debugUtils from '../lib/debug-utils'
@@ -69,6 +70,27 @@ export class MesenGrip extends AbstractGrip {
 
     public async start(port: number, cwd: string, machineType: debugFile.MachineType, mesenPath: string, mesenArgs?: string[], labelFile?: string) : Promise<void> {
         const mesenBaseDir = __basedir + '/../dist/mesen';
+
+        let mesenSettingsDir =
+            process.env.USERPROFILE
+            // FIXME
+            ? process.env.USERPROFILE + '/My Documents/Mesen'
+            : process.env.HOME + '/Mesen';
+
+        try {
+            await fs.promises.mkdir(mesenSettingsDir);
+        }
+        catch(e) {
+            console.error(e);
+        }
+
+        try {
+            await fs.promises.copyFile(mesenBaseDir + '/settings.xml', mesenSettingsDir + '/settings.xml');
+        }
+        catch(e) {
+            console.error(e);
+        }
+
         this._opts = {
             shell: false,
             env: {
