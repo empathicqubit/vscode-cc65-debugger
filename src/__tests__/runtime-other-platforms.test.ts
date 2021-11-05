@@ -18,6 +18,35 @@ describe('xpet and others', () => {
         await debugUtils.delay(Math.random() * 1000);
     });
 
+    test('nes works correctly', async () => {
+        const VICE_DIRECTORY = 'Z:/UserProfiles/EmpathicQubit/Downloads';
+        const PROGRAM = BUILD_CWD + '/simple-project.nes';
+        const MAP_FILE = PROGRAM + '.map';
+        const DEBUG_FILE = PROGRAM + '.dbg';
+        const LABEL_FILE = PROGRAM + '.lbl';
+
+        const rt = await testShared.newRuntime();
+
+        await rt.start(
+            await testShared.portGetter(),
+            PROGRAM,
+            BUILD_CWD,
+            true,
+            false,
+            false,
+            VICE_DIRECTORY,
+            VICE_ARGS,
+            false,
+            DEBUG_FILE,
+            MAP_FILE,
+            LABEL_FILE
+        );
+
+        await testShared.waitFor(rt, 'stopOnEntry');
+
+        await rt.continue();
+        await testShared.waitFor(rt, 'end');
+    });
 
     test('xpet works correctly', async () => {
         const rt = await testShared.newRuntime();

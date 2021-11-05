@@ -44,8 +44,8 @@ export interface Registers {
     sp: number;
     pc: number;
     fl: number;
-    line: number;
-    cycle: number;
+    lin: number;
+    cyc: number;
 }
 
 const UPDATE_INTERVAL = 1000;
@@ -950,7 +950,6 @@ or define the location manually with the launch.json->mapFile setting`
                 await this._emulator.ping();
                 const brks : bin.CheckpointInfoResponse[] = await this._emulator.multiExecBinary(checkCmds);
 
-                const condCmds : bin.ConditionSetCommand[] = [];
                 for(const brk of brks) {
                     const bp = this._breakPoints.find(x => !x.verified && x.line.span && x.line.span.absoluteAddress == brk.startAddress)
                     if(!bp) {
@@ -960,15 +959,7 @@ or define the location manually with the launch.json->mapFile setting`
                     bp.emulatorIndex = brk.id;
                     bp.verified = true;
                     this.sendEvent('breakpointValidated', bp);
-
-                    condCmds.push({
-                        type: bin.CommandType.conditionSet,
-                        checkpointId: brk.id,
-                        condition: '$574c == $574c',
-                    });
                 }
-
-                await this._emulator.multiExecBinary(condCmds);
             });
 
             if(wasRunning) {
@@ -1444,31 +1435,19 @@ or define the location manually with the launch.json->mapFile setting`
         const meta = this._registerMeta;
         const r = this._registers;
         for(const reg of rr) {
-            if(meta['A'].id == reg.id) {
-                r.a = reg.value;
-            }
-            else if(meta['X'].id == reg.id) {
-                r.x = reg.value;
-            }
-            else if(meta['Y'].id == reg.id) {
-                r.y = reg.value;
-            }
-            else if(meta['SP'].id == reg.id) {
-                r.sp = reg.value;
+            for(const k in meta) {
+                if(meta[k].id != reg.id) {
+                    continue;
+                }
 
-                this._callStackManager.setCpuStackTop(0x100 + r.sp);
-            }
-            else if(meta['FL'].id == reg.id) {
-                r.fl = reg.value;
-            }
-            else if(meta['LIN'].id == reg.id) {
-                r.line = reg.value;
-            }
-            else if(meta['CYC'].id == reg.id) {
-                r.cycle = reg.value;
-            }
-            else if(meta['PC'].id == reg.id) {
-                r.pc = reg.value;
+                const lower = k.toLowerCase();
+                r[lower] = reg.value;
+
+                if(k == 'SP') {
+                    this._callStackManager.setCpuStackTop(0x100 + r.sp);
+                }
+
+                break;
             }
         }
     }
@@ -1495,7 +1474,7 @@ or define the location manually with the launch.json->mapFile setting`
             filename: dumpFileName,
         });
 
-        const oldLine = this._registers.line;
+        const oldLine = this._registers.lin;
         this._ignoreEvents = true;
         await this._emulator.withAllBreaksDisabled(async() => {
             // Try not to step through the serial line
@@ -1620,8 +1599,8 @@ and compiler? (CFLAGS and LDFLAGS at the top of the standard CC65 Makefile)
             x: 0xff,
             y: 0xff,
             sp: 0xff,
-            line: 0xff,
-            cycle: 0xff,
+            lin: 0xff,
+            cyc: 0xff,
             pc: 0xffff,
             fl: 0xff,
         };

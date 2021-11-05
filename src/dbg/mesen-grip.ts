@@ -50,19 +50,20 @@ export class MesenGrip extends AbstractGrip {
         });
 
         if(!this._png) {
-            this._png = new pngjs.PNG({
-                width: res.debugWidth,
-                height: res.debugHeight
-            });
+            this._png = new pngjs.PNG();
         }
 
-        const data = await util.promisify(this._png.parse.bind(this._png))(res.rawImageData)
+        try {
+            const data = await util.promisify(this._png.parse.bind(this._png))(res.rawImageData)
 
-        console.log(data);
-
-        return {
-            ...res,
-            rawImageData: data,
+            return {
+                ...res,
+                rawImageData: data.data,
+            }
+        }
+        catch {
+            // FIXME
+            return res;
         }
     }
 
