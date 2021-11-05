@@ -52,7 +52,7 @@ export function parse(path: string, text: string) : TableFile {
         scopes: [],
     };
 
-    const rex =  /((SC_FUNC|SC_STRUCT|SC_UNION)\s*:\s*(\S+)\b[^\n\r]*|Global\s+(\w+)\s+table)\s+\=+\s+([\S\s]*?)[\n\r]{2,}/gim
+    const rex =  /((SC_FUNC|SC_STRUCT|SC_UNION)\s*:\s*(\S+)\b[^\n\r]*|Global\s+(\w+)\s+table)\s+\=+\s+([\S\s]*?)(\n|\r\n){2,}/gim
     let match;
     let tableCount = 0;
     while(match = rex.exec(text)) {
@@ -82,7 +82,7 @@ export function parse(path: string, text: string) : TableFile {
             scope.name = name;
         }
 
-        const body = match[match.length - 1];
+        const body = match[match.length - 2];
 
         let itemCount = 0;
         let itemMatch : RegExpMatchArray | null;
@@ -91,7 +91,7 @@ export function parse(path: string, text: string) : TableFile {
             const itemName = itemMatch[1];
             const assemblyName = itemMatch[3] || '';
             const itemFlags = itemMatch[4].split(/\s+/g).map(x => <TableSymFlags>TableSymFlags[<string>x]).filter(x => x).reduce((a, c) => a | c, TableSymFlags.SC_NONE);
-            const itemType = itemMatch[itemMatch.length - 1];
+            const itemType = itemMatch[itemMatch.length - 2];
 
             const sym : TableSym = {
                 name: itemName,

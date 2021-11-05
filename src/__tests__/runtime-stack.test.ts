@@ -29,10 +29,10 @@ describe('Stack', () => {
 
     describe('Variable expressions evaluate correctly', () => {
         const data : Array<[string, {}]> = [
-            ['25 * 25', 625],
-            ['25 * weehah', 2225],
-            ['j', 0x1337],
-            ['2 * j', 9838],
+            ['25 * 25', '625'],
+            ['25 * weehah', '2225'],
+            ['j', '4919'],
+            ['2 * j', '9838'],
         ];
         test.each(data)('%s', async (expression, expected) => {
             const rt = await testShared.newRuntime();
@@ -70,7 +70,7 @@ describe('Stack', () => {
 
             const actual = await rt.evaluate(expression);
 
-            assert.equal(actual!.value, expected);
+            assert.strictEqual(actual!.value, expected);
 
             await rt.continue();
             await testShared.waitFor(rt, 'end');
