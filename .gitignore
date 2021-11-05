@@ -21,6 +21,7 @@ dist/
 !jest*.config.js
 *.c64
 *.pet
+*.nes
 *.prg
 *.d81
 *.d64
