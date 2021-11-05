@@ -343,9 +343,16 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('preEmulator');
 
-        this._emulator = new MesenGrip(
-            <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
-        );
+        if(this._dbgFile.machineType == debugFile.MachineType.nes) {
+            this._emulator = new MesenGrip(
+                <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
+            );
+        }
+        else {
+            this._emulator = new ViceGrip(
+                <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
+            );
+        }
 
         this._registerMeta = {};
         this._bankMeta = {};
@@ -1300,7 +1307,7 @@ or define the location manually with the launch.json->mapFile setting`
             }
         }
         catch (e) {
-            throw new Error(`Couldn't find the emulator. Make sure your \`cc65vice.viceDirectory\` user setting is pointing to the directory containing emulator executables. ${emulatorPath} ${e}`);
+            throw new Error(`Couldn't find the emulator. Make sure your \`cc65vice.viceDirectory\` or \`cc65vice.mesenDirectory\` user setting is pointing to the directory containing emulator executables. ${emulatorPath} ${e}`);
         }
 
         return emulatorPath;
