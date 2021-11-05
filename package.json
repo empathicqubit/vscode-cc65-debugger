@@ -1,7 +1,7 @@
 {
   "name": "cc65-vice",
   "displayName": "C64 CC65/VICE Debugger",
-  "version": "4.10.2",
+  "version": "5.0.0",
   "publisher": "entan-gl",
   "description": "An extension to unify VSCode, CC65, and VICE monitor.",
   "author": {
