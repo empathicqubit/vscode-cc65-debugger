@@ -1,5 +1,5 @@
 #ifdef __NES__
-    unsigned char test_local_vars_main(void);
+    unsigned char test_non_c64_main(void);
 #endif
 
 // Note: Please do not change the code in this file. Test code should go in the
@@ -8,7 +8,7 @@ unsigned char main(void) {
     unsigned char ret;
 
 #ifdef __NES__
-    ret = test_local_vars_main();
+    ret = test_non_c64_main();
 #else
     ret = (*(unsigned char (*)(void))(*(unsigned int *)(0x3fc)))();
 #endif

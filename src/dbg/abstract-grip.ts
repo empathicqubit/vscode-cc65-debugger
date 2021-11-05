@@ -19,7 +19,7 @@ const waitPort = require('wait-port');
 export abstract class AbstractGrip extends EventEmitter {
     public textPort : number | undefined;
 
-    protected _apiVersion: number = 2;
+    protected _apiVersion: number = 1;
 
     protected _binaryConn: Readable & Writable;
 

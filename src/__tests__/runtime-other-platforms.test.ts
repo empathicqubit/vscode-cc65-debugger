@@ -19,8 +19,9 @@ describe('xpet and others', () => {
         await debugUtils.delay(Math.random() * 1000);
     });
 
+    const NONC64_C = path.join(BUILD_CWD, "src/test_non_c64.c")
+
     test('nes works correctly', async () => {
-        const VICE_DIRECTORY = 'Z:/UserProfiles/EmpathicQubit/Downloads';
         const PROGRAM = BUILD_CWD + '/simple-project.nes';
         const MAP_FILE = PROGRAM + '.map';
         const DEBUG_FILE = PROGRAM + '.dbg';
@@ -46,14 +47,20 @@ describe('xpet and others', () => {
 
         await testShared.waitFor(rt, 'stopOnEntry');
 
+        await rt.setBreakPoint(NONC64_C, 8);
+        await Promise.all([
+            rt.continue(),
+            testShared.waitFor(rt, 'stopOnBreakpoint')
+        ]);
+
+        // To verify Lua didn't timeout waiting for execution
+        await debugUtils.delay(5000);
+
         await rt.continue();
-        await testShared.waitFor(rt, 'end');
     });
 
     test('xpet works correctly', async () => {
         const rt = await testShared.newRuntime();
-
-        const NONC64_C = path.join(BUILD_CWD, "src/test_non_c64.c")
 
         await rt.start(
             await testShared.portGetter(),

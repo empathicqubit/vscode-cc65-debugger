@@ -17,6 +17,7 @@ export class MesenGrip extends AbstractGrip {
         this._binaryConn = await AbstractGrip._connect(binaryPort, this._binaryDataHandler.bind(this));
     }
 
+    protected _apiVersion : number = 2;
     private _png : any;
     private _binaryPort : number = -1;
     private _mesenPath : string = '';

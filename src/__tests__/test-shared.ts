@@ -66,7 +66,7 @@ export const DEFAULT_VICE_DIRECTORY =
     typeof process.env.VICE_DIRECTORY != 'undefined'
     ? process.env.VICE_DIRECTORY
     : path.normalize(DEFAULT_BUILD_CWD + '/../vicedir/src');
-export const DEFAULT_MESEN_DIRECTORY = undefined; // FIXME
+export const DEFAULT_MESEN_DIRECTORY = path.normalize(DEFAULT_BUILD_CWD + '/../mesendir'); // FIXME
 
 console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
 console.log('VICE DIRECTORY', DEFAULT_VICE_DIRECTORY);
