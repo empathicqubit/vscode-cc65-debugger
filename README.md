@@ -144,6 +144,9 @@ There are also some user settings to note:
 - **cc65vice.viceDirectory**: Set this to specify the directory that contains the
 VICE executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
+- **cc65vice.mesenDirectory**: Set this to specify the directory that contains the
+Mesen executables. You'll probably need this on Windows. If this is omitted then
+it will look on the system PATH.
 - **cc65vice.cc65Home**: Set this to specify the directory that contains the
 CC65 build. This is the `CC65_HOME` directory, and not the bin directory, so the
 folder above bin.  If your system doesn't have prebuilt binaries, you probably 

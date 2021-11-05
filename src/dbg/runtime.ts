@@ -387,6 +387,7 @@ export class Runtime extends EventEmitter {
      * @param stopOnExit Stop after hitting the end of main
      * @param runAhead Skip ahead one frame
      * @param viceDirectory The path with all the VICE executables
+     * @param mesenDirectory The path with all the Mesen executables
      * @param viceArgs Extra arguments to pass to VICE
      * @param preferX64OverX64sc Use x64 when appropriate
      * @param debugFilePath Manual path to debug file
@@ -401,6 +402,7 @@ export class Runtime extends EventEmitter {
         stopOnExit: boolean,
         runAhead: boolean,
         viceDirectory?: string,
+        mesenDirectory?: string,
         viceArgs?: string[],
         preferX64OverX64sc?: boolean,
         debugFilePath?: string,
@@ -421,7 +423,7 @@ export class Runtime extends EventEmitter {
             port,
             path.dirname(program),
             this._dbgFile.machineType,
-            await this._getEmulatorPath(viceDirectory, !!preferX64OverX64sc),
+            await this._getEmulatorPath(viceDirectory, mesenDirectory, !!preferX64OverX64sc),
             viceArgs,
             labelFilePath
         );
@@ -1244,38 +1246,47 @@ or define the location manually with the launch.json->mapFile setting`
         return this._getScope(this._currentPosition);
     }
 
-    private async _getEmulatorPath(viceDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
+    // FIXME Push down into grip?
+    private async _getEmulatorPath(viceDirectory: string | undefined, mesenDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
         let emulatorBaseName : string;
+        let emulatorPath : string;
         const mt = this._dbgFile.machineType;
         if(mt == debugFile.MachineType.nes) {
-            // FIXME
             emulatorBaseName = 'Mesen.exe';
-        }
-        else if(mt == debugFile.MachineType.c128) {
-            emulatorBaseName = 'x128';
-        }
-        else if(mt == debugFile.MachineType.cbm5x0) {
-            emulatorBaseName = 'xcbm5x0';
-        }
-        else if(mt == debugFile.MachineType.pet) {
-            emulatorBaseName = 'xpet';
-        }
-        else if(mt == debugFile.MachineType.plus4) {
-            emulatorBaseName = 'xplus4';
-        }
-        else if(mt == debugFile.MachineType.vic20) {
-            emulatorBaseName = 'xvic';
-        }
-        else {
-            emulatorBaseName = preferX64OverX64sc ? 'x64' : 'x64sc';
-        }
 
-        let emulatorPath : string;
-        if(viceDirectory) {
-            emulatorPath = path.normalize(path.join(viceDirectory, emulatorBaseName));
+            if(mesenDirectory) {
+                emulatorPath = path.normalize(path.join(mesenDirectory, emulatorBaseName));
+            }
+            else {
+                emulatorPath = emulatorBaseName;
+            }
         }
         else {
-            emulatorPath = emulatorBaseName;
+            if(mt == debugFile.MachineType.c128) {
+                emulatorBaseName = 'x128';
+            }
+            else if(mt == debugFile.MachineType.cbm5x0) {
+                emulatorBaseName = 'xcbm5x0';
+            }
+            else if(mt == debugFile.MachineType.pet) {
+                emulatorBaseName = 'xpet';
+            }
+            else if(mt == debugFile.MachineType.plus4) {
+                emulatorBaseName = 'xplus4';
+            }
+            else if(mt == debugFile.MachineType.vic20) {
+                emulatorBaseName = 'xvic';
+            }
+            else {
+                emulatorBaseName = preferX64OverX64sc ? 'x64' : 'x64sc';
+            }
+
+            if(viceDirectory) {
+                emulatorPath = path.normalize(path.join(viceDirectory, emulatorBaseName));
+            }
+            else {
+                emulatorPath = emulatorBaseName;
+            }
         }
 
         try {

@@ -207,6 +207,14 @@
           "default": null,
           "description": "The directory containing VICE Emulator. Set this if it's not on your path."
         },
+        "cc65vice.mesenDirectory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "The directory containing Mesen Emulator. Set this if it's not on your path."
+        },
         "cc65vice.preferX64OverX64sc": {
           "type": "boolean",
           "default": false,

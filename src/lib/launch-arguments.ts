@@ -27,6 +27,8 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     preferX64OverX64sc?: boolean;
     /** The directory of VICE emulator. */
     viceDirectory?: string;
+    /** The directory of Mesen emulator. */
+    mesenDirectory?: string;
     /** The directory of CC65, if custom. */
     cc65Home?: string;
     /** The arguments to use for starting VICE. No environment variables are allowed. */

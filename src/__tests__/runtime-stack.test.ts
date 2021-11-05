@@ -12,6 +12,7 @@ describe('Stack', () => {
     const LABEL_FILE = testShared.DEFAULT_LABEL_FILE;
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
+    const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     const LOCALVARS_C = path.join(BUILD_CWD, "src/test_local_vars.c");
@@ -44,6 +45,7 @@ describe('Stack', () => {
                 false,
                 false,
                 VICE_DIRECTORY,
+                MESEN_DIRECTORY,
                 VICE_ARGS,
                 false,
                 DEBUG_FILE,
@@ -85,6 +87,7 @@ describe('Stack', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -162,6 +165,7 @@ describe('Stack', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -247,6 +251,7 @@ describe('Stack', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -321,6 +326,7 @@ describe('Stack', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -363,6 +369,7 @@ describe('Stack', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -390,9 +397,9 @@ describe('Stack', () => {
 
         await rt.setRegisterVariable('A', a);
 
-        const registersAfter = await rt._vice.execBinary({
+        const registersAfter = await rt._emulator.execBinary({
             type: bin.CommandType.registersGet,
-            memspace: bin.ViceMemspace.main,
+            memspace: bin.EmulatorMemspace.main,
         });
 
         assert.strictEqual(registersAfter.registers.find(x => x.id == 0)!.value, a);

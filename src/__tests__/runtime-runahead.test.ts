@@ -12,6 +12,7 @@ describe('Runahead', () => {
     const LABEL_FILE = testShared.DEFAULT_LABEL_FILE;
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
+    const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     afterEach(testShared.cleanup);
@@ -33,6 +34,7 @@ describe('Runahead', () => {
                 false,
                 true,
                 VICE_DIRECTORY,
+                MESEN_DIRECTORY,
                 VICE_ARGS,
                 false,
                 DEBUG_FILE,
@@ -59,6 +61,7 @@ describe('Runahead', () => {
             false,
             true,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -95,6 +98,7 @@ describe('Runahead', () => {
             false,
             true,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -123,6 +127,7 @@ describe('Runahead', () => {
             false,
             true,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,

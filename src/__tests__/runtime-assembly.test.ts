@@ -11,6 +11,7 @@ describe('Assembly', () => {
     const PROGRAM = BUILD_CWD + '/asm-project.c64'
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
+    const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     const MAIN_S = path.join(BUILD_CWD, "src/main.s")
@@ -32,6 +33,7 @@ describe('Assembly', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -56,6 +58,7 @@ describe('Assembly', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -87,6 +90,7 @@ describe('Assembly', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -126,6 +130,7 @@ describe('Assembly', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,

@@ -19,6 +19,7 @@ describe('Runtime', () => {
     const LABEL_FILE = testShared.DEFAULT_LABEL_FILE;
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
+    const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     afterEach(testShared.cleanup);
@@ -38,6 +39,7 @@ describe('Runtime', () => {
             true,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -61,6 +63,7 @@ describe('Runtime', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,

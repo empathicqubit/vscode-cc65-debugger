@@ -10,6 +10,7 @@ describe('xpet and others', () => {
     const LABEL_FILE = PROGRAM + '.lbl';
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
+    const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_COMMON_VICE_ARGS;
 
     afterEach(testShared.cleanup);
@@ -35,6 +36,7 @@ describe('xpet and others', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -61,6 +63,7 @@ describe('xpet and others', () => {
             false,
             false,
             VICE_DIRECTORY,
+            MESEN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
