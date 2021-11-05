@@ -18,7 +18,7 @@
             },
             "stopOnEntry": true,
             "stopOnExit": true,
-            "viceArgs": [
+            "emulatorArgs": [
             ]
         },
         {
@@ -51,7 +51,7 @@
             },
             "stopOnEntry": true,
             "stopOnExit": true,
-            "viceArgs": [
+            "emulatorArgs": [
             ]
         },
         {
@@ -69,7 +69,7 @@
             "port": 5050,
             "stopOnEntry": true,
             "stopOnExit": true,
-            "viceArgs": [
+            "emulatorArgs": [
             ],
             "debugServer": 4711
         },
@@ -89,7 +89,7 @@
             },
             "stopOnEntry": false,
             "stopOnExit": true,
-            "viceArgs": [
+            "emulatorArgs": [
             ],
             "debugServer": 4711
         },
@@ -124,7 +124,7 @@
             },
             "stopOnEntry": true,
             "stopOnExit": true,
-            "viceArgs": [
+            "emulatorArgs": [
             ],
             "debugServer": 4711
         }

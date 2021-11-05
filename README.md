@@ -111,7 +111,7 @@ random one.
 
 Required for launch mode only:
 
-- **viceArgs**: You'll want to set your C64 model here, and any other special
+- **emulatorArgs**: You'll want to set your C64 model here, and any other special
 hardware options that you need for your program. Either NTSC or one of the PAL
 models (jap, drean, etc). Look at the VICE manual for the full list.
 
@@ -159,12 +159,12 @@ any screen updates that may have been made become visible immediately.
 
 You may have some problems with `autostart-warp` working correctly. The way
 VICE detects this may be to blame. To turn it off, just add `+warp` and
-`+autostart-warp` to your `viceArgs`:
+`+autostart-warp` to your `emulatorArgs`:
 
 ```json
 {
     ...
-    "viceArgs": [
+    "emulatorArgs": [
         "+autostart-warp", "+warp",
         "-model", "ntsc"
     ]

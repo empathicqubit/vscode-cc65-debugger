@@ -85,13 +85,13 @@ export class ViceGrip extends AbstractGrip {
     /**
      * Get the version info from a VICE with default settings so it's less likely
      * to break at startup
-     * @param vicePath The absolute path to VICE
+     * @param emulatorPath The absolute path to VICE
      * @param machineType C64, C128, VIC20, etc.
      */
-    private async _versionProbeStart(vicePath: string, machineType: debugFile.MachineType, port: number) : Promise<void> {
+    private async _versionProbeStart(emulatorPath: string, machineType: debugFile.MachineType, port: number) : Promise<void> {
         let directoryOpts : string[] = [];
         try {
-            await util.promisify(fs.access)(path.dirname(vicePath) + '/../data/GLSL');
+            await util.promisify(fs.access)(path.dirname(emulatorPath) + '/../data/GLSL');
             directoryOpts = ViceGrip._getDirectoryOptions(machineType, true);
         }
         catch {}
@@ -116,14 +116,14 @@ export class ViceGrip extends AbstractGrip {
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
         ];
 
-        console.log('Probing VICE', vicePath, JSON.stringify(args), opts);
+        console.log('Probing VICE', emulatorPath, JSON.stringify(args), opts);
 
         let pids : number[];
         try {
-            pids = await this._execHandler(vicePath, args, opts);
+            pids = await this._execHandler(emulatorPath, args, opts);
         }
         catch {
-            throw new Error(`Could not start VICE with "${vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
+            throw new Error(`Could not start VICE with "${emulatorPath} ${args.join(' ')}". Make sure your settings are correct.`);
         }
 
         await this._versionProbeConnect(binaryPort, true);
@@ -243,8 +243,8 @@ export class ViceGrip extends AbstractGrip {
         };
     }
 
-    public async start(port: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) : Promise<void> {
-        await this._versionProbeStart(vicePath, machineType, port);
+    public async start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
+        await this._versionProbeStart(emulatorPath, machineType, port);
 
         let logfile : string | undefined;
         if(process.platform == "win32") {
@@ -303,20 +303,20 @@ export class ViceGrip extends AbstractGrip {
             "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
         ];
 
-        if(viceArgs) {
-            args = [...args, ...viceArgs];
+        if(emulatorArgs) {
+            args = [...args, ...emulatorArgs];
         }
         else {
             args = [...args];
         }
 
-        console.log('Starting VICE', vicePath, JSON.stringify(args), opts);
+        console.log('Starting VICE', emulatorPath, JSON.stringify(args), opts);
 
         try {
-            this._pids = await this._execHandler(vicePath, args, opts)
+            this._pids = await this._execHandler(emulatorPath, args, opts)
         }
         catch {
-            throw new Error(`Could not start VICE with "${vicePath} ${args.join(' ')}". Make sure your settings are correct.`);
+            throw new Error(`Could not start VICE with "${emulatorPath} ${args.join(' ')}". Make sure your settings are correct.`);
         }
 
         // Windows only, for debugging

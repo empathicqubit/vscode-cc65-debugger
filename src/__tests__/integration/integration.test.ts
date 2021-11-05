@@ -20,7 +20,7 @@ describe('Integration', () => {
             },
             "stopOnEntry": false,
             "stopOnExit": false,
-            "viceArgs": [],
+            "emulatorArgs": [],
         });
 
         await new Promise<void>((res, rej) => {

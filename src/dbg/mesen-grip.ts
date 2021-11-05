@@ -24,17 +24,25 @@ export class MesenGrip extends AbstractGrip {
     private _args : string[] = [];
     private _opts : debugUtils.ExecFileOptions = {};
     public async autostart(program: string) : Promise<void> {
-
         try {
             const args = [this._mesenPath, ...this._args, program];
+
+            console.log('Starting Mesen', JSON.stringify(args));
+
             if(process.platform == 'win32') {
                 let command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
                 command = path.normalize(command);
 
-                this._pids = await this._execHandler(command, args, this._opts)
+                this._pids = await this._execHandler(command, args, this._opts);
             }
             else {
-                this._pids = await this._execHandler('mono', args, this._opts)
+                let command = 'mono';
+                if(process.env.USE_XVFB) {
+                    args.unshift(command);
+                    args.unshift('-a');
+                    command = 'xvfb-run';
+                }
+                this._pids = await this._execHandler(command, args, this._opts);
             }
         }
         catch {
@@ -69,7 +77,7 @@ export class MesenGrip extends AbstractGrip {
         }
     }
 
-    public async start(port: number, cwd: string, machineType: debugFile.MachineType, mesenPath: string, mesenArgs?: string[], labelFile?: string) : Promise<void> {
+    public async start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
         const mesenBaseDir = __basedir + '/../dist/mesen';
 
         let mesenSettingsDir =
@@ -103,7 +111,7 @@ export class MesenGrip extends AbstractGrip {
             title: 'Mesen',
         };
 
-        this._mesenPath = mesenPath;
+        this._mesenPath = emulatorPath;
 
         let args = [
             mesenBaseDir + '/mesen_binary_monitor.lua',
@@ -113,8 +121,8 @@ export class MesenGrip extends AbstractGrip {
 
         this._opts.env!.MESEN_REMOTE_PORT = this._binaryPort.toString()
 
-        if(mesenArgs) {
-            args = [...args, ...mesenArgs];
+        if(emulatorArgs) {
+            args = [...emulatorArgs, ...args];
         }
         else {
             args = [...args];

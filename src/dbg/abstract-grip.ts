@@ -234,7 +234,7 @@ export abstract class AbstractGrip extends EventEmitter {
 
     public abstract connect(binaryPort: number) : Promise<void>;
 
-    public abstract start(port: number, cwd: string, machineType: debugFile.MachineType, vicePath: string, viceArgs?: string[], labelFile?: string) : Promise<void>;
+    public abstract start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void>;
 
     public async ping() : Promise<bin.PingResponse> {
         return await this.execBinary({

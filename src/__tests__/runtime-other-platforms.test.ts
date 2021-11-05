@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
-describe('xpet and others', () => {
+describe('other emulators', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const PROGRAM = BUILD_CWD + '/simple-project.pet';
     const MAP_FILE = PROGRAM + '.map';
@@ -12,6 +12,7 @@ describe('xpet and others', () => {
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_COMMON_VICE_ARGS;
+    const MESEN_ARGS = testShared.DEFAULT_MESEN_ARGS;
 
     afterEach(testShared.cleanup);
 
@@ -38,7 +39,7 @@ describe('xpet and others', () => {
             false,
             VICE_DIRECTORY,
             MESEN_DIRECTORY,
-            VICE_ARGS,
+            MESEN_ARGS,
             false,
             DEBUG_FILE,
             MAP_FILE,

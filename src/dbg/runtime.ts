@@ -395,7 +395,7 @@ export class Runtime extends EventEmitter {
      * @param runAhead Skip ahead one frame
      * @param viceDirectory The path with all the VICE executables
      * @param mesenDirectory The path with all the Mesen executables
-     * @param viceArgs Extra arguments to pass to VICE
+     * @param emulatorArgs Extra arguments to pass to VICE
      * @param preferX64OverX64sc Use x64 when appropriate
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
@@ -410,7 +410,7 @@ export class Runtime extends EventEmitter {
         runAhead: boolean,
         viceDirectory?: string,
         mesenDirectory?: string,
-        viceArgs?: string[],
+        emulatorArgs?: string[],
         preferX64OverX64sc?: boolean,
         debugFilePath?: string,
         mapFilePath?: string,
@@ -431,7 +431,7 @@ export class Runtime extends EventEmitter {
             path.dirname(program),
             this._dbgFile.machineType,
             await this._getEmulatorPath(viceDirectory, mesenDirectory, !!preferX64OverX64sc),
-            viceArgs,
+            emulatorArgs,
             labelFilePath
         );
 

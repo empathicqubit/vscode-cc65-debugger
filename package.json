@@ -385,9 +385,9 @@
                 "type": "string",
                 "description": "The map file path. Use this if autodetection fails."
               },
-              "viceArgs": {
+              "emulatorArgs": {
                 "type": "array",
-                "description": "The arguments to pass to the VICE command line. You should at the very least set your model type here, since that is specific to the project."
+                "description": "The arguments to pass to the emulator command line. You should at the very least set your model type here, since that is specific to the project."
               },
               "port": {
                 "type": "number",
@@ -417,7 +417,7 @@
             },
             "stopOnEntry": true,
             "stopOnExit": true,
-            "viceArgs": [
+            "emulatorArgs": [
               "-model",
               "ntsc"
             ]
@@ -441,7 +441,7 @@
               },
               "stopOnEntry": true,
               "stopOnExit": true,
-              "viceArgs": [
+              "emulatorArgs": [
                 "-model",
                 "ntsc"
               ]

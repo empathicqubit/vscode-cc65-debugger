@@ -55,6 +55,10 @@ export const DEFAULT_VICE_ARGS : string[] = [
     ...DEFAULT_COMMON_VICE_ARGS,
 ];
 
+export const DEFAULT_MESEN_ARGS : string[] = [
+    '--testrunner'
+]
+
 export const DEFAULT_BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
 export const DEFAULT_BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/simple-project');
 export const DEFAULT_BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
