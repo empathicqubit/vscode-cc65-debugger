@@ -4,3 +4,6 @@
 [submodule "3rdparty/cc65"]
 	path = 3rdparty/cc65
 	url = https://github.com/empathicqubit/cc65
+[submodule "3rdparty/mesen-binary-monitor"]
+	path = 3rdparty/mesen-binary-monitor
+	url = https://github.com/empathicqubit/mesen-binary-monitor
