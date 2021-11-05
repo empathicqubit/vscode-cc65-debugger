@@ -58,7 +58,6 @@ describe('other emulators', () => {
         await debugUtils.delay(5000);
 
         await rt.continue();
-        await testShared.waitFor(rt, 'end');
     });
 
     test('xpet works correctly', async () => {
