@@ -91,7 +91,7 @@ export function parse(path: string, text: string) : TableFile {
             const itemName = itemMatch[1];
             const assemblyName = itemMatch[3] || '';
             const itemFlags = itemMatch[4].split(/\s+/g).map(x => <TableSymFlags>TableSymFlags[<string>x]).filter(x => x).reduce((a, c) => a | c, TableSymFlags.SC_NONE);
-            const itemType = itemMatch[itemMatch.length - 2];
+            const itemType = itemMatch[itemMatch.length - 1];
 
             const sym : TableSym = {
                 name: itemName,

@@ -135,7 +135,7 @@ describe('Stack', () => {
                     index: 3,
                     name: 'main',
                     file: MAIN_C,
-                    line: 5
+                    line: 12
                 }
             ],
             count: 4
@@ -220,7 +220,7 @@ describe('Stack', () => {
                         index: 3,
                         name: 'main',
                         file: MAIN_C,
-                        line: 5
+                        line: 12
                     }
                 ],
                 count: 4
