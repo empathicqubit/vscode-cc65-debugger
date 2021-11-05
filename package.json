@@ -10,12 +10,15 @@
   },
   "license": "MIT",
   "keywords": [
+    "nes",
+    "mesen",
     "cc65",
     "vice",
     "c64",
     "cbm",
     "pet",
     "commodore",
+    "nintendo",
     "debug"
   ],
   "engines": {
