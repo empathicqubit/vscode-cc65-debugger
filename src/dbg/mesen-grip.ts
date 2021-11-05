@@ -5,6 +5,7 @@ import * as bin from './binary-dto'
 import * as util from 'util'
 import * as debugUtils from '../lib/debug-utils'
 import * as debugFile from '../lib/debug-file'
+import * as path from 'path'
 import { __basedir } from '../basedir'
 import getPort from 'get-port'
 import _last from 'lodash/fp/last'
@@ -21,12 +22,17 @@ export class MesenGrip extends AbstractGrip {
     private _args : string[] = [];
     private _opts : debugUtils.ExecFileOptions = {};
     public async autostart(program: string) : Promise<void> {
+
         try {
+            const args = [this._mesenPath, ...this._args, program];
             if(process.platform == 'win32') {
-                this._pids = await this._execHandler(this._mesenPath, [...this._args, program], this._opts)
+                let command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
+                command = path.normalize(command);
+
+                this._pids = await this._execHandler(command, args, this._opts)
             }
             else {
-                this._pids = await this._execHandler('mono', [this._mesenPath, ...this._args, program], this._opts)
+                this._pids = await this._execHandler('mono', args, this._opts)
             }
         }
         catch {
@@ -61,10 +67,12 @@ export class MesenGrip extends AbstractGrip {
     }
 
     public async start(port: number, cwd: string, machineType: debugFile.MachineType, mesenPath: string, mesenArgs?: string[], labelFile?: string) : Promise<void> {
+        const mesenBaseDir = __basedir + '/../dist/mesen';
         this._opts = {
             shell: false,
             env: {
-                MESEN_REMOTE_BASEDIR: '/home/empathicqubit/mesen-binary-monitor',
+                MESEN_REMOTE_HOST: '127.0.0.1',
+                MESEN_REMOTE_BASEDIR: mesenBaseDir,
                 MESEN_REMOTE_WAIT: '1',
             },
             cwd: cwd,
@@ -74,7 +82,7 @@ export class MesenGrip extends AbstractGrip {
         this._mesenPath = mesenPath;
 
         let args = [
-            '/home/empathicqubit/mesen-binary-monitor/mesen_binary_monitor.lua',
+            mesenBaseDir + '/mesen_binary_monitor.lua',
         ];
 
         this._binaryPort = await getPort({port: getPort.makeRange(port, port + 256)});
