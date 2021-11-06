@@ -31,6 +31,7 @@ If you're having trouble understanding how this extension is supposed to be used
   * [Building](#building)
   * [Contributing](#contributing)
   * [Usage in Vim with Vimspector (experimental)](#usage-in-vim-with-vimspector-(experimental))
+  * [Using Mesen with NES](#using-mesen-with-nes)
   * [Additional Credits (see also LICENSE.md)](#additional-credits-(see-also-license.md))
 
 <a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
@@ -259,7 +260,13 @@ Download the file `vimspector-gadget.json` from the Release page and run a comma
 .vim/plugged/vimspector/install_gadget.py --enable-custom ./vimspector-gadget.json
 ```
 
-An example `.vimspector.json` is included in the example projects. Note that you will need to set `build.skip` to `true`.
+An example `.vimspector.json` is included in the example projects. Note that you
+will need to set `build.skip` to `true`.
+
+## Using Mesen with NES
+
+To use Mesen with NES, download Mesen and set your `cc65vice.mesenDirectory`
+setting to the path where Mesen is. Additionally, disable the `cc65vice.runAhead` setting.
 
 ## Additional Credits (see also LICENSE.md)
 
