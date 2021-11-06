@@ -31,10 +31,10 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug"
+    "url": "https://github.com/empathicqubit/vscode-cc65-debugger"
   },
   "bugs": {
-    "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/issues"
+    "url": "https://github.com/empathicqubit/vscode-cc65-debugger/issues"
   },
   "scripts": {
     "distclean": "npm-run-all clean && shx rm -rf node_modules .pnpm_store 3rdparty/cc65 3rdparty/c64tff",

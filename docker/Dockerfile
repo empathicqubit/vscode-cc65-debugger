@@ -64,7 +64,7 @@ RUN useradd -m -u 1000 unprivileged
 USER root
 
 # Cache pnpm packages
-ADD https://raw.githubusercontent.com/empathicqubit/vscode-cc65-vice-debug/master/package.json /app/package.json
+ADD https://raw.githubusercontent.com/empathicqubit/vscode-cc65-debugger/master/package.json /app/package.json
 RUN cd /app && pnpm install
 
 # Patch pnpm for Github Actions groups

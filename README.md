@@ -1,6 +1,6 @@
-<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/action.gif?raw=true" />
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/action.gif?raw=true" />
 
-# vscode-cc65-vice-debug
+# vscode-cc65-debugger
 
 [![Version](https://vsmarketplacebadge.apphb.com/version/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
@@ -19,9 +19,9 @@ This is an extension to let you debug CC65 C code (and ASM code to a small degre
 
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 
-If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-vice-debug/issues) or [messaging me on Twitter](https://twitter.com/intent/tweet?screen_name=empathicqubit).
+If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-debugger/issues) or [messaging me on Twitter](https://twitter.com/intent/tweet?screen_name=empathicqubit).
 
-* [vscode-cc65-vice-debug](#vscode-cc65-vice-debug)
+* [vscode-cc65-debugger](#vscode-cc65-debugger)
   * [Setup](#setup)
     * [Windows-specific instructions](#windows-specific-instructions)
     * [Linux-specific instructions (Debian \[and probably also Ubuntu\])](#linux-specific-instructions-(debian-%5C[and-probably-also-ubuntu%5C]))
@@ -83,7 +83,7 @@ After installing go to your launch.json and create a new section using the
 snippet. If you don't have a launch.json, the "create a launch.json file" link
 in the debug section should create a simple one.
 
-<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/config.png?raw=true" />
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/config.png?raw=true" />
 
 Obsolete settings:
 
@@ -139,7 +139,7 @@ as your program named PROGRAMNAME.dbg
 
 There are also some user settings to note:
 
-<img src="https://github.com/empathicqubit/vscode-cc65-vice-debug/blob/master/images/user_config.png?raw=true" />
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/user_config.png?raw=true" />
 
 - **cc65vice.enableCycleCounters**: Enable cycle counters next to each code line.
 - **cc65vice.viceDirectory**: Set this to specify the directory that contains the

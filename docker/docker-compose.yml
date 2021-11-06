@@ -1,7 +1,7 @@
 version: '2'
 services:
     build:
-        image: empathicqubit/vscode-cc65-vice-debug-build
+        image: empathicqubit/vscode-cc65-debugger-build
         user: "1000"
         volumes:
             - ..:/mnt

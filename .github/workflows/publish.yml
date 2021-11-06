@@ -11,12 +11,12 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    container: empathicqubit/vscode-cc65-vice-debug-build
+    container: empathicqubit/vscode-cc65-debugger-build
     env:
       TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
     steps:
     - uses: actions/checkout@v2
-    - run: curl -sL https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/$TAG_NAME/cc65-vice-$(echo "${TAG_NAME}" | sed 's/^v//g').vsix > cc65-vice.vsix
+    - run: curl -sL https://github.com/empathicqubit/vscode-cc65-debugger/releases/download/$TAG_NAME/cc65-vice-$(echo "${TAG_NAME}" | sed 's/^v//g').vsix > cc65-vice.vsix
     - run: mkdir dist && CHECKSUM=$(sha256sum cc65-vice.vsix | awk '{ print $1 }') node ./vimspector-gadget.js
       env:
           TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
@@ -38,12 +38,12 @@ jobs:
       if: steps.vsce.outcome == 'success' && steps.ovsx.outcome == 'success'
       id: update_release_success
       run: |
-          curl -sL "https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/tags/${TAG_NAME}" \
+          curl -sL "https://api.github.com/repos/empathicqubit/vscode-cc65-debugger/releases/tags/${TAG_NAME}" \
           | node -e 'process.stdin.once("data", data => { console.log(JSON.parse(data.toString()).id ) })' \
           | xargs -I'{}' curl -X PATCH \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}' \
+            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-debugger/releases/{}' \
             -d '{"name": "cc65-vice '"${TAG_NAME}"' (Published)"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -52,12 +52,12 @@ jobs:
       if: steps.vsce.outcome == 'failure' || steps.ovsx.outcome == 'failure'
       id: update_release_failed
       run: |
-          curl -sL "https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/tags/${TAG_NAME}" \
+          curl -sL "https://api.github.com/repos/empathicqubit/vscode-cc65-debugger/releases/tags/${TAG_NAME}" \
           | node -e 'process.stdin.once("data", data => { console.log(JSON.parse(data.toString()).id ) })' \
           | xargs -I'{}' curl -X PATCH \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-vice-debug/releases/{}' \
+            -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-debugger/releases/{}' \
             -d '{"name": "cc65-vice '"${TAG_NAME}"' (Failed Publish)"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}

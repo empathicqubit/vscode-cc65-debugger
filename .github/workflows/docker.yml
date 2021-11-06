@@ -20,6 +20,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
           ref: master
-    - run: docker pull empathicqubit/vscode-cc65-vice-debug-build
-    - run: cd docker && docker build -t empathicqubit/vscode-cc65-vice-debug-build .
-    - run: docker push empathicqubit/vscode-cc65-vice-debug-build
+    - run: docker pull empathicqubit/vscode-cc65-debugger-build
+    - run: cd docker && docker build -t empathicqubit/vscode-cc65-debugger-build .
+    - run: docker push empathicqubit/vscode-cc65-debugger-build

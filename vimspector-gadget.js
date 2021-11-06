@@ -2,7 +2,7 @@ const version = (process.env.TAG_NAME || '').replace(/^v/gi, '');
 const json = JSON.stringify({
     "cust_cc65-vice": {
         "download": {
-            "url": "https://github.com/empathicqubit/vscode-cc65-vice-debug/releases/download/v${version}/cc65-vice-${version}.vsix"
+            "url": "https://github.com/empathicqubit/vscode-cc65-debugger/releases/download/v${version}/cc65-vice-${version}.vsix"
         },
         "all": {
             "version": version,
