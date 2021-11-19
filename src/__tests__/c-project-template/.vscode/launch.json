@@ -1,0 +1,134 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch",
+            "program": "${workspaceFolder}/simple-project.c64",
+            "debugFile": "${workspaceFolder}/simple-project.c64.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.c64.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ]
+        },
+        {
+            "type": "cc65-vice",
+            "request": "attach",
+            "name": "CC65 Vice Attach (PET)",
+            "program": "${workspaceFolder}/simple-project.pet",
+            "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.pet.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "port": 29784,
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (PET)",
+            "program": "${workspaceFolder}/simple-project.pet",
+            "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.pet.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ]
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.c64",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "port": 5050,
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (NES) (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.nes",
+            "debugFile": "${workspaceFolder}/simple-project.nes.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.nes.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": false,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
+            "request": "attach",
+            "name": "CC65 Vice Attach (PET) (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.pet",
+            "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.pet.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "port": 29784,
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (PET) (Debug Extension)",
+            "program": "${workspaceFolder}/simple-project.pet",
+            "debugFile": "${workspaceFolder}/simple-project.pet.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.pet.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+            "debugServer": 4711
+        }
+    ]
+}

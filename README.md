@@ -178,7 +178,7 @@ VICE detects this may be to blame. To turn it off, just add `+warp` and
 
 If you've used the default `Makefile` at
 [the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself),
-it's required to use a [slightly modified Makefile](src/__tests__/simple-project/Makefile).
+it's required to use a [slightly modified Makefile](src/__tests__/c-project-template/Makefile).
 
 If instead you made a custom Makefile, you will need to tell the linker that
 you want a debug file and a map file. You would add the following options to
@@ -201,10 +201,10 @@ If you have included any optimizations (`-Osir`) you should probably turn those
 off, however, effort has been made to trace some of them.
 
 You may also want to look at the [full Assembly project template](src/__tests__/asm-project),
-and the [C project template](src/__tests__/simple-project).
+and the [C project template](src/__tests__/c-project-template).
 
-Please also note the [make.sh](src/__tests__/simple-project/make.sh)
-and [make.bat](src/__tests__/simple-project/make.bat).
+Please also note the [make.sh](src/__tests__/c-project-template/make.sh)
+and [make.bat](src/__tests__/c-project-template/make.bat).
 These will help you run make (or anything else with minor modifications) from
 the proper context outside of vscode, so that you use the builtin cc65 compiler
 when possible, instead of the one installed on your machine.
