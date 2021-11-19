@@ -6,7 +6,7 @@
                 "type": "cc65-vice",
                 "request": "launch",
                 "name": "CC65 Vice Launch",
-                "program": "${workspaceFolder}/simple-project.c64",
+                "program": "${workspaceFolder}/program.c64",
                 "port": 6510,
                 "build": {
                     "cwd": "${workspaceFolder}",

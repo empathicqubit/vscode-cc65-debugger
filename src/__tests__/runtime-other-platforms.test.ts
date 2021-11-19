@@ -23,7 +23,7 @@ describe('other emulators', () => {
     const NONC64_C = path.join(BUILD_CWD, "src/test_non_c64.c")
 
     test('nes works correctly', async () => {
-        const PROGRAM = BUILD_CWD + '/simple-project.nes';
+        const PROGRAM = BUILD_CWD + '/program.nes';
         const MAP_FILE = PROGRAM + '.map';
         const DEBUG_FILE = PROGRAM + '.dbg';
         const LABEL_FILE = PROGRAM + '.lbl';

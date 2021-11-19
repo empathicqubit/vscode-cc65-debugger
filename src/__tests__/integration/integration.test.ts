@@ -12,7 +12,7 @@ describe('Integration', () => {
             "type": "cc65-vice",
             "request": "launch",
             "name": "debug-" + Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER / 2)).toString(16),
-            "program": "${workspaceFolder}/simple-project.c64",
+            "program": "${workspaceFolder}/program.c64",
             "build": {
                 "cwd": "${workspaceFolder}",
                 "command": compile.DEFAULT_BUILD_COMMAND,
