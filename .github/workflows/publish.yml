@@ -44,7 +44,7 @@ jobs:
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
             -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-debugger/releases/{}' \
-            -d '{"name": "cc65-vice '"${TAG_NAME}"' (Published)"}'
+            -d '{"name": "cc65-vice '"${TAG_NAME}"' \u2714\ufe0f"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
@@ -58,7 +58,7 @@ jobs:
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
             -sL 'https://api.github.com/repos/empathicqubit/vscode-cc65-debugger/releases/{}' \
-            -d '{"name": "cc65-vice '"${TAG_NAME}"' (Failed Publish)"}'
+            -d '{"name": "cc65-vice '"${TAG_NAME}"' \u274c"}'
       env:
           GITHUB_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
