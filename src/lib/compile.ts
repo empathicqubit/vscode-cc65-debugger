@@ -28,6 +28,7 @@ export async function getBinaryFromProgram(program: string) : Promise<Buffer> {
     return await util.promisify(fs.readFile)(program);
 }
 
+// FIXME Need to get rid of this, but UI depends on it for now.
 export async function guessProgramPath(workspaceDir: string) : Promise<string[]> {
     const filenames : string[] = await readdir(workspaceDir);
 
@@ -83,9 +84,9 @@ export async function clean(buildCwd: string, execHandler: debugUtils.ExecHandle
 * Build the program using the command specified and try to find the output file with monitoring.
 * @returns The possible output files of types d81, prg, and d64.
 */
-export async function build(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<string[]> {
+export async function build(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, cc65Home?: string) : Promise<boolean> {
     if(build.skip) {
-        return await guessProgramPath(build.cwd);
+        return true;
     }
 
     let sep = ':';
@@ -118,11 +119,7 @@ export async function build(build: LaunchRequestBuildArguments, execHandler: deb
         make(build, execHandler, opts),
     ]);
 
-    if(changedFilenames.length) {
-        return changedFilenames;
-    }
-
-    return await guessProgramPath(build.cwd);
+    return true;
 }
 
 export async function make(build: LaunchRequestBuildArguments, execHandler: debugUtils.ExecHandler, opts: child_process.ExecOptions) : Promise<string[]> {

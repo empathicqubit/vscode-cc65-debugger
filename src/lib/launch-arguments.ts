@@ -36,11 +36,11 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     /** The command to run before launching. This is a shell command so you can put arguments and variables in here too. */
     build: LaunchRequestBuildArguments;
     /** The d64, d81, or prg file to run, if automatic detection doesn't work */
-    program?: string;
+    program: string;
     /** The debug file path, if automatic detection doesn't work */
-    debugFile?: string;
+    debugFile: string;
     /** The map file path, if automatic detection doesn't work */
-    mapFile?: string;
+    mapFile: string;
     /** Automatically stop target after hitting the beginning of main(). If not specified, target does not stop. */
     stopOnEntry?: boolean;
     /** Automatically stop target after hitting the end of main(). */
