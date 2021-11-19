@@ -334,6 +334,9 @@
           },
           "launch": {
             "required": [
+              "program",
+              "debugFile",
+              "mapFile",
               "build"
             ],
             "properties": {
@@ -378,15 +381,15 @@
               },
               "program": {
                 "type": "string",
-                "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
+                "description": "The path to your d81, d64, or prg. Required."
               },
               "debugFile": {
                 "type": "string",
-                "description": "The debug file path. Use this if autodetection fails."
+                "description": "The debug file path. Required."
               },
               "mapFile": {
                 "type": "string",
-                "description": "The map file path. Use this if autodetection fails."
+                "description": "The map file path. Required."
               },
               "emulatorArgs": {
                 "type": "array",
