@@ -9,6 +9,8 @@
             "request": "launch",
             "name": "CC65 Vice Launch",
             "program": "${workspaceFolder}/simple-project.c64",
+            "debugFile": "${workspaceFolder}/simple-project.c64.dbg",
+            "mapFile": "${workspaceFolder}/simple-project.c64.map",
             "build": {
                 "cwd": "${workspaceFolder}",
                 "command": "make",
