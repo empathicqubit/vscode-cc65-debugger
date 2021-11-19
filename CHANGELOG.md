@@ -1,5 +1,12 @@
 # Changelog
 
+### [5.0.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.1...v5.0.2) (2021-11-19)
+
+
+### Bug Fixes
+
+* Completely remove autodetect and force the program to be specified. ([7e3b3cf](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/7e3b3cf382ee525a9825cba0057e9c51c106f521))
+
 ### [5.0.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.0...v5.0.1) (2021-11-19)
 
 
