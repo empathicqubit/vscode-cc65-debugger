@@ -1,5 +1,12 @@
 # Changelog
 
+### [5.0.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.3...v5.0.4) (2021-11-19)
+
+
+### Bug Fixes
+
+* Change the program name for all project templates ([a58489f](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/a58489faca974d0ef8659c952cc7e0390509973d))
+
 ### [5.0.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.2...v5.0.3) (2021-11-19)
 
 
