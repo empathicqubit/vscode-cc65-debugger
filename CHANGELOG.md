@@ -1,5 +1,12 @@
 # Changelog
 
+### [5.0.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.2...v5.0.3) (2021-11-19)
+
+
+### Bug Fixes
+
+* Binary file is always called program by default. ([de95937](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/de95937768bc1d4b3decfa31974593c9fefd7901))
+
 ### [5.0.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.1...v5.0.2) (2021-11-19)
 
 
