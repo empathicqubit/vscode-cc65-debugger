@@ -1,5 +1,12 @@
 # Changelog
 
+### [5.0.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.0...v5.0.1) (2021-11-19)
+
+
+### Bug Fixes
+
+* Don't include NES in the project template by default. ([41a71e3](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/41a71e30a7a0c95064b8dde5d59bc776f8f9a4b4))
+
 ## [5.0.0](https://www.github.com/empathicqubit/vscode-cc65-vice-debug/compare/v4.10.2...v5.0.0) (2021-11-05)
 
 
