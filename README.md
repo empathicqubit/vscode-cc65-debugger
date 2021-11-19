@@ -266,7 +266,13 @@ will need to set `build.skip` to `true`.
 ## Using Mesen with NES
 
 To use Mesen with NES, download Mesen and set your `cc65vice.mesenDirectory`
-setting to the path where Mesen is. Additionally, disable the `cc65vice.runAhead` setting.
+setting to the path where Mesen is. Additionally, disable the `cc65vice.runAhead` setting. Then add NES to your targets in your `Makefile`:
+
+```
+TARGETS := nes
+```
+
+Keep in mind that stdio is not implemented correctly, so printf and file operations will not work. This is a limitation of the NES platform in CC65.
 
 ## Additional Credits (see also LICENSE.md)
 
