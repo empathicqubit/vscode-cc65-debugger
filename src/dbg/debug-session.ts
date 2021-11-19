@@ -418,28 +418,29 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             this._consoleType = args.console
 
             // build the program.
-            let possibles = <any>[];
             try {
-                possibles = await compile.build(
+                const success = await compile.build(
                     args.build,
                     <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
                     args.cc65Home
                 );
+                if(!success) {
+                    throw new Error();
+                }
             }
             catch {
                 metrics.event('session', 'build-error');
                 throw new Error("Couldn't finish the build successfully. Check the console for details.");
             }
 
-            const program = args.program || possibles[0];
-            if(!program) {
+            if(!args.program) {
                 throw new Error('Could not find any output files that matched. Use the launch.json->program property to specify explicitly.');
             }
 
             // start the program in the runtime
             await this._runtime.start(
                 args.port!,
-                program,
+                args.program,
                 args.build.cwd,
                 !!args.stopOnEntry,
                 !!args.stopOnExit,
