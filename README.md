@@ -200,8 +200,8 @@ off, however, effort has been made to trace some of them.
 You may also want to look at the [full Assembly project template](src/__tests__/asm-project),
 and the [C project template](src/__tests__/c-project-template).
 
-Please also note the [make.sh](src/__tests__/c-project-template/make.sh)
-and [make.bat](src/__tests__/c-project-template/make.bat).
+Please also note the [mk.sh](src/__tests__/c-project-template/mk.sh)
+and [mk.bat](src/__tests__/c-project-template/mk.bat).
 These will help you run make (or anything else with minor modifications) from
 the proper context outside of vscode, so that you use the builtin cc65 compiler
 when possible, instead of the one installed on your machine.

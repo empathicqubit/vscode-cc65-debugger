@@ -16,10 +16,10 @@
                 "isDefault": true
             },
             "windows": {
-                "command": "\"${workspaceFolder}/make.bat\""
+                "command": "\"${workspaceFolder}/mk.bat\""
             },
             "linux": {
-                "command": "sh \"${workspaceFolder}/make.sh\""
+                "command": "sh \"${workspaceFolder}/mk.sh\""
             }
         }
     ]
