@@ -123,9 +123,6 @@ Other shared settings:
 it will continue automatically after the debugger connects.
 - **stopOnExit**: This will break at the end of the program. Otherwise
 it will terminate automatically.
-
-Optional shared settings which may be helpful if things aren't working:
-
 - **program**: Specify this if the debugger can't find your binary file. By
 default it will look for a d81/d64 and if it can't find any a PRG. If you have
 multiple of those types of files, it will try some fanciness to determine which
