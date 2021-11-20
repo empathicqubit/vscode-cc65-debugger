@@ -1,5 +1,13 @@
 # Changelog
 
+### [5.0.5](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.4...v5.0.5) (2021-11-20)
+
+
+### Bug Fixes
+
+* Rename make scripts in project template to mk ([fdcc30d](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/fdcc30db3c37c86fd51c1598c21d8dd020190e02))
+* Use the correct name for the asm-project program ([69d145f](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/69d145f823cbb0577840b767dd445fd1ca7ca9c1))
+
 ### [5.0.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.3...v5.0.4) (2021-11-19)
 
 
