@@ -27,9 +27,9 @@
             "type": "cc65-vice",
             "request": "launch",
             "name": "CC65 Vice Launch (Debug Extension)",
-            "program": "${workspaceFolder}/asm-project.c64",
-            "debugFile": "${workspaceFolder}/asm-project.c64.dbg",
-            "mapFile": "${workspaceFolder}/asm-project.c64.map",
+            "program": "${workspaceFolder}/program.c64",
+            "debugFile": "${workspaceFolder}/program.c64.dbg",
+            "mapFile": "${workspaceFolder}/program.c64.map",
             "build": {
                 "cwd": "${workspaceFolder}",
                 "command": "make",

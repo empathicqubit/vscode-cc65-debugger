@@ -5,10 +5,10 @@ import * as debugUtils from '../lib/debug-utils';
 import { __basedir } from '../basedir';
 describe('Assembly', () => {
     const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/asm-project');
-    const MAP_FILE = BUILD_CWD + '/asm-project.c64.map';
-    const DEBUG_FILE = BUILD_CWD + '/asm-project.c64.dbg';
-    const LABEL_FILE = BUILD_CWD + '/asm-project.c64.lbl';
-    const PROGRAM = BUILD_CWD + '/asm-project.c64'
+    const MAP_FILE = BUILD_CWD + '/program.c64.map';
+    const DEBUG_FILE = BUILD_CWD + '/program.c64.dbg';
+    const LABEL_FILE = BUILD_CWD + '/program.c64.lbl';
+    const PROGRAM = BUILD_CWD + '/program.c64'
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
