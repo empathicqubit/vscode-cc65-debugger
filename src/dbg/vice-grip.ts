@@ -25,7 +25,6 @@ export class ViceGrip extends AbstractGrip {
         let q = "";
         let sep = ":";
         if(process.platform == "win32") {
-            q = '"';
             sep = ';';
         }
 
