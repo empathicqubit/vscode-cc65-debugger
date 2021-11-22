@@ -1,5 +1,12 @@
 # Changelog
 
+### [5.0.6](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.5...v5.0.6) (2021-11-22)
+
+
+### Bug Fixes
+
+* Windows does not need extra double quotes. Thanks [@nickbungus](https://www.github.com/nickbungus) ! ([7b6cc47](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/7b6cc479184afee3bbec197678ca4f24a123c4ca))
+
 ### [5.0.5](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.4...v5.0.5) (2021-11-20)
 
 
