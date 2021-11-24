@@ -12,6 +12,8 @@ import getPort from 'get-port'
 import _last from 'lodash/fp/last'
 import * as pngjs from 'pngjs'
 
+const mesenBaseDir = __basedir + '/../dist/mesen';
+
 export class MesenGrip extends AbstractGrip {
     public async connect(binaryPort: number) : Promise<void> {
         this._binaryConn = await AbstractGrip._connect(binaryPort, this._binaryDataHandler.bind(this));
@@ -36,6 +38,8 @@ export class MesenGrip extends AbstractGrip {
                 command = 'mono';
                 if(process.env.USE_XVFB) {
                     args.unshift(command);
+                    args.unshift(mesenBaseDir + '/xvfb-wrapper.sh');
+                    args.unshift('sh');
                     args.unshift('-a');
                     command = 'xvfb-run';
                 }
@@ -77,8 +81,6 @@ export class MesenGrip extends AbstractGrip {
     }
 
     public async start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
-        const mesenBaseDir = __basedir + '/../dist/mesen';
-
         let mesenSettingsDir =
             process.env.USERPROFILE
             // FIXME This shouldn't assume the Documents folder location
