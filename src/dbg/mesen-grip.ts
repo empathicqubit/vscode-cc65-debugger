@@ -27,12 +27,13 @@ export class MesenGrip extends AbstractGrip {
         try {
             const args = [this._mesenPath, ...this._args, program];
 
+            let command : string;
             if(process.platform == 'win32') {
-                let command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
+                command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
                 command = path.normalize(command);
             }
             else {
-                let command = 'mono';
+                command = 'mono';
                 if(process.env.USE_XVFB) {
                     args.unshift(command);
                     args.unshift('-a');
