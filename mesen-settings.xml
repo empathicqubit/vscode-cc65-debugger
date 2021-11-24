@@ -1651,7 +1651,7 @@
       <X>0</X>
       <Y>0</Y>
     </TraceLoggerLocation>
-    <TraceFontFamily>DroidSansMono</TraceFontFamily>
+    <TraceFontFamily>DejaVu Sans Mono</TraceFontFamily>
     <TraceFontStyle>Regular</TraceFontStyle>
     <TraceFontSize>10</TraceFontSize>
     <TraceTextZoom>100</TraceTextZoom>
