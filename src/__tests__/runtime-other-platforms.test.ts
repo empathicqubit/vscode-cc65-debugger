@@ -4,7 +4,7 @@ import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 describe('other emulators', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
-    const PROGRAM = BUILD_CWD + '/simple-project.pet';
+    const PROGRAM = BUILD_CWD + '/program.pet';
     const MAP_FILE = PROGRAM + '.map';
     const DEBUG_FILE = PROGRAM + '.dbg';
     const LABEL_FILE = PROGRAM + '.lbl';
