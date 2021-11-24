@@ -13,7 +13,7 @@
 Dependencies and date last changed:
 
 [![VICE](https://img.shields.io/badge/VICE-3.5%202020%2f12%2f24-blue)](https://chocolatey.org/packages/winvice-nightly/3.5.2021010401) 
-[![Mesen](https://img.shields.io/badge/Mesen-0.9.9%202021%2f11%2f05-blue)](https://github.com/SourMesen/Mesen/releases/tag/0.9.9) 
+[![Mesen-X](https://img.shields.io/badge/MesenX-1.0.0%202021%2f11%2f24-blue)](https://github.com/NovaSquirrel/Mesen-X/releases/tag/1.0.0) 
 
 This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms (well-tested) and NES (experimental), including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
 
@@ -31,7 +31,7 @@ If you're having trouble understanding how this extension is supposed to be used
   * [Building](#building)
   * [Contributing](#contributing)
   * [Usage in Vim with Vimspector (experimental)](#usage-in-vim-with-vimspector-(experimental))
-  * [Using Mesen with NES](#using-mesen-with-nes)
+  * [Using Mesen-X with NES](#using-mesen-x-with-nes)
   * [Additional Credits (see also LICENSE.md)](#additional-credits-(see-also-license.md))
 
 <a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
@@ -260,10 +260,10 @@ Download the file `vimspector-gadget.json` from the Release page and run a comma
 An example `.vimspector.json` is included in the example projects. Note that you
 will need to set `build.skip` to `true`.
 
-## Using Mesen with NES
+## Using Mesen-X with NES
 
-To use Mesen with NES, download Mesen and set your `cc65vice.mesenDirectory`
-setting to the path where Mesen is. Additionally, disable the `cc65vice.runAhead` setting. Then add NES to your targets in your `Makefile`:
+To use Mesen-X with NES, download Mesen-X and set your `cc65vice.mesenDirectory`
+setting to the path where Mesen-X is. The file should be named `Mesen.exe`. Additionally, disable the `cc65vice.runAhead` setting. Then add NES to your targets in your `Makefile`:
 
 ```
 TARGETS := nes
