@@ -56,7 +56,7 @@ RUN apt-get update && \
 # Install node
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nodejs mono-complete libsdl2-2.0 gnome-themes-standard xvfb && \
+    apt-get install -y --no-install-recommends nodejs mono-complete libsdl2-2.0 gnome-themes-standard xvfb x11-apps && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
 RUN curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm
 
