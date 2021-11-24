@@ -27,13 +27,9 @@ export class MesenGrip extends AbstractGrip {
         try {
             const args = [this._mesenPath, ...this._args, program];
 
-            console.log('Starting Mesen', JSON.stringify(args));
-
             if(process.platform == 'win32') {
                 let command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
                 command = path.normalize(command);
-
-                this._pids = await this._execHandler(command, args, this._opts);
             }
             else {
                 let command = 'mono';
@@ -42,8 +38,10 @@ export class MesenGrip extends AbstractGrip {
                     args.unshift('-a');
                     command = 'xvfb-run';
                 }
-                this._pids = await this._execHandler(command, args, this._opts);
             }
+
+            console.log('Starting Mesen', command, JSON.stringify(args));
+            this._pids = await this._execHandler(command, args, this._opts);
         }
         catch {
             throw new Error(`Could not start Mesen with "${this._mesenPath} ${this._args.join(' ')}". Make sure your settings are correct.`);
