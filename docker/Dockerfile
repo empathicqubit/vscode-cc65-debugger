@@ -56,9 +56,17 @@ RUN apt-get update && \
 # Install node
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nodejs mono-complete libsdl2-2.0 gnome-themes-standard xvfb x11-apps && \
+    apt-get install -y --no-install-recommends nodejs && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
 RUN curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm
+
+# Install Mesen deps
+RUN apt-get install -y --no-install-recommends gnupg ca-certificates
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official-stable.list
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends mono-complete libsdl2-2.0 gnome-themes-standard xvfb x11-apps && \
+    apt-get clean && rm -rf /var/cache/apt/lists/*
 
 RUN useradd -m -u 1000 unprivileged
 USER root
