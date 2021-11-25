@@ -39,7 +39,7 @@ export class MesenGrip extends AbstractGrip {
                 if(process.env.USE_XVFB) {
                     args.unshift(command);
                     args.unshift(mesenBaseDir + '/xvfb-wrapper.sh');
-                    args.unshift('sh');
+                    args.unshift('bash');
                     args.unshift('-a');
                     command = 'xvfb-run';
                 }
