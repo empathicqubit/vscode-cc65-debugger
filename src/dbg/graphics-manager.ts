@@ -158,15 +158,26 @@ export class GraphicsManager {
             });
         }
 
-        this._currentPng.data = currentRes.rawImageData;
+        if(this._machineType == debugFile.MachineType.nes) {
+            this._enableStats && emitter.emit('current', {
+                current: {
+                    data: Array.from(currentRes.rawImageData),
+                    width: currentRes.debugWidth,
+                    height: currentRes.debugHeight,
+                },
+            });
+        }
+        else {
+            this._currentPng.data = currentRes.rawImageData;
 
-        this._enableStats && emitter.emit('current', {
-            current: {
-                data: Array.from(pngjs.PNG.sync.write(this._currentPng)),
-                width: currentRes.debugWidth,
-                height: currentRes.debugHeight,
-            },
-        });
+            this._enableStats && emitter.emit('current', {
+                current: {
+                    data: Array.from(pngjs.PNG.sync.write(this._currentPng)),
+                    width: currentRes.debugWidth,
+                    height: currentRes.debugHeight,
+                },
+            });
+        }
     }
 
     private _spritePixels: Buffer;
