@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.6...v5.1.0) (2021-11-25)
+
+
+### Features
+
+* Switch to Mesen-X and update driver. Thanks @AlchemicRaker ([872f7c8](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/872f7c8d1c145200cd01c6658d11627e759dd768))
+
 ### [5.0.6](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.5...v5.0.6) (2021-11-22)
 
 
