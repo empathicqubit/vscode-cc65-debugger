@@ -1,2 +1,2 @@
 #! /bin/bash
-xeyes & { "$@" || "$@" ; } && kill -9 $(pidof xeyes) || ls -R "$(dirname "${@:2:1}")"
+xeyes & { while ! test -e "$(dirname "${@:2:1}")/libMesenCore.dll" ; do "$@" ; done ; } && "$@" && kill -9 $(pidof xeyes) || ls -R "$()"
