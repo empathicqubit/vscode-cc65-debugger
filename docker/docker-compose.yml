@@ -9,4 +9,4 @@ services:
         command:
             - 'bash'
             - '-c'
-            - 'pnpm install && pnpm build:test && USE_XVFB=1 pnpm jest src/__tests__/runtime-other-platforms.test.ts'
+            - 'pnpm install && pnpm jest:compile && pnpm build:test && USE_XVFB=1 pnpm jest src/__tests__/runtime-other-platforms.test.ts'
