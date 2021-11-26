@@ -89,7 +89,7 @@
                     "OPTIONS=mapfile,labelfile,debugfile"
                 ]
             },
-            "stopOnEntry": false,
+            "stopOnEntry": true,
             "stopOnExit": true,
             "emulatorArgs": [
             ],

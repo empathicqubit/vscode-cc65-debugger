@@ -1,7 +1,9 @@
-#include <stdio.h>
+#include <conio.h>
 
 unsigned char main(void) {
-    printf("hello world\n");
+    cputs("hello world");
+
+    while(1);
 
     return 0;
 }
