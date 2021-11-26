@@ -1,5 +1,13 @@
 # Changelog
 
+### [5.1.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.0...v5.1.1) (2021-11-26)
+
+
+### Bug Fixes
+
+* Properly display NES screen ([1ad8f23](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/1ad8f23ae1925e5eada1da0c6428980d1dd7d307))
+* Reset Mesen-X after connecting ([8546531](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/8546531561197182a3dd43b945a51414fb538963))
+
 ## [5.1.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.0.6...v5.1.0) (2021-11-25)
 
 
