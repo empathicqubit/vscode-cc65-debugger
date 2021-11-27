@@ -10,9 +10,11 @@ for(const arg of args) {
                 || (assertion.status == "passed");
         }
     }
-}
 
-console.log(merged);
+    for(const k in merged) {
+        console.log(k, merged[k] ? '\u2714\ufe0f': '\u274c');
+    }
+}
 
 let passed = true;
 for(const k in merged) {

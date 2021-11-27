@@ -238,12 +238,75 @@ the font), and Subversion. Jest Test Explorer extension is also recommended.
 For more details about what is needed to build, please look at the
 [Dockerfile](docker/Dockerfile)
 
+To test:
+
+```sh
+pnpm install --shamefully-hoist
+pnpm build:full
+pnpm test
+```
+
 To build, run the following commands:
 
 ```sh
 pnpm install --shamefully-hoist
-pnpm package
+pnpm build:full
 ```
+
+If you want to debug the extension, use the `Extension + Server` debug target
+in VSCode after running the build commands above at least once. This will start two
+debug sessions. You will need to restart the Server if you change any code
+called by the main debug session process. Basically anything referenced by
+[src/dbg/runtime.ts](src/dbg/runtime.ts).
+
+You will need to restart the Extension if you change anything in the Extension
+which is not UI code. All the UI side code is located under
+[src/webviews/stats-webview-content.ts](src/webviews/stats-webview-content.ts)
+since there is only one screen at the moment. All the non-UI code is under
+[src/ext](src/ext).
+
+If you change UI code while debugging, it will automatically be reloaded.
+However you may need to close the webview and restart the cc65-vice session to
+get it to reappear correctly.
+
+Some other `package.json` scripts of note:
+
+* **clean**: Will remove all generated outputs such as files in `dist`. Use this
+If something doesn't seem to update.
+* **distclean**: Will remove all files including `node_modules` and the `3rdparty`
+directories. Use this if something is really sideways.
+* **compiler**: Will build all the versions of cc65 to `dist/cc65`
+* **compiler:quick**: Will only build the x86 versions of cc65 for your platform.
+This is used when you launch the project in VSCode.
+* **webpack** and **webpack:debug**: Builds all the webpacked parts of the project.
+The debug adapter, monitor, extension, and extension UI code.
+* **tisk**: Builds all the source with standard `tsc`. Called by `Ctrl+Shift+B` in
+VSCode. This doesn't actually build the project, just quickly verifies that the
+code isn't broken. Also used before the Webpack build so each component doesn't
+revalidate the syntax, making it faster overall.
+* **build:full**: Builds everything for deployment.
+* **build:test**: Only builds the parts needed to run the tests, and to debug the
+extension in VSCode.
+* **vscode:prepublish**: Used for vsce packaging. Will run the tests before
+generating a vsix file.
+* **vscode:prepublish:github**: Only called on the build server. Skips the tests
+since they are run separately as a PR check.
+* **vice:choose**: Selects a version of VICE to test against. Look at [build.env.sample](build.env.sample)
+* **lint**: Project linting. Not as important since TypeScript itself prevents
+a lot of obvious mistakes.
+* **jest**: Run only some of the tests. For example: `pnpm jest -- src/__tests__/runtime-other-platforms.test.ts`
+* **jest:compile**: Runs only the compile tests. This is separate because the
+other tests are dependent on the cc65 projects being compiled.
+* **jest:noncompile**: The tests that come after compilation.
+* **test**: Run the tests in the correct order. Does not build anything, so
+use `build:test` for that.
+* **testmerge**: Runs each batch of tests twice, then combines the results,
+preferring a successful test run. This is because the tests sometimes behave
+erratically on the build server and I want to avoid running the entire job
+again. It will also print out the name of each test and whether any of the
+two runs of it passed.
+* **package**: Run `vsce package` using pnpm. The project is using a modified
+version of vsce that has support for pnpm.
 
 ## Contributing
 
