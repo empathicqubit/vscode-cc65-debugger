@@ -69,8 +69,8 @@
                 ]
             },
             "port": 5050,
-            "stopOnEntry": true,
-            "stopOnExit": true,
+            "stopOnEntry": false,
+            "stopOnExit": false,
             "emulatorArgs": [
             ],
             "debugServer": 4711

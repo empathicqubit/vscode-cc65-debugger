@@ -10,7 +10,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as debugUtils from '../lib/debug-utils';
-import { keyMappings } from '../lib/key-mappings';
+import * as keyMappings from '../lib/key-mappings';
 import { LaunchRequestArguments, LaunchRequestBuildArguments } from '../lib/launch-arguments';
 import * as metrics from '../lib/metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
@@ -49,9 +49,11 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     private _addressTypes: {[address:string]: string} = {};
     private _tabby: boolean;
     private _keybuf: string[] = [];
+    private _controllerBuf: keyMappings.joyportBits = 0;
     private _consoleType?: string;
 
     private _bounceBuf: () => void;
+    private _bounceControllerBuf: () => void;
 
     private _execHandler : debugUtils.ExecHandler = ((file, args, opts) => {
         const promise = new Promise<[number, number]>((res, rej) => {
@@ -106,6 +108,15 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             this._keybuf = [];
             try {
                 await this._runtime.keypress(keybuf.join(''));
+            }
+            catch(e) {
+                console.error(e);
+            }
+        });
+
+        this._bounceControllerBuf = _debounce(100, async () => {
+            try {
+                await this._runtime.controllerSet(this._controllerBuf);
             }
             catch(e) {
                 console.error(e);
@@ -235,12 +246,33 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         try {
             if(command == 'keyup') {
                 const evt : KeyboardEvent = request.arguments;
+                if(evt.location == 3) {
+                    const controllerMapped = keyMappings.controllerMappings[evt.key];
+                    if(!controllerMapped) {
+                        return;
+                    }
+                    this._controllerBuf &= (~controllerMapped) & keyMappings.joyportBits.ALL;
+                    this._bounceControllerBuf();
+                    return;
+                }
+
                 if(evt.key == "Tab") {
                     this._tabby = false;
                 }
             }
             else if(command == 'keydown') {
                 const evt : KeyboardEvent = request.arguments;
+                if(evt.location == 3) {
+                    const controllerMapped = keyMappings.controllerMappings[evt.key];
+                    if(!controllerMapped) {
+                        return;
+                    }
+
+                    this._controllerBuf |= controllerMapped;
+                    this._bounceControllerBuf();
+                    return;
+                }
+
                 if(evt.location !== 0) {
                     return;
                 }
@@ -250,7 +282,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                     return;
                 }
 
-                const mapped = keyMappings[
+                const mapped = keyMappings.keyMappings[
                     [
                         evt.ctrlKey ? 'Control' : '',
                         evt.shiftKey ? 'Shift' : '',

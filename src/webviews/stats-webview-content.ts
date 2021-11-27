@@ -217,6 +217,10 @@ export function _statsWebviewContent() {
     }
 
     const keydown = (evt: React.KeyboardEvent<HTMLDivElement>) : void => {
+        if(!data.currentFrameActive) {
+            return;
+        }
+
         evt.preventDefault();
         evt.stopPropagation();
         vscode.postMessage({
@@ -229,6 +233,10 @@ export function _statsWebviewContent() {
     };
 
     const keyup = (evt: React.KeyboardEvent<HTMLDivElement>) : void => {
+        if(!data.currentFrameActive) {
+            return;
+        }
+
         evt.preventDefault();
         evt.stopPropagation();
         vscode.postMessage({
@@ -263,6 +271,7 @@ export function _statsWebviewContent() {
     }
 
     interface RenderProps {
+        currentFrameActive: boolean;
         runAhead: SpriteData | null;
         current: SpriteData | null;
         sprites: SpriteData[];
@@ -314,232 +323,244 @@ export function _statsWebviewContent() {
                 }
             }
 
-            return r(reactTabs.Tabs, { className: 'all-tabs'},
-                r(reactTabs.TabList, null,
-                    r(reactTabs.Tab, null, 'Display (Current)'),
-                    !this.props.runAhead ? null : r(reactTabs.Tab, null, 'Display (Next)'),
-                    r(reactTabs.Tab, null, 'Sprites'),
-                    r(reactTabs.Tab, null, 'Text'),
-                    r(reactTabs.Tab, null, 'Memory'),
-                ),
-                r(reactTabs.TabPanel, {
-                    className: 'current-frame display-frame',
-                    onKeyDown: keydown,
-                    onKeyUp: keyup,
+            return r('div', {
+                className: 'main',
+                tabIndex: -1,
+                onKeyDown: keydown,
+                onKeyUp: keyup,
+            },
+                r(reactTabs.Tabs, {
+                    className: 'all-tabs',
+                    onSelect: (index: number, lastIndex: number, evt: MouseEvent) => {
+                        data.currentFrameActive = (evt.target! as HTMLElement).classList.contains("current-frame__tab")
+                    },
                 },
-                    r(Hider, null,
-                        r('div', { dangerouslySetInnerHTML: { __html: marked(`
-This is a duplicate of the screen from the emulator. This is useful if you're
-running headless. The screen and other tabs are updated once per second.
-Pressing keys inside this tab will send them to the emulator. The mapping is
-similar to VICE's default. Tab is C=.
-                        `)}}),
+                    r(reactTabs.TabList, null,
+                        r(reactTabs.Tab, {
+                            className: 'current-frame__tab'
+                        }, 'Display (Current)'),
+                        !this.props.runAhead ? null : r(reactTabs.Tab, null, 'Display (Next)'),
+                        r(reactTabs.Tab, null, 'Sprites'),
+                        r(reactTabs.Tab, null, 'Text'),
+                        r(reactTabs.Tab, null, 'Memory'),
                     ),
-                    !this.props.current
-                        ? r('h1', null, 'Loading...')
-                        : r('div', { className: 'display' },
-                            r('img', { src: this.props.current.blobUrl }),
-                            rasterPosition != -1
-                            ? r('hr', {
-                                className: 'display__rasterline',
-                                style: {
-                                    top: rasterPosition + '%',
-                                },
-                            })
-                            : null,
-                        )
-                ),
-                !this.props.runAhead
-                    ? null
-                    : r(reactTabs.TabPanel, {
-                        className: 'next-frame display-frame',
+                    r(reactTabs.TabPanel, {
+                        className: 'current-frame display-frame',
                     },
                         r(Hider, null,
                             r('div', { dangerouslySetInnerHTML: { __html: marked(`
-The next frame after the current one. Your changes may not be immediately shown
-on the current screen, due to the way the raster works, so you can try looking
-here instead.
+    This is a duplicate of the screen from the emulator. This is useful if you're
+    running headless. The screen and other tabs are updated once per second.
+    Pressing keys inside this tab will send them to the emulator. The mapping is
+    similar to VICE's default. Tab is C=.
                             `)}}),
                         ),
-                        r('img', { src: this.props.runAhead.blobUrl }),
-                    ),
-                r(reactTabs.TabPanel, { className: 'sprites' },
-                    r(Hider, null,
-                        r('div', { dangerouslySetInnerHTML: { __html: marked(`
-The sprites in the current bank, from the lowest visible
-to the highest visible. Dim sprites are ones which are
-not currently displayed. If the sprite isn't visible,
-the 64th byte is used to guess whether it is a
-multicolor (bit 7) and what the sprite color is (bit 0-3).
-The [SpritePad format](https://www.spritemate.com/) uses this convention.
-                        `)}}),
-                    ),
-                    !this.props.sprites || !this.props.sprites.length
-                        ? r('h1', null, 'Loading...')
-                        : this.props.sprites.map(x =>
-                            r('span', {
-                                key: x.key,
-                                className: classNames({
-                                    disabled: !x.isEnabled,
-                                    sprite: true,
-                                }),
-                                ref: (ref) => ref && ref.lastChild != x.canvas &&
-                                    (ref.lastChild ? ref.replaceChild(x.canvas, ref.lastChild) : ref.appendChild(x.canvas))
-                            }),
-                        ),
-                ),
-                r(reactTabs.TabPanel, { className: 'screentext' },
-                    r(Hider, null,
-                        r('div', { dangerouslySetInnerHTML: { __html: marked(`
-The text currently displayed on the screen. You can toggle the checkbox to enable
-or disable colors. You can select the text and copy it to your clipboard.
-                        `)}}),
-                    ),
-                    r('div', { className: 'screentext__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
-                        'Preferred character set: ',
-                        Object.keys(PreferredTextType)
-                            .filter(x => !isNaN(Number(PreferredTextType[x])))
-                            .map(textType =>
-                                r('label', { htmlFor: 'screentext__preferred__' + textType },
-                                    r('input', {
-                                        name: 'screentext__preferred__' + textType,
-                                        type: 'radio',
-                                        checked: this.props.preferredTextType == PreferredTextType[textType],
-                                        value: PreferredTextType[textType]
-                                    }),
-                                    textType
-                                ),
+                        !this.props.current
+                            ? r('h1', null, 'Loading...')
+                            : r('div', { className: 'display' },
+                                r('img', { src: this.props.current.blobUrl }),
+                                rasterPosition != -1
+                                ? r('hr', {
+                                    className: 'display__rasterline',
+                                    style: {
+                                        top: rasterPosition + '%',
+                                    },
+                                })
+                                : null,
                             )
                     ),
-                    !this.props.screenText
-                        ? r('h1', null, 'Loading...')
-                        : r('code', { onCopy: (e) => copyScreenText(e, this.props.preferredTextType) },
-                            renderScreenText(this.props.palette, this.props.screenText, this.props.enableColors, this.props.preferredTextType),
-                        ),
-                    r("label", { htmlFor: 'enable-colors' },
-                        r("input", { id: 'enable-colors', type: "checkbox", checked: this.props.enableColors, onChange: toggleColors }),
-                        "Enable colors"
-                    ),
-                ),
-                r(reactTabs.TabPanel, { className: 'memview' },
-                    r('label', { htmlFor: 'memview__offset' },
-                        'Offset: ',
-                        r('input', {
-                            type: 'text',
-                            id: 'memview__offset',
-                            value: this.props.memoryOffsetString,
-                            onChange: changeOffset,
-                        }),
-                    ),
-                    r("label", { htmlFor: 'memview__bank' },
-                        "Bank: "
-                    ),
-                    r('select', {
-                        id: 'memview__bank',
-                        value: this.props.memBank,
-                        onChange: changeBank,
+                    !this.props.runAhead
+                        ? null
+                        : r(reactTabs.TabPanel, {
+                            className: 'next-frame display-frame',
                         },
-                        this.props.banks.map((x, i) => r('option', { value: x.id }, x.name.toString())),
-                    ),
-                    '$' + this.props.memoryOffset.toString(16).padStart(4, '0'),
-                    r(reactTabs.Tabs, null,
-                        r(reactTabs.TabList, null,
-                            r(reactTabs.Tab, null, 'Raw'),
-                            r(reactTabs.Tab, null, 'Sprite'),
-                        ),
-
-                        r(reactTabs.TabPanel, { className: 'memview__raw' },
-                            r('div', { className: 'memview__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
-                                'Preferred character set: ',
-                                Object.keys(PreferredTextType)
-                                    .filter(x => !isNaN(Number(PreferredTextType[x])))
-                                    .map(textType =>
-                                        r('label', { htmlFor: 'memview__preferred__' + textType },
-                                            r('input', {
-                                                name: 'memview__preferred__' + textType,
-                                                type: 'radio',
-                                                checked: this.props.preferredTextType == PreferredTextType[textType],
-                                                value: PreferredTextType[textType]
-                                            }),
-                                            textType
-                                        ),
-                                    )
+                            r(Hider, null,
+                                r('div', { dangerouslySetInnerHTML: { __html: marked(`
+    The next frame after the current one. Your changes may not be immediately shown
+    on the current screen, due to the way the raster works, so you can try looking
+    here instead.
+                                `)}}),
                             ),
-                            r('div', { className: 'memview__rawcontent' },
-                                renderMemoryBytes(this.props.memoryOffset, this.props.memory),
-                                r('code', { className: 'memview__screentext', onCopy: (e) => copyScreenText(e, this.props.preferredTextType) }, r('pre', null,
-                                    renderScreenCodeText(this.props.memory, 16, this.props.memory.length / 16, this.props.preferredTextType, 0)
-                                )),
-                            )
+                            r('img', { src: this.props.runAhead.blobUrl }),
                         ),
-
-                        r(reactTabs.TabPanel, null,
-                            r("label", { htmlFor: 'memview__multicolor' },
-                                r("input", {
-                                    id: 'memview__multicolor',
-                                    type: "checkbox",
-                                    checked: this.props.memoryIsMulticolor,
-                                    onChange: e => (data.memoryIsMulticolor = e.target.checked, rerender())
+                    r(reactTabs.TabPanel, { className: 'sprites' },
+                        r(Hider, null,
+                            r('div', { dangerouslySetInnerHTML: { __html: marked(`
+    The sprites in the current bank, from the lowest visible
+    to the highest visible. Dim sprites are ones which are
+    not currently displayed. If the sprite isn't visible,
+    the 64th byte is used to guess whether it is a
+    multicolor (bit 7) and what the sprite color is (bit 0-3).
+    The [SpritePad format](https://www.spritemate.com/) uses this convention.
+                            `)}}),
+                        ),
+                        !this.props.sprites || !this.props.sprites.length
+                            ? r('h1', null, 'Loading...')
+                            : this.props.sprites.map(x =>
+                                r('span', {
+                                    key: x.key,
+                                    className: classNames({
+                                        disabled: !x.isEnabled,
+                                        sprite: true,
+                                    }),
+                                    ref: (ref) => ref && ref.lastChild != x.canvas &&
+                                        (ref.lastChild ? ref.replaceChild(x.canvas, ref.lastChild) : ref.appendChild(x.canvas))
                                 }),
-                                "Enable multicolor"
                             ),
-                            r("label", { htmlFor: 'memview__color1' },
-                                "Color 1:"
+                    ),
+                    r(reactTabs.TabPanel, { className: 'screentext' },
+                        r(Hider, null,
+                            r('div', { dangerouslySetInnerHTML: { __html: marked(`
+    The text currently displayed on the screen. You can toggle the checkbox to enable
+    or disable colors. You can select the text and copy it to your clipboard.
+                            `)}}),
+                        ),
+                        r('div', { className: 'screentext__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
+                            'Preferred character set: ',
+                            Object.keys(PreferredTextType)
+                                .filter(x => !isNaN(Number(PreferredTextType[x])))
+                                .map(textType =>
+                                    r('label', { htmlFor: 'screentext__preferred__' + textType },
+                                        r('input', {
+                                            name: 'screentext__preferred__' + textType,
+                                            type: 'radio',
+                                            checked: this.props.preferredTextType == PreferredTextType[textType],
+                                            value: PreferredTextType[textType]
+                                        }),
+                                        textType
+                                    ),
+                                )
+                        ),
+                        !this.props.screenText
+                            ? r('h1', null, 'Loading...')
+                            : r('code', { onCopy: (e) => copyScreenText(e, this.props.preferredTextType) },
+                                renderScreenText(this.props.palette, this.props.screenText, this.props.enableColors, this.props.preferredTextType),
                             ),
-                            r('select', {
-                                id: 'memview__color1',
-                                value: this.props.memColor1,
-                                onChange: (e) => (data.memColor1 = parseInt(e.target.value), rerender())
-                                },
-                                this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
-                            ),
-                            r('br'),
-                            r("label", { htmlFor: 'memview__color3' },
-                                "Color 3:"
-                            ),
-                            r('select', {
-                                id: 'memview__color3',
-                                value: this.props.memColor3,
-                                onChange: (e) => (data.memColor3 = parseInt(e.target.value), rerender())
-                                },
-                                this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
-                            ),
-                            r('br'),
-                            r("label", { htmlFor: 'memview__color' },
-                                "Sprite Color:"
-                            ),
-                            r('select', {
-                                id: 'memview__color',
-                                value: this.props.memColor,
-                                onChange: (e) => (data.memColor = parseInt(e.target.value), rerender())
-                                },
-                                this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
-                            ),
-                            r('br'),
-                            _chunk(0x40, this.props.memory).map((x, i) => {
-                                const sd = <SpriteData>{
-                                    data: Uint8ClampedArray.from(x),
-                                    width: 24,
-                                    height: 21,
-                                    key: (i * 0x40 + this.props.memoryOffset).toString(),
-                                    blobUrl: '',
-                                    canvas: <any>null,
-                                    isEnabled: true,
-                                    isMulticolor: this.props.memoryIsMulticolor,
-                                    color1: this.props.memColor1,
-                                    color3: this.props.memColor3,
-                                    color: this.props.memColor,
-                                };
-                                const sprite = renderSprite(this.props.palette, sd);
-                                return r('span', {
-                                    className: 'sprite',
-                                    ref: (ref) => ref && ref.lastChild != sprite &&
-                                        (ref.lastChild ? ref.replaceChild(sprite, ref.lastChild) : ref.appendChild(sprite))
-                                });
+                        r("label", { htmlFor: 'enable-colors' },
+                            r("input", { id: 'enable-colors', type: "checkbox", checked: this.props.enableColors, onChange: toggleColors }),
+                            "Enable colors"
+                        ),
+                    ),
+                    r(reactTabs.TabPanel, { className: 'memview' },
+                        r('label', { htmlFor: 'memview__offset' },
+                            'Offset: ',
+                            r('input', {
+                                type: 'text',
+                                id: 'memview__offset',
+                                value: this.props.memoryOffsetString,
+                                onChange: changeOffset,
                             }),
                         ),
+                        r("label", { htmlFor: 'memview__bank' },
+                            "Bank: "
+                        ),
+                        r('select', {
+                            id: 'memview__bank',
+                            value: this.props.memBank,
+                            onChange: changeBank,
+                            },
+                            this.props.banks.map((x, i) => r('option', { value: x.id }, x.name.toString())),
+                        ),
+                        '$' + this.props.memoryOffset.toString(16).padStart(4, '0'),
+                        r(reactTabs.Tabs, null,
+                            r(reactTabs.TabList, null,
+                                r(reactTabs.Tab, null, 'Raw'),
+                                r(reactTabs.Tab, null, 'Sprite'),
+                            ),
+
+                            r(reactTabs.TabPanel, { className: 'memview__raw' },
+                                r('div', { className: 'memview__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
+                                    'Preferred character set: ',
+                                    Object.keys(PreferredTextType)
+                                        .filter(x => !isNaN(Number(PreferredTextType[x])))
+                                        .map(textType =>
+                                            r('label', { htmlFor: 'memview__preferred__' + textType },
+                                                r('input', {
+                                                    name: 'memview__preferred__' + textType,
+                                                    type: 'radio',
+                                                    checked: this.props.preferredTextType == PreferredTextType[textType],
+                                                    value: PreferredTextType[textType]
+                                                }),
+                                                textType
+                                            ),
+                                        )
+                                ),
+                                r('div', { className: 'memview__rawcontent' },
+                                    renderMemoryBytes(this.props.memoryOffset, this.props.memory),
+                                    r('code', { className: 'memview__screentext', onCopy: (e) => copyScreenText(e, this.props.preferredTextType) }, r('pre', null,
+                                        renderScreenCodeText(this.props.memory, 16, this.props.memory.length / 16, this.props.preferredTextType, 0)
+                                    )),
+                                )
+                            ),
+
+                            r(reactTabs.TabPanel, null,
+                                r("label", { htmlFor: 'memview__multicolor' },
+                                    r("input", {
+                                        id: 'memview__multicolor',
+                                        type: "checkbox",
+                                        checked: this.props.memoryIsMulticolor,
+                                        onChange: e => (data.memoryIsMulticolor = e.target.checked, rerender())
+                                    }),
+                                    "Enable multicolor"
+                                ),
+                                r("label", { htmlFor: 'memview__color1' },
+                                    "Color 1:"
+                                ),
+                                r('select', {
+                                    id: 'memview__color1',
+                                    value: this.props.memColor1,
+                                    onChange: (e) => (data.memColor1 = parseInt(e.target.value), rerender())
+                                    },
+                                    this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                                ),
+                                r('br'),
+                                r("label", { htmlFor: 'memview__color3' },
+                                    "Color 3:"
+                                ),
+                                r('select', {
+                                    id: 'memview__color3',
+                                    value: this.props.memColor3,
+                                    onChange: (e) => (data.memColor3 = parseInt(e.target.value), rerender())
+                                    },
+                                    this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                                ),
+                                r('br'),
+                                r("label", { htmlFor: 'memview__color' },
+                                    "Sprite Color:"
+                                ),
+                                r('select', {
+                                    id: 'memview__color',
+                                    value: this.props.memColor,
+                                    onChange: (e) => (data.memColor = parseInt(e.target.value), rerender())
+                                    },
+                                    this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                                ),
+                                r('br'),
+                                _chunk(0x40, this.props.memory).map((x, i) => {
+                                    const sd = <SpriteData>{
+                                        data: Uint8ClampedArray.from(x),
+                                        width: 24,
+                                        height: 21,
+                                        key: (i * 0x40 + this.props.memoryOffset).toString(),
+                                        blobUrl: '',
+                                        canvas: <any>null,
+                                        isEnabled: true,
+                                        isMulticolor: this.props.memoryIsMulticolor,
+                                        color1: this.props.memColor1,
+                                        color3: this.props.memColor3,
+                                        color: this.props.memColor,
+                                    };
+                                    const sprite = renderSprite(this.props.palette, sd);
+                                    return r('span', {
+                                        className: 'sprite',
+                                        ref: (ref) => ref && ref.lastChild != sprite &&
+                                            (ref.lastChild ? ref.replaceChild(sprite, ref.lastChild) : ref.appendChild(sprite))
+                                    });
+                                }),
+                            ),
+                        ),
                     ),
-                ),
+                )
             );
         }
     }
@@ -549,6 +570,7 @@ or disable colors. You can select the text and copy it to your clipboard.
     const content = document.querySelector("#content")!;
 
     const data : RenderProps = {
+        currentFrameActive: true,
         runAhead: null,
         current: null,
         screenText: null,

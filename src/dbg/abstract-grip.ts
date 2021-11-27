@@ -292,6 +292,8 @@ export abstract class AbstractGrip extends EventEmitter {
 
     public async execBinary(command: bin.PaletteGetCommand): Promise<bin.PaletteGetResponse>
 
+    public async execBinary(command: bin.JoyportSetCommand): Promise<bin.JoyportSetResponse>
+
     public async execBinary(command: bin.ExitCommand): Promise<bin.ExitResponse>
     public async execBinary(command: bin.QuitCommand): Promise<bin.QuitResponse>
     public async execBinary(command: bin.ResetCommand): Promise<bin.ResetResponse>
@@ -333,6 +335,8 @@ export abstract class AbstractGrip extends EventEmitter {
     public async multiExecBinary(commands: bin.ViceInfoCommand[]): Promise<bin.ViceInfoResponse[]>
 
     public async multiExecBinary(commands: bin.PaletteGetCommand[]): Promise<bin.PaletteGetResponse[]>
+
+    public async multiExecBinary(command: bin.JoyportSetCommand[]): Promise<bin.JoyportSetResponse[]>
 
     public async multiExecBinary(commands: bin.ExitCommand[]): Promise<bin.ExitResponse[]>
     public async multiExecBinary(commands: bin.QuitCommand[]): Promise<bin.QuitResponse[]>
@@ -404,6 +408,14 @@ export abstract class AbstractGrip extends EventEmitter {
     }
 
     public abstract displayGetRGBA() : Promise<bin.DisplayGetResponse>;
+
+    public async joyportSet(port: number, value: number) : Promise<void>{
+        await this.execBinary({
+            type: bin.CommandType.joyportSet,
+            port: port,
+            value: value,
+        })
+    }
 
     public async withAllBreaksDisabled<T>(func: () => Promise<T>) : Promise<T> {
         const preBrk = await this.checkpointList();

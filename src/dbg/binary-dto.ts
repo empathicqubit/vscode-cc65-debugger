@@ -39,6 +39,8 @@ export enum ResponseType {
 
     paletteGet = 0x91,
 
+    joyportSet = 0xa2,
+
     exit = 0xaa,
     quit = 0xbb,
     reset = 0xcc,
@@ -80,6 +82,8 @@ export enum CommandType {
 
     paletteGet = 0x91,
 
+    joyportSet = 0xa2,
+
     exit = 0xaa,
     quit = 0xbb,
     reset = 0xcc,
@@ -118,6 +122,8 @@ export type Command =
     | ViceInfoCommand
 
     | PaletteGetCommand
+
+    | JoyportSetCommand
 
     | ExitCommand
     | QuitCommand
@@ -160,6 +166,8 @@ export type Response =
     | ViceInfoResponse
 
     | PaletteGetResponse
+
+    | JoyportSetResponse
 
     | ExitResponse
     | QuitResponse
@@ -426,7 +434,7 @@ export interface ViceInfoResponse extends AbstractResponse {
 }
 
 export interface PaletteGetCommand extends AbstractCommand {
-    type: CommandType.paletteGet
+    type: CommandType.paletteGet;
     useVicII: boolean;
 }
 
@@ -439,6 +447,16 @@ export interface PaletteEntry {
 export interface PaletteGetResponse extends AbstractResponse {
     type: ResponseType.paletteGet
     entries: PaletteEntry[]
+}
+
+export interface JoyportSetCommand extends AbstractCommand {
+    type: CommandType.joyportSet;
+    port: number;
+    value: number;
+}
+
+export interface JoyportSetResponse extends AbstractResponse {
+    type: ResponseType.joyportSet;
 }
 
 export interface ExitCommand extends AbstractCommand {
@@ -914,6 +932,14 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
 
         return r;
     }
+    else if(type == ResponseType.joyportSet) {
+        const r : JoyportSetResponse = {
+            ...res,
+            type
+        };
+
+        return r;
+    }
     else if(type == ResponseType.exit) {
         const r : ExitResponse = {
             ...res,
@@ -1135,6 +1161,11 @@ export function commandObjectToBytes(c: Command, buf: Buffer) : Buffer {
     else if(c.type == CommandType.paletteGet) {
         length = 1
         buf.writeUInt8(Number(c.useVicII), 0)
+    }
+    else if(c.type == CommandType.joyportSet) {
+        length = 4
+        buf.writeUInt16LE(Number(c.port), 0)
+        buf.writeUInt16LE(Number(c.value), 2)
     }
     else if(c.type == CommandType.exit) {
         length = 0;

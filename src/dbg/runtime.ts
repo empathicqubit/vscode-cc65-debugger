@@ -588,6 +588,22 @@ export class Runtime extends EventEmitter {
         }
     }
 
+    public async controllerSet(buttonValue: number) : Promise<void> {
+        const wasRunning = this._emulatorRunning;
+
+        let port = 1;
+        if(this._dbgFile.machineType == debugFile.MachineType.nes) {
+            port = 0;
+        }
+
+        await this._silenced(async() => {
+            await this._emulator.joyportSet(port, buttonValue);
+        });
+        if(wasRunning) {
+            await this.continue();
+        }
+    }
+
     private async _setExitGuard() : Promise<void> {
         const exitAddresses = await this._callStackManager.getExitAddresses();
         if(!exitAddresses.length) {
@@ -1374,7 +1390,6 @@ or define the location manually with the launch.json->mapFile setting`
                 }
                 else if (this._exitIndexes.includes(index)) {
                     if(!this._stopOnExit) {
-                        await this.terminate();
                         return;
                     }
                     else {

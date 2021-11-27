@@ -122,3 +122,26 @@ export const keyMappings : { [key: string]: number } = {
     //"← (left arrow)": 95
     //"↑ (up arrow)": 94,
 };
+
+export const enum joyportBits {
+    UP =     0x01,
+    DOWN =   0x02,
+    LEFT =   0x04,
+    RIGHT =  0x08,
+    FIRE =   0x10,
+    ALL =    0x1f,
+}
+
+export const controllerMappings : { [key: string]: number } = {
+    "2": joyportBits.DOWN,
+    "4": joyportBits.LEFT,
+    "6": joyportBits.RIGHT,
+    "8": joyportBits.UP,
+
+    "1": joyportBits.DOWN | joyportBits.LEFT,
+    "3": joyportBits.DOWN | joyportBits.RIGHT,
+    "7": joyportBits.UP   | joyportBits.LEFT,
+    "9": joyportBits.UP   | joyportBits.RIGHT,
+
+    "Enter": joyportBits.FIRE,
+}

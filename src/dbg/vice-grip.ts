@@ -19,6 +19,7 @@ export class ViceGrip extends AbstractGrip {
         compoundDirectory: boolean,
         displayBuffer8BitOnly: boolean,
         keyboardBufferPetsciiOnly: boolean,
+        canSetJoyport: boolean,
     } | undefined;
 
     private static _getDirectoryOptions(machineType: debugFile.MachineType, compoundDirectory: boolean) : string[] {
@@ -174,6 +175,7 @@ export class ViceGrip extends AbstractGrip {
             this._versionInfo = {
                 viceVersion: ver,
                 svnRevision: rev,
+                canSetJoyport: semver.satisfies(ver, `>=3.6`) || rev >= 41221,
                 compoundDirectory: semver.satisfies(ver, `>=3.6`) || rev >= 39825,
                 displayBuffer8BitOnly: this._apiVersion >= 2,
                 keyboardBufferPetsciiOnly: this._apiVersion >=2,
@@ -184,6 +186,7 @@ export class ViceGrip extends AbstractGrip {
             this._versionInfo = {
                 viceVersion: '3.5.0.0',
                 svnRevision: 0,
+                canSetJoyport: false,
                 compoundDirectory: false,
                 displayBuffer8BitOnly: false,
                 keyboardBufferPetsciiOnly: false,
@@ -191,6 +194,14 @@ export class ViceGrip extends AbstractGrip {
         }
 
         terminate ? await grip.terminate() : await grip.disconnect();
+    }
+
+    public async joyportSet(port: number, value: number) : Promise<void> {
+        if(!this._versionInfo!.canSetJoyport) {
+            return;
+        }
+
+        super.joyportSet(port, value);
     }
 
     public async autostart(program: string) : Promise<void> {
@@ -203,7 +214,7 @@ export class ViceGrip extends AbstractGrip {
     }
 
     public async displayGetRGBA() : Promise<bin.DisplayGetResponse> {
-        if(this._apiVersion < 0x02) {
+        if(!this._versionInfo!.displayBuffer8BitOnly) {
             const res = await this.execBinary({
                 type: bin.CommandType.displayGet,
                 useVicII: false,
