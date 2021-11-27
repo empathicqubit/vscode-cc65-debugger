@@ -1390,6 +1390,7 @@ or define the location manually with the launch.json->mapFile setting`
                 }
                 else if (this._exitIndexes.includes(index)) {
                     if(!this._stopOnExit) {
+                        await this.terminate();
                         return;
                     }
                     else {
