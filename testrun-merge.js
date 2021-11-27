@@ -11,9 +11,10 @@ for(const arg of args) {
         }
     }
 
-    for(const k in merged) {
-        console.log(k, merged[k] ? '\u2714\ufe0f': '\u274c');
-    }
+}
+
+for(const k in merged) {
+    console.log(k, merged[k] ? '\u2714\ufe0f': '\u274c');
 }
 
 let passed = true;
