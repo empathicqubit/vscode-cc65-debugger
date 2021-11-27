@@ -1,5 +1,12 @@
 # Changelog
 
+### [5.1.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.1...v5.1.2) (2021-11-27)
+
+
+### Bug Fixes
+
+* Add joyport control and fix keyboard event detection. ([7fb1f9d](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/7fb1f9dd587c3c6df8aaad60db37890ef78daeb4))
+
 ### [5.1.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.0...v5.1.1) (2021-11-26)
 
 
