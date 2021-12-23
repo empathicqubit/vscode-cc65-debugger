@@ -58,6 +58,19 @@ choco install --version 3.5.2021010401 winvice-nightly
 choco install make
 ```
 
+Make sure these directories are not on your PATH. They will break the Makefile:
+
+```sh
+C:\Program Files\Git\bin
+C:\Program Files\Git\usr\bin
+```
+
+These directories are okay:
+
+```sh
+C:\Program Files\Git\cmd
+```
+
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
 You will need to install VICE 3.5 or later and make. A modified build of CC65 is included.
