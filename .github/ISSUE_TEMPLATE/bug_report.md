@@ -30,6 +30,8 @@ Version:
 Press Ctrl+Shift+P in Code and search for "About". Paste the version information.
 ```
 
+What version of VICE are you using? (Help menu > About VICE)
+
 Do you have cc65 installed separately or are you using the builtin one?
 If you have it installed separately, be sure you are using the one with the changes from [empathicqubit/cc65](https://github.com/empathicqubit/cc65)
 
