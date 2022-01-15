@@ -26,6 +26,7 @@ jobs:
     container: empathicqubit/vscode-cc65-debugger-build
 
     strategy:
+      fail-fast: false
       matrix:
           include:
               - vice_version:
