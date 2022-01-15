@@ -30,6 +30,8 @@ jobs:
           include:
               - vice_version:
                 vice_directory: VICE_DIRECTORY=/vices/vice-3.5-build/src
+              - vice_version:
+                vice_directory: VICE_DIRECTORY=/vices/vice-3.6-build/src
               - vice_version: trunk
                 vice_directory:
 
