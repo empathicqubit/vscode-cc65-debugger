@@ -57,6 +57,7 @@ specifiers:
   webpack: ^5.11.1
   webpack-cli: ^4.3.0
   webpack-dev-server: ^3.11.1
+  which: ^2.0.2
 
 dependencies:
   '@entan.gl/vice-rainbow-monitor': 1.0.6
@@ -82,6 +83,7 @@ dependencies:
   universal-analytics: 0.4.23
   vscode-debugadapter: 1.38.0
   wait-port: 0.2.9
+  which: 2.0.2
 
 devDependencies:
   '@entan.gl/vsce': 1.79.6
@@ -3547,7 +3549,6 @@ packages:
 
   /isexe/2.0.0:
     resolution: {integrity: sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=}
-    dev: true
 
   /isobject/2.1.0:
     resolution: {integrity: sha1-8GVWEJaj8dou9GJy+BXIQNh+DIk=}
@@ -6845,7 +6846,6 @@ packages:
     hasBin: true
     dependencies:
       isexe: 2.0.0
-    dev: true
 
   /word-wrap/1.2.3:
     resolution: {integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==}
