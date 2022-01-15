@@ -23,16 +23,36 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Platform information (please complete the following information):**
+Are you using VSCode or Codium?
+Version:
+```
+Press Ctrl+Shift+P in Code and search for "About". Paste the version information.
+```
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+Do you have cc65 installed separately or are you using the builtin one?
+If you have it installed separately, be sure you are using the one with the changes from [empathicqubit/cc65](https://github.com/empathicqubit/cc65)
+
+OS Type (Mac OS, Windows, Linux):
+OS Version:
+For Windows use `Reg Query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ReleaseId`
+For Mac OS use `sw_vers`
+For Linux use `lsb_release -a`
+
+```
+Use one of the above commands and paste the result here
+```
+
+OS Architecture (for example, amd64, i686, arm, arm64):
+
+If you are able please provide your PATH:
+For Windows (cmd) use `echo %PATH%`
+For Mac OS/Linux use `echo $PATH`
+Be sure to remove any information you consider sensitive. Replace it with REDACTED
+```
+Paste your PATH here
+For example /usr/bin:REDACTED:/home/user/bin
+```
 
 **Additional context**
 Add any other context about the problem here.
