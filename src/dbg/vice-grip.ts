@@ -169,7 +169,7 @@ export class ViceGrip extends AbstractGrip {
 
             console.log('VICE Info', res);
 
-            const ver = res.viceVersion.join('.')
+            const ver = res.viceVersion.slice(0, -1).join('.')
             const rev = res.svnRevision;
             this._apiVersion = res.apiVersion;
             this._versionInfo = {
