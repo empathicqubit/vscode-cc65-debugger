@@ -24,13 +24,13 @@ RUN apt-get update && \
 
 # Build VICE
 RUN mkdir /vices && \
-    cd /vices && \
-    for each in 3.5 ; do \
+    for each in 3.5 3.6 ; do \
+        cd /vices && \
         curl -sL https://downloads.sourceforge.net/project/vice-emu/releases/vice-$each.tar.gz > /vices/vice-$each.tar.gz && \
         tar xvf /vices/vice-$each.tar.gz && \
         mkdir /vices/vice-$each-build && \
         cd /vices/vice-$each-build && \
-        /vices/vice-$each/configure --enable-headlessui --disable-pdf-docs && \
+        /vices/vice-${each}*/configure --enable-headlessui --disable-pdf-docs && \
         make -j$(nproc) && \
         rm -rf /vices/vice-$each /vices/vice-$each.tar.gz ; \
     done
