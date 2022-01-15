@@ -1313,7 +1313,8 @@ or define the location manually with the launch.json->mapFile setting`
             //
             // Here we fall back on the imported 'hasbin()' module to repeat the $PATH search.
             // This works on Linux and Windows, but does not handle the case where 'exePath' is
-            // the full path to the desired binary.
+            // the full path to the desired binary.  (Hence the prior 'fs.access()' and 'which()'
+            // checks).
             return new Promise((accept, reject) => {
                 hasbin.first([exePath],
                     (result) => result
