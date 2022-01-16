@@ -25,7 +25,7 @@ specifiers:
   hasbin: ^1.2.3
   jest: ^27.0.6
   lodash: ^4.17.15
-  marked: ^3.0.2
+  marked: ^4.0.10
   mathjs: ^9.5.0
   node-fetch: ^3.0.0
   node-watch: ^0.7.1
@@ -68,7 +68,7 @@ dependencies:
   get-port: 5.1.1
   hasbin: 1.2.3
   lodash: 4.17.20
-  marked: 3.0.2
+  marked: 4.0.10
   mathjs: 9.5.0
   node-watch: 0.7.1
   performance-now: 2.1.0
@@ -4403,8 +4403,8 @@ packages:
       uc.micro: 1.0.6
     dev: true
 
-  /marked/3.0.2:
-    resolution: {integrity: sha512-TMJQQ79Z0e3rJYazY0tIoMsFzteUGw9fB3FD+gzuIT3zLuG9L9ckIvUfF51apdJkcqc208jJN2KbtPbOvXtbjA==}
+  /marked/4.0.10:
+    resolution: {integrity: sha512-+QvuFj0nGgO970fySghXGmuw+Fd0gD2x3+MqCWLIPf5oxdv1Ka6b2q+z9RP01P/IaKPMEramy+7cNy/Lw8c3hw==}
     engines: {node: '>= 12'}
     hasBin: true
     dev: false
