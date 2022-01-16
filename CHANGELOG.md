@@ -1,5 +1,13 @@
 # Changelog
 
+### [5.1.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.2...v5.1.3) (2022-01-16)
+
+
+### Bug Fixes
+
+* Include '.exe' suffix on Windows ([cd718ae](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/cd718aed9612dc4ba7f7de25c54206a084a17f09))
+* Version detection works correctly for 3.6 ([bc7c971](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/bc7c97182b95915bd6cf963dc99c6dfabfff074a))
+
 ### [5.1.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.1...v5.1.2) (2021-11-27)
 
 
