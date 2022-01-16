@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import * as hotel from 'hasbin';
+import * as hasbin from 'hasbin';
+import * as which from 'which';
 import * as typeQuery from '../lib/type-query';
 import _first from 'lodash/fp/first';
 import _flow from 'lodash/fp/flow';
@@ -1268,6 +1269,60 @@ or define the location manually with the launch.json->mapFile setting`
     private _getCurrentScope() : debugFile.Scope | undefined {
         return this._getScope(this._currentPosition);
     }
+    
+    private static async _which(exePath: string): Promise<string> {
+        // Helper resolves to 'true' if the given file path can be read from this process.
+        const canAccess = (file) => new Promise((accept) => {
+            fs.access(file, fs.constants.R_OK, (err) => {
+                accept(!err);
+            });
+        });
+    
+        exePath = path.normalize(exePath);
+    
+        // When probing for an executable we need to consider three special cases:
+        //
+        //   1.  If the given 'exePath' contains only a file name (as opposed to a full path)
+        //       then we should search for the binary at the paths specified in 'process.env.PATH'.
+        //
+        //   2.  On Windows, we need to include the various executable extensions (.exe, .com, etc.)
+        //       as specified by 'process.env.PATHEXT'.
+        //
+        //   3.  On Linux, 'Mesen.exe' is a Mono application and therefore does not have executable
+        //       permissions (i.e., it lacks '+x').
+        //
+        // The imported 'which()' module handles cases 1 & 2, but rejects 'Mesen.exe' on Linux.
+        // Therefore we use a combination of 'fs.access()', 'which()', and 'hasbin()' as noted below.
+        
+        // First we uses a simple 'fs.access()' check, which does not search the $PATH or handle
+        // the Windows executable extensions (.exe, .com, etc.), but does handle the case where
+        // 'exePath' is a full path to 'Mesen.exe'.
+        if (await canAccess(exePath)) {
+            return exePath;
+        }
+    
+        try {
+            // If the 'fs.access()' check above did not find the binary we then invoke 'which()'.
+            // This handles both executable extensions (.exe, .com, etc.) on Windows and will
+            // search $PATH when given only a file name.
+            return await which(exePath);
+        } catch (whichErr) {
+            // The last case we need to consider is when 'mesenDirectory' was not configured.
+            // In this case, 'which()' may reject 'Mesen.exe' while searching the $PATH because
+            // 'Mesen.exe' lacks executable permissions on Linux.
+            //
+            // Here we fall back on the imported 'hasbin()' module to repeat the $PATH search.
+            // This works on Linux and Windows, but does not handle the case where 'exePath' is
+            // the full path to the desired binary.  (Hence the prior 'fs.access()' and 'which()'
+            // checks).
+            return new Promise((accept, reject) => {
+                hasbin.first([exePath],
+                    (result) => result
+                        ? accept(result)        // On success return the name found in path (e.g., 'xpet.exe')
+                        : reject(whichErr));    // On failure preserve the error message from 'which()'
+            });
+        }
+    }
 
     // FIXME Push down into grip?
     private async _getEmulatorPath(viceDirectory: string | undefined, mesenDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
@@ -1278,7 +1333,7 @@ or define the location manually with the launch.json->mapFile setting`
             emulatorBaseName = 'Mesen.exe';
 
             if(mesenDirectory) {
-                emulatorPath = path.normalize(path.join(mesenDirectory, emulatorBaseName));
+                emulatorPath = path.join(mesenDirectory, emulatorBaseName);
             }
             else {
                 emulatorPath = emulatorBaseName;
@@ -1305,7 +1360,7 @@ or define the location manually with the launch.json->mapFile setting`
             }
 
             if(viceDirectory) {
-                emulatorPath = path.normalize(path.join(viceDirectory, emulatorBaseName));
+                emulatorPath = path.join(viceDirectory, emulatorBaseName);
             }
             else {
                 emulatorPath = emulatorBaseName;
@@ -1313,14 +1368,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
 
         try {
-            try {
-                await util.promisify(fs.access)(emulatorPath)
-            }
-            catch {
-                await util.promisify((i, cb) =>
-                    hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null))
-                )([emulatorPath])
-            }
+            emulatorPath = await Runtime._which(emulatorPath);
         }
         catch (e) {
             throw new Error(`Couldn't find the emulator. Make sure your \`cc65vice.viceDirectory\` or \`cc65vice.mesenDirectory\` user setting is pointing to the directory containing emulator executables. ${emulatorPath} ${e}`);
