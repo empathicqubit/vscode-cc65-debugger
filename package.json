@@ -159,6 +159,7 @@
     "@types/vscode": "1.49",
     "@types/webpack": "^4.41.25",
     "@types/webpack-dev-server": "^3.11.1",
+    "@types/which": "^2.0.1",
     "dotenv": "^8.2.0",
     "env-cmd": "^10.1.0",
     "glob": "^7.1.6",
