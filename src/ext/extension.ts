@@ -164,7 +164,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('cc65-vice', provider));
 
     console.log('Running as ', runMode);
-    let factory: vscode.DebugAdapterDescriptorFactory;
+    let factory: CC65ViceDebugAdapterDescriptorFactory | InlineDebugAdapterFactory | DebugAdapterExecutableFactory;
     // Do I need this or will it be broken?
     switch (runMode) {
         // This indentation tho...
