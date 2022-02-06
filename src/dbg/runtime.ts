@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as hasbin from 'hasbin';
-import * as which from 'which';
+import which from 'which';
 import * as typeQuery from '../lib/type-query';
 import _first from 'lodash/fp/first';
 import _flow from 'lodash/fp/flow';
