@@ -1,5 +1,12 @@
 # Changelog
 
+### [5.1.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.3...v5.1.4) (2022-02-06)
+
+
+### Bug Fixes
+
+* TypeError when launching emulators on Windows ([390d66f](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/390d66f8b5273faa1a626835ca38f45988c716ad))
+
 ### [5.1.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.2...v5.1.3) (2022-01-16)
 
 
