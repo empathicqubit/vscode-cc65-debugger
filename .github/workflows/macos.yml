@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
           include:
-              - vice_version:
+              - vice_version: ""
                 vice_directory: VICE_DIRECTORY=
 
     steps:
@@ -26,6 +26,7 @@ jobs:
       with:
           ref: "${{ github.events.inputs.ref }}"
     - run: node -e "console.log('PROCESSOR', process.arch)"
+    - run: brew install vice
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test
