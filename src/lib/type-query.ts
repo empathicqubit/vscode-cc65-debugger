@@ -45,7 +45,7 @@ export async function getTabFiles(cwd: string) : Promise<tableFile.TableFile[]> 
     return await Promise.all(
         (await util.promisify(readdir)(cwd) as string[]).filter(x => /\.tab$/gi.test(x))
             .map(async tabFileName => {
-                const tabFileContents = await util.promisify(fs.readFile)(tabFileName, 'utf8');
+                const tabFileContents = await fs.promises.readFile(tabFileName, 'utf8');
                 return tableFile.parse(tabFileName, tabFileContents);
             })
     );

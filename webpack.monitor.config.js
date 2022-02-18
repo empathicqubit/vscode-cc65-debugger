@@ -38,7 +38,7 @@ const config = async() => {
       module: {
         rules: [
         {
-            test: await util.promisify(fs.realpath)(path.resolve(__dirname, "node_modules/@entan.gl/vice-rainbow-monitor/index.js")),
+            test: await fs.promises.realpath(path.resolve(__dirname, "node_modules/@entan.gl/vice-rainbow-monitor/index.js")),
             use: [
             {
                 loader: 'shebang-loader'

@@ -20,12 +20,12 @@ export async function getBinaryFromProgram(program: string) : Promise<Buffer> {
     if(/\.d[0-9]{2}$/.test(program)) {
         const fileName = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-program-'})
         await util.promisify(child_process.execFile)('c1541', ['-attach', program, '-read', '*', fileName])
-        const buf = await util.promisify(fs.readFile)(fileName);
-        await util.promisify(fs.unlink)(fileName);
+        const buf = await fs.promises.readFile(fileName);
+        await fs.promises.unlink(fileName);
         return buf;
     }
 
-    return await util.promisify(fs.readFile)(program);
+    return await fs.promises.readFile(program);
 }
 
 // FIXME Need to get rid of this, but UI depends on it for now.
@@ -36,7 +36,7 @@ export async function guessProgramPath(workspaceDir: string) : Promise<string[]>
 
     const fileMeta = await Promise.all(programs.map(async filename => {
         const [fileStats, listingLength] = await Promise.all([
-            util.promisify(fs.stat)(filename),
+            fs.promises.stat(filename),
             (async() => {
                 const ext = path.extname(filename).toLowerCase();
                 if (/^\.d[0-9]{2}$/.test(ext)) {
@@ -95,9 +95,15 @@ export async function build(build: LaunchRequestBuildArguments, execHandler: deb
     }
     let binDir : string | undefined;
     if(!cc65Home) {
-        if(['linux', 'win32'].includes(process.platform) && ['arm', 'arm64', 'x32', 'x64'].includes(os.arch())) {
-            cc65Home = path.normalize(__basedir + '/../dist/cc65');
-            binDir = cc65Home + '/bin_' + process.platform + '_' + os.arch();
+        if(['linux', 'win32', 'darwin'].includes(process.platform) && ['arm', 'arm64', 'x32', 'x64'].includes(os.arch())) {
+            const newCc65Home = path.normalize(__basedir + '/../dist/cc65');
+            const newBinDir = newCc65Home + '/bin_' + process.platform + '_' + os.arch();
+            try {
+                await fs.promises.stat(newBinDir);
+                cc65Home = newCc65Home;
+                binDir = newBinDir;
+            }
+            catch {}
         }
     }
     else {
@@ -144,7 +150,7 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
         while(true) {
             let failure = true;
             try {
-                await util.promisify(fs.unlink)(failurePath);
+                await fs.promises.unlink(failurePath);
             }
             catch {
                 failure = false;
@@ -156,7 +162,7 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
 
             let success = false;
             try {
-                await util.promisify(fs.unlink)(successPath);
+                await fs.promises.unlink(successPath);
                 success = true;
             }
             catch {

@@ -91,7 +91,7 @@ export class ViceGrip extends AbstractGrip {
     private async _versionProbeStart(emulatorPath: string, machineType: debugFile.MachineType, port: number) : Promise<void> {
         let directoryOpts : string[] = [];
         try {
-            await util.promisify(fs.access)(path.dirname(emulatorPath) + '/../data/GLSL');
+            await fs.promises.access(path.dirname(emulatorPath) + '/../data/GLSL');
             directoryOpts = ViceGrip._getDirectoryOptions(machineType, true);
         }
         catch {}
@@ -261,10 +261,10 @@ export class ViceGrip extends AbstractGrip {
             logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
 
             const tempdir = path.dirname(logfile!);
-            const temps = await util.promisify(fs.readdir)(tempdir);
+            const temps = await fs.promises.readdir(tempdir);
             temps
                 .filter(x => /^cc65-vice-/.test(x))
-                .map(x => util.promisify(fs.unlink)(path.join(tempdir, x)).catch(() => {}));
+                .map(x => fs.promises.unlink(path.join(tempdir, x)).catch(() => {}));
         }
 
         const opts : debugUtils.ExecFileOptions = {

@@ -60,7 +60,7 @@ export async function getDebugFilePath(programName?: string, buildCwd?: string) 
 }
 
 export async function loadDebugFile(filename: string, buildDir: string) {
-    const dbgFileData = await util.promisify(fs.readFile)(filename, 'ascii');
+    const dbgFileData = await fs.promises.readFile(filename, 'ascii');
     return dbgfile.parse(dbgFileData, buildDir);
 }
 

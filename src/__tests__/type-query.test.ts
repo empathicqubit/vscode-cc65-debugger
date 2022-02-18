@@ -8,7 +8,7 @@ describe('Type query mechanics', () => {
     describe('Table File', () => {
         test('Can parse', async () => {
             const expected = require('./tab/result.tab.json');
-            const actual = tableFile.parse('sample.tab', await util.promisify(fs.readFile)(__dirname + '/tab/sample.tab', 'utf8'));
+            const actual = tableFile.parse('sample.tab', await fs.promises.readFile(__dirname + '/tab/sample.tab', 'utf8'));
             const itemTypes : string[] = [];
             actual.scopes.forEach(scope => scope.syms.forEach(sym => itemTypes.push(sym.type)));
             assert.deepStrictEqual(actual, expected);

@@ -15,7 +15,7 @@ export async function getMapFilePath(program?: string) : Promise<string | undefi
     const progDir = path.dirname(program);
     const progFile = path.basename(program, path.extname(program));
 
-    const possibles = await util.promisify(fs.readdir)(progDir);
+    const possibles = await fs.promises.readdir(progDir);
     const filename : string | undefined = possibles
         .find(x => path.extname(x) == '.map' && path.basename(x).startsWith(progFile));
 

@@ -650,7 +650,7 @@ export class Runtime extends EventEmitter {
                 throw new Error();
             }
 
-            const text = await util.promisify(fs.readFile)(filename, 'utf8');
+            const text = await fs.promises.readFile(filename, 'utf8');
             this._mapFile = mapFile.parse(text);
         }
         catch {
@@ -1394,7 +1394,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
 
         try {
-            await util.promisify(fs.stat)(filename);
+            await fs.promises.stat(filename);
             return filename;
         }
         catch {
@@ -1632,7 +1632,7 @@ or define the location manually with the launch.json->mapFile setting`
         });
         this._updateCurrentAddress(undumpRes.programCounter);
 
-        await util.promisify(fs.unlink)(dumpFileName);
+        await fs.promises.unlink(dumpFileName);
 
         this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
 

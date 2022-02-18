@@ -38,7 +38,7 @@ const config = async() => {
       module: {
         rules: [
         {
-            test: await util.promisify(fs.realpath)(path.resolve(__dirname, "node_modules/tail-cli/bin/tail-cli")),
+            test: await fs.promises.realpath(path.resolve(__dirname, "node_modules/tail-cli/bin/tail-cli")),
             use: [
             {
                 loader: 'shebang-loader'
