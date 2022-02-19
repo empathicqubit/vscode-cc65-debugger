@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.4...v5.2.0) (2022-02-19)
+
+
+### Features
+
+* Unofficial CC65 Darwin support for extension development only. ([008e139](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/008e139751a1e5fadbeebb4d4d15b6ae741a8392))
+
 ### [5.1.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.3...v5.1.4) (2022-02-06)
 
 
