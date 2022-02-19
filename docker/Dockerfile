@@ -23,18 +23,18 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
 
 # Build VICE
-RUN mkdir /vices && \
+RUN mkdir -p /vices/builds /vices/sources && \
     for each in 3.5 3.6 ; do \
-        cd /vices && \
-        curl -sL https://downloads.sourceforge.net/project/vice-emu/releases/vice-$each.tar.gz > /vices/vice-$each.tar.gz && \
-        tar xvf /vices/vice-$each.tar.gz && \
-        mkdir /vices/vice-$each-build && \
-        cd /vices/vice-$each-build && \
-        /vices/vice-${each}*/configure --enable-headlessui --disable-pdf-docs && \
-        rsync -rav --ignore-existing /vices/vice-${each}*/data/. ./data/. && \
-        make -j$(nproc) && \
-        rm -rf /vices/vice-${each}* /vices/vice-$each.tar.gz ; \
-    done
+        cd /vices/sources && \
+        curl -L https://downloads.sourceforge.net/project/vice-emu/releases/vice-$each.tar.gz > /vices/sources/vice-$each.tar.gz && \
+        tar xvf /vices/sources/vice-$each.tar.gz && \
+        mkdir /vices/builds/vice-$each && \
+        cd /vices/builds/vice-$each && \
+        /vices/sources/vice-${each}*/configure --enable-headlessui --disable-pdf-docs && \
+        rsync -rav --ignore-existing /vices/sources/vice-${each}*/data/. ./data/. && \
+        make -j$(nproc) ; \
+    done && \
+    rm -rf /vices/sources
 
 # Install cross build tools for CC65
 RUN dpkg --add-architecture i386 && \
