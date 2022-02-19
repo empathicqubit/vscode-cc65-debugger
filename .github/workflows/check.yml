@@ -20,7 +20,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  mac:
+  mac-build:
 
     runs-on: macos-10.15
     #container: empathicqubit/vscode-cc65-debugger-build
@@ -47,11 +47,11 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: Test Mac
+        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}"
         path: "*.testrun.xml"
         reporter: jest-junit
 
-  linux:
+  linux-build:
 
     runs-on: ubuntu-latest
     container: empathicqubit/vscode-cc65-debugger-build
@@ -84,6 +84,6 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: Test Linux ${{ matrix.vice_version }} ${{ matrix.vice_directory }}
+        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}"
         path: "*.testrun.xml"
         reporter: jest-junit
