@@ -12,7 +12,7 @@
 
 Dependencies and date last changed:
 
-[![VICE](https://img.shields.io/badge/VICE-3.5%202020%2f12%2f24-blue)](https://chocolatey.org/packages/winvice-nightly/3.5.2021010401) 
+[![VICE](https://img.shields.io/badge/VICE-3.6.0%202022%2f02%2f19-blue)](https://community.chocolatey.org/packages/winvice-nightly/3.6.0) 
 [![Mesen-X](https://img.shields.io/badge/MesenX-1.0.0%202021%2f11%2f24-blue)](https://github.com/NovaSquirrel/Mesen-X/releases/tag/1.0.0) 
 
 This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms (well-tested) and NES (experimental), including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
@@ -38,13 +38,13 @@ If you're having trouble understanding how this extension is supposed to be used
 
 ## Setup
 
-To make sure all the features work, you'll want to install VICE 3.5 or later.
+To make sure all the features work, you'll want to install VICE 3.6 or later.
 A modified build of CC65 for Linux and Windows is already included, so you'll
 only need to specify your own if you're using a platform such as Mac OS.
 
 ### Windows-specific instructions
 
-You will need to install VICE 3.5 or later and make. A modified build of CC65 is included.
+You will need to install VICE 3.6 or later and make. A modified build of CC65 is included.
 The easiest way to install VICE to your PATH is to use [Chocolatey](https://chocolatey.org/).
 
 ```powershell
@@ -54,7 +54,7 @@ The easiest way to install VICE to your PATH is to use [Chocolatey](https://choc
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install the packages
-choco install --version 3.5.2021010401 winvice-nightly
+choco install --version 3.6.0 winvice-nightly
 choco install make
 ```
 
@@ -73,20 +73,20 @@ C:\Program Files\Git\cmd
 
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
-You will need to install VICE 3.5 or later and make. A modified build of CC65 is included.
+You will need to install VICE 3.6 or later and make. A modified build of CC65 is included.
 
-To install VICE 3.5 before it is packaged for your distribution, you will need
+To install VICE 3.6 before it is packaged for your distribution, you will need
 to build VICE from source, to do that, download the source from the VICE
 website, then follow the below steps:
 
 ```sh
-sudo apt install build-essential checkinstall subversion
+sudo apt install build-essential subversion dos2unix xa65 automake autoconf zip
 sudo apt build-dep vice
-cd vice-3.5
+cd vice-3.6.0
 ./autogen.sh
 ./configure
 make -j$(nproc)
-sudo mkdir -p /usr/local/share/{vice/C64,doc/vice} && sudo checkinstall -y --exclude=/home --install=yes --pkgname=vice --pkgversion=3.5.0 --summary='VICE is a Commodore 64 emulator. This is a version I built to be able to use new features required by VSCode.' --provides=vice --requires='libasound2, libatk1.0-0, libc6, libcairo-gobject2, libcairo2, libfontconfig1, libgcc1, libgdk-pixbuf2.0-0, libgl1, libglew2.1, libglib2.0-0, libgtk-3-0, libjpeg62-turbo, libpango-1.0-0, libpangocairo-1.0-0, libpng16-16, libpulse0, libreadline7, libstdc++6, zlib1g' --nodoc make install
+sudo make install
 ```
 
 The last two commands will take a while, but afterwards VICE should be installed.

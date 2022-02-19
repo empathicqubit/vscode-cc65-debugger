@@ -303,7 +303,7 @@ export class Runtime extends EventEmitter {
 
         this.sendMessage({
             level: debugUtils.ExtensionMessageLevel.warning,
-            content: `To avoid problems, make sure you're using VICE 3.5 or later.`
+            content: `To avoid problems, make sure you're using VICE 3.6 or later.`
         });
 
         this._runAhead = !!runAhead;
@@ -1269,7 +1269,7 @@ or define the location manually with the launch.json->mapFile setting`
     private _getCurrentScope() : debugFile.Scope | undefined {
         return this._getScope(this._currentPosition);
     }
-    
+
     private static async _which(exePath: string): Promise<string> {
         // Helper resolves to 'true' if the given file path can be read from this process.
         const canAccess = (file) => new Promise((accept) => {
@@ -1277,9 +1277,9 @@ or define the location manually with the launch.json->mapFile setting`
                 accept(!err);
             });
         });
-    
+
         exePath = path.normalize(exePath);
-    
+
         // When probing for an executable we need to consider three special cases:
         //
         //   1.  If the given 'exePath' contains only a file name (as opposed to a full path)
@@ -1293,14 +1293,14 @@ or define the location manually with the launch.json->mapFile setting`
         //
         // The imported 'which()' module handles cases 1 & 2, but rejects 'Mesen.exe' on Linux.
         // Therefore we use a combination of 'fs.access()', 'which()', and 'hasbin()' as noted below.
-        
+
         // First we uses a simple 'fs.access()' check, which does not search the $PATH or handle
         // the Windows executable extensions (.exe, .com, etc.), but does handle the case where
         // 'exePath' is a full path to 'Mesen.exe'.
         if (await canAccess(exePath)) {
             return exePath;
         }
-    
+
         try {
             // If the 'fs.access()' check above did not find the binary we then invoke 'which()'.
             // This handles both executable extensions (.exe, .com, etc.) on Windows and will

@@ -80,8 +80,6 @@ jobs:
       fail-fast: false
       matrix:
           include:
-              - vice_version: 3.5
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.5/src
               - vice_version: 3.6
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
               - vice_version: trunk
