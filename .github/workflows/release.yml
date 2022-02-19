@@ -41,6 +41,7 @@ jobs:
     - run: tar zcvf cc65-darwin.tar.gz dist/cc65/bin_darwin_*
 
   build:
+    needs: darwin-compiler
     outputs:
       filename: ${{ steps.get_filename.outputs.filename }}
 
