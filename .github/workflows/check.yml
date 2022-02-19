@@ -69,11 +69,6 @@ jobs:
           ref: "${{ github.events.inputs.ref }}"
 
     - run: pnpm install --shamefully-hoist
-    - run: ln -s $PWD/system /usr/local/share/vice
-    - run: ln -s $PWD/system /usr/local/lib/vice
-    - run: ln -s $PWD/system /usr/lib/vice
-    - run: ln -s $PWD/system /usr/share/vice
-    - run: ls -l /usr/local/share
     - run: pnpm build:test
 
   linux-test:
@@ -100,6 +95,12 @@ jobs:
           ~/.pnpm-store
           ./**/*
         key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
+
+    - run: ln -s $PWD/system /usr/local/share/vice
+    - run: ln -s $PWD/system /usr/local/lib/vice
+    - run: ln -s $PWD/system /usr/lib/vice
+    - run: ln -s $PWD/system /usr/share/vice
+    - run: ls -l /usr/local/share
 
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
 
