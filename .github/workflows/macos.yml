@@ -29,5 +29,11 @@ jobs:
     - run: brew install vice
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
-    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test
-    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:full
+    - continue-on-error: true
+      run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
+    - name: Archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: Darwin binaries 10.15
+        path: dist/cc65/bin_darwin_*
