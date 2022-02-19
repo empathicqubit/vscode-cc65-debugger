@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.0.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.4...v6.0.0) (2022-02-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove official support for VICE 3.5. It still works for now.
+
+### Features
+
+* Remove official support for VICE 3.5. It still works for now. ([5b7ea18](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/5b7ea18f4cad92a4f97636b959f901301c2579ad))
+* Unofficial CC65 Darwin support for extension development only. ([008e139](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/008e139751a1e5fadbeebb4d4d15b6ae741a8392))
+
 ### [5.1.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v5.1.3...v5.1.4) (2022-02-06)
 
 
