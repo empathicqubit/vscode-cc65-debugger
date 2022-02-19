@@ -31,7 +31,7 @@ dist/
 *.run
 *~
 *.sf-*
-*.testrun.json
+*.testrun.*
 .nyc_output/
 coverage/
 vicedir/
