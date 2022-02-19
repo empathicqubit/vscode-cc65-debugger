@@ -62,7 +62,7 @@ jobs:
         path: |
           ~/.pnpm-store
           ./**/*
-        key: check-${{ runner.os }}-${{ github.events.inputs.ref }}
+        key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
 
     - uses: actions/checkout@v2
       with:
@@ -99,8 +99,7 @@ jobs:
         path: |
           ~/.pnpm-store
           ./**/*
-        restore-keys: |
-          check-${{ runner.os }}-${{ github.events.inputs.ref }}
+        key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
 
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
 
