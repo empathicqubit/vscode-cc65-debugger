@@ -86,9 +86,9 @@ jobs:
       matrix:
           include:
               - vice_version: 3.5
-                vice_directory: VICE_DIRECTORY=/vices/vice-3.5-build/src
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.5/src
               - vice_version: 3.6
-                vice_directory: VICE_DIRECTORY=/vices/vice-3.6-build/src
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
               - vice_version: trunk
                 vice_directory:
 
