@@ -19,7 +19,7 @@ RUN PATH=$PATH:$HOME/.local/bin apt-smart -a
 # Install VICE dependencies and misc.
 RUN apt-get update && \
     apt-get build-dep --no-install-recommends -y vice && \
-    apt-get install -y --no-install-recommends curl dos2unix p7zip-full zip gpg subversion build-essential xa65 automake autoconf && \
+    apt-get install -y --no-install-recommends rsync curl dos2unix p7zip-full zip gpg subversion build-essential xa65 automake autoconf && \
     apt-get clean && rm -rf /var/cache/apt/lists/*
 
 # Build VICE
@@ -31,6 +31,7 @@ RUN mkdir /vices && \
         mkdir /vices/vice-$each-build && \
         cd /vices/vice-$each-build && \
         /vices/vice-${each}*/configure --enable-headlessui --disable-pdf-docs && \
+        rsync -rav --ignore-existing /vices/vice-$each/data/. ./data/. && \
         make -j$(nproc) && \
         rm -rf /vices/vice-$each /vices/vice-$each.tar.gz ; \
     done
