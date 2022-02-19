@@ -52,8 +52,8 @@ jobs:
     strategy:
       matrix:
           include:
-              - vice_version: ''
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.5/src
+              - vice_version: 3.6
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
 
     steps:
     - uses: actions/checkout@v2
