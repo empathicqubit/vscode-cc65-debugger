@@ -31,9 +31,9 @@ RUN mkdir /vices && \
         mkdir /vices/vice-$each-build && \
         cd /vices/vice-$each-build && \
         /vices/vice-${each}*/configure --enable-headlessui --disable-pdf-docs && \
-        rsync -rav --ignore-existing /vices/vice-$each/data/. ./data/. && \
+        rsync -rav --ignore-existing /vices/vice-${each}*/data/. ./data/. && \
         make -j$(nproc) && \
-        rm -rf /vices/vice-$each /vices/vice-$each.tar.gz ; \
+        rm -rf /vices/vice-${each}* /vices/vice-$each.tar.gz ; \
     done
 
 # Install cross build tools for CC65
