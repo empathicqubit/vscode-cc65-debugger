@@ -20,7 +20,30 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  build:
+  mac:
+
+    runs-on: macos-10.15
+    #container: empathicqubit/vscode-cc65-debugger-build
+
+    strategy:
+      fail-fast: false
+      matrix:
+          include:
+              - vice_version: ""
+                vice_directory: VICE_DIRECTORY=
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          ref: "${{ github.events.inputs.ref }}"
+    - run: brew install vice
+    - run: npm install -g pnpm
+    - run: pnpm install --shamefully-hoist
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test
+    - continue-on-error: true
+      run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
+
+  linux:
 
     runs-on: ubuntu-latest
     container: empathicqubit/vscode-cc65-debugger-build

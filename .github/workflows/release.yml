@@ -12,6 +12,36 @@ on:
         - published
 
 jobs:
+  darwin-compiler:
+
+    runs-on: macos-10.15
+    #container: empathicqubit/vscode-cc65-debugger-build
+
+    strategy:
+      matrix:
+          include:
+              - vice_version: ""
+                vice_directory: VICE_DIRECTORY=
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          ref: "${{ github.events.inputs.ref }}"
+    - run: npm install -g pnpm
+    - run: pnpm install --shamefully-hoist
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
+    - run: tar zcvf cc65-darwin.tar.gz dist/cc65/bin_darwin_*
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        release_name: cc65-vice ${{ github.event.inputs.tag || github.event.release.tag_name }} (Unpublished)
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: cc65-darwin.tar.gz
+        asset_name: cc65-darwin.tar.gz
+        tag: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        overwrite: true
+
   build:
     outputs:
       filename: ${{ steps.get_filename.outputs.filename }}
