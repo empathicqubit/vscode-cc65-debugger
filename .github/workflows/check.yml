@@ -90,7 +90,7 @@ jobs:
               - vice_version: 3.6
                 vice_directory: VICE_DIRECTORY=/vices/vice-3.6-build/src
               - vice_version: trunk
-                vice_directory:
+                vice_directory: ""
 
     steps:
     - name: Cache
@@ -99,8 +99,8 @@ jobs:
         path: |
           ~/.pnpm-store
           ./**/*
-        restore-keys:
-        - check-${{ runner.os }}-${{ github.events.inputs.ref }}
+        restore-keys: |
+          check-${{ runner.os }}-${{ github.events.inputs.ref }}
 
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
 
