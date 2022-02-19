@@ -18,7 +18,6 @@ jobs:
     #container: empathicqubit/vscode-cc65-debugger-build
 
     strategy:
-      fail-fast: false
       matrix:
           include:
               - vice_version: ""
@@ -30,6 +29,7 @@ jobs:
           ref: "${{ github.events.inputs.ref }}"
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
+    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
     - run: tar zcvf cc65-darwin.tar.gz dist/cc65/bin_darwin_*
     - name: Upload binaries to release
