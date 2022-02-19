@@ -46,7 +46,7 @@ jobs:
     outputs:
       filename: ${{ steps.get_filename.outputs.filename }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     container: empathicqubit/vscode-cc65-debugger-build
 
     strategy:
