@@ -43,6 +43,14 @@ jobs:
     - continue-on-error: true
       run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
 
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()    # run this step even if previous step failed
+      with:
+        name: Test Mac
+        path: "*.testrun.xml"
+        reporter: jest-junit
+
   linux:
 
     runs-on: ubuntu-latest
@@ -52,9 +60,9 @@ jobs:
       fail-fast: false
       matrix:
           include:
-              - vice_version:
+              - vice_version: 3.5
                 vice_directory: VICE_DIRECTORY=/vices/vice-3.5-build/src
-              - vice_version:
+              - vice_version: 3.6
                 vice_directory: VICE_DIRECTORY=/vices/vice-3.6-build/src
               - vice_version: trunk
                 vice_directory:
@@ -76,6 +84,6 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: ${{ matrix.vice_version }} ${{ matrix.vice_directory }}
+        name: Test Linux ${{ matrix.vice_version }} ${{ matrix.vice_directory }}
         path: "*.testrun.xml"
         reporter: jest-junit
