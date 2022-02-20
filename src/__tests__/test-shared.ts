@@ -144,6 +144,14 @@ export function getLabel(rt: Runtime, name: string) : number {
     return (rt._dbgFile.labs.find(x => x.name == name) || { val: 0x00 }).val;
 }
 
+export const testSkipMac : typeof test.skip = ((...args) => {
+    if(process.platform == "darwin") {
+        return;
+    }
+
+    test.apply(null, args);
+}) as any;
+
 export async function waitFor(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> {
     const err = new Error('Timed out waiting for assertion');
     await new Promise<void>((res, rej) => {
