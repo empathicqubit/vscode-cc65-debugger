@@ -87,7 +87,7 @@ Applications, that would look similar to this:
 /Applications/vice-arm64-gtk3.6.1/bin
 ```
 
-You may also may to add that path to your PATH so you can use tools like c1541
+You may also want to add that path to your PATH so you can use tools like c1541
 in your `Makefile`.
 
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
