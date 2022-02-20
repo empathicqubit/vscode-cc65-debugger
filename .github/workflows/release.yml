@@ -28,7 +28,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          ./dist/cc65/bin_darwin_*/**/*
+          ./dist/cc65/bin_darwin_*/*
         key: release-${{ github.run_id }}-${{ github.run_number }}
 
     - uses: actions/checkout@v2
