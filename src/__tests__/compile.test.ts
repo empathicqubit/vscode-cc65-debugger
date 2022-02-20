@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import * as util from 'util';
 import * as compile from '../lib/compile';
 import * as path from 'path';
 import * as debugUtils from '../lib/debug-utils';
@@ -39,6 +40,17 @@ describe('Compile', () => {
             catch {}
         }
         pids = [];
+    });
+
+    test('Clean works', async () => {
+        await compile.clean(BUILD_CWD, execHandler);
+    });
+
+    test('Build script works', async () => {
+        await compile.clean(BUILD_CWD, execHandler);
+        const res = await util.promisify(child_process.execFile)('sh', ['./mk.sh'], { cwd: BUILD_CWD });
+        console.log(res.stdout);
+        console.error(res.stderr);
     });
 
     test('Build works', async () => {
