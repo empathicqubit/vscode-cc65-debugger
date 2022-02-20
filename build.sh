@@ -15,6 +15,11 @@ elif ! test -e "$CODE" ; then
     CODE="$(dirname "$(dirname "$(which code)")")/share/code/code"
 fi
 
+if ! test -e "$CODE" ; then
+    echo "You must install VSCode to use this script."
+    exit 1
+fi
+
 # MS introduced this freaking command line switch 1.62 Oct 2021
 STUPID_SWITCH=""
 if ELECTRON_RUN_AS_NODE=1 "$CODE" -e "process.exit(0)" --ms-enable-electron-run-as-node ; then

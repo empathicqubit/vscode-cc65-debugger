@@ -72,6 +72,14 @@ RUN apt-get update && \
 RUN useradd -m -u 1000 unprivileged
 USER root
 
+# Install VSCode 1.54 (the earliest version with arm64 support on Mac)
+ADD ./vscode.list /etc/apt/sources.list.d/vscode.list
+ADD ./vscode.key /vscode.key
+RUN apt-key add ./vscode.key && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends code=1.54.3-1615806378 && \
+    apt-get clean && rm -rf /var/cache/apt/lists/*
+
 # Cache pnpm packages
 ADD https://raw.githubusercontent.com/empathicqubit/vscode-cc65-debugger/master/package.json /app/package.json
 RUN cd /app && pnpm install
