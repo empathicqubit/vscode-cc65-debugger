@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.1.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.0...v6.1.1) (2022-02-20)
+
+
+### Bug Fixes
+
+* Fix project build scripts ([5dff50a](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/5dff50ae99037c01f910cf0a335f4bf838e19325))
+
 ## [6.1.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.0.0...v6.1.0) (2022-02-19)
 
 
