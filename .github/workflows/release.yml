@@ -56,7 +56,7 @@ jobs:
       with:
           ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
-    - run: 7z a asm-project-template.zip src/__tests__/asm-project
+    - run: cd src/__tests__ && 7z a asm-project-template.zip ./asm-project
     - name: Upload Assembly Template to release
       uses: svenstaro/upload-release-action@v2
       with:
@@ -67,7 +67,7 @@ jobs:
         tag: ${{ github.event.inputs.tag || github.event.release.tag_name }}
         overwrite: true
 
-    - run: 7z a c-project-template.zip src/__tests__/c-project-template
+    - run: cd src/__tests__ && 7z a c-project-template.zip ./c-project-template
     - name: Upload C Template to release
       uses: svenstaro/upload-release-action@v2
       with:
