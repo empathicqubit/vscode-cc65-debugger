@@ -56,8 +56,6 @@ jobs:
       with:
           ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
-    - run: ls -lha dist/cc65/testy && exit 1
-
     - run: pnpm install --shamefully-hoist
     - run: ln -s $PWD/system /usr/local/share/vice
     - run: ln -s $PWD/system /usr/local/lib/vice
