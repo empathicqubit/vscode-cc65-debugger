@@ -22,7 +22,7 @@ describe('other emulators', () => {
 
     const NONC64_C = path.join(BUILD_CWD, "src/test_non_c64.c")
 
-    test('nes works correctly', async () => {
+    testShared.testSkipMac('nes works correctly', async () => {
         const PROGRAM = BUILD_CWD + '/program.nes';
         const MAP_FILE = PROGRAM + '.map';
         const DEBUG_FILE = PROGRAM + '.dbg';
@@ -60,7 +60,7 @@ describe('other emulators', () => {
         await rt.continue();
     });
 
-    test('xpet works correctly', async () => {
+    testShared.testSkipMac('xpet works correctly', async () => {
         const rt = await testShared.newRuntime();
 
         await rt.start(

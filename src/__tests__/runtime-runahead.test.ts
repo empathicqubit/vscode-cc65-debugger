@@ -23,7 +23,7 @@ describe('Runahead', () => {
 
 
     const RUNAHEAD_C = path.join(BUILD_CWD, "src/test_runahead.c");
-    test('Restores the original location', async() => {
+    test.skip('Restores the original location', async() => {
         const rt = await testShared.newRuntime();
         await Promise.all([
             rt.start(
@@ -88,7 +88,7 @@ describe('Runahead', () => {
         await testShared.waitFor(rt, 'end');
     });
 
-    test('Triggered by step', async() => {
+    test.skip('Triggered by step', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
             await testShared.portGetter(),
@@ -117,7 +117,7 @@ describe('Runahead', () => {
         await testShared.waitFor(rt, 'end');
     });
 
-    test('Triggered by step in', async() => {
+    test.skip('Triggered by step in', async() => {
         const rt = await testShared.newRuntime();
         await rt.start(
             await testShared.portGetter(),
