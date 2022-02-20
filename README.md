@@ -24,6 +24,7 @@ If you're having trouble understanding how this extension is supposed to be used
 * [vscode-cc65-debugger](#vscode-cc65-debugger)
   * [Setup](#setup)
     * [Windows-specific instructions](#windows-specific-instructions)
+    * [Mac-specific instructions](#mac-specific-instructions)
     * [Linux-specific instructions (Debian \[and probably also Ubuntu\])](#linux-specific-instructions-(debian-%5C[and-probably-also-ubuntu%5C]))
   * [Project Configuration](#project-configuration)
   * [Changes needed to your Makefile](#changes-needed-to-your-makefile)
@@ -70,6 +71,24 @@ These directories are okay:
 ```sh
 C:\Program Files\Git\cmd
 ```
+
+### Mac-specific instructions
+You will need to install VICE. The easiest way to do this is with [Brew](https://brew.sh/).
+
+```sh
+brew install vice
+```
+
+Alternatively, use the official release from Sourceforge. You will need to point
+the viceDirectory setting to the `bin` path. So if you dropped the folder in
+Applications, that would look similar to this:
+
+```
+/Applications/vice-arm64-gtk3.6.1/bin
+```
+
+You may also may to add that path to your PATH so you can use tools like c1541
+in your `Makefile`.
 
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
