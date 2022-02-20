@@ -146,10 +146,11 @@ export function getLabel(rt: Runtime, name: string) : number {
 
 export const testSkipMac : typeof test.skip = ((...args) => {
     if(process.platform == "darwin") {
-        return;
+        test.skip.apply(test, args);
     }
-
-    test.apply(null, args);
+    else {
+        test.apply(null, args);
+    }
 }) as any;
 
 export async function waitFor(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> {
