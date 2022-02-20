@@ -38,9 +38,9 @@ jobs:
     - run: pnpm install --shamefully-hoist
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
-    - run: tar zcvf cc65-darwin.tar.gz dist/cc65/bin_darwin_*
 
   build:
+    needs: darwin-compiler
     outputs:
       filename: ${{ steps.get_filename.outputs.filename }}
 
