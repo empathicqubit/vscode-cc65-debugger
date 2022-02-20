@@ -24,13 +24,6 @@ jobs:
                 vice_directory: VICE_DIRECTORY=
 
     steps:
-    - name: Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ./dist/cc65/bin_darwin_*/*
-        key: release-${{ github.run_id }}-${{ github.run_number }}
-
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
@@ -39,10 +32,10 @@ jobs:
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
 
-	- uses: actions/upload-artifact@v2
-	  with:
-		name: darwin-compiler
-		path: dist/cc65/bin_darwin_*/*
+    - uses: actions/upload-artifact@v2
+      with:
+        name: darwin-compiler
+        path: dist/cc65/bin_darwin_*/*
 
   build:
     needs: darwin-compiler
@@ -59,16 +52,16 @@ jobs:
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
 
     steps:
-	- uses: actions/download-artifact@v2
-	  with:
-		name: darwin-compiler
-		path: dist/cc65/testy
-
-	- run: ls -lha dist/cc65/testy && exit 1
-
     - uses: actions/checkout@v2
       with:
           ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: darwin-compiler
+        path: dist/cc65/testy
+
+    - run: ls -lha dist/cc65/testy && exit 1
 
     - run: pnpm install --shamefully-hoist
     - run: ln -s $PWD/system /usr/local/share/vice
