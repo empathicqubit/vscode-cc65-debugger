@@ -131,7 +131,7 @@
     "await-notify": "1.0.1",
     "buffer": "^6.0.3",
     "classnames": "^2.2.6",
-    "colors": "^1.4.0",
+    "colors": "1.4.0",
     "get-port": "^5.1.1",
     "hasbin": "^1.2.3",
     "lodash": "^4.17.15",
