@@ -56,11 +56,6 @@ jobs:
       with:
           ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
-    - uses: actions/download-artifact@v2
-      with:
-        name: darwin-compiler
-        path: dist/cc65/testy
-
     - run: ls -lha dist/cc65/testy && exit 1
 
     - run: pnpm install --shamefully-hoist
@@ -69,6 +64,12 @@ jobs:
     - run: ln -s $PWD/system /usr/lib/vice
     - run: ln -s $PWD/system /usr/share/vice
     - run: ls -l /usr/local/share
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: darwin-compiler
+        path: dist/cc65
+
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm package
     - run: 7z l cc65-vice*.vsix
 
