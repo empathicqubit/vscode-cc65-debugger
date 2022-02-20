@@ -22,4 +22,6 @@ RTS
 subsub:
 RTS
 
+.segment "DATA"
+
 helloworld: .byte "hello world", 0
