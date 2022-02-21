@@ -5,7 +5,7 @@ if test "$(uname)" = "Darwin" ; then
 else
     F_SWITCH="-f"
 fi
-DIR="$( cd "$( dirname "$("$READLINK" $F_SWITCH "$0" )" > /dev/null && pwd )"
+DIR="$( cd "$( dirname "$( "$READLINK" $F_SWITCH "$0" )" )" > /dev/null && pwd )"
 if test -e "$DIR/../../../build.sh"; then
     sh "$DIR/../../../build.sh" make "$@"
 else
