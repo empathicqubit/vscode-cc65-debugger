@@ -39,7 +39,8 @@ jobs:
     - run: brew install sevenzip
     - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/vice-x86-64-gtk3-3.6.1.dmg/download"
     - run: ls -lha "$HOME/VICE.dmg"
-    - run: 7z x "$HOME/VICE.dmg" && exit 1
+    - run: 7z x "$HOME/VICE.dmg"
+    - run: mv vice-*-gtk3-*/vice-*-gtk3-* /Applications
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test
