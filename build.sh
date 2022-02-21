@@ -1,6 +1,11 @@
 #! /bin/sh
 READLINK="$(which greadlink readlink | head -1)"
-DIR="$( cd "$( dirname "$("$READLINK" -f "$0")" )" > /dev/null && pwd )"
+if test "$(uname)" = "Darwin" ; then
+    F_SWITCH=""
+else
+    F_SWITCH="-f"
+fi
+DIR="$( cd "$( dirname "$("$READLINK" $F_SWITCH "$0")" )" > /dev/null && pwd )"
 echo "$DIR"
 BUILD="$DIR/dist/debug-adapter.js"
 CODE="/snap/code/current/usr/share/code/code"
