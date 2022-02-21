@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import _chunk from 'lodash/fp/chunk';
 import _sortBy from 'lodash/fp/sortBy';
-import marked from 'marked';
+import { marked } from 'marked';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as reactTabs from 'react-tabs';

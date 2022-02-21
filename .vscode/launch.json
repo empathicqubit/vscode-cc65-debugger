@@ -16,7 +16,7 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
-            "preLaunchTask": "extension",
+            //"preLaunchTask": "extension",
             "postDebugTask": "kill-webviews"
         },
         {
@@ -29,7 +29,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
-            "preLaunchTask": "server",
+            //"preLaunchTask": "server",
             "args": [
                 "--server=4711"
             ]

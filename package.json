@@ -128,6 +128,7 @@
   },
   "dependencies": {
     "@entan.gl/vice-rainbow-monitor": "^1.0.6",
+    "@types/marked": "^4.0.2",
     "await-notify": "1.0.1",
     "buffer": "^6.0.3",
     "classnames": "^2.2.6",
