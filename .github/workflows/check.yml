@@ -30,13 +30,14 @@ jobs:
       matrix:
           include:
               - vice_version: ""
-                vice_directory: VICE_DIRECTORY=
+                vice_directory: "VICE_DIRECTORY=/Applications/vice-*-gtk3-*/bin"
 
     steps:
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
-    - run: brew install vice
+    - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/vice-arm64-gtk3-3.6.1.dmg/download"
+    - run: cp -r "$(hdiutil attach "$HOME/VICE.dmg" | grep Apple_HFS | awk '{print $NF}')"/vice-*-gtk3-* /Applications
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test
