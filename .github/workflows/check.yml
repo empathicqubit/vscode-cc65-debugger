@@ -36,8 +36,9 @@ jobs:
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
-    - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/vice-arm64-gtk3-3.6.1.dmg/download"
-    - run: cp -r "$(hdiutil attach "$HOME/VICE.dmg" | grep Apple_HFS | awk '{print $NF}')"/vice-*-gtk3-* /Applications
+    - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/vice-x86-64-gtk3-3.6.1.dmg/download"
+    - run: ls -lha "$HOME/VICE.dmg"
+    - run: ls -lha "$(hdiutil attach "$HOME/VICE.dmg" | grep Apple_HFS | awk '{print $NF}')" && exit 1
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test
