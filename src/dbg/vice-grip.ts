@@ -242,7 +242,8 @@ export class ViceGrip extends AbstractGrip {
         };
     }
 
-    public async start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
+    public async start(port: number, cwd: string, machineType: debugFile.MachineType, preferX64OverX64sc?: boolean, viceDirectory?: string, mesenDirectory?: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
+        const emulatorPath = await this._getEmulatorPath(machineType, viceDirectory, mesenDirectory, preferX64OverX64sc)
         await this._versionProbeStart(emulatorPath, machineType, port);
 
         let logfile : string | undefined;

@@ -17,6 +17,6 @@
         "noUnusedParameters": false,
         "esModuleInterop": true
     },
-    "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"],
+    //"exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"],
     "include": ["./src/**/*.tsx", "./src/**/*.ts"]
 }

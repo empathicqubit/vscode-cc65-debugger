@@ -1,6 +1,7 @@
 import * as child_process from 'child_process';
 import * as colors from 'colors/safe';
 import * as compile from '../lib/compile';
+import * as debugFile from '../lib/debug-file';
 import _debounce from 'lodash/fp/debounce';
 import _flatten from 'lodash/fp/flatten';
 import { basename } from 'path';
@@ -437,6 +438,11 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 throw new Error('Could not find any output files that matched. Use the launch.json->program property to specify explicitly.');
             }
 
+            let machineType = debugFile.MachineType.unknown;
+            if(args.machineType) {
+                machineType = debugFile.MachineType[args.machineType.toLowerCase()] || debugFile.MachineType.unknown;
+            }
+
             // start the program in the runtime
             await this._runtime.start(
                 args.port!,
@@ -450,7 +456,8 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 args.emulatorArgs,
                 args.preferX64OverX64sc,
                 args.debugFile,
-                args.mapFile
+                args.mapFile,
+                machineType
             );
         }
         catch (e) {

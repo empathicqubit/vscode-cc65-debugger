@@ -109,10 +109,13 @@
     "vice:choose": "env-cmd --silent -f ./build.env node -e \"typeof process.env.VICE_DIRECTORY != 'undefined' ? process.exit(0) : process.exit(1)\" && npm-run-all vice:local || npm-run-all vice:build",
     "lint": "tslint --project src",
     "jest": "env-cmd --silent -f build.env jest --coverage --forceExit",
-    "jest:noncompile": "shx mv noncompile.testrun.json noncompile.old.testrun.json ; npm-run-all \"jest -- --json --outputFile noncompile.testrun.json --testPathIgnorePatterns src/__tests__/compile.test.ts\"",
-    "jest:compile": "shx mv compile.testrun.json compile.old.testrun.json ; npm-run-all \"jest -- --json --outputFile compile.testrun.json src/__tests__/compile.test.ts\"",
+    "jest:noncompile": "npm-run-all \"jest -- --json --outputFile noncompile.testrun.json --testPathIgnorePatterns src/__tests__/compile.test.ts\"",
+    "jest:compile": "npm-run-all \"jest -- --json --outputFile compile.testrun.json src/__tests__/compile.test.ts\"",
+    "test:rotate:noncompile": "shx mv noncompile.testrun.json noncompile.old.testrun.json",
+    "test:rotate:compile": "shx mv compile.testrun.json compile.old.testrun.json",
+    "test:rotate": "npm-run-all \"test:rotate:*\" jest:compile jest:noncompile",
     "test": "npm-run-all jest:compile jest:noncompile",
-    "testmerge": "npm-run-all -c test test || node ./testrun-merge.js ./compile.old.testrun ./compile.testrun ./noncompile.old.testrun ./noncompile.testrun",
+    "testmerge": "npm-run-all -c test:rotate test:rotate || node ./testrun-merge.js ./compile.old.testrun ./compile.testrun ./noncompile.old.testrun ./noncompile.testrun",
     "package": "vsce package --packageManager pnpm"
   },
   "fork-ts-checker": {
@@ -391,6 +394,10 @@
               "mapFile": {
                 "type": "string",
                 "description": "The map file path. Required."
+              },
+              "machineType": {
+                "type": "string",
+                "description": "Force the machine type if detection fails."
               },
               "emulatorArgs": {
                 "type": "array",

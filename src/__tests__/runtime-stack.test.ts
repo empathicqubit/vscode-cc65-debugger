@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 import * as bin from '../dbg/binary-dto';
+import { MachineType } from '../lib/debug-file';
 
 describe('Stack', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
@@ -50,6 +51,7 @@ describe('Stack', () => {
                 false,
                 DEBUG_FILE,
                 MAP_FILE,
+                MachineType.unknown,
                 LABEL_FILE
             );
 
@@ -92,6 +94,7 @@ describe('Stack', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -170,6 +173,7 @@ describe('Stack', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -256,6 +260,7 @@ describe('Stack', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -331,6 +336,7 @@ describe('Stack', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -374,6 +380,7 @@ describe('Stack', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 

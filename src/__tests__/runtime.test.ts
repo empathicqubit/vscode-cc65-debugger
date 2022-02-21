@@ -3,6 +3,7 @@ import * as compile from '../lib/compile';
 import * as debugUtils from '../lib/debug-utils';
 import { LaunchRequestBuildArguments } from '../lib/launch-arguments';
 import * as metrics from '../lib/metrics';
+import { MachineType } from '../lib/debug-file';
 
 metrics.options.disabled = true;
 
@@ -44,6 +45,7 @@ describe('Runtime', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -68,6 +70,7 @@ describe('Runtime', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 

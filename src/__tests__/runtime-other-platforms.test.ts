@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
+import { MachineType } from '../lib/debug-file';
 describe('other emulators', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const PROGRAM = BUILD_CWD + '/program.pet';
@@ -43,6 +44,7 @@ describe('other emulators', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -76,6 +78,7 @@ describe('other emulators', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 

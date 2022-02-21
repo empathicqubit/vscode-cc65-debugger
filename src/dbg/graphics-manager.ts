@@ -158,7 +158,7 @@ export class GraphicsManager {
             });
         }
 
-        if(this._machineType == debugFile.MachineType.nes) {
+        if(this._machineType == debugFile.MachineType.nes || this._machineType == debugFile.MachineType.snes) {
             this._enableStats && emitter.emit('current', {
                 current: {
                     data: Array.from(currentRes.rawImageData),

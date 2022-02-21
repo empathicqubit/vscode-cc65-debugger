@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 import { __basedir } from '../basedir';
+import { MachineType } from '../lib/debug-file';
 describe('Assembly', () => {
     const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/asm-project');
     const MAP_FILE = BUILD_CWD + '/program.c64.map';
@@ -38,6 +39,7 @@ describe('Assembly', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -63,6 +65,7 @@ describe('Assembly', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -95,6 +98,7 @@ describe('Assembly', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -135,6 +139,7 @@ describe('Assembly', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 

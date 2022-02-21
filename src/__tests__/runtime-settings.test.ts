@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 import { LaunchRequestBuildArguments } from '../lib/launch-arguments';
+import { MachineType } from '../lib/debug-file';
 
 describe('Settings', () => {
     const BUILD_COMMAND = testShared.DEFAULT_BUILD_COMMAND;
@@ -46,6 +47,7 @@ describe('Settings', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -71,6 +73,7 @@ describe('Settings', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 

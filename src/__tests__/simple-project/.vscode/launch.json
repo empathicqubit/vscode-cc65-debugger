@@ -18,6 +18,7 @@
                     "OPTIONS=mapfile,labelfile,debugfile"
                 ]
             },
+            "preLaunchTask": "helloworld",
             "stopOnEntry": true,
             "stopOnExit": true,
             "emulatorArgs": [

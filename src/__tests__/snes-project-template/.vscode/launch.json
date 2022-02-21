@@ -1,0 +1,71 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch",
+            "program": "${workspaceFolder}/program.nes",
+            "debugFile": "${workspaceFolder}/program.nes.dbg",
+            "mapFile": "${workspaceFolder}/program.nes.map",
+            "machineType": "snes",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ]
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (Debug Extension)",
+            "program": "${workspaceFolder}/program.nes",
+            "debugFile": "${workspaceFolder}/program.nes.dbg",
+            "mapFile": "${workspaceFolder}/program.nes.map",
+            "machineType": "snes",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
+            "request": "attach",
+            "name": "CC65 Vice Launch (Attach) (Debug Extension)",
+            "program": "${workspaceFolder}/program.nes",
+            "debugFile": "${workspaceFolder}/program.nes.dbg",
+            "mapFile": "${workspaceFolder}/program.nes.map",
+            "machineType": "snes",
+            "port": 29795,
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+            "debugServer": 4711
+        }
+    ]
+}

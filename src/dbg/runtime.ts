@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import * as hotel from 'hasbin';
 import * as typeQuery from '../lib/type-query';
 import _first from 'lodash/fp/first';
 import _flow from 'lodash/fp/flow';
@@ -137,6 +136,7 @@ export class Runtime extends EventEmitter {
      * @param runAhead Step ahead one frame when stopping
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
+     * @param machineType Manual machine type
      */
     public async attach(
         port: number,
@@ -146,13 +146,14 @@ export class Runtime extends EventEmitter {
         runAhead: boolean,
         program?: string,
         debugFilePath?: string,
-        mapFilePath?: string
+        mapFilePath?: string,
+        machineType?: debugFile.MachineType
     ) {
         metrics.event('runtime', 'attach');
 
         this._attachProgram = program;
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath);
+        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath, machineType);
 
         console.time('emulator')
 
@@ -293,7 +294,8 @@ export class Runtime extends EventEmitter {
         runAhead: boolean,
         program?: string,
         debugFilePath?: string,
-        mapFilePath?: string
+        mapFilePath?: string,
+        machineType?: debugFile.MachineType
     ) : Promise<void> {
         console.time('preStart');
 
@@ -331,6 +333,8 @@ export class Runtime extends EventEmitter {
             this._loadMapFile(mapFilePath),
         ]);
 
+        machineType = machineType || this._dbgFile.machineType;
+
         console.log('Entry address: ', this._dbgFile.entryAddress.toString(16))
 
         console.timeEnd('parseSource');
@@ -343,8 +347,9 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('preEmulator');
 
-        if(this._dbgFile.machineType == debugFile.MachineType.nes) {
+        if(machineType == debugFile.MachineType.nes || machineType == debugFile.MachineType.snes) {
             this._emulator = new MesenGrip(
+                machineType == debugFile.MachineType.snes,
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
         }
@@ -399,6 +404,7 @@ export class Runtime extends EventEmitter {
      * @param preferX64OverX64sc Use x64 when appropriate
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
+     * @param machineType Manual machine type
      * @param labelFilePath Manual path to label file
      */
     public async start(
@@ -414,11 +420,12 @@ export class Runtime extends EventEmitter {
         preferX64OverX64sc?: boolean,
         debugFilePath?: string,
         mapFilePath?: string,
+        machineType?: debugFile.MachineType,
         labelFilePath?: string,
     ) : Promise<void> {
         metrics.event('runtime', 'start');
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath)
+        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath, machineType)
 
         console.time('emulator');
 
@@ -429,8 +436,10 @@ export class Runtime extends EventEmitter {
         await this._emulator.start(
             port,
             path.dirname(program),
-            this._dbgFile.machineType,
-            await this._getEmulatorPath(viceDirectory, mesenDirectory, !!preferX64OverX64sc),
+            machineType || this._dbgFile.machineType,
+            preferX64OverX64sc,
+            viceDirectory,
+            mesenDirectory,
             emulatorArgs,
             labelFilePath
         );
@@ -1251,66 +1260,6 @@ or define the location manually with the launch.json->mapFile setting`
 
     private _getCurrentScope() : debugFile.Scope | undefined {
         return this._getScope(this._currentPosition);
-    }
-
-    // FIXME Push down into grip?
-    private async _getEmulatorPath(viceDirectory: string | undefined, mesenDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
-        let emulatorBaseName : string;
-        let emulatorPath : string;
-        const mt = this._dbgFile.machineType;
-        if(mt == debugFile.MachineType.nes) {
-            emulatorBaseName = 'Mesen.exe';
-
-            if(mesenDirectory) {
-                emulatorPath = path.normalize(path.join(mesenDirectory, emulatorBaseName));
-            }
-            else {
-                emulatorPath = emulatorBaseName;
-            }
-        }
-        else {
-            if(mt == debugFile.MachineType.c128) {
-                emulatorBaseName = 'x128';
-            }
-            else if(mt == debugFile.MachineType.cbm5x0) {
-                emulatorBaseName = 'xcbm5x0';
-            }
-            else if(mt == debugFile.MachineType.pet) {
-                emulatorBaseName = 'xpet';
-            }
-            else if(mt == debugFile.MachineType.plus4) {
-                emulatorBaseName = 'xplus4';
-            }
-            else if(mt == debugFile.MachineType.vic20) {
-                emulatorBaseName = 'xvic';
-            }
-            else {
-                emulatorBaseName = preferX64OverX64sc ? 'x64' : 'x64sc';
-            }
-
-            if(viceDirectory) {
-                emulatorPath = path.normalize(path.join(viceDirectory, emulatorBaseName));
-            }
-            else {
-                emulatorPath = emulatorBaseName;
-            }
-        }
-
-        try {
-            try {
-                await util.promisify(fs.access)(emulatorPath)
-            }
-            catch {
-                await util.promisify((i, cb) =>
-                    hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null))
-                )([emulatorPath])
-            }
-        }
-        catch (e) {
-            throw new Error(`Couldn't find the emulator. Make sure your \`cc65vice.viceDirectory\` or \`cc65vice.mesenDirectory\` user setting is pointing to the directory containing emulator executables. ${emulatorPath} ${e}`);
-        }
-
-        return emulatorPath;
     }
 
     // Get the labels file if it exists

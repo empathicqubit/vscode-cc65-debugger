@@ -14,16 +14,28 @@ import * as pngjs from 'pngjs'
 const mesenBaseDir = __basedir + '/../dist/mesen';
 
 export class MesenGrip extends AbstractGrip {
-    public async connect(binaryPort: number) : Promise<void> {
-        this._binaryConn = await AbstractGrip._connect(binaryPort, this._binaryDataHandler.bind(this));
-    }
-
+    private _isSnes: boolean;
     protected _apiVersion : number = 2;
     private _png : any;
     private _binaryPort : number = -1;
     private _mesenPath : string = '';
     private _args : string[] = [];
     private _opts : debugUtils.ExecFileOptions = {};
+
+    constructor(
+        isSnes: boolean,
+        execHandler: debugUtils.ExecHandler,
+    ) {
+        super(execHandler);
+
+        this._isSnes = isSnes;
+        this._execHandler = execHandler;
+    }
+
+    public async connect(binaryPort: number) : Promise<void> {
+        this._binaryConn = await AbstractGrip._connect(binaryPort, this._binaryDataHandler.bind(this));
+    }
+
     public async autostart(program: string) : Promise<void> {
         try {
             const args = [this._mesenPath, ...this._args, program];
@@ -81,7 +93,7 @@ export class MesenGrip extends AbstractGrip {
         }
     }
 
-    public async start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
+    public async start(port: number, cwd: string, machineType: debugFile.MachineType, preferX64OverX64sc?: boolean, viceDirectory?: string, mesenDirectory?: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
         let mesenSettingsDir =
             process.env.USERPROFILE
             // FIXME This shouldn't assume the Documents folder location
@@ -113,7 +125,7 @@ export class MesenGrip extends AbstractGrip {
             title: 'Mesen',
         };
 
-        this._mesenPath = emulatorPath;
+        this._mesenPath = await this._getEmulatorPath(machineType, viceDirectory, mesenDirectory, preferX64OverX64sc);
 
         let args = [
             mesenBaseDir + '/mesen_binary_monitor.lua',

@@ -9,11 +9,6 @@
     },
     "tasks": [
         {
-            "label": "helloworld",
-            "type": "shell",
-            "command": "echo hello world!!!!!"
-        },
-        {
             "label": "Build",
             "type": "shell",
             "group": {

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import * as hotel from 'hasbin';
 import * as fs from 'fs'
 import getPort from 'get-port'
 import _intersectionBy from 'lodash/fp/intersectionBy'
@@ -101,6 +102,71 @@ export abstract class AbstractGrip extends EventEmitter {
 
     protected _execHandler: debugUtils.ExecHandler;
     protected _pids: [number, number] = [-1, -1];
+
+    // FIXME Push down into grip?
+    protected async _getEmulatorPath(mt: debugFile.MachineType, viceDirectory: string | undefined, mesenDirectory: string | undefined, preferX64OverX64sc?: boolean) : Promise<string> {
+        let emulatorBaseName : string;
+        let emulatorPath : string;
+        if(mt == debugFile.MachineType.nes || mt == debugFile.MachineType.snes) {
+            if(mt == debugFile.MachineType.snes) {
+                emulatorBaseName = 'Mesen-S.exe';
+            }
+            else {
+                emulatorBaseName = 'Mesen.exe';
+            }
+
+            if(mesenDirectory) {
+                emulatorPath = path.normalize(path.join(mesenDirectory, emulatorBaseName));
+            }
+            else {
+                emulatorPath = emulatorBaseName;
+            }
+        }
+        else {
+            if(mt == debugFile.MachineType.c128) {
+                emulatorBaseName = 'x128';
+            }
+            else if(mt == debugFile.MachineType.cbm5x0) {
+                emulatorBaseName = 'xcbm5x0';
+            }
+            else if(mt == debugFile.MachineType.pet) {
+                emulatorBaseName = 'xpet';
+            }
+            else if(mt == debugFile.MachineType.plus4) {
+                emulatorBaseName = 'xplus4';
+            }
+            else if(mt == debugFile.MachineType.vic20) {
+                emulatorBaseName = 'xvic';
+            }
+            else {
+                emulatorBaseName = preferX64OverX64sc ? 'x64' : 'x64sc';
+            }
+
+            if(viceDirectory) {
+                emulatorPath = path.normalize(path.join(viceDirectory, emulatorBaseName));
+            }
+            else {
+                emulatorPath = emulatorBaseName;
+            }
+        }
+
+        try {
+            try {
+                await util.promisify(fs.access)(emulatorPath)
+            }
+            catch {
+                await util.promisify((i, cb) =>
+                    hotel.first(i, (result) => result ? cb(null, result) : cb(new Error('Missing'), null))
+                )([emulatorPath])
+            }
+        }
+        catch (e) {
+            throw new Error(`Couldn't find the emulator. Make sure your \`cc65vice.viceDirectory\` or \`cc65vice.mesenDirectory\` user setting is pointing to the directory containing emulator executables. ${emulatorPath} ${e}`);
+        }
+
+        return emulatorPath;
+    }
+
 
     constructor(
         execHandler: debugUtils.ExecHandler,
@@ -234,7 +300,7 @@ export abstract class AbstractGrip extends EventEmitter {
 
     public abstract connect(binaryPort: number) : Promise<void>;
 
-    public abstract start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void>;
+    public abstract start(port: number, cwd: string, machineType: debugFile.MachineType, preferX64OverX64sc?: boolean, viceDirectory?: string, mesenDirectory?: string, emulatorArgs?: string[], labelFile?: string) : Promise<void>;
 
     public async ping() : Promise<bin.PingResponse> {
         return await this.execBinary({

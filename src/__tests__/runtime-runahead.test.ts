@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as disassembly from '../lib/disassembly';
 import * as debugUtils from '../lib/debug-utils';
+import { MachineType } from '../lib/debug-file';
 
 describe('Runahead', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
@@ -39,6 +40,7 @@ describe('Runahead', () => {
                 false,
                 DEBUG_FILE,
                 MAP_FILE,
+                MachineType.unknown,
                 LABEL_FILE
             ),
             testShared.waitFor(rt, 'runahead', () => assert.strictEqual(rt.getRegisters().pc, testShared.getLabel(rt, '_main'))),
@@ -66,6 +68,7 @@ describe('Runahead', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -103,6 +106,7 @@ describe('Runahead', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -132,6 +136,7 @@ describe('Runahead', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 

@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 import _random from 'lodash/fp/random';
+import { MachineType } from '../lib/debug-file';
 describe('Execution control', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const PROGRAM = testShared.DEFAULT_PROGRAM;
@@ -36,6 +37,7 @@ describe('Execution control', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -80,6 +82,7 @@ describe('Execution control', () => {
                 false,
                 DEBUG_FILE,
                 MAP_FILE,
+                MachineType.unknown,
                 LABEL_FILE
             );
 
@@ -124,6 +127,7 @@ describe('Execution control', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -159,6 +163,7 @@ describe('Execution control', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -206,6 +211,7 @@ describe('Execution control', () => {
                 false,
                 DEBUG_FILE,
                 MAP_FILE,
+                MachineType.unknown,
                 LABEL_FILE
             ),
             (async() => {
@@ -237,6 +243,7 @@ describe('Execution control', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 
@@ -271,6 +278,7 @@ describe('Execution control', () => {
                 false,
                 DEBUG_FILE,
                 MAP_FILE,
+                MachineType.unknown,
                 LABEL_FILE
             ),
             testShared.waitFor(rt, 'stopOnEntry')
@@ -325,6 +333,7 @@ describe('Execution control', () => {
             false,
             DEBUG_FILE,
             MAP_FILE,
+            MachineType.unknown,
             LABEL_FILE
         );
 

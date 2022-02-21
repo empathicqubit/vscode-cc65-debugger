@@ -41,6 +41,8 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     debugFile: string;
     /** The map file path, if automatic detection doesn't work */
     mapFile: string;
+    /** Force the machine type if detection fails */
+    machineType: string;
     /** Automatically stop target after hitting the beginning of main(). If not specified, target does not stop. */
     stopOnEntry?: boolean;
     /** Automatically stop target after hitting the end of main(). */

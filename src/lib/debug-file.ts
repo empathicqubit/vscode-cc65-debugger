@@ -132,6 +132,7 @@ export enum MachineType {
     plus4,
     vic20,
     c64,
+    snes,
 }
 
 export interface Dbgfile {
