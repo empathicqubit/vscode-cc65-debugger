@@ -1,5 +1,14 @@
 # Changelog
 
+### [6.1.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.1...v6.1.2) (2022-02-22)
+
+
+### Bug Fixes
+
+* colors vulnerability fixed because people suck ([0ada0f6](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/0ada0f60fc75448d4796803b33e0b6a956c29e03))
+* Properly handle VSCode not being installed on nixen. ([cc270dd](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/cc270dd393454b0b9d20511a32a157d3bf7da3f5))
+* Run window is no longer blank. ([24b03ff](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/24b03ffdc0dbb46b3397174eceda022f58d61710))
+
 ### [6.1.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.0...v6.1.1) (2022-02-20)
 
 
