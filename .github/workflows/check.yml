@@ -29,23 +29,23 @@ jobs:
       fail-fast: false
       matrix:
           include:
-              - vice_version: ""
-                vice_directory: "VICE_DIRECTORY=/Applications/vice-*-gtk3-*/bin"
+              - vice_directory: "vice-x86-64-gtk3-3.6.1"
+                vice_version: "3.6.1"
 
     steps:
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
     - run: brew install sevenzip coreutils visual-studio-code
-    - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/vice-x86-64-gtk3-3.6.1.dmg/download"
+    - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/${{ matrix.vice_directory }}.dmg/download"
     - run: ls -lha "$HOME/VICE.dmg"
     - run: 7z x "$HOME/VICE.dmg"
-    - run: mv vice-*-gtk3-*/vice-*-gtk3-* /Applications
+    - run: mv ${{ matrix.vice_directory }}/${{ matrix.vice_directory }} /Applications
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
-    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm build:test
+    - run: VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}" pnpm build:test
     - continue-on-error: true
-      run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm testmerge
+      run: VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}" USE_XVFB=1 pnpm testmerge
 
     - name: Test Report
       uses: dorny/test-reporter@v1
