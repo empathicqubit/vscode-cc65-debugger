@@ -36,7 +36,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
-    - run: brew install sevenzip
+    - run: brew install sevenzip coreutils
     - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/vice-x86-64-gtk3-3.6.1.dmg/download"
     - run: ls -lha "$HOME/VICE.dmg"
     - run: 7z x "$HOME/VICE.dmg"
