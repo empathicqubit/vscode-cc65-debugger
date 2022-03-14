@@ -42,8 +42,7 @@ Have you found this project useful, or even utter rubbish? The Flying Spaghetti 
 ## Setup
 
 To make sure all the features work, you'll want to install VICE 3.6 or later.
-A modified build of CC65 for Linux and Windows is already included, so you'll
-only need to specify your own if you're using a platform such as Mac OS.
+A modified build of CC65 for Linux, Windows, and Mac OS is already included.
 
 ### Windows-specific instructions
 
