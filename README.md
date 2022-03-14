@@ -21,6 +21,8 @@ This is an extension to let you debug CC65 C code (and ASM code to a small degre
 
 If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-debugger/issues) or [messaging me on Twitter](https://twitter.com/intent/tweet?screen_name=empathicqubit).
 
+Have you found this project useful, or even utter rubbish? The Flying Spaghetti Monster and I would really appreciate your rating on the Visual Studio Marketplace or OpenVSX!
+
 * [vscode-cc65-debugger](#vscode-cc65-debugger)
   * [Setup](#setup)
     * [Windows-specific instructions](#windows-specific-instructions)
