@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.1.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.2...v6.1.3) (2022-03-27)
+
+
+### Bug Fixes
+
+* Add stupid switch to Windows build entrypoint. ([1fbed54](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/1fbed54c9a1a58191a81ddc91fe876fb2d1204f0))
+* Note about rating on Marketplace ([0d1da34](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/0d1da34fb56d7a39bfa569a55b853fc35b822fc7))
+
 ### [6.1.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.1...v6.1.2) (2022-02-22)
 
 
