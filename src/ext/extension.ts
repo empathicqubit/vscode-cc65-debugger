@@ -39,6 +39,7 @@ import cycleAnnotationProvider from './cycle-annotation-provider';
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
 let cycleCommand : vscode.Disposable;
+let debugCaptureCommand : vscode.Disposable;
 
 const updateConfiguration = () => {
     // THIS MUST BE FIRST
@@ -145,6 +146,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     cycleCommand = vscode.commands.registerCommand('cc65-vice.toggleCycleCounters', () => {
         cycleAnnotationProvider.toggle();
+    });
+
+    debugCaptureCommand = vscode.commands.registerCommand('cc65-vice.debugCaptureCommand', () => {
+        vscode.env.clipboard.writeText("Hello world! This is me... life could be... fun for everyone");
     });
 
     const provider = new CC65ViceConfigurationProvider(

@@ -96,11 +96,11 @@
     "inspect": "npm-run-all tisk && node --inspect-brk ./out/debug-adapter.js --server=4711",
     "build:full": "npm-run-all --aggregate-output -p vice:choose tisk webpack && npm-run-all nonjs",
     "build:test": "npm-run-all --aggregate-output -p vice:choose mesen:test tisk webpack && npm-run-all nonjs:quick",
-    "build:debug": "npm-run-all --aggregate-output -p tisk nonjs:quick",
+    "build:debug": "npm-run-all --aggregate-output -p tisk",
     "vscode:prepublish:github": "npm-run-all build:full",
     "vscode:prepublish:local": "npm-run-all build:full test",
     "vscode:prepublish": "node -e \"process.exit(!process.env.GITHUB_ACTIONS)\" && npm-run-all vscode:prepublish:github || npm-run-all vscode:prepublish:local",
-    "vscode:server:debug": "npm-run-all build:debug && npm-run-all extension:debug",
+    "vscode:server:debug": "npm-run-all build:debug nonjs:quick && npm-run-all extension:debug",
     "vscode:webviews:debug": "npm-run-all build:debug && npm-run-all not-extension:debug",
     "vscode:install": "npm-run-all package && codium --install-extension cc65-vice*.vsix || code --install-extension cc65-vice*.vsix",
     "vice:make": "cd ./src/__tests__/vicedir && node -e \"const shx = require('shelljs'); shx.config.fatal = true; const threads = require('os').cpus().length * 4; console.log('THREADS', threads); shx.exec('make -j' + threads)\"",
@@ -251,6 +251,10 @@
       {
         "command": "cc65-vice.toggleCycleCounters",
         "title": "CC65 VICE: Toggle cycle counters"
+      },
+      {
+        "command": "cc65-vice.captureDebugInformation",
+        "title": "CC65 VICE: Capture Debug Information"
       }
     ],
     "breakpoints": [
