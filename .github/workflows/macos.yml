@@ -1,0 +1,45 @@
+name: Check
+
+on:
+  pull_request:
+    branches:
+        - master
+  workflow_dispatch:
+      inputs:
+          ref:
+              description: The git refspec to checkout
+              required: true
+              default: 'master'
+
+jobs:
+  kill_old_jobs:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
+  mac-build:
+
+    runs-on: macos-10.15
+    #container: empathicqubit/vscode-cc65-debugger-build
+
+    strategy:
+      fail-fast: false
+      matrix:
+          include:
+              - vice_directory: "vice-x86-64-gtk3-3.6.1"
+                vice_version: "3.6.1"
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          ref: "${{ github.events.inputs.ref }}"
+    - run: brew install sevenzip coreutils
+    - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/${{ matrix.vice_directory }}.dmg/download"
+    - run: ls -lha "$HOME/VICE.dmg"
+    - run: 7z x "$HOME/VICE.dmg"
+    - run: mv ${{ matrix.vice_directory }}/${{ matrix.vice_directory }} /Applications
+
+    - run: /Applications/vice-x86-64-gtk3-3.6.1/bin/x64sc "-default" "+sound" "+remotemonitor" "-binarymonitor" "-binarymonitoraddress" "127.0.0.1:33281"
