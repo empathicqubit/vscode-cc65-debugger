@@ -42,4 +42,4 @@ jobs:
     - run: 7z x "$HOME/VICE.dmg"
     - run: mv ${{ matrix.vice_directory }}/${{ matrix.vice_directory }} /Applications
 
-    - run: cd /Applications/vice-x86-64-gtk3-3.6.1/bin && chmod -R a+x . && chmod a+x ../VICE.app/Contents/Resources/script && chmod -R a+x ../VICE.app/Contents/Resources/bin && ./x64sc "-default" "+sound" "+remotemonitor" "-binarymonitor" "-binarymonitoraddress" "127.0.0.1:33281" -directory /farts
+    - run: cd /Applications/vice-x86-64-gtk3-3.6.1/bin && chmod -R a+x . && chmod a+x ../VICE.app/Contents/Resources/script && chmod -R a+x ../VICE.app/Contents/Resources/bin && ./x64sc -help

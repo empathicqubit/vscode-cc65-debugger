@@ -41,6 +41,8 @@ jobs:
     - run: ls -lha "$HOME/VICE.dmg"
     - run: 7z x "$HOME/VICE.dmg"
     - run: mv ${{ matrix.vice_directory }}/${{ matrix.vice_directory }} /Applications
+    - run: cd /Applications/${{ matrix.vice_directory }}/bin && chmod -R a+x . && chmod a+x ../VICE.app/Contents/Resources/script && chmod -R a+x ../VICE.app/Contents/Resources/bin && ./x64sc -help
+
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" pnpm build:test
