@@ -1,4 +1,4 @@
-name: Check
+name: Mac
 
 on:
   pull_request:
