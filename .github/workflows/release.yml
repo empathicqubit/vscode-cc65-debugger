@@ -22,11 +22,12 @@ jobs:
           include:
               - vice_version: ""
                 vice_directory: VICE_DIRECTORY=
+                tag_ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
     steps:
     - uses: actions/checkout@v2
       with:
-          ref: "${{ github.events.inputs.ref }}"
+          ref: ${{ matrix.tag_ref }}
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
@@ -54,28 +55,30 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-          ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+          ref: ${{ matrix.tag_ref }}
 
     - run: cd src/__tests__ && 7z a ../../asm-project-template.zip ./asm-project
     - name: Upload Assembly Template to release
+      if: !github.event.inputs.tag
       uses: svenstaro/upload-release-action@v2
       with:
-        release_name: cc65-vice ${{ github.event.inputs.tag || github.event.release.tag_name }} (Unpublished)
+        release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: asm-project-template.zip
         asset_name: ${{ steps.get_filename.outputs.filename }}
-        tag: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        tag: ${{ matrix.tag_ref }}
         overwrite: true
 
     - run: cd src/__tests__ && 7z a ../../c-project-template.zip ./c-project-template
     - name: Upload C Template to release
+      if: !github.event.inputs.tag
       uses: svenstaro/upload-release-action@v2
       with:
-        release_name: cc65-vice ${{ github.event.inputs.tag || github.event.release.tag_name }} (Unpublished)
+        release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: c-project-template.zip
         asset_name: ${{ steps.get_filename.outputs.filename }}
-        tag: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        tag: ${{ matrix.tag_ref }}
         overwrite: true
 
     - run: pnpm install --shamefully-hoist
@@ -96,12 +99,18 @@ jobs:
     - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
       id: get_filename
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: cc65-vice.vsix
+        path: cc65-vice*.vsix
+
     - name: Upload binaries to release
+      if: !github.event.inputs.tag
       uses: svenstaro/upload-release-action@v2
       with:
-        release_name: cc65-vice ${{ github.event.inputs.tag || github.event.release.tag_name }} (Unpublished)
+        release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.get_filename.outputs.filename }}
         asset_name: ${{ steps.get_filename.outputs.filename }}
-        tag: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        tag: ${{ matrix.tag_ref }}
         overwrite: true
