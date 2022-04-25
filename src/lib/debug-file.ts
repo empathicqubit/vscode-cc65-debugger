@@ -132,6 +132,7 @@ export enum MachineType {
     plus4,
     vic20,
     c64,
+    apple2,
 }
 
 export interface Dbgfile {
@@ -519,6 +520,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
         }
         else if(ln == 'vic20') {
             dbgFile.machineType = MachineType.vic20;
+        }
+        else if(ln == 'apple2') {
+            dbgFile.machineType = MachineType.apple2;
         }
         else {
             dbgFile.machineType = MachineType.c64;

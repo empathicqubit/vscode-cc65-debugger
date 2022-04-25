@@ -176,6 +176,9 @@ There are also some user settings to note:
 - **cc65vice.viceDirectory**: Set this to specify the directory that contains the
 VICE executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
+- **cc65vice.appleWinDirectory**: Set this to specify the directory that contains the
+AppleWin executables. You'll probably need this on Windows. If this is omitted then
+it will look on the system PATH.
 - **cc65vice.mesenDirectory**: Set this to specify the directory that contains the
 Mesen executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.

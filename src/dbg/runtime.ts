@@ -396,6 +396,7 @@ export class Runtime extends EventEmitter {
      * @param runAhead Skip ahead one frame
      * @param viceDirectory The path with all the VICE executables
      * @param mesenDirectory The path with all the Mesen executables
+     * @param appleWinDirectory The path with all the AppleWin executables
      * @param emulatorArgs Extra arguments to pass to VICE
      * @param preferX64OverX64sc Use x64 when appropriate
      * @param debugFilePath Manual path to debug file
@@ -411,6 +412,7 @@ export class Runtime extends EventEmitter {
         runAhead: boolean,
         viceDirectory?: string,
         mesenDirectory?: string,
+        appleWinDirectory?: string,
         emulatorArgs?: string[],
         preferX64OverX64sc?: boolean,
         debugFilePath?: string,
@@ -431,7 +433,7 @@ export class Runtime extends EventEmitter {
             port,
             path.dirname(program),
             this._dbgFile.machineType,
-            await this._getEmulatorPath(viceDirectory, mesenDirectory, !!preferX64OverX64sc),
+            await this._getEmulatorPath(viceDirectory, mesenDirectory, appleWinDirectory, !!preferX64OverX64sc),
             emulatorArgs,
             labelFilePath
         );
@@ -1325,7 +1327,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     // FIXME Push down into grip?
-    private async _getEmulatorPath(viceDirectory: string | undefined, mesenDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
+    private async _getEmulatorPath(viceDirectory: string | undefined, mesenDirectory: string | undefined, appleWinDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
         let emulatorBaseName : string;
         let emulatorPath : string;
         const mt = this._dbgFile.machineType;
@@ -1334,6 +1336,16 @@ or define the location manually with the launch.json->mapFile setting`
 
             if(mesenDirectory) {
                 emulatorPath = path.join(mesenDirectory, emulatorBaseName);
+            }
+            else {
+                emulatorPath = emulatorBaseName;
+            }
+        }
+        else if(mt == debugFile.MachineType.apple2) {
+            emulatorBaseName = 'sa2'
+
+            if(appleWinDirectory) {
+                emulatorPath = path.join(appleWinDirectory, emulatorBaseName);
             }
             else {
                 emulatorPath = emulatorBaseName;

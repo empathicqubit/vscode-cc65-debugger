@@ -222,6 +222,14 @@
           "default": null,
           "description": "The directory containing VICE Emulator. Set this if it's not on your path."
         },
+        "cc65vice.appleWinDirectory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "The directory containing AppleWin Emulator. Set this if it's not on your path."
+        },
         "cc65vice.mesenDirectory": {
           "type": [
             "string",

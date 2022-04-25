@@ -479,6 +479,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 !!args.runAhead,
                 args.viceDirectory,
                 args.mesenDirectory,
+                args.appleWinDirectory,
                 args.emulatorArgs,
                 args.preferX64OverX64sc,
                 args.debugFile,

@@ -29,6 +29,8 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     viceDirectory?: string;
     /** The directory of Mesen emulator. */
     mesenDirectory?: string;
+    /** The directory of AppleWin emulator. */
+    appleWinDirectory?: string;
     /** The directory of CC65, if custom. */
     cc65Home?: string;
     /** The arguments to use for starting the emulator. No environment variables are allowed. */
