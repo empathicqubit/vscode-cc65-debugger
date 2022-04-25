@@ -36,10 +36,10 @@ export class AppleWinGrip extends AbstractGrip {
         const binaryPort = await getPort({port: getPort.makeRange(port, port + 256)});
 
         let args = [
-            "-default",
+            "--default",
 
             // Monitor
-            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
+            "--binary-monitor", "--binary-monitor-address", `127.0.0.1:${binaryPort}`,
         ];
 
         console.log('Probing AppleWin', emulatorPath, JSON.stringify(args), opts);
@@ -182,7 +182,7 @@ export class AppleWinGrip extends AbstractGrip {
         let args = [
             ...(
                 logfile
-                ? ['-logfile', logfile]
+                ? ['--log-file', logfile]
                 : []
             ),
 
@@ -192,7 +192,7 @@ export class AppleWinGrip extends AbstractGrip {
             // files like this.
             ...(
                 false && labelFile
-                ? ['-moncommands', labelFile!]
+                ? ['--mon-commands', labelFile!]
                 : []
             )
         ];
@@ -204,7 +204,7 @@ export class AppleWinGrip extends AbstractGrip {
         args = [...args,
             // Add these as late as possible so we can try to capture the unused port quickly
             // FIXME If you want to include a CLI monitor "-remotemonitor", "-remotemonitoraddress", `127.0.0.1:${textPort}`,
-            "-binarymonitor", "-binarymonitoraddress", `127.0.0.1:${binaryPort}`,
+            "--binary-monitor", "--binary-monitor-address", `127.0.0.1:${binaryPort}`,
         ];
 
         if(emulatorArgs) {
