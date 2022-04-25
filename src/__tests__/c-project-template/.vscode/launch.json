@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
+            
             "type": "cc65-vice",
             "request": "launch",
             "name": "CC65 Vice Launch",
@@ -55,6 +56,44 @@
             "stopOnExit": true,
             "emulatorArgs": [
             ]
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (NES)",
+            "program": "${workspaceFolder}/program.nes",
+            "debugFile": "${workspaceFolder}/program.nes.dbg",
+            "mapFile": "${workspaceFolder}/program.nes.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (Apple ][)",
+            "program": "${workspaceFolder}/program.apple2",
+            "debugFile": "${workspaceFolder}/program.apple2.dbg",
+            "mapFile": "${workspaceFolder}/program.apple2.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
         },
         {
             "type": "cc65-vice",
@@ -130,6 +169,26 @@
             "emulatorArgs": [
             ],
             "debugServer": 4711
-        }
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (Apple ][) (Debug Extension)",
+            "program": "${workspaceFolder}/program.apple2",
+            "debugFile": "${workspaceFolder}/program.apple2.dbg",
+            "mapFile": "${workspaceFolder}/program.apple2.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+            "debugServer": 4711
+        },
     ]
 }
