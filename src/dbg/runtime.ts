@@ -26,6 +26,7 @@ import { ViceGrip } from './vice-grip';
 import { MesenGrip } from './mesen-grip';
 import { __basedir } from '../basedir';
 import { AbstractGrip } from './abstract-grip';
+import { AppleWinGrip } from './applewin-grip';
 
 export interface CC65ViceBreakpoint {
     id: number;
@@ -344,7 +345,12 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('preEmulator');
 
-        if(this._dbgFile.machineType == debugFile.MachineType.nes) {
+        if(this._dbgFile.machineType == debugFile.MachineType.apple2) {
+            this._emulator = new AppleWinGrip(
+                <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
+            );
+        }
+        else if(this._dbgFile.machineType == debugFile.MachineType.nes) {
             this._emulator = new MesenGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );

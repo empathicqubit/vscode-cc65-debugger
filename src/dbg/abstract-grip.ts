@@ -288,7 +288,7 @@ export abstract class AbstractGrip extends EventEmitter {
     public async execBinary(command: bin.BanksAvailableCommand): Promise<bin.BanksAvailableResponse>
     public async execBinary(command: bin.RegistersAvailableCommand): Promise<bin.RegistersAvailableResponse>
     public async execBinary(command: bin.DisplayGetCommand): Promise<bin.DisplayGetResponse>
-    public async execBinary(command: bin.ViceInfoCommand): Promise<bin.ViceInfoResponse>
+    public async execBinary(command: bin.EmulatorInfoCommand): Promise<bin.EmulatorInfoResponse>
 
     public async execBinary(command: bin.PaletteGetCommand): Promise<bin.PaletteGetResponse>
 
@@ -332,7 +332,7 @@ export abstract class AbstractGrip extends EventEmitter {
     public async multiExecBinary(commands: bin.BanksAvailableCommand[]): Promise<bin.BanksAvailableResponse[]>
     public async multiExecBinary(commands: bin.RegistersAvailableCommand[]): Promise<bin.RegistersAvailableResponse[]>
     public async multiExecBinary(commands: bin.DisplayGetCommand[]): Promise<bin.DisplayGetResponse[]>
-    public async multiExecBinary(commands: bin.ViceInfoCommand[]): Promise<bin.ViceInfoResponse[]>
+    public async multiExecBinary(commands: bin.EmulatorInfoCommand[]): Promise<bin.EmulatorInfoResponse[]>
 
     public async multiExecBinary(commands: bin.PaletteGetCommand[]): Promise<bin.PaletteGetResponse[]>
 

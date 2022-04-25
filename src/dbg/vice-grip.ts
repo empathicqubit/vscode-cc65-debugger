@@ -14,7 +14,7 @@ import _last from 'lodash/fp/last'
 
 export class ViceGrip extends AbstractGrip {
     private _versionInfo : {
-        viceVersion: string,
+        version: string,
         svnRevision: number,
         compoundDirectory: boolean,
         displayBuffer8BitOnly: boolean,
@@ -164,16 +164,16 @@ export class ViceGrip extends AbstractGrip {
 
         try {
             const res = await grip.execBinary({
-                type: bin.CommandType.viceInfo,
+                type: bin.CommandType.emulatorInfo,
             })
 
             console.log('VICE Info', res);
 
-            const ver = res.viceVersion.slice(0, -1).join('.')
+            const ver = res.version.slice(0, -1).join('.')
             const rev = res.svnRevision;
             this._apiVersion = res.apiVersion;
             this._versionInfo = {
-                viceVersion: ver,
+                version: ver,
                 svnRevision: rev,
                 canSetJoyport: semver.satisfies(ver, `>=3.6`) || rev >= 41221,
                 compoundDirectory: semver.satisfies(ver, `>=3.6`) || rev >= 39825,
@@ -184,7 +184,7 @@ export class ViceGrip extends AbstractGrip {
         catch {
             this._apiVersion = 1
             this._versionInfo = {
-                viceVersion: '3.5.0.0',
+                version: '3.5.0.0',
                 svnRevision: 0,
                 canSetJoyport: false,
                 compoundDirectory: false,

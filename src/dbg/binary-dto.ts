@@ -35,7 +35,7 @@ export enum ResponseType {
     banksAvailable = 0x82,
     registersAvailable = 0x83,
     displayGet = 0x84,
-    viceInfo = 0x85,
+    emulatorInfo = 0x85,
 
     paletteGet = 0x91,
 
@@ -78,7 +78,7 @@ export enum CommandType {
     banksAvailable = 0x82,
     registersAvailable = 0x83,
     displayGet = 0x84,
-    viceInfo = 0x85,
+    emulatorInfo = 0x85,
 
     paletteGet = 0x91,
 
@@ -119,7 +119,7 @@ export type Command =
     | BanksAvailableCommand
     | RegistersAvailableCommand
     | DisplayGetCommand
-    | ViceInfoCommand
+    | EmulatorInfoCommand
 
     | PaletteGetCommand
 
@@ -163,7 +163,7 @@ export type Response =
     | BanksAvailableResponse
     | RegistersAvailableResponse
     | DisplayGetResponse
-    | ViceInfoResponse
+    | EmulatorInfoResponse
 
     | PaletteGetResponse
 
@@ -423,13 +423,13 @@ export interface DisplayGetResponse extends AbstractResponse {
     rawImageData: Buffer;
 }
 
-export interface ViceInfoCommand extends AbstractCommand {
-    type: CommandType.viceInfo;
+export interface EmulatorInfoCommand extends AbstractCommand {
+    type: CommandType.emulatorInfo;
 }
 
-export interface ViceInfoResponse extends AbstractResponse {
-    type: ResponseType.viceInfo;
-    viceVersion: number[];
+export interface EmulatorInfoResponse extends AbstractResponse {
+    type: ResponseType.emulatorInfo;
+    version: number[];
     svnRevision: number;
 }
 
@@ -899,13 +899,13 @@ export function responseBufferToObject(buf: Buffer, responseLength: number) : Re
             return r;
         }
     }
-    else if(type == ResponseType.viceInfo) {
+    else if(type == ResponseType.emulatorInfo) {
         const versionLength = body.readUInt8(0);
         const revLength = body.readUInt8(1 + versionLength);
-        const r : ViceInfoResponse = {
+        const r : EmulatorInfoResponse = {
             ...res,
             type,
-            viceVersion: Array.from(body.slice(1, 1 + versionLength)),
+            version: Array.from(body.slice(1, 1 + versionLength)),
             svnRevision: body.slice(1 + versionLength + 1, 1 + versionLength + 1 + revLength).readUInt32LE(0),
         };
 
@@ -1155,7 +1155,7 @@ export function commandObjectToBytes(c: Command, buf: Buffer) : Buffer {
         buf.writeUInt8(Number(c.useVicII), 0);
         buf.writeUInt8(c.format, 1);
     }
-    else if(c.type == CommandType.viceInfo) {
+    else if(c.type == CommandType.emulatorInfo) {
         length = 0;
     }
     else if(c.type == CommandType.paletteGet) {
