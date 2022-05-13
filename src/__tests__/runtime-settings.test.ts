@@ -20,6 +20,7 @@ describe('Settings', () => {
 
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
+    const APPLEWIN_DIRECTORY = testShared.DEFAULT_APPLEWIN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
 
     afterEach(testShared.cleanup);
@@ -42,6 +43,7 @@ describe('Settings', () => {
             false,
             VICE_DIRECTORY,
             MESEN_DIRECTORY,
+            APPLEWIN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,
@@ -67,6 +69,7 @@ describe('Settings', () => {
             false,
             VICE_DIRECTORY,
             MESEN_DIRECTORY,
+            APPLEWIN_DIRECTORY,
             VICE_ARGS,
             false,
             DEBUG_FILE,

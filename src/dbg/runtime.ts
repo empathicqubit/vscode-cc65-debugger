@@ -902,6 +902,9 @@ or define the location manually with the launch.json->mapFile setting`
 
     private async _cleanup() {
         this._callStackManager.cleanup();
+        for(const path of this._breakPoints.map(x => x.line.file!.name)) {
+            this.clearBreakpoints(path);
+        }
     }
 
     public async disconnect(cleanup: boolean = true) {
@@ -1117,20 +1120,7 @@ or define the location manually with the launch.json->mapFile setting`
                     dels.push({
                         type: bin.CommandType.checkpointDelete,
                         id: bp.emulatorIndex,
-                    })
-
-                    // Also clean up breakpoints with the same address.
-                    // FIXME: This smells weird. Reassess and document reasoning.
-                    const bks = await this._emulator.checkpointList();
-                    for(const bk of bks.related) {
-                        if(bk.startAddress == bp.line.span!.absoluteAddress) {
-                            dels.push({
-                                type: bin.CommandType.checkpointDelete,
-                                id: bk.id,
-                            });
-                        }
-                    }
-
+                    });
                 }
 
                 dels = _uniqBy(x => x.id, dels);
