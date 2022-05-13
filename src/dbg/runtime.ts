@@ -893,14 +893,18 @@ or define the location manually with the launch.json->mapFile setting`
 
         this._emulator = <any>null;
 
-        await this.disconnect();
+        await this.disconnect(false);
 
         this.sendEvent('end');
 
         this._terminated = true;
     }
 
-    public async disconnect() {
+    private async _cleanup() {
+        this._callStackManager.cleanup();
+    }
+
+    public async disconnect(cleanup: boolean = true) {
         this._screenUpdateTimer && clearTimeout(this._screenUpdateTimer);
 
         const pids = this._colorTermPids;
@@ -914,7 +918,10 @@ or define the location manually with the launch.json->mapFile setting`
         }).catch(() => {});
         this._colorTermPids = [-1, -1];
 
-        this._emulator && await this._emulator.disconnect();
+        if(this._emulator) {
+            cleanup && this._cleanup();
+            await this._emulator.disconnect();
+        }
 
         this._emulator = <any>undefined;
 

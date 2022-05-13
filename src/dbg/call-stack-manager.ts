@@ -176,6 +176,18 @@ export class CallStackManager {
         return exitAddresses;
     }
 
+    public async cleanup() {
+        const deletes : bin.CheckpointDeleteCommand[] = [
+            ...this._stackFrameBreakIndexes,
+            ...Object.keys(this._stackFrameJumps).map(x => parseInt(x)),
+            ...Object.keys(this._stackFrameStarts).map(x => parseInt(x)),
+            ...Object.keys(this._stackFrameEnds).map(x => parseInt(x)),
+        ].map(x => ({
+            type: bin.CommandType.checkpointDelete,
+            id: x
+        }));
+    }
+
     public async reset(currentAddress: number, currentLine: debugFile.SourceLine) : Promise<void> {
         this._stackFrameStarts = {};
         this._stackFrameEnds = {};
