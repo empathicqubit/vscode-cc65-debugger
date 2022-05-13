@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 import _random from 'lodash/fp/random';
+import _chunk from 'lodash/fp/chunk';
 describe('Execution control', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const PROGRAM = testShared.DEFAULT_PROGRAM;
@@ -250,13 +251,23 @@ describe('Execution control', () => {
         await testShared.waitFor(rt, 'started');
         await testShared.selectCTest(rt, 'test_shitton_of_breakpoints');
 
+        const lines : number[] = [];
         for(let i = 0 ; i < 6 ; i++) {
-            await Promise.all([
-                rt.setBreakPoint(SHITTON_C, 7 + i * 5),
-                rt.setBreakPoint(SHITTON_C, 9 + i * 5),
-                rt.setBreakPoint(SHITTON_C, 10 + i * 5),
-            ]);
+            lines.push(
+                7 + i * 5,
+                9 + i * 5,
+                10 + i * 5
+            );
         }
+
+        assert.strictEqual(lines.length, 18);
+
+            await Promise.all(
+                lines.map(async (x, i) => {
+                    await rt.clearBreakpoints(SHITTON_C);
+                    await rt.setBreakPoint(SHITTON_C, ...lines.slice(0, i + 1));
+                })
+            );
 
         assert.strictEqual(rt.getBreakpointLength(), 18);
     });
