@@ -62,7 +62,10 @@ export const DEFAULT_MESEN_ARGS : string[] = [
 export const DEFAULT_BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
 export const DEFAULT_BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/simple-project');
 export const DEFAULT_BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
-export const DEFAULT_PROGRAM = DEFAULT_BUILD_CWD + '/program.c64'
+export const DEFAULT_PROGRAM =
+    process.env.TEST_PROGRAM
+    ? process.env.TEST_PROGRAM
+    : DEFAULT_BUILD_CWD + '/program.c64'
 export const DEFAULT_MAP_FILE = DEFAULT_PROGRAM + '.map';
 export const DEFAULT_DEBUG_FILE = DEFAULT_PROGRAM + '.dbg';
 export const DEFAULT_LABEL_FILE = DEFAULT_PROGRAM + '.lbl';
@@ -71,7 +74,7 @@ export const DEFAULT_VICE_DIRECTORY =
     ? process.env.VICE_DIRECTORY
     : path.normalize(DEFAULT_BUILD_CWD + '/../vicedir/src');
 export const DEFAULT_MESEN_DIRECTORY = path.normalize(DEFAULT_BUILD_CWD + '/../mesendir'); // FIXME
-export const DEFAULT_APPLEWIN_DIRECTORY = path.normalize(DEFAULT_BUILD_CWD + '/../applewindir'); // FIXME
+export const DEFAULT_APPLEWIN_DIRECTORY = path.normalize(DEFAULT_BUILD_CWD + '/../../../3rdparty/applewin/build');
 
 console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
 console.log('VICE DIRECTORY', DEFAULT_VICE_DIRECTORY);

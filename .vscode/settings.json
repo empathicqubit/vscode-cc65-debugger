@@ -13,6 +13,7 @@
     "jest.jestCommandLine": "npm run jest --",
     "files.associations": {
         "cstdio": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "*.inc": "c"
     }
 }

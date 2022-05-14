@@ -11,8 +11,8 @@ import { __basedir } from '../basedir';
 
 describe('Compile', () => {
     const BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
-    const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/simple-project');
-    const PROGRAM = path.normalize(BUILD_CWD + '/program.c64');
+    const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
+    const PROGRAM = testShared.DEFAULT_PROGRAM;
     const BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
     const BUILD : LaunchRequestBuildArguments = {
         cwd: BUILD_CWD,
