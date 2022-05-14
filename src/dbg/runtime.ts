@@ -346,11 +346,13 @@ export class Runtime extends EventEmitter {
         console.timeEnd('preEmulator');
 
         if(this._dbgFile.machineType == debugFile.MachineType.apple2) {
+            this._runAhead = false;
             this._emulator = new AppleWinGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
         }
         else if(this._dbgFile.machineType == debugFile.MachineType.nes) {
+            this._runAhead = false;
             this._emulator = new MesenGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
