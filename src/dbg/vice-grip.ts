@@ -22,6 +22,8 @@ export class ViceGrip extends AbstractGrip {
         canSetJoyport: boolean,
     } | undefined;
 
+    // We do this so we can use a custom kernal which starts a tiny bit faster:
+    // https://codebase64.org/doku.php?id=base:using_a_running_vice_session_for_development
     private static _getDirectoryOptions(machineType: debugFile.MachineType, compoundDirectory: boolean) : string[] {
         let q = "";
         let sep = ":";
