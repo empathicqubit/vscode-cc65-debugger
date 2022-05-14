@@ -23,20 +23,6 @@ If you're having trouble understanding how this extension is supposed to be used
 
 Have you found this project useful, or even utter rubbish? The Flying Spaghetti Monster and I would really appreciate your rating on the Visual Studio Marketplace or OpenVSX!
 
-* [vscode-cc65-debugger](#vscode-cc65-debugger)
-  * [Setup](#setup)
-    * [Windows-specific instructions](#windows-specific-instructions)
-    * [Mac-specific instructions](#mac-specific-instructions)
-    * [Linux-specific instructions (Debian \[and probably also Ubuntu\])](#linux-specific-instructions-(debian-%5C[and-probably-also-ubuntu%5C]))
-  * [Project Configuration](#project-configuration)
-  * [Changes needed to your Makefile](#changes-needed-to-your-makefile)
-  * [What works](#what-works)
-  * [Building](#building)
-  * [Contributing](#contributing)
-  * [Usage in Vim with Vimspector (experimental)](#usage-in-vim-with-vimspector-(experimental))
-  * [Using Mesen-X with NES](#using-mesen-x-with-nes)
-  * [Additional Credits (see also LICENSE.md)](#additional-credits-(see-also-license.md))
-
 <a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
 
 ## Setup
