@@ -4,6 +4,7 @@ import * as debugUtils from '../lib/debug-utils';
 import * as assert from 'assert';
 import _random from 'lodash/fp/random';
 import getPort from 'get-port';
+import { MachineType } from '../lib/debug-file';
 
 describe('Attach', () => {
 
@@ -12,7 +13,7 @@ describe('Attach', () => {
     const MAP_FILE = testShared.DEFAULT_MAP_FILE;
     const DEBUG_FILE = testShared.DEFAULT_DEBUG_FILE;
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
-    const VICE_ARGS = testShared.DEFAULT_ARGS[debugUtils.programFiletypes.exec(PROGRAM)![3]!];
+    const VICE_ARGS = testShared.DEFAULT_ARGS[MachineType[debugUtils.programFiletypes.exec(PROGRAM)![3]!]];
 
     afterEach(testShared.cleanup);
 

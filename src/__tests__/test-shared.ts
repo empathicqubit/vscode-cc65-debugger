@@ -45,8 +45,8 @@ export const DEFAULT_COMMON_VICE_ARGS : string[] = [
 ];
 
 export const DEFAULT_ARGS : { [key:number]: string[] } = {
-    [MachineType.pet]: DEFAULT_COMMON_VICE_ARGS,
-    [MachineType.c64]: [
+    [MachineType.pet.toString()]: DEFAULT_COMMON_VICE_ARGS,
+    [MachineType.c64.toString()]: [
         '+sidfilters',
         '-residsamp', '0',
         '-VICIIborders', '3',
@@ -57,9 +57,9 @@ export const DEFAULT_ARGS : { [key:number]: string[] } = {
         '+VICIIdsize',
         ...DEFAULT_COMMON_VICE_ARGS,
     ],
-    [MachineType.apple2]: [
+    [MachineType.apple2.toString()]: [
     ],
-    [MachineType.nes]: [
+    [MachineType.nes.toString()]: [
         '--testrunner'
     ]
 }

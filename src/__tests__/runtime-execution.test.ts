@@ -4,6 +4,7 @@ import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 import _random from 'lodash/fp/random';
 import _chunk from 'lodash/fp/chunk';
+import { MachineType } from '../lib/debug-file';
 describe('Execution control', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const PROGRAM = testShared.DEFAULT_PROGRAM;
@@ -14,7 +15,7 @@ describe('Execution control', () => {
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const APPLEWIN_DIRECTORY = testShared.DEFAULT_APPLEWIN_DIRECTORY;
 
-    const VICE_ARGS = testShared.DEFAULT_ARGS[debugUtils.programFiletypes.exec(PROGRAM)![3]!];
+    const VICE_ARGS = testShared.DEFAULT_ARGS[MachineType[debugUtils.programFiletypes.exec(PROGRAM)![3]!]];
 
     afterEach(testShared.cleanup);
 

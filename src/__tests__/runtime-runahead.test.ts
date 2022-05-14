@@ -15,7 +15,7 @@ describe('Runahead', () => {
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const APPLEWIN_DIRECTORY = testShared.DEFAULT_APPLEWIN_DIRECTORY;
-    const VICE_ARGS = testShared.DEFAULT_ARGS[debugUtils.programFiletypes.exec(PROGRAM)![3]!];
+    const VICE_ARGS = testShared.DEFAULT_ARGS[MachineType[debugUtils.programFiletypes.exec(PROGRAM)![3]!]];
 
     afterEach(testShared.cleanup);
 
