@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="7" failures="1" errors="0" time="5.518">
+  <testsuite name="Execution control" errors="0" failures="1" skipped="6" timestamp="2022-05-13T22:08:11" time="5.179" tests="7">
+    <testcase classname="Execution control Steps to the next line" name="Execution control Steps to the next line" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Execution control Pauses correctly" name="Execution control Pauses correctly" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Execution control Conditional breakpoints work" name="Execution control Conditional breakpoints work" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Execution control Breakpoints can be set very early" name="Execution control Breakpoints can be set very early" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Execution control Can set a shitton of breakpoints without them clearing" name="Execution control Can set a shitton of breakpoints without them clearing" time="2.146">
+      <failure>assert.strictEqual(received, expected)
+
+Expected value to strictly be equal to:
+  18
+Received:
+  0
+    at Object.&lt;anonymous&gt; (/home/empathicqubit/vscode-cc65-debugger/src/__tests__/runtime-execution.test.ts:283:16)
+    at processTicksAndRejections (node:internal/process/task_queues:94:5)</failure>
+    </testcase>
+    <testcase classname="Execution control Can step out" name="Execution control Can step out" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Execution control Can step in" name="Execution control Can step in" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+</testsuites>
