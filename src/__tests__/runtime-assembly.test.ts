@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
 import { __basedir } from '../basedir';
+import { MachineType } from '../lib/debug-file';
 describe('Assembly', () => {
     const BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/asm-project');
     const MAP_FILE = BUILD_CWD + '/program.c64.map';
@@ -13,7 +14,7 @@ describe('Assembly', () => {
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const APPLEWIN_DIRECTORY = testShared.DEFAULT_APPLEWIN_DIRECTORY;
-    const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
+    const VICE_ARGS = testShared.DEFAULT_ARGS[MachineType.c64];
 
     const MAIN_S = path.join(BUILD_CWD, "src/main.s")
 
@@ -22,7 +23,6 @@ describe('Assembly', () => {
     beforeEach(async () => {
         await debugUtils.delay(Math.random() * 1000);
     });
-
 
     test('Starts and terminates successfully without intervention', async() => {
         const rt = await testShared.newRuntime();

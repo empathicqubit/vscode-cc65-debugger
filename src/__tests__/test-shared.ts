@@ -8,6 +8,7 @@ import { Runtime } from '../dbg/runtime';
 import * as metrics from '../lib/metrics';
 import getPort from 'get-port';
 import { __basedir } from '../basedir';
+import { MachineType } from '../lib/debug-file';
 
 console.log('PROCESS', process.pid);
 
@@ -43,21 +44,25 @@ export const DEFAULT_COMMON_VICE_ARGS : string[] = [
     '-warp',
 ];
 
-export const DEFAULT_VICE_ARGS : string[] = [
-    '-VICIIborders', '3',
-    //'+VICIIhwscale',
-    '-VICIIcrtblur', '0',
-    '-VICIIfilter', '0',
-    '+VICIIdscan',
-    '+VICIIdsize',
-    '+sidfilters',
-    '-residsamp', '0',
-    ...DEFAULT_COMMON_VICE_ARGS,
-];
-
-export const DEFAULT_MESEN_ARGS : string[] = [
-    '--testrunner'
-]
+export const DEFAULT_ARGS : { [key:number]: string[] } = {
+    [MachineType.pet]: DEFAULT_COMMON_VICE_ARGS,
+    [MachineType.c64]: [
+        '+sidfilters',
+        '-residsamp', '0',
+        '-VICIIborders', '3',
+        //'+VICIIhwscale',
+        '-VICIIcrtblur', '0',
+        '-VICIIfilter', '0',
+        '+VICIIdscan',
+        '+VICIIdsize',
+        ...DEFAULT_COMMON_VICE_ARGS,
+    ],
+    [MachineType.apple2]: [
+    ],
+    [MachineType.nes]: [
+        '--testrunner'
+    ]
+}
 
 export const DEFAULT_BUILD_COMMAND = compile.DEFAULT_BUILD_COMMAND;
 export const DEFAULT_BUILD_CWD = path.normalize(__basedir + '/../src/__tests__/simple-project');

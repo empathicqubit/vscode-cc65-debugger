@@ -322,11 +322,6 @@ other tests are dependent on the cc65 projects being compiled.
 * **jest:noncompile**: The tests that come after compilation.
 * **test**: Run the tests in the correct order. Does not build anything, so
 use `build:test` for that.
-* **testmerge**: Runs each batch of tests twice, then combines the results,
-preferring a successful test run. This is because the tests sometimes behave
-erratically on the build server and I want to avoid running the entire job
-again. It will also print out the name of each test and whether any of the
-two runs of it passed.
 * **package**: Run `vsce package` using pnpm. The project is using a modified
 version of vsce that has support for pnpm.
 

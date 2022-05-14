@@ -12,7 +12,7 @@ describe('Attach', () => {
     const MAP_FILE = testShared.DEFAULT_MAP_FILE;
     const DEBUG_FILE = testShared.DEFAULT_DEBUG_FILE;
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
-    const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
+    const VICE_ARGS = testShared.DEFAULT_ARGS[debugUtils.programFiletypes.exec(PROGRAM)![3]!];
 
     afterEach(testShared.cleanup);
 

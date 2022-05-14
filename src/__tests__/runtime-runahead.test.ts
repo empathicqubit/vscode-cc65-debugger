@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as disassembly from '../lib/disassembly';
 import * as debugUtils from '../lib/debug-utils';
+import { MachineType } from '../lib/debug-file';
 
 describe('Runahead', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
@@ -14,7 +15,7 @@ describe('Runahead', () => {
     const VICE_DIRECTORY = testShared.DEFAULT_VICE_DIRECTORY;
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const APPLEWIN_DIRECTORY = testShared.DEFAULT_APPLEWIN_DIRECTORY;
-    const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
+    const VICE_ARGS = testShared.DEFAULT_ARGS[debugUtils.programFiletypes.exec(PROGRAM)![3]!];
 
     afterEach(testShared.cleanup);
 

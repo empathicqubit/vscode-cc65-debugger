@@ -14,7 +14,7 @@ describe('Execution control', () => {
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const APPLEWIN_DIRECTORY = testShared.DEFAULT_APPLEWIN_DIRECTORY;
 
-    const VICE_ARGS = testShared.DEFAULT_VICE_ARGS;
+    const VICE_ARGS = testShared.DEFAULT_ARGS[debugUtils.programFiletypes.exec(PROGRAM)![3]!];
 
     afterEach(testShared.cleanup);
 

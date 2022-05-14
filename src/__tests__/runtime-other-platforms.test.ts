@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as testShared from './test-shared';
 import * as debugUtils from '../lib/debug-utils';
+import { MachineType } from '../lib/debug-file';
 describe('other emulators', () => {
     const BUILD_CWD = testShared.DEFAULT_BUILD_CWD;
     const PROGRAM = BUILD_CWD + '/program.pet';
@@ -13,7 +14,7 @@ describe('other emulators', () => {
     const MESEN_DIRECTORY = testShared.DEFAULT_MESEN_DIRECTORY;
     const APPLEWIN_DIRECTORY = testShared.DEFAULT_APPLEWIN_DIRECTORY;
     const VICE_ARGS = testShared.DEFAULT_COMMON_VICE_ARGS;
-    const MESEN_ARGS = testShared.DEFAULT_MESEN_ARGS;
+    const MESEN_ARGS = testShared.DEFAULT_ARGS[MachineType.nes];
 
     afterEach(testShared.cleanup);
 
@@ -60,58 +61,5 @@ describe('other emulators', () => {
         await debugUtils.delay(5000);
 
         await rt.continue();
-    });
-
-    testShared.testSkipMac('xpet works correctly', async () => {
-        const rt = await testShared.newRuntime();
-
-        await rt.start(
-            await testShared.portGetter(),
-            PROGRAM,
-            BUILD_CWD,
-            true,
-            false,
-            false,
-            VICE_DIRECTORY,
-            MESEN_DIRECTORY,
-            APPLEWIN_DIRECTORY,
-            VICE_ARGS,
-            false,
-            DEBUG_FILE,
-            MAP_FILE,
-            LABEL_FILE
-        );
-
-        await testShared.waitFor(rt, 'stopOnEntry');
-        await testShared.selectCTest(rt, 'test_non_c64');
-
-        await rt.setBreakPoint(NONC64_C, 8);
-        await Promise.all([
-            rt.continue(),
-            testShared.waitFor(rt, 'stopOnBreakpoint')
-        ]);
-
-        await Promise.all([
-            rt.stepIn(),
-            testShared.waitFor(rt, 'stopOnStep', (type, __, file, line, col) => {
-                assert.strictEqual(file, NONC64_C);
-                assert.strictEqual(line, 3);
-            }),
-        ]);
-
-        const wastedOnMyself = [
-            testShared.waitFor(rt, 'stopOnStep', (type, __, file, line, col) => {
-                assert.strictEqual(file, NONC64_C);
-                assert.strictEqual(line, 9);
-            }),
-        ];
-
-        await Promise.all([
-            rt.stepOut(),
-            ...wastedOnMyself,
-        ]);
-
-        await rt.continue();
-        await testShared.waitFor(rt, 'end');
     });
 });
