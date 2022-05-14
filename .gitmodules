@@ -7,3 +7,6 @@
 [submodule "3rdparty/mesen-binary-monitor"]
 	path = 3rdparty/mesen-binary-monitor
 	url = https://github.com/empathicqubit/mesen-binary-monitor
+[submodule "3rdparty/applewin"]
+	path = 3rdparty/applewin
+	url = https://github.com/audetto/AppleWin
