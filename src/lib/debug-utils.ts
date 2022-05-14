@@ -27,7 +27,7 @@ export async function delay(ms: number) : Promise<void> {
     });
 }
 
-export const programFiletypes = /\.((d[0-9]{2}|prg)|(apple2|nes|vic20|c16|c64|c128|plus4|cbm510|cbm610|pet))$/i
+export const programFiletypes = /\.((d[0-9]{2}|prg|dsk)|(apple2|nes|vic20|c16|c64|c128|plus4|cbm510|cbm610|pet))$/i
 
 export interface ExecFileOptions extends child_process.ExecFileOptions {
     title?: string;
