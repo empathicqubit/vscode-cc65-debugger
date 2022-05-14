@@ -12,7 +12,7 @@
 
 Dependencies and date last changed:
 
-[![VICE](https://img.shields.io/badge/VICE-3.6.0%202022%2f02%2f19-blue)](https://community.chocolatey.org/packages/winvice-nightly/3.6.0) 
+[![VICE](https://img.shields.io/badge/VICE-3.6.1%202022%2f05%2f14-blue)](https://community.chocolatey.org/packages/winvice-nightly/3.6.1)
 [![Mesen-X](https://img.shields.io/badge/MesenX-1.0.0%202021%2f11%2f24-blue)](https://github.com/NovaSquirrel/Mesen-X/releases/tag/1.0.0) 
 
 This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms (well-tested) and NES (experimental), including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
@@ -56,7 +56,7 @@ The easiest way to install VICE to your PATH is to use [Chocolatey](https://choc
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install the packages
-choco install --version 3.6.0 winvice-nightly
+choco install --version 3.6.1 winvice-nightly
 choco install make
 ```
 
