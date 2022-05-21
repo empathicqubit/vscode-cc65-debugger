@@ -73,7 +73,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
           ref: "${{ github.events.inputs.ref }}"
-
+    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
     - run: pnpm install --shamefully-hoist
     - run: pnpm build:test
 
