@@ -10,3 +10,4 @@
 [submodule "3rdparty/applewin"]
 	path = 3rdparty/applewin
 	url = https://github.com/audetto/AppleWin
+	branch = monitor
