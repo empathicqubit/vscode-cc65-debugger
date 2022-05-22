@@ -28,6 +28,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
           ref: ${{ matrix.tag_ref }}
+    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
@@ -56,6 +57,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
           ref: ${{ matrix.tag_ref }}
+    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
 
     - run: cd src/__tests__ && 7z a ../../asm-project-template.zip ./asm-project
     - name: Upload Assembly Template to release
