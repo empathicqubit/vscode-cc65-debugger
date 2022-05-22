@@ -140,6 +140,6 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: "Test Results: Linux: NES"
+        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: NES"
         path: "*.testrun.xml"
         reporter: jest-junit
