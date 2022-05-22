@@ -59,7 +59,7 @@ jobs:
 
     - run: cd src/__tests__ && 7z a ../../asm-project-template.zip ./asm-project
     - name: Upload Assembly Template to release
-      if: !github.event.inputs.tag
+      if: "!github.event.inputs.tag"
       uses: svenstaro/upload-release-action@v2
       with:
         release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
@@ -71,7 +71,7 @@ jobs:
 
     - run: cd src/__tests__ && 7z a ../../c-project-template.zip ./c-project-template
     - name: Upload C Template to release
-      if: !github.event.inputs.tag
+      if: "!github.event.inputs.tag"
       uses: svenstaro/upload-release-action@v2
       with:
         release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
@@ -105,7 +105,7 @@ jobs:
         path: cc65-vice*.vsix
 
     - name: Upload binaries to release
-      if: !github.event.inputs.tag
+      if: "!github.event.inputs.tag"
       uses: svenstaro/upload-release-action@v2
       with:
         release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
