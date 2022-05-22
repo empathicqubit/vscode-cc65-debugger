@@ -119,7 +119,7 @@ jobs:
       if: success() || failure()    # run this step even if previous step failed
       with:
         name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: C64"
-        path: "*.testrun.xml"
+        path: "noncompile.testrun.xml"
         reporter: jest-junit
 
     - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.pet VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
@@ -130,7 +130,7 @@ jobs:
       if: success() || failure()    # run this step even if previous step failed
       with:
         name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: PET"
-        path: "*.testrun.xml"
+        path: "noncompile.testrun.xml"
         reporter: jest-junit
 
     - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.nes VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
@@ -141,5 +141,5 @@ jobs:
       if: success() || failure()    # run this step even if previous step failed
       with:
         name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: NES"
-        path: "*.testrun.xml"
+        path: "noncompile.testrun.xml"
         reporter: jest-junit
