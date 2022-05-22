@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.2.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.3...v6.2.0) (2022-05-22)
+
+
+### Features
+
+* Add Apple2 dsk support ([208fdb5](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/208fdb5733ae3956af315d4f392b867fca8845dc))
+
+
+### Bug Fixes
+
+* Cleanup background breakpoints when disconnecting ([7374f6e](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/7374f6ee97cf9abe6ce0acef78b5ceac7bd7e848))
+* Copy kernal mod to new kernal files ([c8e06c3](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/c8e06c344ca6be9014c9429510c17399e9a22f5e))
+* Disable runahead always for NES and Apple2, since it's broken ([7e59eea](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/7e59eea711775d9008315e92b002beb3efee2f6e))
+* Disable runahead for every platform except C64 ([04e10b1](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/04e10b11ad19bbe7c8962bfb1bda0b753f88480c))
+* Fix issue with output redirection which breaks vsc 1.67.2 [#112](https://www.github.com/empathicqubit/vscode-cc65-debugger/issues/112) ([31de012](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/31de0121bee8ba69e1b8563581d21a2a73337d28))
+* Remove user breakpoints on detach ([76179d5](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/76179d5d7e6927ccc41e207d05c81d938de53766))
+* Update VICE data folder ([aa5226d](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/aa5226d5a4cb2f161dfd0f3cebfe3733895770a4))
+
 ### [6.1.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.2...v6.1.3) (2022-03-27)
 
 
