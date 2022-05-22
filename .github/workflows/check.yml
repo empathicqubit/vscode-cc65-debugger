@@ -37,6 +37,7 @@ jobs:
       with:
           ref: "${{ github.events.inputs.ref }}"
           submodules: recursive
+    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
     - run: brew install sevenzip coreutils visual-studio-code libyaml yaml-cpp minizip libslirp libpcap
 
     - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/${{ matrix.vice_directory }}.dmg/download"
@@ -102,6 +103,7 @@ jobs:
           ~/.pnpm-store
           ./**/*
         key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
+    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
 
     - run: ln -s $PWD/system /usr/local/share/vice
     - run: ln -s $PWD/system /usr/local/lib/vice
