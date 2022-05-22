@@ -314,6 +314,7 @@ generating a vsix file.
 * **vscode:prepublish:github**: Only called on the build server. Skips the tests
 since they are run separately as a PR check.
 * **vice:choose**: Selects a version of VICE to test against. Look at [build.env.sample](build.env.sample)
+* **applewin:choose**: Selects a version of AppleWin to test against. Look at [build.env.sample](build.env.sample)
 * **lint**: Project linting. Not as important since TypeScript itself prevents
 a lot of obvious mistakes.
 * **jest**: Run only some of the tests. For example: `pnpm jest -- src/__tests__/runtime-other-platforms.test.ts`
