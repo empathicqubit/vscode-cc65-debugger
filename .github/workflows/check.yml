@@ -103,8 +103,10 @@ jobs:
 
               - vice_version: 3.6
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+                machine: c64
               - vice_version: trunk
                 vice_directory:
+                machine: c64
 
     steps:
     - name: Cache
