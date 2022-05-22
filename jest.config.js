@@ -1,5 +1,6 @@
 const idx = process.argv.indexOf("--outputFile");
 const outputName = process.argv[idx + 1].replace(".json", ".xml");
+console.log("JEST OUTPUT NAME", outputName);
 module.exports = {
     "testTimeout": 35000,
     "reporters": ["default", ["jest-junit", { outputName }]],
