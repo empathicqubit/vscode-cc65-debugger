@@ -52,6 +52,7 @@ jobs:
           include:
               - vice_version: 3.6
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+                tag_ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
     steps:
     - uses: actions/checkout@v2
