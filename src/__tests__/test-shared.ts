@@ -79,7 +79,10 @@ export const DEFAULT_VICE_DIRECTORY =
     ? process.env.VICE_DIRECTORY
     : path.normalize(DEFAULT_BUILD_CWD + '/../vicedir/src');
 export const DEFAULT_MESEN_DIRECTORY = path.normalize(DEFAULT_BUILD_CWD + '/../mesendir'); // FIXME
-export const DEFAULT_APPLEWIN_DIRECTORY = path.normalize(DEFAULT_BUILD_CWD + '/../../../3rdparty/applewin/build');
+export const DEFAULT_APPLEWIN_DIRECTORY =
+    typeof process.env.APPLEWIN_DIRECTORY != 'undefined'
+    ? process.env.APPLEWIN_DIRECTORY
+    : path.normalize(DEFAULT_BUILD_CWD + '/../../../3rdparty/applewin/build');
 
 console.log('VICE DIRECTORY ENV', process.env.VICE_DIRECTORY);
 console.log('VICE DIRECTORY', DEFAULT_VICE_DIRECTORY);

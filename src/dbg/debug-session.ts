@@ -66,7 +66,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             if(process.platform == 'win32') {
                 args.unshift('/S', '/C', file);
                 file = 'cmd.exe';
-                args = args.map(x => ['echo', '&&', '||', '>'].includes(x) ? x : `"${x}"`);
+                args = args.map(x => ['echo', '&&', '||', '>', '>>'].includes(x.trim()) ? x : `"${x}"`);
             }
 
             this.runInTerminalRequest({

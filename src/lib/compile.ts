@@ -137,7 +137,7 @@ export async function make(build: LaunchRequestBuildArguments, execHandler: debu
         const failurePath =  `${os.tmpdir()}/cc65vice_make_failure_${Math.random().toString()}`;
         const successPath =  `${os.tmpdir()}/cc65vice_make_success_${Math.random().toString()}`;
         let command = build.command || DEFAULT_BUILD_COMMAND;
-        args.push('&&', 'echo', '>', successPath, '||', 'echo', '>', failurePath);
+        args.push('&&', 'echo', '>>', successPath, '||', 'echo', '>>', failurePath);
 
         const pids = await execHandler(command, args, {
             ...opts,
