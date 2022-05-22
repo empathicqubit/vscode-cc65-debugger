@@ -19,10 +19,13 @@ dist/
 !/*.js
 !webpack*.config.js
 !jest*.config.js
+
 *.c64
 *.pet
 *.nes
 *.apple2
+*.vic20
+
 *.prg
 *.d81
 *.d64

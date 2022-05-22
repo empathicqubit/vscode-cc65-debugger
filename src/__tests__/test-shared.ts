@@ -70,7 +70,7 @@ export const DEFAULT_BUILD_ARGS = compile.DEFAULT_BUILD_ARGS;
 export const DEFAULT_PROGRAM =
     process.env.TEST_PROGRAM
     ? process.env.TEST_PROGRAM
-    : DEFAULT_BUILD_CWD + '/program.c64'
+    : path.normalize(DEFAULT_BUILD_CWD + '/program.c64');
 export const DEFAULT_MAP_FILE = DEFAULT_PROGRAM + '.map';
 export const DEFAULT_DEBUG_FILE = DEFAULT_PROGRAM + '.dbg';
 export const DEFAULT_LABEL_FILE = DEFAULT_PROGRAM + '.lbl';

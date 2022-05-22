@@ -48,9 +48,9 @@ jobs:
 
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
-    - run: VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" pnpm build:test
+    - run: APPLEWIN_DIRECTORY= VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" pnpm build:test
     - continue-on-error: true
-      run: VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" USE_XVFB=1 pnpm test
+      run: APPLEWIN_DIRECTORY= VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" USE_XVFB=1 pnpm test
 
     - name: Test Report
       uses: dorny/test-reporter@v1
@@ -140,6 +140,6 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: "Test Results: Linux: NES"
+        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: NES"
         path: "*.testrun.xml"
         reporter: jest-junit
