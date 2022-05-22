@@ -120,9 +120,8 @@
     "vice:local": "shx echo \"USING LOCAL VICE\"",
     "vice:choose": "env-cmd -x --silent -f ./build.env node -e \"typeof process.env.VICE_DIRECTORY != 'undefined' ? process.exit(0) : process.exit(1)\" && npm-run-all vice:local || npm-run-all vice:build",
     "lint": "tslint --project src",
-    "jest": "env-cmd -x --silent -f build.env jest --coverage --forceExit",
-    "jest:noncompile": "npm-run-all \"jest -- --json --outputFile noncompile.testrun.json --testPathIgnorePatterns=src/__tests__/compile.test.ts\"",
-    "jest:compile": "npm-run-all \"jest -- --json --outputFile compile.testrun.json src/__tests__/compile.test.ts\"",
+    "jest:noncompile": "env-cmd -x --silent -f build.env jest --forceExit --json --outputFile noncompile.testrun.json --testPathIgnorePatterns src/__tests__/compile.test.ts",
+    "jest:compile": "env-cmd -x --silent -f build.env jest --forceExit --json --outputFile compile.testrun.json src/__tests__/compile.test.ts",
     "test": "npm-run-all jest:compile jest:noncompile",
     "package": "vsce package --packageManager pnpm"
   },
