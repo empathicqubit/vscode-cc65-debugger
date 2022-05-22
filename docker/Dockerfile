@@ -63,7 +63,7 @@ RUN curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm
 
 # Install Mesen deps
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gnupg ca-certificates && \
+    apt-get install -y --no-install-recommends gnupg ca-certificates  && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official-stable.list
@@ -72,6 +72,9 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install AppleWin deps
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends lsb-release && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN curl -L https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
 RUN echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/${{ matrix.os_name }}/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null
 
