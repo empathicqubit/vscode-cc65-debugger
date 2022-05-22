@@ -28,10 +28,10 @@ jobs:
         asset_name: vimspector-gadget.json
         tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
         overwrite: true
-    - run: pnpx -y -p @entan.gl/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
+    - run: npx -y -p @entan.gl/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
       id: vsce
       continue-on-error: true
-    - run: pnpx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
+    - run: npx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
       id: ovsx
       continue-on-error: true
     - name: update release
