@@ -31,8 +31,8 @@ jobs:
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
     - run: npm install -g pnpm
     - run: pnpm install --shamefully-hoist
-    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
-    - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
+    - run: APPLEWIN_DIRECTORY= VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
+    - run: APPLEWIN_DIRECTORY= VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
 
     - uses: actions/upload-artifact@v2
       with:
