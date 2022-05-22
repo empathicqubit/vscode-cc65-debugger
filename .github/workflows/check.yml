@@ -111,7 +111,7 @@ jobs:
     - run: ln -s $PWD/system /usr/share/vice
     - run: ls -l /usr/local/share
 
-    - run: rm *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.c64 VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
+    - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.c64 VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
       continue-on-error: true
 
     - name: Test Report
@@ -122,7 +122,7 @@ jobs:
         path: "*.testrun.xml"
         reporter: jest-junit
 
-    - run: rm *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.pet VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
+    - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.pet VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
       continue-on-error: true
 
     - name: Test Report
@@ -133,7 +133,7 @@ jobs:
         path: "*.testrun.xml"
         reporter: jest-junit
 
-    - run: rm *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.nes VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
+    - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.nes VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
       continue-on-error: true
 
     - name: Test Report
