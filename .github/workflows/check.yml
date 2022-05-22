@@ -57,7 +57,7 @@ jobs:
       if: success() || failure()    # run this step even if previous step failed
       with:
         name: "Test Results: Mac: VICE ${{ matrix.vice_version }}"
-        path: "*.testrun.xml"
+        path: "noncompile.testrun.xml"
         reporter: jest-junit
 
   linux-build:
@@ -92,6 +92,17 @@ jobs:
           include:
               - vice_version: 3.6
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+                machine: apple2
+              - vice_version: 3.6
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+                machine: nes
+
+              - vice_version: 3.6
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+                machine: pet
+
+              - vice_version: 3.6
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
               - vice_version: trunk
                 vice_directory:
 
@@ -111,35 +122,13 @@ jobs:
     - run: ln -s $PWD/system /usr/share/vice
     - run: ls -l /usr/local/share
 
-    - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.c64 VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
+    - run: TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.${{ matrix.machine }} VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
       continue-on-error: true
 
     - name: Test Report
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: C64"
-        path: "noncompile.testrun.xml"
-        reporter: jest-junit
-
-    - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.pet VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
-      continue-on-error: true
-
-    - name: Test Report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()    # run this step even if previous step failed
-      with:
-        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: PET"
-        path: "noncompile.testrun.xml"
-        reporter: jest-junit
-
-    - run: rm -f *.testrun.xml && TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.nes VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
-      continue-on-error: true
-
-    - name: Test Report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()    # run this step even if previous step failed
-      with:
-        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: NES"
+        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: ${{ matrix.machine }}"
         path: "noncompile.testrun.xml"
         reporter: jest-junit
