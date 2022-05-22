@@ -22,6 +22,30 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends rsync curl dos2unix p7zip-full zip gpg subversion build-essential xa65 automake autoconf && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install AppleWin deps
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends lsb-release gnupg ca-certificates && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN curl -L https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        cmake \
+        make \
+        gcc \
+        g++ \
+        libyaml-dev \
+        libminizip-dev \
+        libboost-program-options-dev \
+        libncurses-dev \
+        libevdev-dev \
+        libsdl2-dev \
+        libsdl2-image-dev \
+        libgl-dev \
+        libpcap-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Build VICE
 RUN mkdir -p /vices/builds /vices/sources && \
     for each in 3.5 3.6 ; do \
@@ -69,30 +93,6 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E03280
 RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official-stable.list
 RUN apt-get update && \
     apt-get install -y --no-install-recommends mono-complete libsdl2-2.0 gnome-themes-standard xvfb x11-apps && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install AppleWin deps
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends lsb-release && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN curl -L https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-RUN echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/${{ matrix.os_name }}/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        cmake \
-        make \
-        gcc \
-        g++ \
-        libyaml-dev \
-        libminizip-dev \
-        libboost-program-options-dev \
-        libncurses-dev \
-        libevdev-dev \
-        libsdl2-dev \
-        libsdl2-image-dev \
-        libgl-dev \
-        libpcap-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -u 1000 unprivileged
