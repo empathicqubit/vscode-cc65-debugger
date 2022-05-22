@@ -1,12 +1,13 @@
 const main = async() => {
     const shx = require('shelljs');
     const os = require('os');
+    const yargs = require('yargs');
     const threads = os.cpus().length * 4;
     console.log('THREADS', threads);
     shx.config.fatal = true;
-    const arg = process.argv;
+    const arg = yargs.argv._;
     console.log(arg);
-    let [,, arch, cross] = arg;
+    let [arch, cross] = arg;
     cross = cross || '';
     const archDir = '3rdparty/cc65/wrk/' + arch;
     const distDir = process.cwd() + '/dist/cc65/bin_' + arch;

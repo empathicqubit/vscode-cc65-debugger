@@ -1,5 +1,8 @@
+const yargs = require('yargs');
 const shx = require('shelljs');
-const [,, arch, file] = process.argv;
+const arg = yargs.argv._
+console.log(arg);
+const [arch, file] = arg;
 shx.config.fatal = true;
 const workDir = 'obj/mintty/' + arch + '/git';
 if(!shx.test('-e', workDir)) {
