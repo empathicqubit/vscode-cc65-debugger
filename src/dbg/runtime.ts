@@ -357,7 +357,13 @@ export class Runtime extends EventEmitter {
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
         }
+        else if(this._dbgFile.machineType == debugFile.MachineType.c64) {
+            this._emulator = new ViceGrip(
+                <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
+            );
+        }
         else {
+            this._runAhead = false;
             this._emulator = new ViceGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );

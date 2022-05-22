@@ -1,3 +1,5 @@
+# Licenses
+
 ## Primary license
 
 Copyright (c) 2021, EmpathicQubit
@@ -36,7 +38,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-## Modified version of CC65 (for compilation)
+### Modified version of CC65 (for compilation)
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from
@@ -56,7 +58,7 @@ be misrepresented as being the original software.
 
 3. This notice may not be removed or altered from any source distribution.
 
-# MinTTY
+### MinTTY
 
 mintty is copyright 2008-13 Andy Koppe, 2015-18 Thomas Wolff.
 
