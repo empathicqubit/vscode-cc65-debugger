@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.2.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.2.0...v6.2.1) (2022-05-23)
+
+
+### Bug Fixes
+
+* Add note about issues with VSCode 1.67. ([2514fb0](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/2514fb0409529b4fad06d7da69d17d93646c3411))
+
 ## [6.2.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.1.3...v6.2.0) (2022-05-22)
 
 
