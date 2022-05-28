@@ -1,7 +1,7 @@
 {
   "name": "cc65-vice",
   "displayName": "VS65 Debugger",
-  "version": "6.2.1",
+  "version": "6.3.0",
   "publisher": "entan-gl",
   "description": "An extension to debug CC65 running in VICE (Commodore) or Mesen (Nintendo) emulators.",
   "author": {
@@ -342,7 +342,16 @@
               },
               "machineType": {
                 "type": "string",
-                "enum": ["nes", "c128", "cbm5x0", "pet", "plus4", "vic20", "c64", "apple2"],
+                "enum": [
+                  "nes",
+                  "c128",
+                  "cbm5x0",
+                  "pet",
+                  "plus4",
+                  "vic20",
+                  "c64",
+                  "apple2"
+                ],
                 "description": "The machine type to use, instead of the autodetected one."
               },
               "debugFile": {
@@ -418,7 +427,16 @@
               },
               "machineType": {
                 "type": "string",
-                "enum": ["nes", "c128", "cbm5x0", "pet", "plus4", "vic20", "c64", "apple2"],
+                "enum": [
+                  "nes",
+                  "c128",
+                  "cbm5x0",
+                  "pet",
+                  "plus4",
+                  "vic20",
+                  "c64",
+                  "apple2"
+                ],
                 "description": "The machine type to use, instead of the autodetected one."
               },
               "debugFile": {

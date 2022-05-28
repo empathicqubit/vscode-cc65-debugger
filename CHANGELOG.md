@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.3.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.2.1...v6.3.0) (2022-05-28)
+
+
+### Features
+
+* add option to manually specify machine type to use. ([dd54b59](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/dd54b597f0adea7372fa01ad79a2d1b5a56dc76b))
+
+
+### Bug Fixes
+
+* Fix issue with CLI escaping on 1.67 [#114](https://www.github.com/empathicqubit/vscode-cc65-debugger/issues/114) ([cd5423f](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/cd5423fc7f82871de71dbb446bdb8fcb878d8a42))
+
 ### [6.2.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.2.0...v6.2.1) (2022-05-23)
 
 
