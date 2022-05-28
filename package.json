@@ -340,6 +340,11 @@
                 "type": "string",
                 "description": "The path to your d81, d64, or prg. Use this if autodetection fails."
               },
+              "machineType": {
+                "type": "string",
+                "enum": ["nes", "c128", "cbm5x0", "pet", "plus4", "vic20", "c64", "apple2"],
+                "description": "The machine type to use, instead of the autodetected one."
+              },
               "debugFile": {
                 "type": "string",
                 "description": "The debug file path. Use this if autodetection fails."
@@ -410,6 +415,11 @@
               "program": {
                 "type": "string",
                 "description": "The path to your d81, d64, or prg. Required."
+              },
+              "machineType": {
+                "type": "string",
+                "enum": ["nes", "c128", "cbm5x0", "pet", "plus4", "vic20", "c64", "apple2"],
+                "description": "The machine type to use, instead of the autodetected one."
               },
               "debugFile": {
                 "type": "string",

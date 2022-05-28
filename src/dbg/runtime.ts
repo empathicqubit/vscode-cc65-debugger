@@ -125,7 +125,7 @@ export class Runtime extends EventEmitter {
     private _bankMeta : {[key: string]: bin.SingleBankMeta };
     private _userBreak: CC65ViceBreakpoint | undefined;
     private _execHandler: debugUtils.ExecHandler;
-
+    private _machineType: debugFile.MachineType;
     constructor(execHandler: debugUtils.ExecHandler) {
         super();
         this._execHandler = execHandler;
@@ -136,7 +136,9 @@ export class Runtime extends EventEmitter {
      * @param port Binary monitor port
      * @param stopOnEntry Stop after attaching
      * @param stopOnExit Stop after hitting the end of main
+     * @param program Program path
      * @param runAhead Step ahead one frame when stopping
+     * @param machineType Manually set machine type
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
      */
@@ -147,6 +149,7 @@ export class Runtime extends EventEmitter {
         stopOnExit: boolean,
         runAhead: boolean,
         program?: string,
+        machineType?: debugFile.MachineType,
         debugFilePath?: string,
         mapFilePath?: string
     ) {
@@ -154,7 +157,7 @@ export class Runtime extends EventEmitter {
 
         this._attachProgram = program;
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath);
+        await this._preStart(buildCwd, stopOnExit, runAhead, program, machineType, debugFilePath, mapFilePath);
 
         console.time('emulator')
 
@@ -294,6 +297,7 @@ export class Runtime extends EventEmitter {
         stopOnExit: boolean,
         runAhead: boolean,
         program?: string,
+        machineType?: debugFile.MachineType,
         debugFilePath?: string,
         mapFilePath?: string
     ) : Promise<void> {
@@ -333,6 +337,8 @@ export class Runtime extends EventEmitter {
             this._loadMapFile(mapFilePath),
         ]);
 
+        this._machineType = machineType || this._dbgFile.machineType;
+
         console.log('Entry address: ', this._dbgFile.entryAddress.toString(16))
 
         console.timeEnd('parseSource');
@@ -345,20 +351,20 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('preEmulator');
 
-        if(this._dbgFile.machineType == debugFile.MachineType.apple2) {
+        if(this._machineType == debugFile.MachineType.apple2) {
             throw new Error("Apple2 support is not finished yet!");
             this._runAhead = false;
             this._emulator = new AppleWinGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
         }
-        else if(this._dbgFile.machineType == debugFile.MachineType.nes) {
+        else if(this._machineType == debugFile.MachineType.nes) {
             this._runAhead = false;
             this._emulator = new MesenGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
         }
-        else if(this._dbgFile.machineType == debugFile.MachineType.c64) {
+        else if(this._machineType == debugFile.MachineType.c64) {
             this._emulator = new ViceGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
@@ -375,7 +381,7 @@ export class Runtime extends EventEmitter {
 
         this._callStackManager = new CallStackManager(this._emulator, this._mapFile, this._dbgFile);
 
-        const graphicsManager = new GraphicsManager(this._emulator, this._dbgFile.machineType);
+        const graphicsManager = new GraphicsManager(this._emulator, this._machineType);
 
         const variableManager = new VariableManager(
             this._emulator,
@@ -405,6 +411,7 @@ export class Runtime extends EventEmitter {
      * Start running the given program
      * @param port Binary monitor port
      * @param program Program path
+     * @param machineType Manually set machine type
      * @param buildCwd Build path
      * @param stopOnEntry Stop after hitting main
      * @param stopOnExit Stop after hitting the end of main
@@ -425,6 +432,7 @@ export class Runtime extends EventEmitter {
         stopOnEntry: boolean,
         stopOnExit: boolean,
         runAhead: boolean,
+        machineType?: debugFile.MachineType,
         viceDirectory?: string,
         mesenDirectory?: string,
         appleWinDirectory?: string,
@@ -436,7 +444,7 @@ export class Runtime extends EventEmitter {
     ) : Promise<void> {
         metrics.event('runtime', 'start');
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, program, debugFilePath, mapFilePath)
+        await this._preStart(buildCwd, stopOnExit, runAhead, program, machineType, debugFilePath, mapFilePath)
 
         console.time('emulator');
 
@@ -447,7 +455,7 @@ export class Runtime extends EventEmitter {
         await this._emulator.start(
             port,
             path.dirname(program),
-            this._dbgFile.machineType,
+            this._machineType,
             await this._getEmulatorPath(viceDirectory, mesenDirectory, appleWinDirectory, !!preferX64OverX64sc),
             emulatorArgs,
             labelFilePath
@@ -610,7 +618,7 @@ export class Runtime extends EventEmitter {
         const wasRunning = this._emulatorRunning;
 
         let port = 1;
-        if(this._dbgFile.machineType == debugFile.MachineType.nes) {
+        if(this._machineType == debugFile.MachineType.nes) {
             port = 0;
         }
 
@@ -1342,7 +1350,7 @@ or define the location manually with the launch.json->mapFile setting`
     private async _getEmulatorPath(viceDirectory: string | undefined, mesenDirectory: string | undefined, appleWinDirectory: string | undefined, preferX64OverX64sc: boolean) : Promise<string> {
         let emulatorBaseName : string;
         let emulatorPath : string;
-        const mt = this._dbgFile.machineType;
+        const mt = this._machineType;
         if(mt == debugFile.MachineType.nes) {
             emulatorBaseName = 'Mesen.exe';
 
@@ -1592,7 +1600,7 @@ or define the location manually with the launch.json->mapFile setting`
                 [debugFile.MachineType.plus4]: 0xE1E7,
                 [debugFile.MachineType.vic20]: 0xEEB2,
             };
-            const serialLineResumeAddress = serialLineResumeAddresses[this._dbgFile.machineType];
+            const serialLineResumeAddress = serialLineResumeAddresses[this._machineType];
             let serialLineCheckpoint : bin.CheckpointInfoResponse | undefined;
             if(serialLineResumeAddress) {
                 serialLineCheckpoint = await this._emulator.execBinary({

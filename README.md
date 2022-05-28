@@ -149,6 +149,7 @@ default it will look for a d81/d64 and if it can't find any a PRG. If you have
 multiple of those types of files, it will try some fanciness to determine which
 one is the "real" one, such as looking at the modification date and how many
 files are in your disk image, but those may fail.
+- **machineType**: The machine type to use, instead of the autodetected one.
 - **mapFile**: Manually specify the path of your map file. Use this if auto
 detection fails. When this is unset it will look for a file in the same folder
 as your program named PROGRAMNAME.map

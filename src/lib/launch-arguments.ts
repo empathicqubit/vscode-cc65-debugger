@@ -1,4 +1,5 @@
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { MachineType } from './debug-file';
 
 export interface LaunchRequestBuildArguments {
     /** Should we skip the build completely? */
@@ -39,6 +40,8 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     build: LaunchRequestBuildArguments;
     /** The d64, d81, or prg file to run, if automatic detection doesn't work */
     program: string;
+    /** The machine type to use, instead of the autodetected one. */
+    machineType?: string;
     /** The debug file path, if automatic detection doesn't work */
     debugFile: string;
     /** The map file path, if automatic detection doesn't work */
