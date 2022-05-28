@@ -22,7 +22,7 @@
     "debug"
   ],
   "engines": {
-    "vscode": "^1.54.0"
+    "vscode": "^1.62.0"
   },
   "icon": "images/icon.png",
   "categories": [

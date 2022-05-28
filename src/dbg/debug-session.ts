@@ -68,8 +68,8 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             file = 'cmd.exe';
             args = args.map(x => ['echo', '&&', '||', '>', '>>'].includes(x.trim()) ? x : `"${x}"`);
         }
-        else if (file != process.execPath) {
-            args.unshift(__basedir + '/../exec-handler.js', file);
+        else if (![file, ...args].includes(process.execPath)) {
+            args.unshift(__basedir + '/../exec-handler.js', '--ms-enable-electron-run-as-node', file);
             file = process.execPath;
         }
 

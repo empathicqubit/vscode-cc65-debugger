@@ -2,8 +2,6 @@
 
 # vscode-cc65-debugger
 
-PLEASE NOTE: There is currently a problem breaking execution on Linux and Mac OS with vscode 1.67+. Please use vscode 1.66.x for now.
-
 [![Version](https://vsmarketplacebadge.apphb.com/version/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 [![Ratings](https://vsmarketplacebadge.apphb.com/rating/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)

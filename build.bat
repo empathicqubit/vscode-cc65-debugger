@@ -10,11 +10,7 @@ call :dirname CODE_DIR "!CODE!"
 set BUILD=%SCRIPT_DIR%/dist/debug-adapter.js
 set ELECTRON_RUN_AS_NODE=1
 
-set STUPID_SWITCH=
-"%CODE_DIR%\..\code" -e "process.exit(0)" --ms-enable-electron-run-as-node
-if %errorlevel%==0 set STUPID_SWITCH=--ms-enable-electron-run-as-node
-
-"%CODE_DIR%\..\code" "%BUILD%" %STUPID_SWITCH% build %*
+"%CODE_DIR%\..\code" "%BUILD%" --ms-enable-electron-run-as-node build %*
 
 goto eof
 

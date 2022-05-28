@@ -1,20 +1,21 @@
-const main = async() => {
-    try {
-        const res = await require('util').promisify(require('child_process').execFile)(process.argv[2], process.argv.slice(3), {
-            shell: 'sh',
-        });
+try {
+    const proc = require('child_process').spawn(process.argv[2], process.argv.slice(3), {
+        shell: 'sh',
+        stdio: 'inherit',
+    });
 
-        console.log(res.stdout);
-        console.error(res.stderr);
-    }
-    catch (e) {
-        console.log(e.stdout);
-        console.error(e.stderr);
-
-        throw e;
-    }
-};
-
-main()
-    .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    proc.on('exit', (code, sig) => {
+        process.exit(code);
+    });
+    proc.on('close', (code, sig) => {
+        process.exit(code);
+    });
+    proc.on('error', (e) => {
+        console.error(e);
+        process.exit(1);
+    });
+}
+catch (e) {
+    console.error(e);
+    throw e;
+}

@@ -21,9 +21,4 @@ if ! test -e "$CODE" ; then
 fi
 
 # MS introduced this freaking command line switch 1.62 Oct 2021
-STUPID_SWITCH=""
-if ELECTRON_RUN_AS_NODE=1 "$CODE" -e "process.exit(0)" --ms-enable-electron-run-as-node ; then
-    STUPID_SWITCH="--ms-enable-electron-run-as-node"
-fi
-
-ELECTRON_RUN_AS_NODE=1 "$CODE" "$BUILD" $STUPID_SWITCH build "$@"
+ELECTRON_RUN_AS_NODE=1 "$CODE" "$BUILD" --ms-enable-electron-run-as-node build "$@"
