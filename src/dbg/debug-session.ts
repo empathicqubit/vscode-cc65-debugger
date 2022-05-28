@@ -55,20 +55,24 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     private _bounceBuf: () => void;
     private _bounceControllerBuf: () => void;
 
-    private _execHandler : debugUtils.ExecHandler = ((file, args, opts) => {
-        const promise = new Promise<[number, number]>((res, rej) => {
-            if(!path.isAbsolute(file) && path.dirname(file) != '.') {
-                file = path.join(__basedir, file);
-            }
+    private _execHandler : debugUtils.ExecHandler = (async (file, args, opts) => {
+        if(!path.isAbsolute(file) && path.dirname(file) != '.') {
+            file = path.join(__basedir, file);
+        }
 
-            file = path.normalize(file);
+        file = path.normalize(file);
 
-            if(process.platform == 'win32') {
-                args.unshift('/S', '/C', file);
-                file = 'cmd.exe';
-                args = args.map(x => ['echo', '&&', '||', '>', '>>'].includes(x.trim()) ? x : `"${x}"`);
-            }
+        if(process.platform == 'win32') {
+            args.unshift('/S', '/C', file);
+            file = 'cmd.exe';
+            args = args.map(x => ['echo', '&&', '||', '>', '>>'].includes(x.trim()) ? x : `"${x}"`);
+        }
+        else if (file != process.execPath) {
+            args.unshift(__basedir + '/../exec-handler.js', file);
+            file = process.execPath;
+        }
 
+        return await new Promise<[number, number]>((res, rej) => {
             this.runInTerminalRequest({
                 args: [file, ...args],
                 cwd: opts.cwd || __basedir,
@@ -84,8 +88,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 }
             })
         });
-
-        return promise;
     });
 
     /**

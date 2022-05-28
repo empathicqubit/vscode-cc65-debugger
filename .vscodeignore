@@ -7,3 +7,4 @@
 !syntaxes/**/*
 !build.sh
 !build.bat
+!exec-handler.js
