@@ -39,6 +39,7 @@ describe('other emulators', () => {
             true,
             false,
             false,
+            undefined,
             VICE_DIRECTORY,
             MESEN_DIRECTORY,
             APPLEWIN_DIRECTORY,

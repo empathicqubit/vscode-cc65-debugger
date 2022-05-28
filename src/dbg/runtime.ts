@@ -352,7 +352,7 @@ export class Runtime extends EventEmitter {
         console.timeEnd('preEmulator');
 
         if(this._machineType == debugFile.MachineType.apple2) {
-            throw new Error("Apple2 support is not finished yet!");
+            //throw new Error("Apple2 support is not finished yet!");
             this._runAhead = false;
             this._emulator = new AppleWinGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
