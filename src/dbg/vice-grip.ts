@@ -258,17 +258,6 @@ export class ViceGrip extends AbstractGrip {
     public async start(port: number, cwd: string, machineType: debugFile.MachineType, emulatorPath: string, emulatorArgs?: string[], labelFile?: string) : Promise<void> {
         await this._versionProbeStart(emulatorPath, machineType, port);
 
-        let logfile : string | undefined;
-        if(process.platform == "win32") {
-            logfile = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
-
-            const tempdir = path.dirname(logfile!);
-            const temps = await fs.promises.readdir(tempdir);
-            temps
-                .filter(x => /^cc65-vice-/.test(x))
-                .map(x => fs.promises.unlink(path.join(tempdir, x)).catch(() => {}));
-        }
-
         const opts : debugUtils.ExecFileOptions = {
             shell: false,
             cwd: cwd,
@@ -291,12 +280,6 @@ export class ViceGrip extends AbstractGrip {
 
             // Hardware
             "-autostart-warp", "-autostartprgmode", "1", "+autostart-handle-tde",
-
-            ...(
-                logfile
-                ? ['-logfile', logfile]
-                : []
-            ),
 
             ...(
                 labelFile
@@ -324,18 +307,20 @@ export class ViceGrip extends AbstractGrip {
 
         console.log('Starting VICE', emulatorPath, JSON.stringify(args), opts);
 
+        if(process.platform == 'win32') {
+            if(/chocolatey[\\/]+bin[\\/]+/i.test(emulatorPath)) {
+                args.unshift('--shimgen-waitforexit');
+            }
+            args.unshift(emulatorPath);
+
+            emulatorPath = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
+        }
+
         try {
             this._pids = await this._execHandler(emulatorPath, args, opts)
         }
         catch {
             throw new Error(`Could not start VICE with "${emulatorPath} ${args.join(' ')}". Make sure your settings are correct.`);
-        }
-
-        // Windows only, for debugging
-        if(logfile) {
-            await this._execHandler('powershell', ['-Command', 'Get-Content', logfile, '-Wait'], {
-                title: 'Log Output'
-            })
         }
 
         await this.connect(binaryPort);
