@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.3.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.1...v6.3.2) (2022-05-29)
+
+
+### Bug Fixes
+
+* Properly handle appleWinDirectory setting ([5d76517](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/5d76517ef56fa2e1e0f7ec6d386103384b070947))
+* Remove weird logging on Windows and replace with minTTY ([be273ed](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/be273edd63d565522cc3f4d624abb73323c0a602))
+
 ### [6.3.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.0...v6.3.1) (2022-05-28)
 
 
