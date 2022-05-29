@@ -1,5 +1,9 @@
 try {
-    const proc = require('child_process').spawn(process.argv[2], process.argv.slice(3), {
+    const args = [...process.argv.slice(2)];
+    let file = '';
+    while((file = args.shift()) == '--ms-enable-electron-run-as-node');
+
+    const proc = require('child_process').spawn(file, args, {
         shell: 'sh',
         stdio: 'inherit',
     });

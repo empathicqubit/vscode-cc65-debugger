@@ -3,7 +3,6 @@
         "activityBar.background": "#630",
 
     },
-
     "jest.autoRun": {
         "watch": false,
     },

@@ -242,6 +242,7 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
         }
         config.cc65Home = vscode.workspace.getConfiguration('cc65vice').get('cc65Home');
         config.viceDirectory = vscode.workspace.getConfiguration('cc65vice').get('viceDirectory');
+        config.appleWinDirectory = vscode.workspace.getConfiguration('cc65vice').get('appleWinDirectory');
         config.mesenDirectory = vscode.workspace.getConfiguration('cc65vice').get('mesenDirectory');
         config.preferX64OverX64sc = vscode.workspace.getConfiguration('cc65vice').get('preferX64OverX64sc');
         config.runAhead = vscode.workspace.getConfiguration('cc65vice').get('runAhead');
