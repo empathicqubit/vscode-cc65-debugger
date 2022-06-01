@@ -13,7 +13,7 @@
 Dependencies and date last changed:
 
 [![VICE](https://img.shields.io/badge/VICE-3.6.1%202022%2f05%2f14-blue)](https://community.chocolatey.org/packages/winvice-nightly/3.6.1)
-[![Mesen-X](https://img.shields.io/badge/MesenX-1.0.0%202021%2f11%2f24-blue)](https://github.com/NovaSquirrel/Mesen-X/releases/tag/1.0.0) 
+[![Mesen-X](https://img.shields.io/badge/MesenX-1.0.0%202021%2f11%2f24-blue)](https://github.com/NovaSquirrel/Mesen-X/releases/tag/1.0.0)
 
 This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms (well-tested) and NES (experimental), including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
 
@@ -44,6 +44,11 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 # Install the packages
 choco install --version 3.6.1 winvice-nightly
 choco install make
+
+# This isn't required, but installing it will make C development a little easier.
+# If you install this you should also install the llvm-vs-code-extensions.vscode-clangd
+# VSCode extension from the Marketplace.
+choco install llvm
 ```
 
 Make sure these directories are not on your PATH. They will break the Makefile:
@@ -60,6 +65,7 @@ C:\Program Files\Git\cmd
 ```
 
 ### Mac-specific instructions
+
 You will need to install VICE. The easiest way to do this is with [Brew](https://brew.sh/).
 
 ```sh
@@ -116,12 +122,12 @@ Required settings for both launch and attach:
 - **type**: Always `cc65-vice` for this debugger.
 - **build**: Attributes for the build command. You need this for attachment as
 well, so the debugger can find relative paths in your debug file.
-    - **command**: Your actual build command. Defaults to make if unspecified.
+  - **command**: Your actual build command. Defaults to make if unspecified.
 [You will need to change your Makefile to support being debugged with this.](#changes-needed-to-your-makefile)
-    - **args**: An array with args for your command. Defaults to [] if unspecified.
-    - **cwd**: The working directory for your build command. You need this for
+  - **args**: An array with args for your command. Defaults to [] if unspecified.
+  - **cwd**: The working directory for your build command. You need this for
 attachment as well, so the debugger can find relative paths in your debug file.
-    - **skip**: Should we skip building before execution?
+  - **skip**: Should we skip building before execution?
 
 Required for attach mode only:
 
@@ -171,7 +177,7 @@ Mesen executables. You'll probably need this on Windows. If this is omitted then
 it will look on the system PATH.
 - **cc65vice.cc65Home**: Set this to specify the directory that contains the
 CC65 build. This is the `CC65_HOME` directory, and not the bin directory, so the
-folder above bin.  If your system doesn't have prebuilt binaries, you probably 
+folder above bin.  If your system doesn't have prebuilt binaries, you probably
 want to use CC65 on your PATH, and *not* this.
 - **cc65vice.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
 - **cc65vice.disableMetrics**: This disables metric reporting, which tracks when the
@@ -294,37 +300,37 @@ get it to reappear correctly.
 
 Some other `package.json` scripts of note:
 
-* **clean**: Will remove all generated outputs such as files in `dist`. Use this
+- **clean**: Will remove all generated outputs such as files in `dist`. Use this
 If something doesn't seem to update.
-* **distclean**: Will remove all files including `node_modules` and the `3rdparty`
+- **distclean**: Will remove all files including `node_modules` and the `3rdparty`
 directories. Use this if something is really sideways.
-* **compiler**: Will build all the versions of cc65 to `dist/cc65`
-* **compiler:quick**: Will only build the x86 versions of cc65 for your platform.
+- **compiler**: Will build all the versions of cc65 to `dist/cc65`
+- **compiler:quick**: Will only build the x86 versions of cc65 for your platform.
 This is used when you launch the project in VSCode.
-* **webpack** and **webpack:debug**: Builds all the webpacked parts of the project.
+- **webpack** and **webpack:debug**: Builds all the webpacked parts of the project.
 The debug adapter, monitor, extension, and extension UI code.
-* **tisk**: Builds all the source with standard `tsc`. Called by `Ctrl+Shift+B` in
+- **tisk**: Builds all the source with standard `tsc`. Called by `Ctrl+Shift+B` in
 VSCode. This doesn't actually build the project, just quickly verifies that the
 code isn't broken. Also used before the Webpack build so each component doesn't
 revalidate the syntax, making it faster overall.
-* **build:full**: Builds everything for deployment.
-* **build:test**: Only builds the parts needed to run the tests, and to debug the
+- **build:full**: Builds everything for deployment.
+- **build:test**: Only builds the parts needed to run the tests, and to debug the
 extension in VSCode.
-* **vscode:prepublish**: Used for vsce packaging. Will run the tests before
+- **vscode:prepublish**: Used for vsce packaging. Will run the tests before
 generating a vsix file.
-* **vscode:prepublish:github**: Only called on the build server. Skips the tests
+- **vscode:prepublish:github**: Only called on the build server. Skips the tests
 since they are run separately as a PR check.
-* **vice:choose**: Selects a version of VICE to test against. Look at [build.env.sample](build.env.sample)
-* **applewin:choose**: Selects a version of AppleWin to test against. Look at [build.env.sample](build.env.sample)
-* **lint**: Project linting. Not as important since TypeScript itself prevents
+- **vice:choose**: Selects a version of VICE to test against. Look at [build.env.sample](build.env.sample)
+- **applewin:choose**: Selects a version of AppleWin to test against. Look at [build.env.sample](build.env.sample)
+- **lint**: Project linting. Not as important since TypeScript itself prevents
 a lot of obvious mistakes.
-* **jest**: Run only some of the tests. For example: `pnpm jest -- src/__tests__/runtime-other-platforms.test.ts`
-* **jest:compile**: Runs only the compile tests. This is separate because the
+- **jest**: Run only some of the tests. For example: `pnpm jest -- src/__tests__/runtime-other-platforms.test.ts`
+- **jest:compile**: Runs only the compile tests. This is separate because the
 other tests are dependent on the cc65 projects being compiled.
-* **jest:noncompile**: The tests that come after compilation.
-* **test**: Run the tests in the correct order. Does not build anything, so
+- **jest:noncompile**: The tests that come after compilation.
+- **test**: Run the tests in the correct order. Does not build anything, so
 use `build:test` for that.
-* **package**: Run `vsce package` using pnpm. The project is using a modified
+- **package**: Run `vsce package` using pnpm. The project is using a modified
 version of vsce that has support for pnpm.
 
 ## Contributing
@@ -355,8 +361,8 @@ Keep in mind that stdio is not implemented correctly, so printf and file operati
 
 ## Additional Credits (see also LICENSE.md)
 
-* **Terminal**: mintty, from [Git for Windows](https://github.com/git-for-windows/git/releases)
-* **Compilation**: A modified version of [CC65](https://github.com/empathicqubit/cc65) is included with this project, in order to generate detailed type information at compile time.
-* **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
-* **Font**: Font for the screen text viewer is generated using [atbrask/c64ttf](https://github.com/atbrask/c64ttf)
-* **Icon**: Based on a character that appears on the box art for **Bug Blaster**.
+- **Terminal**: mintty, from [Git for Windows](https://github.com/git-for-windows/git/releases)
+- **Compilation**: A modified version of [CC65](https://github.com/empathicqubit/cc65) is included with this project, in order to generate detailed type information at compile time.
+- **Assembly syntax highlighting**: Borrowed from [tlgkccampbell/code-ca65](https://github.com/tlgkccampbell/code-ca65)
+- **Font**: Font for the screen text viewer is generated using [atbrask/c64ttf](https://github.com/atbrask/c64ttf)
+- **Icon**: Based on a character that appears on the box art for **Bug Blaster**.
