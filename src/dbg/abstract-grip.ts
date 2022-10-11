@@ -1,18 +1,13 @@
 import { EventEmitter } from 'events'
-import * as fs from 'fs'
 import getPort from 'get-port'
 import _intersectionBy from 'lodash/fp/intersectionBy'
-import _last from 'lodash/fp/last'
-import _random from 'lodash/fp/random'
 import _uniq from 'lodash/fp/uniq'
 import * as net from 'net'
-import * as path from 'path'
 import { Readable, Writable } from 'stream'
 import * as util from 'util'
 import * as bin from './binary-dto'
 import * as debugFile from '../lib/debug-file'
 import * as debugUtils from '../lib/debug-utils'
-import { __basedir } from '../basedir'
 
 const waitPort = require('wait-port');
 

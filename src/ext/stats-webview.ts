@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as util from 'util';
 import * as vscode from 'vscode';
 import * as bin from '../dbg/binary-dto';
 

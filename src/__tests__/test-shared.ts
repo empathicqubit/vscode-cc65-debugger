@@ -1,7 +1,5 @@
-import _random from 'lodash/fp/random';
-import _last from 'lodash/fp/last';
+
 import * as debugUtils from '../lib/debug-utils';
-import * as child_process from 'child_process';
 import * as compile from '../lib/compile';
 import * as path from 'path';
 import { Runtime } from '../dbg/runtime';
@@ -128,7 +126,7 @@ export async function cleanup() : Promise<void> {
     const killRts = [...rts];
 
     for(const rt of killRts) {
-        rt.terminate();
+        rt.terminate().catch(() => {});
         rts.splice(rts.indexOf(rt), 1);
     }
 

@@ -1,8 +1,6 @@
 import * as child_process from 'child_process';
-import * as colors from 'colors/safe';
 import * as compile from '../lib/compile';
 import _debounce from 'lodash/fp/debounce';
-import _flatten from 'lodash/fp/flatten';
 import { basename } from 'path';
 import {
     Breakpoint, BreakpointEvent, ContinuedEvent, Event, InitializedEvent, Logger, logger,
@@ -11,7 +9,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as debugUtils from '../lib/debug-utils';
 import * as keyMappings from '../lib/key-mappings';
-import { LaunchRequestArguments, LaunchRequestBuildArguments } from '../lib/launch-arguments';
+import { LaunchRequestArguments } from '../lib/launch-arguments';
 import * as metrics from '../lib/metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
 import * as path from 'path';

@@ -1,5 +1,4 @@
 import { AbstractGrip } from "./abstract-grip";
-import _random from 'lodash/fp/random'
 import * as fs from 'fs'
 import * as bin from './binary-dto'
 import * as util from 'util'
@@ -8,7 +7,6 @@ import * as debugFile from '../lib/debug-file'
 import * as path from 'path'
 import { __basedir } from '../basedir'
 import getPort from 'get-port'
-import _last from 'lodash/fp/last'
 import * as pngjs from 'pngjs'
 
 const mesenBaseDir = __basedir + '/../dist/mesen';

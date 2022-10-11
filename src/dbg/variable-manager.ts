@@ -2,7 +2,6 @@ import * as mathjs from 'mathjs';
 import _flatten from 'lodash/fp/flatten';
 import _sum from 'lodash/fp/sum'
 import _isNaN from 'lodash/fp/isNaN';
-import * as bin from './binary-dto';
 import _max from 'lodash/fp/max'
 import _set from 'lodash/fp/set';
 import * as debugFile from '../lib/debug-file'

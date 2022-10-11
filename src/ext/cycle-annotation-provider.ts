@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import * as debugFile from "../lib/debug-file";
 import * as debugUtils from '../lib/debug-utils';
 import * as disassembly from '../lib/disassembly';
-import * as path from 'path';
 import _minBy from 'lodash/fp/minBy';
 import _debounce from 'lodash/fp/debounce';
 import * as compile from '../lib/compile';

@@ -1,9 +1,7 @@
 import { AbstractGrip } from "./abstract-grip";
 import _random from 'lodash/fp/random'
-import * as tmp from 'tmp'
 import * as bin from './binary-dto'
 import semver from 'semver'
-import * as util from 'util'
 import * as fs from 'fs'
 import * as debugUtils from '../lib/debug-utils'
 import * as path from 'path'

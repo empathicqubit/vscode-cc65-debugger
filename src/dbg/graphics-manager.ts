@@ -4,7 +4,6 @@ import _max from 'lodash/fp/max';
 import _min from 'lodash/fp/min';
 import * as path from 'path';
 import * as pngjs from 'pngjs';
-import * as util from 'util';
 import * as bin from './binary-dto';
 import * as debugFile from '../lib/debug-file';
 import { __basedir } from '../basedir';

@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/src/__tests__/simple-project/src",
+                "${workspaceFolder}/dist/cc65/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang-10",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

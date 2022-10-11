@@ -1,14 +1,11 @@
 import { AbstractGrip } from "./abstract-grip";
-import _random from 'lodash/fp/random'
 import * as tmp from 'tmp'
 import * as bin from './binary-dto'
-import semver from 'semver'
 import * as util from 'util'
 import * as fs from 'fs'
 import * as debugUtils from '../lib/debug-utils'
 import * as path from 'path'
 import * as debugFile from '../lib/debug-file'
-import { __basedir } from '../basedir'
 import getPort from 'get-port'
 import _last from 'lodash/fp/last'
 

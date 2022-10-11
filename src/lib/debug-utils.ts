@@ -1,5 +1,4 @@
 import _transform from 'lodash/transform';
-import _last from 'lodash/fp/last';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';

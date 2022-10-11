@@ -1,5 +1,4 @@
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { MachineType } from './debug-file';
 
 export interface LaunchRequestBuildArguments {
     /** Should we skip the build completely? */
