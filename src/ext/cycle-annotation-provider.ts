@@ -12,120 +12,133 @@ class CycleAnnotationProvider {
     private _individualCycleDecoration : vscode.TextEditorDecorationType;
     private _totalCycleDeclaration: vscode.TextEditorDecorationType;
 
+    private _lastDecorated: { [filename: string]:number } = {};
+
     private _active: boolean = false;
     private _dbgFile?: debugFile.Dbgfile;
     private _buildCwd: string = '';
     private _fsWatcher: vscode.FileSystemWatcher;
 
     private async _updateDecorations(textEditors: vscode.TextEditor[]) : Promise<void> {
-        if(!vscode.workspace.name) {
-            return;
-        }
-
-        const programPaths = await compile.guessProgramPath(this._buildCwd);
-        if(!programPaths.length) {
-            return;
-        }
-
-        // FIXME This is on the launch unfortunately, so we fake it for now.
-        const debugPath = await debugUtils.getDebugFilePath(programPaths[0], this._buildCwd);
-
-        if(!debugPath) {
-            return;
-        }
-
-        if(!this._dbgFile) {
-            const debugDoc = await vscode.workspace.openTextDocument(debugPath);
-            this._dbgFile = debugFile.parse(debugDoc.getText(), this._buildCwd);
-        }
-
-        // FIXME Probably slow
-        const programData = await compile.getBinaryFromProgram(programPaths[0]);
-        const loadAddress = programData.readUInt16LE(0);
-
-        for(const textEditor of textEditors) {
-            const textDocument = vscode.workspace.textDocuments.find(x => x.fileName == textEditor.document.fileName)
-            if(!textDocument) {
-                continue;
-            }
-
-            if(!["c", "ca65"].includes(textDocument.languageId)) {
+        console.time("update decorations");
+        try {
+            if(!vscode.workspace.name) {
                 return;
             }
 
-            const file = this._dbgFile.files
-                .find(x => x.name == textEditor.document.uri.fsPath.toString())
-            if(!file) {
-                continue;
+            const programPaths = await compile.guessProgramPath(this._buildCwd);
+            if(!programPaths.length) {
+                return;
             }
 
-            const lines = file.lines.filter(x => x.num + 1 < textDocument.lineCount);
+            // FIXME This is on the launch unfortunately, so we fake it for now.
+            const debugPath = await debugUtils.getDebugFilePath(programPaths[0], this._buildCwd);
 
-            let total = 0;
-            const opts : vscode.DecorationOptions[] = [];
-            for(const line of lines) {
-                let count = 0;
+            if(!debugPath) {
+                return;
+            }
 
-                // FIXME This won't work with cruncher.
-                if(!(programData && line.span)) {
+            if(!this._dbgFile) {
+                const debugDoc = await vscode.workspace.openTextDocument(debugPath);
+                this._dbgFile = debugFile.parse(debugDoc.getText(), this._buildCwd);
+            }
+
+            // FIXME Probably slow
+            const programData = await compile.getBinaryFromProgram(programPaths[0]);
+            const loadAddress = programData.readUInt16LE(0);
+
+            for(const textEditor of textEditors) {
+                const textDocument = vscode.workspace.textDocuments.find(x => x.fileName == textEditor.document.fileName)
+                if(!textDocument) {
                     continue;
                 }
 
-                const mem = programData.slice(line.span.absoluteAddress - (loadAddress - 2), (line.span.absoluteAddress + line.span.size) - (loadAddress - 2));
+                if(!["c", "ca65"].includes(textDocument.languageId)) {
+                    return;
+                }
 
-                disassembly.opCodeFind(mem, (cmd, __, ___) => {
-                    count += disassembly.opcodeCycles[cmd];
-                    return false;
-                });
+                if(this._lastDecorated[textDocument.uri.toString()] === textDocument.version) {
+                    continue;
+                }
 
-                if(textEditor.selections.length > 1 || !textEditor.selection.isSingleLine) {
-                    for(const selection of textEditor.selections) {
-                        if(
-                            textDocument.lineAt(line.num).range.intersection(selection)
-                            || textDocument.lineAt(line.num).range.intersection(selection)
-                            ) {
-                            total += count;
+                const file = this._dbgFile.files
+                    .find(x => x.name == textEditor.document.uri.fsPath.toString())
+                if(!file) {
+                    continue;
+                }
+
+                const lines = file.lines.filter(x => x.num + 1 < textDocument.lineCount);
+
+                let total = 0;
+                const opts : vscode.DecorationOptions[] = [];
+                for(const line of lines) {
+                    let count = 0;
+
+                    // FIXME This won't work with cruncher.
+                    if(!(programData && line.span)) {
+                        continue;
+                    }
+
+                    const mem = programData.slice(line.span.absoluteAddress - (loadAddress - 2), (line.span.absoluteAddress + line.span.size) - (loadAddress - 2));
+
+                    disassembly.opCodeFind(mem, (cmd, __, ___) => {
+                        count += disassembly.opcodeCycles[cmd];
+                        return false;
+                    });
+
+                    if(textEditor.selections.length > 1 || !textEditor.selection.isSingleLine) {
+                        for(const selection of textEditor.selections) {
+                            if(
+                                textDocument.lineAt(line.num).range.intersection(selection)
+                                || textDocument.lineAt(line.num).range.intersection(selection)
+                                ) {
+                                total += count;
+                            }
                         }
+                    }
+
+                    try {
+                        const opt : vscode.DecorationOptions = {
+                            range: textDocument.lineAt(line.num).range,
+                            hoverMessage: `Cycles: ${count}`,
+                            renderOptions: {
+                                after: {
+                                    contentText: `🔄 ${count}`,
+                                }
+                            },
+                        };
+
+                        opts.push(opt);
+                    }
+                    catch {
+                        continue;
                     }
                 }
 
-                try {
+                textEditor.setDecorations(this._individualCycleDecoration, opts);
+                if(total) {
+                    const union = textEditor.selections.reduce((last : {union(input: vscode.Range)}, cur) => last.union(cur));
                     const opt : vscode.DecorationOptions = {
-                        range: textDocument.lineAt(line.num).range,
-                        hoverMessage: `Cycles: ${count}`,
+                        range: new vscode.Range(
+                            textDocument.lineAt(union.start.line).range.start,
+                            textDocument.lineAt(union.end.line).range.end
+                        ),
+                        hoverMessage: `✅ Selection (ALT+🖱️) cycles: ${total}`,
                         renderOptions: {
                             after: {
-                                contentText: `🔄 ${count}`,
+                                contentText: `✅ ${total}`,
                             }
                         },
                     };
 
-                    opts.push(opt);
+                    textEditor.setDecorations(this._totalCycleDeclaration, [opt]);
                 }
-                catch {
-                    continue;
-                }
+
+                this._lastDecorated[textDocument.uri.toString()] = textDocument.version;
             }
-
-            textEditor.setDecorations(this._individualCycleDecoration, opts);
-            if(total) {
-                const union = textEditor.selections.reduce((last : {union(input: vscode.Range)}, cur) => last.union(cur));
-                const opt : vscode.DecorationOptions = {
-                    range: new vscode.Range(
-                        textDocument.lineAt(union.start.line).range.start,
-                        textDocument.lineAt(union.end.line).range.end
-                    ),
-                    hoverMessage: `✅ Selection (ALT+🖱️) cycles: ${total}`,
-                    renderOptions: {
-                        after: {
-                            contentText: `✅ ${total}`,
-                        }
-                    },
-                };
-
-                textEditor.setDecorations(this._totalCycleDeclaration, [opt]);
-            }
-
+        }
+        finally {
+            console.timeEnd("update decorations")
         }
     }
 
@@ -146,10 +159,6 @@ class CycleAnnotationProvider {
     private _onChangeTextEditorSelection = _debounce(250, async(selectionEvent : vscode.TextEditorSelectionChangeEvent) : Promise<void> => {
         const startLine = selectionEvent.selections[0].start.line;
         const endLine = selectionEvent.selections[0].end.line;
-
-        if(!(selectionEvent.selections.length > 1 || startLine != endLine)) {
-            return;
-        }
 
         await this._updateDecorations([selectionEvent.textEditor]);
     })
@@ -211,6 +220,7 @@ class CycleAnnotationProvider {
         this._activations = [];
         this._individualCycleDecoration.dispose();
         this._totalCycleDeclaration.dispose();
+        this._lastDecorated = {};
     }
 
     public toggle() : void {
