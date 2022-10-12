@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.3.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.2...v6.3.3) (2022-10-12)
+
+
+### Bug Fixes
+
+* catch errors on termination ([1f19c30](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/1f19c306cc9fc3f43253a6e618f5353daf6031d4))
+* Update decorations frequently based on document version change ([a758c06](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/a758c06fecafef59bf9a0cd1546ebe15c83c12d3))
+
 ### [6.3.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.1...v6.3.2) (2022-05-29)
 
 
