@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.3.5](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.4...v6.3.5) (2022-10-13)
+
+
+### Bug Fixes
+
+* Cache the program data file ([5ac2003](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/5ac2003e99e7f114e292d7e7338986c9de38eb4c))
+
 ### [6.3.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.3...v6.3.4) (2022-10-13)
 
 
