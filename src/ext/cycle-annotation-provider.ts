@@ -18,6 +18,8 @@ class CycleAnnotationProvider {
     private _dbgFile?: debugFile.Dbgfile;
     private _buildCwd: string = '';
     private _fsWatcher: vscode.FileSystemWatcher;
+    private _programData?: Buffer;
+    private _loadAddress?: number;
 
     private async _updateDecorations(textEditors: vscode.TextEditor[]) : Promise<void> {
         console.time("update decorations");
@@ -43,11 +45,11 @@ class CycleAnnotationProvider {
                 dbgFileUpdated = true;
                 const debugDoc = await vscode.workspace.openTextDocument(debugPath);
                 this._dbgFile = debugFile.parse(debugDoc.getText(), this._buildCwd);
+                this._programData = await compile.getBinaryFromProgram(programPaths[0]);
+                this._loadAddress = this._programData.readUInt16LE(0);
             }
 
             // FIXME Probably slow
-            const programData = await compile.getBinaryFromProgram(programPaths[0]);
-            const loadAddress = programData.readUInt16LE(0);
 
             for(const textEditor of textEditors) {
                 const textDocument = vscode.workspace.textDocuments.find(x => x.fileName == textEditor.document.fileName)
@@ -77,11 +79,11 @@ class CycleAnnotationProvider {
                     let count = 0;
 
                     // FIXME This won't work with cruncher.
-                    if(!(programData && line.span)) {
+                    if(!(this._loadAddress && this._programData && line.span)) {
                         continue;
                     }
 
-                    const mem = programData.slice(line.span.absoluteAddress - (loadAddress - 2), (line.span.absoluteAddress + line.span.size) - (loadAddress - 2));
+                    const mem = this._programData.slice(line.span.absoluteAddress - (this._loadAddress - 2), (line.span.absoluteAddress + line.span.size) - (this._loadAddress - 2));
 
                     disassembly.opCodeFind(mem, (cmd, __, ___) => {
                         count += disassembly.opcodeCycles[cmd];
