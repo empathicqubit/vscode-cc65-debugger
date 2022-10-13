@@ -20,6 +20,8 @@ class CycleAnnotationProvider {
     private _fsWatcher: vscode.FileSystemWatcher;
     private _programData?: Buffer;
     private _loadAddress?: number;
+    private _dbgTextDocument?: vscode.TextDocument;
+    private _dbgLastDecorated?: number;
 
     private async _updateDecorations(textEditors: vscode.TextEditor[]) : Promise<void> {
         console.time("update decorations");
@@ -40,11 +42,13 @@ class CycleAnnotationProvider {
                 return;
             }
 
+            this._dbgTextDocument = this._dbgTextDocument || await vscode.workspace.openTextDocument(debugPath);
+
             let dbgFileUpdated = false;
             if(!this._dbgFile) {
                 dbgFileUpdated = true;
-                const debugDoc = await vscode.workspace.openTextDocument(debugPath);
-                this._dbgFile = debugFile.parse(debugDoc.getText(), this._buildCwd);
+                this._dbgLastDecorated = undefined;
+                this._dbgFile = debugFile.parse(this._dbgTextDocument.getText(), this._buildCwd);
                 this._programData = await compile.getBinaryFromProgram(programPaths[0]);
                 this._loadAddress = this._programData.readUInt16LE(0);
             }
@@ -61,7 +65,7 @@ class CycleAnnotationProvider {
                     return;
                 }
 
-                if(!dbgFileUpdated && this._lastDecorated[textDocument.uri.toString()] === textDocument.version) {
+                if(this._dbgLastDecorated === this._dbgTextDocument?.version && this._lastDecorated[textDocument.uri.toString()] === textDocument.version) {
                     continue;
                 }
 
@@ -140,6 +144,8 @@ class CycleAnnotationProvider {
 
                 this._lastDecorated[textDocument.uri.toString()] = textDocument.version;
             }
+
+            this._dbgLastDecorated = this._dbgTextDocument?.version;
         }
         finally {
             console.timeEnd("update decorations")
@@ -225,6 +231,11 @@ class CycleAnnotationProvider {
         this._individualCycleDecoration.dispose();
         this._totalCycleDeclaration.dispose();
         this._lastDecorated = {};
+        this._dbgTextDocument = undefined;
+        this._dbgLastDecorated = undefined;
+        this._dbgFile = undefined;
+        this._programData = undefined;
+        this._loadAddress = undefined;
     }
 
     public toggle() : void {
