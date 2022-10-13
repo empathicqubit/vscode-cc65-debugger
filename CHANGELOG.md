@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.3.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.3...v6.3.4) (2022-10-13)
+
+
+### Bug Fixes
+
+* Invalidate cycle counts if debug file is updated ([a983da1](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/a983da13c0f568faa8ee957f1c5a1e76badd4355))
+
 ### [6.3.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.2...v6.3.3) (2022-10-12)
 
 
