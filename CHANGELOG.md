@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.3.6](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.5...v6.3.6) (2022-10-13)
+
+
+### Bug Fixes
+
+* Force rerender when visible text editor changes ([043c76d](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/043c76d67c374f068dad63071709b41f0085c099))
+
 ### [6.3.5](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.4...v6.3.5) (2022-10-13)
 
 
