@@ -38,7 +38,9 @@ class CycleAnnotationProvider {
                 return;
             }
 
+            let dbgFileUpdated = false;
             if(!this._dbgFile) {
+                dbgFileUpdated = true;
                 const debugDoc = await vscode.workspace.openTextDocument(debugPath);
                 this._dbgFile = debugFile.parse(debugDoc.getText(), this._buildCwd);
             }
@@ -57,7 +59,7 @@ class CycleAnnotationProvider {
                     return;
                 }
 
-                if(this._lastDecorated[textDocument.uri.toString()] === textDocument.version) {
+                if(!dbgFileUpdated && this._lastDecorated[textDocument.uri.toString()] === textDocument.version) {
                     continue;
                 }
 
