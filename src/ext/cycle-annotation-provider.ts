@@ -23,7 +23,7 @@ class CycleAnnotationProvider {
     private _dbgTextDocument?: vscode.TextDocument;
     private _dbgLastDecorated?: number;
 
-    private async _updateDecorations(textEditors: vscode.TextEditor[]) : Promise<void> {
+    private async _updateDecorations(textEditors: vscode.TextEditor[], force: boolean = false) : Promise<void> {
         console.time("update decorations");
         try {
             if(!vscode.workspace.name) {
@@ -65,7 +65,7 @@ class CycleAnnotationProvider {
                     return;
                 }
 
-                if(this._dbgLastDecorated === this._dbgTextDocument?.version && this._lastDecorated[textDocument.uri.toString()] === textDocument.version) {
+                if(!force && this._dbgLastDecorated === this._dbgTextDocument?.version && this._lastDecorated[textDocument.uri.toString()] === textDocument.version) {
                     continue;
                 }
 
@@ -153,7 +153,7 @@ class CycleAnnotationProvider {
     }
 
     private _onChangeVisibleEditor = async(textEditors: vscode.TextEditor[]): Promise<void> => {
-        await this._updateDecorations(textEditors);
+        await this._updateDecorations(vscode.window.visibleTextEditors, true);
     }
 
     private _onChangeDebugFile = _debounce(250, async (uri: vscode.Uri): Promise<void> => {
