@@ -47,18 +47,11 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build VICE
-RUN mkdir -p /vices/builds /vices/sources && \
+ADD ./build-vice.sh /build-vice.sh
+RUN chmod a+rx /build-vice.sh && \
     for each in 3.5 3.6 ; do \
-        cd /vices/sources && \
-        curl -L https://downloads.sourceforge.net/project/vice-emu/releases/vice-$each.tar.gz > /vices/sources/vice-$each.tar.gz && \
-        tar xvf /vices/sources/vice-$each.tar.gz && \
-        mkdir /vices/builds/vice-$each && \
-        cd /vices/builds/vice-$each && \
-        /vices/sources/vice-${each}*/configure --enable-headlessui --disable-pdf-docs && \
-        rsync -rav --ignore-existing /vices/sources/vice-${each}*/data/. ./data/. && \
-        make -j$(nproc) ; \
-    done && \
-    rm -rf /vices/sources
+        /build-vice.sh ${each} builds --enable-headlessui ; \
+    done
 
 # Install cross build tools for CC65
 RUN dpkg --add-architecture i386 && \

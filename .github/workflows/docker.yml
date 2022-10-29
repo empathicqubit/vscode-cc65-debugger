@@ -22,4 +22,6 @@ jobs:
           ref: master
     - run: docker pull empathicqubit/vscode-cc65-debugger-build
     - run: cd docker && docker build -t empathicqubit/vscode-cc65-debugger-build .
+    - run: cd docker && docker build -t empathicqubit/vscode-cc65-debugger-devcontainer -f devcontainer.Dockerfile .
     - run: docker push empathicqubit/vscode-cc65-debugger-build
+    - run: docker push empathicqubit/vscode-cc65-debugger-devcontainer
