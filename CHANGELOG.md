@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.3.7](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.6...v6.3.7) (2022-10-29)
+
+
+### Bug Fixes
+
+* Fix problem with UI styling and loading ([9f65493](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/9f654939ff34425ba0b167e9a9fca5d4d79f7c45))
+
 ### [6.3.6](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.5...v6.3.6) (2022-10-13)
 
 
