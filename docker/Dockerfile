@@ -95,7 +95,6 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends mono-complete libsdl2-2.0 gnome-themes-standard xvfb x11-apps && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -u 1000 unprivileged
 USER root
 
 # Install VSCode 1.62 (which supports the stupid ms-enable CLI switch)
