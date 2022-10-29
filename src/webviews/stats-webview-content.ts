@@ -337,7 +337,7 @@ export function _statsWebviewContent() {
                 },
                     r(reactTabs.TabList, null,
                         r(reactTabs.Tab, {
-                            className: 'current-frame__tab'
+                            className: 'react-tabs__tab current-frame__tab'
                         }, 'Display (Current)'),
                         !this.props.runAhead ? null : r(reactTabs.Tab, null, 'Display (Next)'),
                         r(reactTabs.Tab, null, 'Sprites'),
@@ -415,16 +415,18 @@ export function _statsWebviewContent() {
     or disable colors. You can select the text and copy it to your clipboard.
                             `)}}),
                         ),
-                        r('div', { className: 'screentext__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
+                        r('div', { className: 'screentext__preferred' },
                             'Preferred character set: ',
                             Object.keys(PreferredTextType)
                                 .filter(x => !isNaN(Number(PreferredTextType[x])))
                                 .map(textType =>
                                     r('label', { htmlFor: 'screentext__preferred__' + textType },
                                         r('input', {
+                                            key: textType,
                                             name: 'screentext__preferred__' + textType,
                                             type: 'radio',
                                             checked: this.props.preferredTextType == PreferredTextType[textType],
+                                            onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender()),
                                             value: PreferredTextType[textType]
                                         }),
                                         textType
@@ -459,7 +461,7 @@ export function _statsWebviewContent() {
                             value: this.props.memBank,
                             onChange: changeBank,
                             },
-                            this.props.banks.map((x, i) => r('option', { value: x.id }, x.name.toString())),
+                            this.props.banks.map((x, i) => r('option', { key: x.id, value: x.id }, x.name.toString())),
                         ),
                         '$' + this.props.memoryOffset.toString(16).padStart(4, '0'),
                         r(reactTabs.Tabs, null,
@@ -469,16 +471,18 @@ export function _statsWebviewContent() {
                             ),
 
                             r(reactTabs.TabPanel, { className: 'memview__raw' },
-                                r('div', { className: 'memview__preferred', onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender())},
+                                r('div', { className: 'memview__preferred' },
                                     'Preferred character set: ',
                                     Object.keys(PreferredTextType)
                                         .filter(x => !isNaN(Number(PreferredTextType[x])))
                                         .map(textType =>
                                             r('label', { htmlFor: 'memview__preferred__' + textType },
                                                 r('input', {
+                                                    key: textType,
                                                     name: 'memview__preferred__' + textType,
                                                     type: 'radio',
                                                     checked: this.props.preferredTextType == PreferredTextType[textType],
+                                                    onChange: (e) => (data.preferredTextType = parseInt(e.target.value), rerender()),
                                                     value: PreferredTextType[textType]
                                                 }),
                                                 textType
@@ -511,7 +515,7 @@ export function _statsWebviewContent() {
                                     value: this.props.memColor1,
                                     onChange: (e) => (data.memColor1 = parseInt(e.target.value), rerender())
                                     },
-                                    this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                                    this.props.palette.map((x, i) => r('option', { key: i, value: i }, i.toString())),
                                 ),
                                 r('br'),
                                 r("label", { htmlFor: 'memview__color3' },
@@ -522,7 +526,7 @@ export function _statsWebviewContent() {
                                     value: this.props.memColor3,
                                     onChange: (e) => (data.memColor3 = parseInt(e.target.value), rerender())
                                     },
-                                    this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                                    this.props.palette.map((x, i) => r('option', { key: i, value: i }, i.toString())),
                                 ),
                                 r('br'),
                                 r("label", { htmlFor: 'memview__color' },
@@ -533,7 +537,7 @@ export function _statsWebviewContent() {
                                     value: this.props.memColor,
                                     onChange: (e) => (data.memColor = parseInt(e.target.value), rerender())
                                     },
-                                    this.props.palette.map((x, i) => r('option', { value: i }, i.toString())),
+                                    this.props.palette.map((x, i) => r('option', { key: i, value: i }, i.toString())),
                                 ),
                                 r('br'),
                                 _chunk(0x40, this.props.memory).map((x, i) => {
@@ -552,6 +556,7 @@ export function _statsWebviewContent() {
                                     };
                                     const sprite = renderSprite(this.props.palette, sd);
                                     return r('span', {
+                                        key: sd.key,
                                         className: 'sprite',
                                         ref: (ref) => ref && ref.lastChild != sprite &&
                                             (ref.lastChild ? ref.replaceChild(sprite, ref.lastChild) : ref.appendChild(sprite))

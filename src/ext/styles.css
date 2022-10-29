@@ -56,7 +56,7 @@ option {
 input[type="text"], input[type="number"] {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
-    border: 2px solid var(--vscode-input-border);
+    border: 2px solid var(--vscode-dropdown-border);
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -88,6 +88,7 @@ label input[type="checkbox"] {
 	width: 1em;
 	height: 1em;
 	display: inline-block;
+    line-height: 1em;
 }
 
 label input[type="checkbox"]:checked:before {

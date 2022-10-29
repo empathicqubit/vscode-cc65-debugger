@@ -165,56 +165,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             //console.log(e);
             this.sendEvent(e);
         });
-        this._runtime.on('palette', data => {
-            const e = new Event('palette', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('banks', data => {
-            const e = new Event('banks', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('registers', data => {
-            const e = new Event('registers', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('runahead', data => {
-            const e = new Event('runahead', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('screenText', data => {
-            const e = new Event('screenText', data);
-            //console.log(e);
-            this.sendEvent(e);
-        })
-        this._runtime.on('sprites', data => {
-            const e = new Event('sprites', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('memory', data => {
-            const e = new Event('memory', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('current', data => {
-            const e = new Event('current', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('started', () => {
-            const e = new Event('started');
-            //console.log(e);
-            this.sendEvent(e);
-        });
-        this._runtime.on('message', (msg: debugUtils.ExtensionMessage) => {
-            const e = new Event('message', msg);
-            //console.log(e);
-            this.sendEvent(e);
-        });
         this._runtime.on('output', (category, text, filePath, line, column) => {
             const e: DebugProtocol.OutputEvent = new OutputEvent(text || '');
 
@@ -238,6 +188,68 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this._runtime.on('end', () => {
             this._runtime = <any>undefined;
             this.sendEvent(new TerminatedEvent());
+        });
+
+        this._setupCustomEvents();
+    }
+
+    private _setupCustomEvents() : void {
+        const CC65ViceEvent = class extends Event {
+            constructor(name: string, body?: any) {
+                super('cc65-vice:' + name, body);
+            }
+        }
+
+        // Custom events
+        this._runtime.on('palette', data => {
+            const e = new CC65ViceEvent('palette', data);
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('banks', data => {
+            const e = new CC65ViceEvent('banks', data);
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('registers', data => {
+            const e = new CC65ViceEvent('registers', data);
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('runahead', data => {
+            const e = new CC65ViceEvent('runahead', data);
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('screenText', data => {
+            const e = new CC65ViceEvent('screenText', data);
+            //console.log(e);
+            this.sendEvent(e);
+        })
+        this._runtime.on('sprites', data => {
+            const e = new CC65ViceEvent('sprites', data);
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('memory', data => {
+            const e = new CC65ViceEvent('memory', data);
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('current', data => {
+            const e = new CC65ViceEvent('current', data);
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('started', () => {
+            const e = new CC65ViceEvent('started');
+            //console.log(e);
+            this.sendEvent(e);
+        });
+        this._runtime.on('message', (msg: debugUtils.ExtensionMessage) => {
+            const e = new CC65ViceEvent('message', msg);
+            //console.log(e);
+            this.sendEvent(e);
         });
     }
 

@@ -98,15 +98,16 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     vscode.debug.onDidReceiveDebugSessionCustomEvent(async e => {
-        if(!e.session || e.session.type != 'cc65-vice') {
+        const eventName = e.event.replace(/^cc65-vice:/, '');
+        if(eventName === e.event) {
             return;
         }
 
         await StatsWebview.maybeCreate(context.extensionPath);
-        if(statsEvents.includes(e.event)) {
+        if(statsEvents.includes(eventName)) {
             StatsWebview.update(e.body);
         }
-        else if(e.event == 'started') {
+        else if(eventName == 'started') {
             await e.session.customRequest('enableStats');
 
             const terminal =
@@ -115,7 +116,7 @@ export function activate(context: vscode.ExtensionContext) {
                 || vscode.window.terminals[0];
             terminal && terminal.show();
         }
-        else if(e.event == 'message') {
+        else if(eventName == 'message') {
             const body : debugUtils.ExtensionMessage = e.body;
             const l = body.level;
             const items : string[] = body.items || [];
