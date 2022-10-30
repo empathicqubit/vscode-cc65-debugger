@@ -50,7 +50,7 @@ RUN apt-get update && \
 ADD ./build-vice.sh /build-vice.sh
 RUN chmod a+rx /build-vice.sh && \
     for each in 3.5 3.6 ; do \
-        /build-vice.sh ${each} builds --enable-headlessui ; \
+        /build-vice.sh $each builds --enable-headlessui ; \
     done
 
 # Install cross build tools for CC65

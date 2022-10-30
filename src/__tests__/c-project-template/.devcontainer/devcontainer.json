@@ -1,6 +1,10 @@
 {
     "image": "empathicqubit/vscode-cc65-debugger-devcontainer",
     "forwardPorts": [6080],
+    "extensions": [
+        "entan-gl.cc65-vice",
+        "llvm-vs-code-extensions.vscode-clangd"
+    ],
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {
             "version": "latest"
