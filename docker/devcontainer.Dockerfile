@@ -46,6 +46,7 @@ RUN /build-vice.sh 3.6 default
 
 RUN useradd -m -u 1000 vscode
 RUN usermod -a -G sudo vscode
+ADD ./sudoers /etc/sudoers.d/nopasswd
 USER 1000
 
 ENV PATH ${PATH}:/vices/default/vice-3.6/src
