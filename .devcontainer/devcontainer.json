@@ -2,10 +2,6 @@
     "image": "empathicqubit/vscode-cc65-debugger-devcontainer",
     "forwardPorts": [6080],
     "runArgs": ["--shm-size=1g"],
-    "postCreateCommand": "chsh -s /bin/bash vscode",
-    "containerEnv": {
-        "GIT_EDITOR": "code --wait"
-    },
     "extensions": [
         "entan-gl.cc65-vice",
         "llvm-vs-code-extensions.vscode-clangd"
