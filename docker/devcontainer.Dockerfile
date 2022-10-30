@@ -44,6 +44,7 @@ RUN apt-get update && \
 
 RUN /build-vice.sh 3.6 default
 
+RUN useradd -m -u 1000 vscode
 USER 1000
 
 ENV PATH ${PATH}:/vices/default/vice-3.6/src
