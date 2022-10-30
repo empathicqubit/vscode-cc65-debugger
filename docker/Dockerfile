@@ -1,5 +1,5 @@
 # I tried to order these deps by least to most likely to change to preserve the cache.
-FROM mcr.microsoft.com/vscode/devcontainers/base:bionic
+FROM ubuntu:bionic
 ENV DEBIAN_FRONTEND noninteractive
 # Base APT configuration
 RUN grep 'ubuntu.com/ubuntu' /etc/apt/sources.list \
