@@ -43,6 +43,7 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN /build-vice.sh 3.6 default
+RUN ln -s /vices/default/vice-3.6/data /usr/local/share/vice
 
 RUN useradd -m -u 1000 vscode
 RUN usermod -a -G sudo vscode
