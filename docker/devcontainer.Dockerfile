@@ -46,6 +46,7 @@ RUN /build-vice.sh 3.6 default
 RUN ln -s /vices/default/vice-3.6/data /usr/local/share/vice
 
 RUN useradd -m -u 1000 vscode
+RUN chsh -s /bin/bash vscode
 RUN usermod -a -G sudo vscode
 ADD ./sudoers /etc/sudoers.d/nopasswd
 USER 1000
