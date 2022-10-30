@@ -39,7 +39,7 @@ ENV desktop_lite_package_list \
     locales
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libglew2.0 libglew-dev ${desktop_lite_package_list} && \
+    apt-get install -y --no-install-recommends sudo libglew2.0 libglew-dev ${desktop_lite_package_list} && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN /build-vice.sh 3.6 default
