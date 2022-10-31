@@ -1,6 +1,6 @@
 {
     "image": "empathicqubit/vscode-cc65-debugger-devcontainer",
-    "forwardPorts": [6080, 64378],
+    "forwardPorts": [6080, 64738],
     "runArgs": ["--shm-size=1g"],
     "extensions": [
         "entan-gl.cc65-vice",
