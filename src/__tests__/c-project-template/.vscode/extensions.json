@@ -1,7 +1,0 @@
-{
-    "recommendations": [
-        "entan-gl.cc65-vice",
-        "llvm-vs-code-extensions.vscode-clangd"
-    ],
-    "unwantedRecommendations": ["sharpninja.cc65", "tlgkccampbell.code-ca65"]
-}

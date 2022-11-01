@@ -1,14 +1,19 @@
 {
     "image": "empathicqubit/vscode-cc65-debugger-devcontainer",
-    "forwardPorts": [6080],
+    "forwardPorts": [6080, 64738],
     "runArgs": ["--shm-size=1g"],
     "extensions": [
         "entan-gl.cc65-vice",
         "llvm-vs-code-extensions.vscode-clangd"
     ],
+    "overrideFeatureInstallOrder": [
+        "ghcr.io/devcontainers/features/desktop-lite",
+        "ghcr.io/empathicqubit/empathicqubit-dc-features/audio-lite"
+    ],
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {
             "version": "latest"
-        }
+        },
+        "ghcr.io/empathicqubit/empathicqubit-dc-features/audio-lite:1": {}
     }
 }

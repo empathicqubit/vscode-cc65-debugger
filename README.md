@@ -23,10 +23,55 @@ If you're having trouble understanding how this extension is supposed to be used
 
 Have you found this project useful, or even utter rubbish? The Flying Spaghetti Monster and I would really appreciate your rating on the Visual Studio Marketplace or OpenVSX!
 
-<a target="_blank" href="https://donorbox.org/cc65-vice-debugger?default_interval=o"><img src="https://d1iczxrky3cnb2.cloudfront.net/button-small-green.png" /></a>
+## Easy setup
 
-## Setup
+If you'd like to skip some of the below setup, you can use one of the project templates.
+They are pretty much the same except for one or two files. After you fork them,
+you can open the project in Codespaces using the devcontainer.json. Keep in
+mind that a lot of the graphical features in the main panel will only work
+in VSCode on your computer, not in the web browser, but you can still do
+basic debugging. If you connect VSCode to Codespaces, all the features will
+work correctly, it just might be slow since the debugger has to run on the
+remote machine.
 
+[![C Template](https://img.shields.io/badge/-C%20Template-blue)](https://github.com/empathicqubit/vs65-c-project-template)
+[![Assembly Template](https://img.shields.io/badge/-Assembly%20Template-blue)](https://github.com/empathicqubit/vs65-assembly-project-template)
+
+### Opening the template in Codespaces
+
+1. Choose either the C or the Assembly template.
+2. Click the green "use this template" button at the top right corner
+3. Give your repo an interesting name and configure other settings, then create it!
+4. Click the green "<> Code" button and on the "Codespaces" tab, click "Create codespace on main"
+5. Wait for a somewhat lengthy amount of time... (Click the "Show Logs" link to see progress)
+6. The project will open in VSCode in your browser. This works fine, but only good for basic debugging
+7. Please click the "CC65 - Run" tab and note that it is blank. This is a limitation of the browser vscode. Connecting
+    from your computer does not have this limitation.
+
+### Viewing the Codespaces desktop for debugging
+
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-inbrowser.PNG?raw=true" />
+
+1. In the browser or local VSCode, go to the "PORTS" tab on the bottom of the screen and select port 6080,
+    then click the globe button which appears. This will launch novnc in your browser.
+2. Click the connect button, and use a password of "vscode". This will get you to the desktop where your program will appear.
+3. Go to the debugging tab in VSCode, and select the first launch target in the dropdown next to the green play button.
+4. Click the green play button. Debugging starts. You can see the VICE window on the novnc desktop.
+
+### Remotely connecting to Codespaces with VSCode app on your computer
+
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-local.png?raw=true" />
+
+1. Go to [Codespaces](https://github.com/codespaces). You will see your container there.
+2. Click the three dots button on your container, and select open in VSCode. Your browser will ask to open VSCode URI.
+3. Accept opening the link in VSCode, and it will load up. You're done. Magic. You can also open the novnc port locally,
+    and there's also port 64378, which is for audio. You will need a Mumble client to access this port. By default there
+    is no password.
+
+## Full Setup
+
+If you'd like to run a project entirely from your computer without Codespaces or devcontainers, you can also do that.
+This way is probably better if you want to get more serious with your development.
 To make sure all the features work, you'll want to install VICE 3.6 or later.
 A modified build of CC65 for Linux, Windows, and Mac OS is already included.
 
@@ -202,13 +247,8 @@ VICE detects this may be to blame. To turn it off, just add `+warp` and
 
 ## Changes needed to your Makefile
 
-If you've used the default `Makefile` at
-[the CC65 project wiki](https://github.com/cc65/wiki/wiki/Bigger-Projects#the-makefile-itself),
-it's required to use a [slightly modified Makefile](src/__tests__/c-project-template/Makefile).
-
-If instead you made a custom Makefile, you will need to tell the linker that
-you want a debug file and a map file. You would add the following options to
-your linker:
+You will need to tell the linker that you want a debug file and a map file.
+You would add the following options to your linker:
 
 ```sh
 -g -Wl "--mapfile,build/PROGRAMNAME.map" -Wl "--dbgfile,build/PROGRAMNAME.dbg"
@@ -226,40 +266,13 @@ name (minus the extension, of course) as your main program!
 If you have included any optimizations (`-Osir`) you should probably turn those
 off, however, effort has been made to trace some of them.
 
-You may also want to look at the [full Assembly project template](src/__tests__/asm-project),
-and the [C project template](src/__tests__/c-project-template).
-
-Please also note the [mk.sh](src/__tests__/c-project-template/mk.sh)
-and [mk.bat](src/__tests__/c-project-template/mk.bat).
+Please also note the [mk.sh](https://github.com/empathicqubit/vs65-c-project-template/blob/main/mk.sh)
+and [mk.bat](https://github.com/empathicqubit/vs65-c-project-template/blob/main/mk.bat).
 These will help you run make (or anything else with minor modifications) from
 the proper context outside of vscode, so that you use the builtin cc65 compiler
 when possible, instead of the one installed on your machine.
 
-## What works
-
-- Starting the program and stopping at the beginning of main()
-- Setting and consistently hitting breakpoints
-- Stepping over lines.
-- Stepping out of functions.
-- Stepping into functions.
-- Array types
-- Viewing structs
-- Local variables
-- Static local variables
-- Global variables
-- Registers
-- Variable and memory drilldown. With any variable, even ones that were
-determined to be a single byte, you can use it as a two byte pointer to jump to
-other blocks of memory by expanding the dropdown triangle. Once you get to actual
-memory, you'll get 8x16 bytes (128 bytes). You can expand a row of 8 bytes and
-it will give you 8 options for pointer referencing (01,12,23,34,...) which you
-can expand and get another 128 byte chunk of memory, and on and on forever...
-- Pausing and resuming works pretty much as you might expect. If you pause in
-the middle of a library function it will look strange but the state of VICE will
-be okay, but that's pretty typical for this sort of thing (think Microsoft's
-scary "no symbols for this file" window when you pause on a compiled DLL in VS proper).
-
-## Building
+## Building the extension
 
 You will need node >=13, vscode >=1.42, pnpm >=5.5, Python 3 (to generate
 the font), and Subversion. Jest Test Explorer extension is also recommended.
