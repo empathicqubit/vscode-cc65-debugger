@@ -50,7 +50,7 @@ remote machine.
 
 ### Viewing the Codespaces desktop for debugging
 
-<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-inbrowser.png?raw=true" />
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-inbrowser.PNG?raw=true" />
 
 1. In the browser or local VSCode, go to the "PORTS" tab on the bottom of the screen and select port 6080,
     then click the globe button which appears. This will launch novnc in your browser.
