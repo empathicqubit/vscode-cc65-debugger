@@ -60,28 +60,6 @@ jobs:
           ref: ${{ matrix.tag_ref }}
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
 
-    - run: cd src/__tests__ && 7z a ../../asm-project-template.zip ./asm-project
-    - name: Upload Assembly Template to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: asm-project-template.zip
-        asset_name: ${{ steps.get_filename.outputs.filename }}
-        tag: ${{ matrix.tag_ref }}
-        overwrite: true
-
-    - run: cd src/__tests__ && 7z a ../../c-project-template.zip ./c-project-template
-    - name: Upload C Template to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: c-project-template.zip
-        asset_name: ${{ steps.get_filename.outputs.filename }}
-        tag: ${{ matrix.tag_ref }}
-        overwrite: true
-
     - run: pnpm install --shamefully-hoist
     - run: ln -s $PWD/system /usr/local/share/vice
     - run: ln -s $PWD/system /usr/local/lib/vice
