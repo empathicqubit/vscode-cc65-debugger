@@ -6,9 +6,11 @@ const path = require('path');
 const fs = require('fs');
 const util = require('util');
 
+const context = __dirname + '/..';
 const config = async() => {
     /**@type {import('webpack').Configuration}*/
     return {
+      context,
       target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
       node: {
         __dirname: false,
@@ -18,7 +20,7 @@ const config = async() => {
       },
       output: {
         // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
-        path: path.resolve(__dirname, 'dist'),
+        path: context + '/dist',
         filename: 'monitor.js',
         libraryTarget: 'commonjs2',
         devtoolModuleFilenameTemplate: '../[resource-path]'
@@ -32,13 +34,13 @@ const config = async() => {
         'spdx-license-ids/deprecated': 'commonjs spdx-license-ids/deprecated',
       },
       resolve: {
-        modules: [path.join(__dirname, 'stubbed_modules'), 'node_modules'],
+        modules: ['stubbed_modules', 'node_modules'],
         extensions: ['.js']
       },
       module: {
         rules: [
         {
-            test: await fs.promises.realpath(path.resolve(__dirname, "node_modules/@entan.gl/vice-rainbow-monitor/index.js")),
+            test: await fs.promises.realpath(path.resolve(context, "node_modules/@entan.gl/vice-rainbow-monitor/index.js")),
             use: [
             {
                 loader: 'shebang-loader'
