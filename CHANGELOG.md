@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.4.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.7...v6.4.0) (2022-11-01)
+
+
+### Features
+
+* Add devcontainer.json for easier development in Codespaces ([09102eb](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/09102eb9d4cc6476829bd9796d2e1d454598f8c8))
+
 ### [6.3.7](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.6...v6.3.7) (2022-10-29)
 
 
