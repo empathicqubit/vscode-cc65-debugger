@@ -37,8 +37,41 @@ remote machine.
 [![C Template](https://img.shields.io/badge/-C%20Template-blue)](https://github.com/empathicqubit/vs65-c-project-template)
 [![Assembly Template](https://img.shields.io/badge/-Assembly%20Template-blue)](https://github.com/empathicqubit/vs65-assembly-project-template)
 
+### Opening the template in Codespaces
+
+1. Choose either the C or the Assembly template.
+2. Click the green "use this template" button at the top right corner
+3. Give your repo an interesting name and configure other settings, then create it!
+4. Click the green "<> Code" button and on the "Codespaces" tab, click "Create codespace on main"
+5. Wait for a somewhat lengthy amount of time... (Click the "Show Logs" link to see progress)
+6. The project will open in VSCode in your browser. This works fine, but only good for basic debugging
+7. Please click the "CC65 - Run" tab and note that it is blank. This is a limitation of the browser vscode. Connecting
+    from your computer does not have this limitation.
+
+### Viewing the Codespaces desktop for debugging
+
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-inbrowser.png?raw=true" />
+
+1. In the browser or local VSCode, go to the "PORTS" tab on the bottom of the screen and select port 6080,
+    then click the globe button which appears. This will launch novnc in your browser.
+2. Click the connect button, and use a password of "vscode". This will get you to the desktop where your program will appear.
+3. Go to the debugging tab in VSCode, and select the first launch target in the dropdown next to the green play button.
+4. Click the green play button. Debugging starts. You can see the VICE window on the novnc desktop.
+
+### Remotely connecting to Codespaces with VSCode app on your computer
+
+<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-local.png?raw=true" />
+
+1. Go to [Codespaces](https://github.com/codespaces). You will see your container there.
+2. Click the three dots button on your container, and select open in VSCode. Your browser will ask to open VSCode URI.
+3. Accept opening the link in VSCode, and it will load up. You're done. Magic. You can also open the novnc port locally,
+    and there's also port 64378, which is for audio. You will need a Mumble client to access this port. By default there
+    is no password.
+
 ## Full Setup
 
+If you'd like to run a project entirely from your computer without Codespaces or devcontainers, you can also do that.
+This way is probably better if you want to get more serious with your development.
 To make sure all the features work, you'll want to install VICE 3.6 or later.
 A modified build of CC65 for Linux, Windows, and Mac OS is already included.
 
