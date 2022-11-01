@@ -18,6 +18,7 @@ dist/
 
 *.js
 !/*.js
+!npm/*.js
 !webpack/webpack*.config.js
 !jest*.config.js
 
