@@ -38,8 +38,21 @@ ENV desktop_lite_package_list \
     nano \
     locales
 
+ENV audio_lite_package_list \
+    make \
+    cmake \
+    libasound2-dev \
+    ca-certificates \
+    libnotify-dev \
+    libnotify4 \
+    libssl-dev \
+    openssl \
+    pulseaudio \
+    cargo \
+    mumble-server
+
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends sudo libglew2.0 libglew-dev ${desktop_lite_package_list} && \
+    apt-get install -y --no-install-recommends sudo libglew2.0 libglew-dev ${desktop_lite_package_list} ${audio_lite_package_list} && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN /build-vice.sh 3.6 default
