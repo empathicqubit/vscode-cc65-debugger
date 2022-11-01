@@ -3,7 +3,10 @@
     "forwardPorts": [6080, 64738],
     "runArgs": ["--shm-size=1g"],
     "extensions": [
-        "llvm-vs-code-extensions.vscode-clangd"
+        "llvm-vs-code-extensions.vscode-clangd",
+        "editorconfig.editorconfig",
+        "Orta.vscode-jest",
+        "ryanluker.vscode-coverage-gutters"
     ],
     "overrideFeatureInstallOrder": [
         "ghcr.io/devcontainers/features/desktop-lite",
