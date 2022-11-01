@@ -3,7 +3,6 @@
     "forwardPorts": [6080, 64738],
     "runArgs": ["--shm-size=1g"],
     "extensions": [
-        "entan-gl.cc65-vice",
         "llvm-vs-code-extensions.vscode-clangd"
     ],
     "overrideFeatureInstallOrder": [
