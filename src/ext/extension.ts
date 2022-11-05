@@ -31,6 +31,7 @@ import * as metrics from '../lib/metrics';
 import { StatsWebview } from './stats-webview';
 import { LaunchRequestArguments } from '../lib/launch-arguments';
 import cycleAnnotationProvider from './cycle-annotation-provider';
+import { exit } from 'process';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -38,8 +39,9 @@ import cycleAnnotationProvider from './cycle-annotation-provider';
  */
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
-let cycleCommand : vscode.Disposable;
-let debugCaptureCommand : vscode.Disposable;
+let commands : vscode.Disposable[] = [];
+
+const extId = 'cc65-vice';
 
 const updateConfiguration = () => {
     // THIS MUST BE FIRST
@@ -79,7 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
     ].forEach(t => {
         StatsWebview.addEventListener(t, evt => {
             const sesh = vscode.debug.activeDebugSession;
-            if(!sesh) {
+            if(sesh?.type != extId) {
                 return;
             }
             sesh.customRequest(t, evt);
@@ -145,13 +147,33 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    cycleCommand = vscode.commands.registerCommand('cc65-vice.toggleCycleCounters', () => {
+    let command : vscode.Disposable;
+    command = vscode.commands.registerCommand(extId + '.toggleCycleCounters', () => {
         cycleAnnotationProvider.toggle();
     });
+    commands.push(command);
 
-    debugCaptureCommand = vscode.commands.registerCommand('cc65-vice.debugCaptureCommand', () => {
+    command = vscode.commands.registerCommand(extId + '.debugCaptureCommand', () => {
         vscode.env.clipboard.writeText("Hello world! This is me... life could be... fun for everyone");
     });
+    commands.push(command);
+
+    command = vscode.commands.registerCommand(extId + '.disassembleLine', async (args: { uri: string, address: number, instructionCount: number }) => {
+        const sesh = vscode.debug.activeDebugSession;
+        if(sesh?.type != extId) {
+            vscode.window.showErrorMessage('Debug session must be running');
+            return;
+        }
+
+        const res = await sesh.customRequest('disassemble', {
+            memoryReference: 'ram',
+            offset: args.address,
+            instructionOffset: 0,
+            instructionCount: args.instructionCount,
+            resolveSymbols: false,
+        });
+    });
+    commands.push(command);
 
     const provider = new CC65ViceConfigurationProvider(
         () => {
@@ -167,7 +189,7 @@ export function activate(context: vscode.ExtensionContext) {
             return port;
         }
     );
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('cc65-vice', provider));
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(extId, provider));
 
     console.log('Running as ', runMode);
     let factory: CC65ViceDebugAdapterDescriptorFactory | InlineDebugAdapterFactory | DebugAdapterExecutableFactory;
@@ -187,14 +209,14 @@ export function activate(context: vscode.ExtensionContext) {
             break;
     }
 
-    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('cc65-vice', factory));
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(extId, factory));
     if ('dispose' in factory) {
         context.subscriptions.push(factory);
     }
 }
 
 export function deactivate() {
-    cycleCommand.dispose();
+    commands.forEach(x => x.dispose());
     cycleAnnotationProvider.deactivate();
 }
 
@@ -226,7 +248,7 @@ class CC65ViceConfigurationProvider implements vscode.DebugConfigurationProvider
         if (!c.type && !config.request && !c.name) {
             const editor = vscode.window.activeTextEditor;
             if (editor && editor.document.languageId === 'makefile') {
-                c.type = 'cc65-vice';
+                c.type = extId;
                 c.name = 'Build and launch VICE';
                 config.request = 'launch';
                 config.build = {

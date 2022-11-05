@@ -262,33 +262,37 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         // build and return the capabilities of this debug adapter:
         response.body = response.body || {};
 
-        // the adapter implements the configurationDoneRequest.
-        response.body.supportsConfigurationDoneRequest = true;
+        response.body = {
+            ...response.body,
 
-        // make VS Code to use 'evaluate' when hovering over source
-        response.body.supportsEvaluateForHovers = true;
+            // the adapter implements the configurationDoneRequest.
+            supportsConfigurationDoneRequest: true,
 
-        response.body.supportsDisassembleRequest = false;
+            // make VS Code to use 'evaluate' when hovering over source
+            supportsEvaluateForHovers: true,
 
-        response.body.supportsStepBack = false;
+            supportsDisassembleRequest: true,
 
-        response.body.supportsSetVariable = true;
+            supportsStepBack: false,
 
-        // make VS Code to support data breakpoints
-        response.body.supportsDataBreakpoints = false;
+            supportsSetVariable: true,
 
-        response.body.supportTerminateDebuggee = true;
-        response.body.supportsTerminateRequest = true;
+            // make VS Code to support data breakpoints
+            supportsDataBreakpoints: false,
 
-        // make VS Code to support completion in REPL
-        response.body.supportsCompletionsRequest = false;
-        response.body.completionTriggerCharacters = [ ".", "[" ];
+            supportTerminateDebuggee: true,
+            supportsTerminateRequest: true,
 
-        // make VS Code to send cancelRequests
-        response.body.supportsCancelRequest = true;
+            // make VS Code to support completion in REPL
+            supportsCompletionsRequest: false,
+            completionTriggerCharacters: [ ".", "[" ],
 
-        // make VS Code send the breakpointLocations request
-        response.body.supportsBreakpointLocationsRequest = true;
+            // make VS Code to send cancelRequests
+            supportsCancelRequest: true,
+
+            // make VS Code send the breakpointLocations request
+            supportsBreakpointLocationsRequest: true,
+        };
 
         this.sendResponse(response);
 
@@ -966,6 +970,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     }
 
     protected disassembleRequest(response: DebugProtocol.DisassembleResponse, args: DebugProtocol.DisassembleArguments, request?: DebugProtocol.Request): void {
+        debugger;
     }
 
     protected completionsRequest(response: DebugProtocol.CompletionsResponse, args: DebugProtocol.CompletionsArguments): void {

@@ -80,7 +80,8 @@ class CycleAnnotationProvider {
                 let total = 0;
                 const opts : vscode.DecorationOptions[] = [];
                 for(const line of lines) {
-                    let count = 0;
+                    let instructionCount = 0;
+                    let cycleCount = 0;
 
                     // FIXME This won't work with cruncher.
                     if(!(this._loadAddress && this._programData && line.span)) {
@@ -90,7 +91,8 @@ class CycleAnnotationProvider {
                     const mem = this._programData.slice(line.span.absoluteAddress - (this._loadAddress - 2), (line.span.absoluteAddress + line.span.size) - (this._loadAddress - 2));
 
                     disassembly.opCodeFind(mem, (cmd, __, ___) => {
-                        count += disassembly.opcodeCycles[cmd];
+                        instructionCount++;
+                        cycleCount += disassembly.opcodeCycles[cmd];
                         return false;
                     });
 
@@ -100,18 +102,26 @@ class CycleAnnotationProvider {
                                 textDocument.lineAt(line.num).range.intersection(selection)
                                 || textDocument.lineAt(line.num).range.intersection(selection)
                                 ) {
-                                total += count;
+                                total += cycleCount;
                             }
                         }
                     }
 
                     try {
+                        const args = {
+                            uri: textEditor.document.uri.toString(),
+                            address: line.span.absoluteAddress,
+                            instructionCount,
+                        };
+
+                        const hoverMessage = new vscode.MarkdownString(`[Cycles: ${cycleCount}](command:cc65-vice.disassembleLine?${encodeURIComponent(JSON.stringify(args))})`);
+                        hoverMessage.isTrusted = true;
                         const opt : vscode.DecorationOptions = {
                             range: textDocument.lineAt(line.num).range,
-                            hoverMessage: `Cycles: ${count}`,
+                            hoverMessage: hoverMessage,
                             renderOptions: {
                                 after: {
-                                    contentText: `🔄 ${count}`,
+                                    contentText: `🔄 ${cycleCount}`,
                                 }
                             },
                         };
