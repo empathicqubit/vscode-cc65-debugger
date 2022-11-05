@@ -38,23 +38,14 @@ export class GraphicsManager {
         this._banks = banks!;
         this._metas = metas!;
         if(this._machineType == debugFile.MachineType.c64) {
-            // FIXME Replace with palette command.
-            const paletteFileName = await this._emulator.execBinary({
-                type: bin.CommandType.resourceGet,
-                resourceName: 'VICIIPaletteFile',
+            const res = await this._emulator.execBinary({
+                type: bin.CommandType.paletteGet,
+                useVicII: true,
             });
-            const paletteFile = await fs.promises.readFile(path.normalize(path.join(__basedir, "../dist/system/C64", paletteFileName.stringValue + '.vpl')), 'utf8');
-            const paletteLines = paletteFile.split(/[\r\n]+\s*/gim);
-            const paletteActiveLines = paletteLines.filter(x => !/^#/.test(x));
-            const paletteLinePattern = /^\s*([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s+([0-9a-f]+)\s*$/i;
-            const palette : number[] = [];
-            for(const line of paletteActiveLines) {
-                let match : RegExpMatchArray | null;
-                if(!(match = paletteLinePattern.exec(line))) {
-                    continue;
-                }
 
-                palette.push(parseInt([match[1], match[2], match[3], 'ff'].join(''), 16));
+            const palette: number[] = [];
+            for(const entry of res.entries) {
+                palette.push((entry.red * 0x1000000) + (entry.green * 0x10000) + (entry.blue * 0x100) + 0xff);
             }
 
             emitter.emit('palette', {

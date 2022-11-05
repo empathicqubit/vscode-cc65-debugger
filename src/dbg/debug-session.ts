@@ -253,6 +253,51 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         });
     }
 
+    /**
+    * The 'initialize' request is the first request called by the frontend
+    * to interrogate the features the debug adapter provides.
+    */
+    protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+
+        // build and return the capabilities of this debug adapter:
+        response.body = response.body || {};
+
+        // the adapter implements the configurationDoneRequest.
+        response.body.supportsConfigurationDoneRequest = true;
+
+        // make VS Code to use 'evaluate' when hovering over source
+        response.body.supportsEvaluateForHovers = true;
+
+        response.body.supportsDisassembleRequest = false;
+
+        response.body.supportsStepBack = false;
+
+        response.body.supportsSetVariable = true;
+
+        // make VS Code to support data breakpoints
+        response.body.supportsDataBreakpoints = false;
+
+        response.body.supportTerminateDebuggee = true;
+        response.body.supportsTerminateRequest = true;
+
+        // make VS Code to support completion in REPL
+        response.body.supportsCompletionsRequest = false;
+        response.body.completionTriggerCharacters = [ ".", "[" ];
+
+        // make VS Code to send cancelRequests
+        response.body.supportsCancelRequest = true;
+
+        // make VS Code send the breakpointLocations request
+        response.body.supportsBreakpointLocationsRequest = true;
+
+        this.sendResponse(response);
+
+        // since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
+        // we request them early by sending an 'initializeRequest' to the frontend.
+        // The frontend will end the configuration sequence by calling 'configurationDone' request.
+        this.sendEvent(new InitializedEvent());
+    }
+
     protected async customRequest(command: string, response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments, request: DebugProtocol.Request): Promise<void> {
         response.success = true;
 
@@ -338,51 +383,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
-    }
-
-    /**
-    * The 'initialize' request is the first request called by the frontend
-    * to interrogate the features the debug adapter provides.
-    */
-    protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
-
-        // build and return the capabilities of this debug adapter:
-        response.body = response.body || {};
-
-        // the adapter implements the configurationDoneRequest.
-        response.body.supportsConfigurationDoneRequest = true;
-
-        // make VS Code to use 'evaluate' when hovering over source
-        response.body.supportsEvaluateForHovers = true;
-
-        response.body.supportsDisassembleRequest = false;
-
-        response.body.supportsStepBack = false;
-
-        response.body.supportsSetVariable = true;
-
-        // make VS Code to support data breakpoints
-        response.body.supportsDataBreakpoints = false;
-
-        response.body.supportTerminateDebuggee = true;
-        response.body.supportsTerminateRequest = true;
-
-        // make VS Code to support completion in REPL
-        response.body.supportsCompletionsRequest = false;
-        response.body.completionTriggerCharacters = [ ".", "[" ];
-
-        // make VS Code to send cancelRequests
-        response.body.supportsCancelRequest = true;
-
-        // make VS Code send the breakpointLocations request
-        response.body.supportsBreakpointLocationsRequest = true;
-
-        this.sendResponse(response);
-
-        // since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
-        // we request them early by sending an 'initializeRequest' to the frontend.
-        // The frontend will end the configuration sequence by calling 'configurationDone' request.
-        this.sendEvent(new InitializedEvent());
     }
 
     /**
@@ -963,6 +963,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
+    }
+
+    protected disassembleRequest(response: DebugProtocol.DisassembleResponse, args: DebugProtocol.DisassembleArguments, request?: DebugProtocol.Request): void {
     }
 
     protected completionsRequest(response: DebugProtocol.CompletionsResponse, args: DebugProtocol.CompletionsArguments): void {

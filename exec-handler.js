@@ -4,7 +4,8 @@ try {
     while((file = args.shift()) == '--ms-enable-electron-run-as-node');
 
     const proc = require('child_process').spawn(file, args, {
-        shell: 'sh',
+        env: {...process.env, ELECTRON_RUN_AS_NODE: '1'},
+        shell: process.platform != 'win32' ? 'sh' : undefined,
         stdio: 'inherit',
     });
 

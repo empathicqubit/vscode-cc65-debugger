@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Extension",
             "type": "extensionHost",
@@ -22,15 +23,20 @@
         {
             "name": "Server",
             "type": "node",
+            "attachSimplePort": 23409,
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "sourceMaps": true,
-            "program": "${workspaceFolder}/src/dbg/debug-adapter.ts",
+            "program": "${workspaceFolder}/exec-handler.js",
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
             "preLaunchTask": "server",
             "args": [
+                "${execPath}",
+                "--inspect=23409",
+                "./out/dbg/debug-adapter.js",
+                "--ms-enable-electron-run-as-node",
                 "--server=4711"
             ]
         },
@@ -38,7 +44,7 @@
             "name": "Server (Attach)",
             "type": "node",
             "request": "attach",
-            "port": 9229,
+            "port": 23409,
             "cwd": "${workspaceFolder}",
             "sourceMaps": true,
             "program": "${workspaceFolder}/src/dbg/debug-adapter.ts",
