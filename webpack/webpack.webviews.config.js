@@ -13,10 +13,12 @@ const config = {
       "type": "filesystem"
   },
   devServer: {
-      disableHostCheck: true,
+    devMiddleware: {
       publicPath: '/dist/',
-      compress: true,
-      port: 8794,
+    },
+    allowedHosts: 'all',
+    compress: true,
+    port: 8794,
   },
   entry: {
     webviews: './src/webviews/index.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
