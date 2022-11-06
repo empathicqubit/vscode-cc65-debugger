@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.4.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.4.0...v6.4.1) (2022-11-06)
+
+
+### Bug Fixes
+
+* fix an issue with palette loading on the sprite tab ([350bb4f](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/350bb4f6a922f44723ed1b289d7a123a62dbde85))
+
 ## [6.4.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.7...v6.4.0) (2022-11-01)
 
 
