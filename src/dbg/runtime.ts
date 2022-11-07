@@ -10,6 +10,7 @@ import _last from 'lodash/fp/last';
 import _map from 'lodash/fp/map';
 import _uniq from 'lodash/fp/uniq';
 import _uniqBy from 'lodash/fp/uniqBy';
+import _groupBy from 'lodash/fp/groupBy';
 import * as path from 'path';
 import * as tmp from 'tmp';
 import * as util from 'util';
@@ -1317,8 +1318,23 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async getScopeVariables() : Promise<VariableData[]> {
-        const currentScope = this._getCurrentScope()
-        return await this._variableManager.getScopeVariables(currentScope);
+        const stackInitializations = this._mapFile.filter(x => /^(pusha.?.?|[^_](dec|sub)sp[0-9]?)$/i.test(x.functionName));
+
+        const currentScope = this._getCurrentScope();
+        if(!currentScope) {
+            return [];
+        }
+
+        const scopeVars = await this._variableManager.getScopeVariables(currentScope);
+
+        /* FIXME
+        if(currentScope.codeSpan) {
+            const mem = await this.getMemory(currentScope.codeSpan.absoluteAddress, currentScope.codeSpan.size);
+            const completeLine = disassembly.findInitializationCompleteLine(this._mapFile, this._dbgFile, currentScope, mem);
+        }
+        */
+
+        return scopeVars;
     }
 
     public async getGlobalVariables() : Promise<VariableData[]> {

@@ -6,6 +6,8 @@ import { marked } from 'marked';
 import classNames from 'classnames';
 import { screenMappings } from '../screen-mappings';
 import _chunk from 'lodash/fp/chunk';
+import _last from 'lodash/fp/last';
+import _maxBy from 'lodash/fp/maxBy';
 import { Hider } from '../components/hider';
 
 const r = React.createElement;
@@ -400,14 +402,22 @@ or disable colors. You can select the text and copy it to your clipboard.
                     ) : null,
                     r('code', null, r('pre', null,
                         (() => {
-                            const firstInstruction = this.props.disassembly[0];
+                            const disassembly = this.props.disassembly;
+                            const firstInstruction = disassembly[0];
+                            if(!firstInstruction) {
+                                return '';
+                            }
+
+                            const longestInstruction = _maxBy(x => x.instruction.length, this.props.disassembly)!;
                             return this.props.disassembly.map(instruction => {
-                                const instructionFmt = '$' + parseInt(instruction.address).toString(16).padStart(4, '0') + ': ' + instruction.instruction;
-                                if(typeof instruction.line === 'number' && firstInstruction?.location?.path == instruction?.location?.path) {
-                                    return (instruction.line + 1).toString().padStart(6, ' ') + ': ' + instructionFmt;
+                                let instructionFmt =
+                                    instruction.instruction.padEnd(longestInstruction.instruction.length, ' ')
+                                        + ' ; $' + parseInt(instruction.address).toString(16).padStart(4, '0');
+                                if(typeof instruction.line === 'number' && firstInstruction?.location?.path == instruction.location?.path) {
+                                    return '\n; ** line ' + (instruction.line + 1).toString() + ' **\n' + instructionFmt;
                                 }
                                 else {
-                                    return '        ' + instructionFmt;
+                                    return instructionFmt;
                                 }
                             }).join('\n');
                         })(),

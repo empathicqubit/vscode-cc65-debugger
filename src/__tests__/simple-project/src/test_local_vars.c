@@ -29,7 +29,7 @@ unsigned char test_local_vars_main(void) {
     register unsigned char blarg = 1;
     register unsigned char blerg = 2;
     unsigned char i = 3;
-    unsigned int j;
+    unsigned int j = 4, k = 4;
     unsigned int *random;
     unsigned char *lol;
     signed char whoa;

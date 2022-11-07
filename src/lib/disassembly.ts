@@ -150,6 +150,30 @@ export interface ScopeAddress {
     address: number,
 }
 
+export function findInitializationCompleteLine(mpFile: mapFile.MapRef[], dbgFile: debugFile.Dbgfile, scope: debugFile.Scope, mem: Buffer) : debugFile.SourceLine | undefined {
+    const stackInitializations = mpFile.filter(x => /^(pusha.?.?|[^_](dec|sub)sp[0-9]?)$/i.test(x.functionName));
+    const startAddress = scope.codeSpan?.absoluteAddress ?? -1;
+    let lastFoundLine : debugFile.SourceLine | undefined;
+    let currentLine : debugFile.SourceLine | undefined;
+    opCodeFind(mem, (cmd, rest, pos) => {
+        const line = scope.codeSpan?.lines.find(x => x.span && x.span.absoluteAddress <= startAddress + pos && startAddress + pos < x.span.absoluteAddress + x.span.size);
+        if(cmd == 0x4c || cmd == 0x20) { // JMP, JSR
+            const addr = rest.readUInt16LE(0);
+            if(stackInitializations.find(x => x.functionAddress === addr)) {
+                lastFoundLine = line;
+            }
+        }
+
+        if(currentLine && line != currentLine && lastFoundLine != currentLine) {
+            return true;
+        }
+
+        currentLine = line;
+    });
+
+    return currentLine;
+}
+
 /**
  * Find all the places the scope would be exited
  * @param mpFile The map file object
@@ -226,7 +250,7 @@ export function disassemble(mem: Buffer, dbgFile: debugFile.Dbgfile, mpFile: map
         let restFmt = '';
         if(rest.length == 2) {
             restVal = rest.readUInt16LE(0);
-            restFmt = `\$${restVal.toString(16).padStart(4, '0')}`;
+            restFmt = ` \$${restVal.toString(16).padStart(4, '0')}`;
             let functionName = '';
             let map : mapFile.MapRef | undefined;
             const lab = dbgFile.labs.find(x => x.val == restVal);
@@ -234,22 +258,26 @@ export function disassemble(mem: Buffer, dbgFile: debugFile.Dbgfile, mpFile: map
                 functionName = lab.name;
             }
             else if(map = mpFile.find(x => x.functionAddress == restVal)) {
-                functionName = map.functionName
+                functionName = map.functionName;
             }
 
             if(functionName) {
-                restFmt = ` .${functionName} (${restFmt})`;
+                restFmt = `${restFmt.padStart(6, ' ')} ; ${functionName}`;
             }
         }
         else if (rest.length == 1) {
             restVal = rest.readUInt8(0);
-            restFmt = ' $' + restVal.toString(16).padStart(2, '0')
+            restFmt = '$' + restVal.toString(16).padStart(2, '0')
+            restFmt = restFmt.padStart(6, ' ');
+        }
+        else {
+            restFmt = restFmt.padStart(6, ' ');
         }
 
         const line = debugUtils.getLineFromAddress([], dbgFile, startAddress + index);
         instructions.push({
             address: (startAddress + index).toString(),
-            instruction: (name || '') + restFmt.padStart(6, ' '),
+            instruction: (name || '') + restFmt,
             instructionBytes: String.fromCharCode(cmd, ...rest),
             filename: line.file?.name || '',
             line: line.num,

@@ -109,6 +109,7 @@ export interface SourceLine {
 }
 
 export enum SourceFileType {
+    Unknown,
     Assembly,
     C,
 }
