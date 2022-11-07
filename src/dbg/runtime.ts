@@ -992,7 +992,7 @@ or define the location manually with the launch.json->mapFile setting`
             size = 0xffff - addr;
         }
 
-        return disassembly.disassemble(await this.getMemory(addr, size), this._dbgFile, addr);
+        return disassembly.disassemble(await this.getMemory(addr, size), this._dbgFile, this._mapFile, addr);
     }
 
     public async disassembleLine(filename: string, line: number, count: number) : Promise<disassembly.Instruction[]> {
@@ -1017,7 +1017,7 @@ or define the location manually with the launch.json->mapFile setting`
         }
         const length = (endSpan.absoluteAddress + endSpan.size) - start;
 
-        return disassembly.disassemble(await this.getMemory(start, length), this._dbgFile, start);
+        return disassembly.disassemble(await this.getMemory(start, length), this._dbgFile, this._mapFile, start);
     }
 
     // Breakpoints

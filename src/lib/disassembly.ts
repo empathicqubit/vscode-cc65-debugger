@@ -219,7 +219,7 @@ export function findStackChangesForScope(mpFile: mapFile.MapRef[], searchScope: 
     }
 }
 
-export function disassemble(mem: Buffer, dbgFile: debugFile.Dbgfile, startAddress: number) : Instruction[] {
+export function disassemble(mem: Buffer, dbgFile: debugFile.Dbgfile, mpFile: mapFile.MapRef[], startAddress: number) : Instruction[] {
     const instructions : Instruction[] = [];
     opCodeFind(mem, (cmd, rest, index, name) => {
         let restVal : number = -1;
@@ -227,9 +227,18 @@ export function disassemble(mem: Buffer, dbgFile: debugFile.Dbgfile, startAddres
         if(rest.length == 2) {
             restVal = rest.readUInt16LE(0);
             restFmt = `\$${restVal.toString(16).padStart(4, '0')}`;
+            let functionName = '';
+            let map : mapFile.MapRef | undefined;
             const lab = dbgFile.labs.find(x => x.val == restVal);
             if(lab) {
-                restFmt = ` .${lab.name} (${restFmt})`;
+                functionName = lab.name;
+            }
+            else if(map = mpFile.find(x => x.functionAddress == restVal)) {
+                functionName = map.functionName
+            }
+
+            if(functionName) {
+                restFmt = ` .${functionName} (${restFmt})`;
             }
         }
         else if (rest.length == 1) {
