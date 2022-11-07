@@ -2,20 +2,30 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { DebugProtocol } from 'vscode-debugprotocol';
 import * as bin from '../dbg/binary-dto';
 
 export class StatsWebview {
 	private static _state: {
 		runAhead?: ImageData,
 		current?: ImageData,
-		sprites?: ImageData[],
+		sprites: ImageData[],
 		screenText?: ImageData,
-		memory?: number[],
-		palette?: number[],
-		banks?: bin.SingleBankMeta[]
-		registers?: bin.SingleRegisterInfo[]
-		metas?: bin.SingleRegisterMeta[]
-	} = {};
+		memory: number[],
+		palette: number[],
+		banks: bin.SingleBankMeta[]
+		registers: bin.SingleRegisterInfo[]
+		metas: bin.SingleRegisterMeta[]
+        disassembly: DebugProtocol.DisassembledInstruction[]
+	} = {
+        sprites: [],
+        memory: [],
+        palette: [],
+        banks: [],
+        registers: [],
+        metas: [],
+        disassembly: [],
+    };
 	private static _emitter: EventEmitter = new EventEmitter();
 
 	public static readonly viewType = 'statsWebview';
@@ -36,6 +46,7 @@ export class StatsWebview {
 		StatsWebview._state.banks = [];
 		StatsWebview._state.registers = [];
 		StatsWebview._state.metas = [];
+        StatsWebview._state.disassembly = [];
 		if(StatsWebview._currentPanel) {
 			StatsWebview._currentPanel._panel.webview.postMessage({
 				reset: true,
@@ -43,16 +54,8 @@ export class StatsWebview {
 		}
 	}
 
-    public static update(update: typeof StatsWebview._state) {
-		StatsWebview._state.runAhead = update.runAhead     || StatsWebview._state.runAhead;
-		StatsWebview._state.current = update.current       || StatsWebview._state.current;
-		StatsWebview._state.sprites = update.sprites       || StatsWebview._state.sprites;
-		StatsWebview._state.screenText = update.screenText || StatsWebview._state.screenText;
-		StatsWebview._state.memory = update.memory         || StatsWebview._state.memory;
-		StatsWebview._state.palette = update.palette       || StatsWebview._state.palette;
-		StatsWebview._state.banks = update.banks           || StatsWebview._state.banks;
-		StatsWebview._state.registers = update.registers   || StatsWebview._state.registers;
-		StatsWebview._state.metas = update.metas           || StatsWebview._state.metas;
+    public static update(update: Partial<typeof StatsWebview._state>) {
+        Object.assign(StatsWebview._state, update);
         if(StatsWebview._currentPanel) {
             StatsWebview._currentPanel._panel.webview.postMessage(StatsWebview._state);
         }
@@ -171,7 +174,7 @@ export class StatsWebview {
                 <div id="content"></div>
                 <script nonce="${nonce}" type="text/javascript" src="${scriptUri}"></script>
                 <script nonce="${nonce}" type="text/javascript">
-                    window.statsWebviewContent();
+                    window.statsWebView();
                 </script>
             </body>
             </html>`;

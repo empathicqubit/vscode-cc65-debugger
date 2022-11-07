@@ -50,6 +50,18 @@ export interface Registers {
     cyc: number;
 }
 
+export interface Instruction {
+    /** The address of the instruction. Treated as a hex value if prefixed with '0x', or as a decimal value otherwise. */
+    address: string;
+    /** Optional raw bytes representing the instruction and its operands, in an implementation-defined format. */
+    instructionBytes: string;
+    /** Text representing the instruction and its operands, in an implementation-defined format. */
+    instruction: string;
+    filename: string;
+    /** The line within the source location that corresponds to this instruction, if any. Zero-indexed */
+    line: number;
+}
+
 const UPDATE_INTERVAL = 1000;
 
 interface _lineData {
@@ -972,6 +984,39 @@ or define the location manually with the launch.json->mapFile setting`
 
     public async setMemory(addr: number, memory: Buffer) : Promise<void> {
         await this._emulator.setMemory(addr, memory);
+    }
+
+    public async disassemble(addr: number, instructionCount: number): Promise<Instruction[]> {
+        if(addr < 0 || addr > 0xffff) {
+            addr = this._currentAddress || 0;
+        }
+
+        if(instructionCount < 0) {
+            instructionCount = 10;
+        }
+
+        let size = instructionCount * disassembly.maxOpCodeSize;
+        if(addr + size > 0xffff) {
+            size = 0xffff - addr;
+        }
+
+        const instructions : Instruction[] = [];
+        let count = 0;
+        disassembly.opCodeFind(await this.getMemory(addr, size), (cmd, rest, index, name) => {
+            const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, addr + index);
+            instructions.push({
+                address: (addr + index).toString(),
+                instruction: (name || '') + ' ' + debugUtils.rawBufferHex(rest),
+                instructionBytes: String.fromCharCode(cmd, ...rest),
+                filename: line.file?.name || '',
+                line: line.num,
+            })
+
+            count++;
+            return count == instructionCount;
+        });
+
+        return instructions;
     }
 
     // Breakpoints

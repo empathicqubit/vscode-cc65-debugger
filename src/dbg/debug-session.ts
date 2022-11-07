@@ -455,8 +455,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = (<any>e).stack.toString();
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
@@ -513,8 +514,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = (<any>e).stack.toString();
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): Promise<void> {
@@ -524,7 +526,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 response.body = {
                     breakpoints: [],
                 };
-                this.sendResponse(response);
                 return;
             }
 
@@ -552,12 +553,13 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.body = {
                 breakpoints: actualBreakpoints
             };
-            this.sendResponse(response);
         }
         catch(e) {
             console.error(e);
             response.success = false
             response.message = e
+        }
+        finally {
             this.sendResponse(response);
         }
     }
@@ -573,8 +575,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = (<any>e).stack.toString();
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected breakpointLocationsRequest(response: DebugProtocol.BreakpointLocationsResponse, args: DebugProtocol.BreakpointLocationsArguments, request?: DebugProtocol.Request): void {
@@ -826,8 +829,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = e.message;
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
@@ -839,8 +843,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = e.message;
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected async stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request) : Promise<void> {
@@ -852,8 +857,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = e.message;
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected async stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -865,8 +871,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = e.message;
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected stepBackRequest(response: DebugProtocol.StepBackResponse, args: DebugProtocol.StepBackArguments): void {
@@ -882,8 +889,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = e.message;
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected async setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -919,8 +927,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = e.toString();
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): Promise<void> {
@@ -931,7 +940,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                     result: 'Not found',
                     variablesReference: 0,
                 };
-                this.sendResponse(response);
                 return;
             }
 
@@ -946,7 +954,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false;
             response.message = e.toString();
         }
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected setDataBreakpointsRequest(response: DebugProtocol.SetDataBreakpointsResponse, args: DebugProtocol.SetDataBreakpointsArguments): void {
@@ -969,8 +979,28 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected disassembleRequest(response: DebugProtocol.DisassembleResponse, args: DebugProtocol.DisassembleArguments, request?: DebugProtocol.Request): void {
-        debugger;
+    protected async disassembleRequest(response: DebugProtocol.DisassembleResponse, args: DebugProtocol.DisassembleArguments, request?: DebugProtocol.Request): Promise<void> {
+        try {
+            const instructions = await this._runtime.disassemble(args.instructionOffset || -1, args.instructionCount);
+            response.body = {
+                instructions: instructions.map(x => ({
+                    address: x.address,
+                    instructionBytes: x.instructionBytes,
+                    instruction: x.instruction,
+                    location: {
+                        path: x.filename,
+                    },
+                    line: x.line,
+                })),
+            };
+        }
+        catch(e) {
+            response.success = false;
+            response.message = e.toString();
+        }
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     protected completionsRequest(response: DebugProtocol.CompletionsResponse, args: DebugProtocol.CompletionsArguments): void {

@@ -8,6 +8,9 @@ const context = __dirname + '/..';
 /**@type {import('webpack').Configuration}*/
 const config = {
   context,
+  stats: {
+    modules: true,
+  },
   target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
   cache: {
       type: 'filesystem',

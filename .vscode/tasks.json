@@ -46,7 +46,7 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": "Project is running at",
-                    "endsPattern": "Compiled successfully.",
+                    "endsPattern": "compiled successfully",
                 }
             },
             "isBackground": true

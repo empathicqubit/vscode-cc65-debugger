@@ -45,6 +45,25 @@ export const opcodeCycles = [
     2,  5, -1,  8,  4,  4,  6,  6,  2,  4,  2,  7,  4,  4,  7,  7
 ]
 
+export const opcodeNames = [
+    "BRK", "ORA", "KIL", "SLO", "NOP", "ORA", "ASL", "SLO", "PHP", "ORA", "ASL", "ANC", "NOP", "ORA", "ASL", "SLO",
+    "BPL", "ORA", "KIL", "SLO", "NOP", "ORA", "ASL", "SLO", "CLC", "ORA", "NOP", "SLO", "NOP", "ORA", "ASL", "SLO",
+    "JSR", "AND", "KIL", "RLA", "BIT", "AND", "ROL", "RLA", "PLP", "AND", "ROL", "ANC", "BIT", "AND", "ROL", "RLA",
+    "BMI", "AND", "KIL", "RLA", "NOP", "AND", "ROL", "RLA", "SEC", "AND", "NOP", "RLA", "NOP", "AND", "ROL", "RLA",
+    "RTI", "EOR", "KIL", "SRE", "NOP", "EOR", "LSR", "SRE", "PHA", "EOR", "LSR", "ALR", "JMP", "EOR", "LSR", "SRE",
+    "BVC", "EOR", "KIL", "SRE", "NOP", "EOR", "LSR", "SRE", "CLI", "EOR", "NOP", "SRE", "NOP", "EOR", "LSR", "SRE",
+    "RTS", "ADC", "KIL", "RRA", "NOP", "ADC", "ROR", "RRA", "PLA", "ADC", "ROR", "ARR", "JMP", "ADC", "ROR", "RRA",
+    "BVS", "ADC", "KIL", "RRA", "NOP", "ADC", "ROR", "RRA", "SEI", "ADC", "NOP", "RRA", "NOP", "ADC", "ROR", "RRA",
+    "NOP", "STA", "NOP", "SAX", "STY", "STA", "STX", "SAX", "DEY", "NOP", "TXA", "XAA", "STY", "STA", "STX", "SAX",
+    "BCC", "STA", "KIL", "AHX", "STY", "STA", "STX", "SAX", "TYA", "STA", "TXS", "TAS", "SHY", "STA", "SHX", "AHX",
+    "LDY", "LDA", "LDX", "LAX", "LDY", "LDA", "LDX", "LAX", "TAY", "LDA", "TAX", "LAX", "LDY", "LDA", "LDX", "LAX",
+    "BCS", "LDA", "KIL", "LAX", "LDY", "LDA", "LDX", "LAX", "CLV", "LDA", "TSX", "LAS", "LDY", "LDA", "LDX", "LAX",
+    "CPY", "CMP", "NOP", "DCP", "CPY", "CMP", "DEC", "DCP", "INY", "CMP", "DEX", "AXS", "CPY", "CMP", "DEC", "DCP",
+    "BNE", "CMP", "KIL", "DCP", "NOP", "CMP", "DEC", "DCP", "CLD", "CMP", "NOP", "DCP", "NOP", "CMP", "DEC", "DCP",
+    "CPX", "SBC", "NOP", "ISC", "CPX", "SBC", "INC", "ISC", "INX", "SBC", "NOP", "SBC", "CPX", "SBC", "INC", "ISC",
+    "BEQ", "SBC", "KIL", "ISC", "NOP", "SBC", "INC", "ISC", "SED", "SBC", "NOP", "ISC", "NOP", "SBC", "INC", "ISC",
+];
+
 export const maxOpCodeSize = _max(opcodeSizes)!;
 
 /**
@@ -88,11 +107,17 @@ export function verifyScope(dbgFile: debugFile.Dbgfile, scope: debugFile.Scope, 
     return !nonMatch;
 }
 
-export function opCodeFind<T>(mem: Buffer, handler: (cmd: number, rest: Buffer, index: number) => T) : T | undefined {
+export function opCodeFind<T>(mem: Buffer, handler: (cmd: number, rest: Buffer, index: number, name?: string) => T) : T | undefined {
     let cmd = 0x100;
     for(let cursor = 0; cursor < mem.length; cursor += opcodeSizes[cmd] || 0) {
         cmd = mem.readUInt8(cursor);
-        const res = handler(cmd, mem.slice(cursor + 1, cursor + opcodeSizes[cmd]), cursor);
+        let res : T;
+        if(handler.length == 3) {
+            res = handler(cmd, mem.slice(cursor + 1, cursor + opcodeSizes[cmd]), cursor);
+        }
+        else {
+            res = handler(cmd, mem.slice(cursor + 1, cursor + opcodeSizes[cmd]), cursor, opcodeNames[cmd]);
+        }
         if(res) {
             return res;
         }

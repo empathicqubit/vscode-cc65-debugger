@@ -18,8 +18,18 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-import { _statsWebviewContent } from "./stats-webview-content";
 
-(window as any).Buffer = require('buffer/').Buffer;
+interface vscode {
+    postMessage(message: {[key: string]: any, request: string}): void;
+}
 
-(window as any).statsWebviewContent = _statsWebviewContent
+declare global {
+    interface Window {
+        acquireVsCodeApi : () => vscode;
+        Buffer: any;
+    }
+}
+
+window.Buffer = require('buffer/').Buffer;
+
+import "./stats";
