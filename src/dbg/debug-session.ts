@@ -1,5 +1,6 @@
 import * as child_process from 'child_process';
 import * as compile from '../lib/compile';
+import * as customRequests from '../lib/custom-requests';
 import _debounce from 'lodash/fp/debounce';
 import { basename } from 'path';
 import {
@@ -376,6 +377,21 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             else if(command == 'enableStats') {
                 await this._runtime.enableStats();
             }
+            else if(command == 'disassembleLine') {
+                const a = args as any as customRequests.DisassembleLineRequest['arguments'];
+                const instructions = await this._runtime.disassembleLine(a.filename, a.line, a.count);
+                (response as any as DebugProtocol.DisassembleResponse).body = {
+                    instructions: instructions.map(x => ({
+                        address: x.address,
+                        instructionBytes: x.instructionBytes,
+                        instruction: x.instruction,
+                        location: {
+                            path: x.filename,
+                        },
+                        line: x.line < 0 ? undefined : x.line,
+                    })),
+                };
+            }
             else {
                 response.success = false;
                 response.message = 'Unknown command';
@@ -385,8 +401,9 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             response.success = false
             response.message = e.message;
         }
-
-        this.sendResponse(response);
+        finally {
+            this.sendResponse(response);
+        }
     }
 
     /**

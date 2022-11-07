@@ -3,8 +3,21 @@ import _flow from 'lodash/fp/flow';
 import _max from 'lodash/fp/max';
 import _reverse from 'lodash/fp/reverse';
 import _takeWhile from 'lodash/fp/takeWhile';
+import * as debugUtils from './debug-utils';
 import * as debugFile from './debug-file';
 import * as mapFile from './map-file';
+
+export interface Instruction {
+    /** The address of the instruction. Treated as a hex value if prefixed with '0x', or as a decimal value otherwise. */
+    address: string;
+    /** Optional raw bytes representing the instruction and its operands, in an implementation-defined format. */
+    instructionBytes: string;
+    /** Text representing the instruction and its operands, in an implementation-defined format. */
+    instruction: string;
+    filename: string;
+    /** The line within the source location that corresponds to this instruction, if any. Zero-indexed */
+    line: number;
+}
 
 const opcodeSizes = [
     1, 6, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 3, 3, 3, 3,
@@ -204,4 +217,35 @@ export function findStackChangesForScope(mpFile: mapFile.MapRef[], searchScope: 
         jumpAddresses,
         descendants,
     }
+}
+
+export function disassemble(mem: Buffer, dbgFile: debugFile.Dbgfile, startAddress: number) : Instruction[] {
+    const instructions : Instruction[] = [];
+    opCodeFind(mem, (cmd, rest, index, name) => {
+        let restVal : number = -1;
+        let restFmt = '';
+        if(rest.length == 2) {
+            restVal = rest.readUInt16LE(0);
+            restFmt = `\$${restVal.toString(16).padStart(4, '0')}`;
+            const lab = dbgFile.labs.find(x => x.val == restVal);
+            if(lab) {
+                restFmt = ` .${lab.name} (${restFmt})`;
+            }
+        }
+        else if (rest.length == 1) {
+            restVal = rest.readUInt8(0);
+            restFmt = ' $' + restVal.toString(16).padStart(2, '0')
+        }
+
+        const line = debugUtils.getLineFromAddress([], dbgFile, startAddress + index);
+        instructions.push({
+            address: (startAddress + index).toString(),
+            instruction: (name || '') + restFmt.padStart(6, ' '),
+            instructionBytes: String.fromCharCode(cmd, ...rest),
+            filename: line.file?.name || '',
+            line: line.num,
+        });
+    });
+
+    return instructions;
 }

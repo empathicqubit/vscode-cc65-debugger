@@ -393,8 +393,24 @@ or disable colors. You can select the text and copy it to your clipboard.
                 ),
 
                 r(reactTabs.TabPanel, { className: 'disassembly' },
-                    r('ul', null, this.props.disassembly.map(instruction =>
-                        r('li', { key: instruction.address }, instruction.instruction),
+                    this.props.disassembly[0]?.location?.path
+                    ? r('h1', null, this.props.disassembly[0]?.line
+                        ? (this.props.disassembly[0]?.location?.path + ':' + (this.props.disassembly[0]?.line + 1))
+                        : ''
+                    ) : null,
+                    r('code', null, r('pre', null,
+                        (() => {
+                            const firstInstruction = this.props.disassembly[0];
+                            return this.props.disassembly.map(instruction => {
+                                const instructionFmt = '$' + parseInt(instruction.address).toString(16).padStart(4, '0') + ': ' + instruction.instruction;
+                                if(typeof instruction.line === 'number' && firstInstruction?.location?.path == instruction?.location?.path) {
+                                    return (instruction.line + 1).toString().padStart(6, ' ') + ': ' + instructionFmt;
+                                }
+                                else {
+                                    return '        ' + instructionFmt;
+                                }
+                            }).join('\n');
+                        })(),
                     )),
                 ),
             )

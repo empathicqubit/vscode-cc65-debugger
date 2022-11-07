@@ -26,7 +26,8 @@ import * as metrics from '../lib/metrics';
 import * as descriptor from './descriptor';
 import { StatsWebview } from './stats-webview';
 import cycleAnnotationProvider from './cycle-annotation-provider';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { activationLanguages, extId, getActiveSession, MyDebugSession } from './ui-utils';
+import _debounce from 'lodash/fp/debounce';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -35,24 +36,6 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 const runMode: 'external' | 'server' | 'inline' = 'external';
 
 let commands : vscode.Disposable[] = [];
-
-const extId = 'cc65-vice';
-
-interface MyDebugSession extends vscode.DebugSession {
-    customRequest(command: 'enableStats') : Thenable<any>;
-    customRequest(command: 'disassemble', args: DebugProtocol.DisassembleRequest['arguments']) : Thenable<DebugProtocol.DisassembleResponse['body']>;
-    customRequest(command: 'messageActioned', args: { name: string })
-    customRequest<T extends string>(command: T & (T extends ('enableStats' | 'disassemble' | 'messageActioned') ? never : {}), args?: any) : Thenable<any>;
-}
-
-const getActiveSession = () : MyDebugSession | undefined => {
-    const sesh = vscode.debug.activeDebugSession;
-    if(sesh?.type != extId) {
-        return undefined;
-    }
-
-    return sesh;
-};
 
 const updateConfiguration = () => {
     // THIS MUST BE FIRST
@@ -170,27 +153,33 @@ export function activate(context: vscode.ExtensionContext) {
     });
     commands.push(command);
 
-    command = vscode.commands.registerCommand(extId + '.disassembleLine', async (args: { uri: string, address: number, instructionCount: number }) => {
-        const sesh = getActiveSession();
-        if(!sesh) {
-            vscode.window.showErrorMessage('Debug session must be running');
+    const disassembleLine = _debounce(100, async () => {
+        const editor = vscode.window.activeTextEditor;
+        if(!editor || !activationLanguages.includes(editor.document.languageId)) {
             return;
         }
 
-        args = args || { uri: '', address: -1, instructionCount: -1 };
+        const sesh = getActiveSession();
+        if(!sesh) {
+            return;
+        }
 
-        const res = await sesh.customRequest('disassemble', {
-            memoryReference: 'ram',
-            offset: args.address,
-            instructionOffset: 0,
-            instructionCount: args.instructionCount,
-            resolveSymbols: false,
+        const res = await sesh.customRequest('disassembleLine', {
+            filename: editor.document.uri.fsPath,
+            line: 0,
+            count: editor.document.lineCount,
         });
+
+        if(!res?.instructions?.length) {
+            return;
+        }
 
         StatsWebview.update({
             disassembly: res?.instructions,
         });
     });
+
+    command = vscode.window.onDidChangeActiveTextEditor(disassembleLine);
     commands.push(command);
 
     const provider = new descriptor.CC65ViceConfigurationProvider(

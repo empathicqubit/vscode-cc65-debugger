@@ -50,18 +50,6 @@ export interface Registers {
     cyc: number;
 }
 
-export interface Instruction {
-    /** The address of the instruction. Treated as a hex value if prefixed with '0x', or as a decimal value otherwise. */
-    address: string;
-    /** Optional raw bytes representing the instruction and its operands, in an implementation-defined format. */
-    instructionBytes: string;
-    /** Text representing the instruction and its operands, in an implementation-defined format. */
-    instruction: string;
-    filename: string;
-    /** The line within the source location that corresponds to this instruction, if any. Zero-indexed */
-    line: number;
-}
-
 const UPDATE_INTERVAL = 1000;
 
 interface _lineData {
@@ -986,7 +974,11 @@ or define the location manually with the launch.json->mapFile setting`
         await this._emulator.setMemory(addr, memory);
     }
 
-    public async disassemble(addr: number, instructionCount: number): Promise<Instruction[]> {
+    public async disassemble(addr: number, instructionCount: number): Promise<disassembly.Instruction[]> {
+        if(!this._dbgFile || !this._emulator || this._emulatorStarting) {
+            return [];
+        }
+
         if(addr < 0 || addr > 0xffff) {
             addr = this._currentAddress || 0;
         }
@@ -1000,23 +992,32 @@ or define the location manually with the launch.json->mapFile setting`
             size = 0xffff - addr;
         }
 
-        const instructions : Instruction[] = [];
-        let count = 0;
-        disassembly.opCodeFind(await this.getMemory(addr, size), (cmd, rest, index, name) => {
-            const line = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, addr + index);
-            instructions.push({
-                address: (addr + index).toString(),
-                instruction: (name || '') + ' ' + debugUtils.rawBufferHex(rest),
-                instructionBytes: String.fromCharCode(cmd, ...rest),
-                filename: line.file?.name || '',
-                line: line.num,
-            })
+        return disassembly.disassemble(await this.getMemory(addr, size), this._dbgFile, addr);
+    }
 
-            count++;
-            return count == instructionCount;
-        });
+    public async disassembleLine(filename: string, line: number, count: number) : Promise<disassembly.Instruction[]> {
+        if(!this._dbgFile || !this._emulator || this._emulatorStarting) {
+            return [];
+        }
 
-        return instructions;
+        const file = this._dbgFile.files.find(x => !path.relative(filename, x.name));
+
+        if(!file) {
+            return [];
+        }
+
+        const lines = file.lines.filter(x => x.num >= line && x.num < line + count);
+        const start = _first(lines)?.span?.absoluteAddress || -1;
+        if(start == -1) {
+            return [];
+        }
+        const endSpan = _last(lines)?.span;
+        if(!endSpan) {
+            return [];
+        }
+        const length = (endSpan.absoluteAddress + endSpan.size) - start;
+
+        return disassembly.disassemble(await this.getMemory(start, length), this._dbgFile, start);
     }
 
     // Breakpoints

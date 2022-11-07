@@ -114,11 +114,9 @@ class CycleAnnotationProvider {
                             instructionCount,
                         };
 
-                        const hoverMessage = new vscode.MarkdownString(`[Cycles: ${cycleCount}](command:cc65-vice.disassembleLine?${encodeURIComponent(JSON.stringify(args))})`);
-                        hoverMessage.isTrusted = true;
                         const opt : vscode.DecorationOptions = {
                             range: textDocument.lineAt(line.num).range,
-                            hoverMessage: hoverMessage,
+                            hoverMessage: `Cycles: ${cycleCount}`,
                             renderOptions: {
                                 after: {
                                     contentText: `🔄 ${cycleCount}`,

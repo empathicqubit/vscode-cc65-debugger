@@ -4,8 +4,7 @@ import * as vscode from 'vscode';
 import { LaunchRequestArguments } from "../lib/launch-arguments";
 import * as compile from '../lib/compile';
 import * as net from 'net';
-
-const extId = 'cc65-vice';
+import { extId } from "./ui-utils";
 
 const newSession = () : DebugSession => {
     const sesh = new CC65ViceDebugSession();

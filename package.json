@@ -268,10 +268,6 @@
         "title": "CC65 VICE: Toggle cycle counters"
       },
       {
-        "command": "cc65-vice.disassembleLine",
-        "title": "CC65 VICE: Disassemble current line"
-      },
-      {
         "command": "cc65-vice.captureDebugInformation",
         "title": "CC65 VICE: Capture Debug Information"
       }
