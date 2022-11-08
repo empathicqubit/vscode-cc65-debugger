@@ -155,23 +155,21 @@ export function findInitializationCompleteLine(mpFile: mapFile.MapRef[], dbgFile
     const startAddress = scope.codeSpan?.absoluteAddress ?? -1;
     let lastFoundLine : debugFile.SourceLine | undefined;
     let currentLine : debugFile.SourceLine | undefined;
-    opCodeFind(mem, (cmd, rest, pos) => {
-        const line = scope.codeSpan?.lines.find(x => x.span && x.span.absoluteAddress <= startAddress + pos && startAddress + pos < x.span.absoluteAddress + x.span.size);
+    return opCodeFind(mem, (cmd, rest, pos) => {
+        const newLine = scope.codeSpan?.lines.find(x => x.span && x.span.absoluteAddress <= startAddress + pos && startAddress + pos < x.span.absoluteAddress + x.span.size);
         if(cmd == 0x4c || cmd == 0x20) { // JMP, JSR
             const addr = rest.readUInt16LE(0);
             if(stackInitializations.find(x => x.functionAddress === addr)) {
-                lastFoundLine = line;
+                lastFoundLine = newLine;
             }
         }
 
-        if(currentLine && line != currentLine && lastFoundLine != currentLine) {
-            return true;
+        if(currentLine && newLine != currentLine && lastFoundLine != currentLine) {
+            return newLine;
         }
 
-        currentLine = line;
+        currentLine = newLine;
     });
-
-    return currentLine;
 }
 
 /**

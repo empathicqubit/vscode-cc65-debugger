@@ -976,7 +976,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async disassemble(addr: number, instructionCount: number): Promise<disassembly.Instruction[]> {
-        if(!this._dbgFile || !this._emulator || this._emulatorStarting) {
+        if(!this._dbgFile || !this._emulator || this._emulatorStarting || this._emulatorRunning) {
             return [];
         }
 
@@ -997,7 +997,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async disassembleLine(filename: string, line: number, count: number) : Promise<disassembly.Instruction[]> {
-        if(!this._dbgFile || !this._emulator || this._emulatorStarting) {
+        if(!this._dbgFile || !this._emulator || this._emulatorStarting || this._emulatorRunning) {
             return [];
         }
 
@@ -1327,12 +1327,19 @@ or define the location manually with the launch.json->mapFile setting`
 
         const scopeVars = await this._variableManager.getScopeVariables(currentScope);
 
-        /* FIXME
         if(currentScope.codeSpan) {
             const mem = await this.getMemory(currentScope.codeSpan.absoluteAddress, currentScope.codeSpan.size);
             const completeLine = disassembly.findInitializationCompleteLine(this._mapFile, this._dbgFile, currentScope, mem);
+
+            if(this._currentPosition.span && completeLine?.span && this._currentPosition.span.absoluteAddress < completeLine.span.absoluteAddress) {
+                scopeVars.unshift({
+                    name: "WARNING",
+                    value: "The variables at this execution point may be unreliable.",
+                    type: '',
+                    addr: 0,
+                })
+            }
         }
-        */
 
         return scopeVars;
     }
