@@ -1,7 +1,7 @@
 {
   "name": "cc65-vice",
   "displayName": "VS65 Debugger",
-  "version": "6.5.0",
+  "version": "6.6.0",
   "publisher": "entan-gl",
   "description": "An extension to debug CC65 running in VICE (Commodore) or Mesen (Nintendo) emulators.",
   "author": {
@@ -285,31 +285,31 @@
       {
         "id": "vice-monitor",
         "aliases": [
-            "VICE Monitor",
-            "vice-monitor"
+          "VICE Monitor",
+          "vice-monitor"
         ],
         "extensions": [
-            ".lbl"
+          ".lbl"
         ]
       },
       {
         "id": "cc65-mapfile",
         "aliases": [
-            "CC65 Map File",
-            "cc65-mapfile"
+          "CC65 Map File",
+          "cc65-mapfile"
         ],
         "extensions": [
-            ".map"
+          ".map"
         ]
       },
       {
         "id": "cc65-debugfile",
         "aliases": [
-            "CC65 Debug File",
-            "cc65-debugfile"
+          "CC65 Debug File",
+          "cc65-debugfile"
         ],
         "extensions": [
-            ".dbg"
+          ".dbg"
         ]
       },
       {
