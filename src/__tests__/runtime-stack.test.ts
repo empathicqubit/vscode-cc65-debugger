@@ -300,7 +300,7 @@ describe('Stack', () => {
         await testShared.waitFor(rt, 'end');
 
         console.log(locals);
-        assert.deepStrictEqual(locals.map(x => x.name).sort(), ['cool', 'i', 'j', 'lol', 'random', 'whoa', 'wow', 'xy']);
+        assert.deepStrictEqual(locals.map(x => x.name).sort(), ['blarg', 'blerg', 'cool', 'i', 'j', 'k', 'lol', 'random', 'whoa', 'wow', 'xy']);
 
         console.log(randomVal);
         assert.strictEqual(random.value, "0x03fc");
