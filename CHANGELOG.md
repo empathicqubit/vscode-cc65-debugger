@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.5.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.4.0...v6.5.0) (2022-11-08)
+
+
+### Features
+
+* Basic disassembly view ([258db5b](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/258db5bc3ce8e9dd4bcf8a545e866b75a04e8c76))
+
+
+### Bug Fixes
+
+* fix an issue with palette loading on the sprite tab ([350bb4f](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/350bb4f6a922f44723ed1b289d7a123a62dbde85))
+* Post a warning about unreliable variable values. ([4a19928](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/4a199288570b4d95f736c59765ed032d6875f630))
+
 ## [6.4.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.3.7...v6.4.0) (2022-11-01)
 
 
