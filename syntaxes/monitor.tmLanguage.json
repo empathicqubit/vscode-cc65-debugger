@@ -1,0 +1,192 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "VICE Monitor Script",
+	"scopeName": "source.vice_monitor",
+	"patterns": [
+		{
+			"include": "#string"
+		},
+		{
+			"include": "#support"
+		},
+		{
+			"include": "#logical-expression"
+		},
+		{
+			"include": "#literals"
+		},
+		{
+			"include": "#variables"
+		},
+		{
+			"include": "#math"
+		}
+	],
+	"repository": {
+		"literals": {
+			"patterns": [{
+				"name": "constant.numeric.binary.vice_monitor",
+				"match": "%[01]+\\b"
+			}, {
+				"name": "constant.numeric.hex.vice_monitor",
+				"match": "(\\$[0-9A-Fa-f]+\\b)|\\b([0-9A-Fa-f]+h\\b)"
+			}, {
+				"name": "constant.numeric.decimal.vice_monitor",
+				"match": "\\b[0-9a-fA-F]+\\b"
+			}, {
+				"name": "constant.language.unnamed-label.vice_monitor",
+				"match": ":-+|:\\++"
+			}]
+		},
+        "variables": {
+			"patterns": [
+				{
+					"captures": {
+						"1": {
+							"name": "variable.other.vice_monitor"
+						},
+						"2": {
+							"name": "punctuation.definition.variable.vice_monitor"
+						}
+					},
+					"match": "(?xi)\n((\\.)(?<name>[a-z_\\x{7f}-\\x{10ffff}][a-z0-9_\\x{7f}-\\x{10ffff}]*))"
+				}
+			]
+		},
+		"logical-expression": {
+			"patterns": [
+				{
+					"comment": "do we want a special rule for ( expr )?",
+					"match": "=[=~]?|!=?|<|>|&&|\\|\\|",
+					"name": "keyword.operator.logical.vice_monitor"
+				},
+				{
+					"match": "(?<!\\S)-(nt|ot|ef|eq|ne|l[te]|g[te]|[a-hknoprstuwxzOGLSN])",
+					"name": "keyword.operator.logical.vice_monitor"
+				}
+			]
+		},
+		"math": {
+			"patterns": [
+				{
+					"include": "#variables"
+				},
+				{
+					"match": "\\+{1,2}|-{1,2}|!|~|\\*{1,2}|/|%|<[<=]?|>[>=]?|==|!=|^|\\|{1,2}|&{1,2}|\\?|\\:|,|=|[*/%+\\-&^|]=|<<=|>>=",
+					"name": "keyword.operator.arithmetic.vice_monitor"
+				},
+				{
+					"match": "0[xX][0-9A-Fa-f]+",
+					"name": "constant.numeric.hex.vice_monitor"
+				},
+				{
+					"match": "0\\d+",
+					"name": "constant.numeric.octal.vice_monitor"
+				},
+				{
+					"match": "\\d{1,2}#[0-9a-zA-Z@_]+",
+					"name": "constant.numeric.other.vice_monitor"
+				},
+				{
+					"match": "\\d+",
+					"name": "constant.numeric.integer.vice_monitor"
+				}
+			]
+		},
+		"string": {
+			"patterns": [
+				{
+					"match": "\\\\.",
+					"name": "constant.character.escape.vice_monitor"
+				},
+				{
+					"begin": "'",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.begin.vice_monitor"
+						}
+					},
+					"end": "'",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.end.vice_monitor"
+						}
+					},
+					"name": "string.quoted.single.vice_monitor"
+				},
+				{
+					"begin": "\\$?\"",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.begin.vice_monitor"
+						}
+					},
+					"end": "\"",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.end.vice_monitor"
+						}
+					},
+					"name": "string.quoted.double.vice_monitor",
+					"patterns": [
+						{
+							"match": "\\\\[\\$`\"\\\\\\n]",
+							"name": "constant.character.escape.vice_monitor"
+						},
+						{
+							"include": "#variable"
+						},
+						{
+							"include": "#interpolation"
+						}
+					]
+				},
+				{
+					"begin": "\\$'",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.begin.vice_monitor"
+						}
+					},
+					"end": "'",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.end.vice_monitor"
+						}
+					},
+					"name": "string.quoted.single.dollar.vice_monitor",
+					"patterns": [
+						{
+							"match": "\\\\(a|b|e|f|n|r|t|v|\\\\|')",
+							"name": "constant.character.escape.ansi-c.vice_monitor"
+						},
+						{
+							"match": "\\\\[0-9]{3}",
+							"name": "constant.character.escape.octal.vice_monitor"
+						},
+						{
+							"match": "\\\\x[0-9a-fA-F]{2}",
+							"name": "constant.character.escape.hex.vice_monitor"
+						},
+						{
+							"match": "\\\\c.",
+							"name": "constant.character.escape.control-char.vice_monitor"
+						}
+					]
+				}
+			]
+		},
+		"support": {
+			"patterns": [
+				{
+					"match": "(?<=^|;|&|\\s)(?::|\\.)(?=\\s|;|&|$)",
+					"name": "support.function.builtin.vice_monitor"
+				},
+				{
+					"match": "(?<=^|;|&|\\s)(>|@|a|add_label|al|attach|autostart|autoload|bank|bload|bl|block_read|br|break|bk|bsave|bs|backtrace|bt|block_write|bw|bverify|bv|cartfreeze|cd|clear_labels|cl|command|compare|c|condition|cond|cpu|cpuhistory|chis|dir|ls|disass|d|delete|del|delete_label|dl|device|dev|detach|disable|dis|dump|enable|en|exit|x|export|exp|fill|f|goto|g|help|\\?|hunt|h|i|ii|ignore|io|jpdb|keybuf|list|load|l|load_labels|ll|log|logname|mem|m|memchar|mc|memmapsave|mmsave|memmapshow|mmsh|memmapzap|mmzap|mkdir|move|t|memsprite|ms|next|n|playback|pb|print|p|pwd|quit|q|radix|rad|record|rec|registers|r|reset|resourceget|resget|resourceset|resset|load_resources|resload|save_resources|ressave|return|ret|rmdir|save|s|save_labels|sl|screen|sc|screenshot|scrsh|show_labels|shl|sidefx|sfx|dummy|step|z|stop|stopwatch|sw|tapectrl|trace|tr|until|un|undump|updb|verify|v|watch|w|warp|yydebug|maincpu_trace)(?=\\s|;|&|$)",
+					"name": "support.function.builtin.vice_monitor"
+				}
+			]
+		}
+	}
+}

@@ -1,7 +1,8 @@
 {
     "workbench.colorCustomizations": {
         "activityBar.background": "#630",
-
+        "activityBar.foreground": "#ffffffff",
+        "activityBar.inactiveForeground": "#ffffff66"
     },
     "jest.autoRun": {
         "watch": false,

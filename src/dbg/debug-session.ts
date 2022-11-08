@@ -35,6 +35,34 @@ enum VariablesReferenceFlag {
 }
 // MAX = 0x8000000000000
 
+function noOp() {};
+
+function cleanup(callback: (code: number) => void) {
+
+  // attach user callback to the process event emitter
+  // if no callback, it will still exit gracefully on Ctrl-C
+  callback = callback || noOp;
+  process.on('cleanup', callback);
+
+  // do app specific cleaning before exiting
+  process.on('exit', (a) => {
+    process.emit(<any>'cleanup', a);
+  });
+
+  // catch ctrl+c event and exit normally
+  process.on('SIGINT', function () {
+    console.log('Ctrl-C...');
+    process.exit(2);
+  });
+
+  //catch uncaught exceptions, trace, then exit normally
+  process.on('uncaughtException', function(e) {
+    console.log('Uncaught Exception...');
+    console.log(e.stack);
+    process.exit(1);
+  });
+};
+
 /**
  * This class is designed to interface the debugger Runtime with Visual Studio's request model.
  */
@@ -102,7 +130,20 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         this.setDebuggerColumnsStartAt1(false);
 
         this._runtime = new Runtime(
-            <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts))
+            <debugUtils.ExecHandler>(async (file, args, opts) => {
+                const pids = await this._execHandler(file, args, opts);
+
+                cleanup(() => {
+                    for(const pid of pids) {
+                        try {
+                            process.kill(pid);
+                        }
+                        catch {}
+                    }
+                });
+
+                return pids;
+            })
         );
 
         this._bounceBuf = _debounce(250, async () => {

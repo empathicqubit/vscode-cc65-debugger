@@ -283,6 +283,36 @@
     ],
     "languages": [
       {
+        "id": "vice-monitor",
+        "aliases": [
+            "VICE Monitor",
+            "vice-monitor"
+        ],
+        "extensions": [
+            ".lbl"
+        ]
+      },
+      {
+        "id": "cc65-mapfile",
+        "aliases": [
+            "CC65 Map File",
+            "cc65-mapfile"
+        ],
+        "extensions": [
+            ".map"
+        ]
+      },
+      {
+        "id": "cc65-debugfile",
+        "aliases": [
+            "CC65 Debug File",
+            "cc65-debugfile"
+        ],
+        "extensions": [
+            ".dbg"
+        ]
+      },
+      {
         "id": "ca65",
         "aliases": [
           "6502/65816 Assembly",
@@ -302,6 +332,21 @@
         "language": "ca65",
         "scopeName": "source.ca65",
         "path": "./syntaxes/ca65.tmLanguage.json"
+      },
+      {
+        "language": "vice-monitor",
+        "scopeName": "source.vice_monitor",
+        "path": "./syntaxes/monitor.tmLanguage.json"
+      },
+      {
+        "language": "cc65-mapfile",
+        "scopeName": "source.cc65_mapfile",
+        "path": "./syntaxes/mapfile.tmLanguage.json"
+      },
+      {
+        "language": "cc65-debugfile",
+        "scopeName": "source.cc65_debugfile",
+        "path": "./syntaxes/debugfile.tmLanguage.json"
       }
     ],
     "debuggers": [

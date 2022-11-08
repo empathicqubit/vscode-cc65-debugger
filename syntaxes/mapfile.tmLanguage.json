@@ -1,0 +1,166 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "CC65 Mapfile",
+	"scopeName": "source.cc65_mapfile",
+	"patterns": [
+        {
+            "include": "#exports"
+        },
+        {
+            "include": "#imports"
+        },
+        {
+            "include": "#segments"
+        },
+        {
+            "include": "#modules"
+        }
+	],
+	"repository": {
+        "imports": {
+            "begin": "(?xi)^\\s*imports\\s+list",
+            "end": "^\\s*$",
+            "patterns": [
+                {
+                    "name": "imports.other.heading.cc65_mapfile",
+                    "match": "(?xi)^\\s*(.*?)\\s+(\\()(.*?\\.o|\\[.*?\\])(\\))\\s*(:)\\s*$",
+                    "captures": {
+                        "1": {
+                            "name": "variable.other.cc65_mapfile"
+                        },
+                        "2": {
+                            "name": "punctuation.definition.string.begin.cc65_mapfile"
+                        },
+                        "3": {
+                            "name": "keyword.control.directive.cc65_mapfile"
+                        },
+                        "4": {
+                            "name": "punctuation.definition.string.end.cc65_mapfile"
+                        },
+                        "5": {
+                            "name": "string.quoted.other.cc65_mapfile"
+                        }
+                    }
+                },
+                {
+                    "name": "imports.other.module.cc65_mapfile",
+                    "match": "(?xi)^\\s+(.*?\\.o|\\[.*?\\])\\s+(.*?)\\s*:\\s*(\\d+)",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.control.directive.cc65_mapfile"
+                        },
+                        "2": {
+                            "name": "string.other.cc65_mapfile"
+                        },
+                        "3": {
+                            "name": "constant.numeric.integer.cc65_mapfile"
+                        }
+                    }
+                }
+            ]
+        },
+        "modules": {
+            "begin": "(?xi)^\\s*modules\\s+list",
+            "end": "^\\s*$",
+            "patterns": [
+                {
+                    "name": "modules.other.segment.cc65_mapfile",
+                    "begin": "^\\s+([A-Z0-9_]+)",
+                    "beginCaptures": {
+                        "1": {
+                            "name": "variable.other.cc65_mapfile"
+                        }
+                    },
+                    "end": "$",
+                    "patterns": [
+                        {
+                            "name": "modules.other.segment.property.cc65_mapfile",
+                            "match": "\\b(\\w+)\\s*(=)\\s*([0-9a-fA-F]+)\\b",
+                            "captures": {
+                                "1": {
+                                    "name": "variable.other.cc65_mapfile"
+                                },
+                                "2": {
+                                    "name": "keyword.operator.assignment.cc65_mapfile"
+                                },
+                                "3": {
+                                    "name": "constant.numeric.hex.cc65_mapfile"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "modules.other.heading.cc65_mapfile",
+                    "match": "(?xi)^\\s*(.*?(\\.o|\\.lib))\\s*((\\().*?\\.o(\\)))?\\s*(:)\\s*$",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.control.directive.cc65_mapfile"
+                        },
+                        "2": {
+                            "name": "string.quoted.other.lt-gt.cc65_mapfile"
+                        },
+                        "3": {
+                            "name": "variable.other.cc65_mapfile"
+                        },
+                        "4": {
+                            "name": "punctuation.definition.string.begin.cc65_mapfile"
+                        },
+                        "5": {
+                            "name": "punctuation.definition.string.end.cc65_mapfile"
+                        },
+                        "6": {
+                            "name": "keyword.control.directive.cc65_mapfile"
+                        }
+                    }
+                }
+            ]
+        },
+        "segments": {
+            "patterns": [
+                {
+                    "name": "segments.other.cc65_mapfile",
+                    "match": "\\b([a-zA-Z_\\x{7f}-\\x{10ffff}][a-zA-Z_\\x{7f}-\\x{10ffff}0-9]+)\\s+([0-9a-fA-F]+)\\s+([0-9a-fA-F]+)\\s+([0-9a-fA-F]+)\\s+([0-9a-fA-F]+)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "variable.other.cc65_mapfile"
+                        },
+                        "2": {
+                            "name": "constant.numeric.hex.cc65_mapfile"
+                        },
+                        "3": {
+                            "name": "constant.numeric.hex.cc65_mapfile"
+                        },
+                        "4": {
+                            "name": "support.variable.property.cc65_mapfile"
+                        },
+                        "5": {
+                            "name": "constant.numeric.hex.cc65_mapfile"
+                        }
+                    }
+                }
+            ]
+        },
+        "exports": {
+            "begin": "(?xi)^\\s*exports\\s+list",
+            "end": "^\\s*$",
+            "patterns": [
+                {
+                    "name": "exports.other.cc65_mapfile",
+                    "match": "\\b([a-zA-Z_\\x{7f}-\\x{10ffff}][a-zA-Z_\\x{7f}-\\x{10ffff}0-9]+)\\s+([0-9a-fA-F]+)\\s+([R\\s][LE][AZ]I?)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "variable.other.cc65_mapfile"
+                        },
+                        "2": {
+                            "name": "constant.numeric.hex.cc65_mapfile"
+                        },
+                        "3": {
+                            "name": "entity.name.type.enum.cc65_mapfile"
+                        }
+                    }
+                }
+            ]
+        }
+	}
+}

@@ -1,0 +1,46 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "CC65 Debug File",
+	"scopeName": "source.cc65_debugfile",
+	"patterns": [
+		{
+			"include": "#line"
+		}
+	],
+	"repository": {
+        "line": {
+            "name": "line.other.cc65_debugfile",
+            "begin": "^\\s*(csym|file|info|lib|line|mod|scope|seg|span|sym|type|version)\\s+",
+            "beginCaptures": {
+                "1": {
+                    "name": "entity.name.type.cc65_debugfile"
+                }
+            },
+            "end": "$",
+            "patterns": [
+                {
+                    "name": "line.other.property.cc65_debugfile",
+                    "match": "([a-zA-Z]+)\\s*(=)\\s*(\"?)([^\\n\\r,\"]*)(\"?)\\s*,?",
+                    "captures": {
+                        "1": {
+                            "name": "variable.other.cc65_debugfile"
+                        },
+                        "2": {
+                            "name": "keyword.operator.assignment.cc65_debugfile"
+                        },
+                        "3": {
+                            "name": "punctuation.definition.string.begin.cc65_debugfile"
+                        },
+                        "4": {
+                            "name": "string.other.ccc65_debugfile"
+                        },
+                        "5": {
+                            "name": "punctuation.definition.string.end.cc65_debugfile"
+                        }
+                    }
+                }
+            ]
+
+        }
+	}
+}

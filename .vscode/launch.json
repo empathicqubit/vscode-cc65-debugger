@@ -1,7 +1,6 @@
 {
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "Extension",
             "type": "extensionHost",
@@ -19,6 +18,22 @@
             ],
             "preLaunchTask": "extension",
             "postDebugTask": "kill-webviews"
+        },
+        {
+            "name": "Extension (No build)",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "env": {
+                "ELECTRON_IS_DEV": "1"
+            },
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}"
+            ],
         },
         {
             "name": "Server",
