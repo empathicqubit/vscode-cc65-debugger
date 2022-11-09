@@ -1,18 +1,14 @@
-const yargs = require('yargs');
-const shx = require('shelljs');
-const path = require('path');
-const arg = yargs.argv._
+import shx from 'shelljs';
+import * as path from 'path';
+import yargs from 'yargs';
+import { maybeMkdir } from './utils.mjs';
+
+const arg = yargs(process.argv.slice(2)).argv._
 console.log(arg);
 const [arch] = arg;
 shx.config.fatal = true;
 
-const maybeMkdir = (dirname) => {
-    if(shx.test('-e', dirname)) {
-        return;
-    }
-
-    shx.mkdir('-p', dirname);
-};
+const rootDir = process.cwd();
 
 /**
  * @param {string} url
@@ -85,6 +81,6 @@ try {
     console.timeEnd('mintty');
 }
 catch (e) {
-    shx.rm('-rf', __dirname + '/../obj/mintty');
+    shx.rm('-rf', rootDir + '/obj/mintty');
     throw e;
 }

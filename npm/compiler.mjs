@@ -1,5 +1,10 @@
+import * as fs from 'fs';
+import shx from 'shelljs';
+
 /* Wait for finish if it's already running */
-const [fs, shx, pidFile] = [require('fs'), require('shelljs'), './compiler.run'];
+
+const pidFile = './compiler.run';
+
 let quick = false;
 for(const arg of process.argv) {
     if(arg == '--quick') {

@@ -1,11 +1,13 @@
+import shx from 'shelljs';
+import * as os from 'os';
+import yargs from 'yargs';
+import { maybeMkdir } from './utils.mjs';
+
 const main = async() => {
-    const shx = require('shelljs');
-    const os = require('os');
-    const yargs = require('yargs');
     const threads = os.cpus().length * 4;
     console.log('THREADS', threads);
     shx.config.fatal = true;
-    const arg = yargs.argv._;
+    const arg = yargs(process.argv.slice(2)).argv._;
     console.log(arg);
     let [arch, cross] = arg;
     cross = cross || '';
@@ -14,7 +16,7 @@ const main = async() => {
     if(shx.test('-e', distDir)) {
         process.exit(0);
     }
-    shx.mkdir('-p', archDir)
+    maybeMkdir(archDir);
     shx.cp('-ru', archDir + '/../../src/', archDir)
     shx.cd(archDir + '/src')
     const makeRes = shx.exec(`make -j${threads} CROSS_COMPILE=` + cross, { silent: true })
@@ -24,7 +26,7 @@ const main = async() => {
     shx.find('../bin/*').forEach(binFile => {
         shx.exec(cross + 'strip ' + binFile);
     })
-    shx.mkdir('-p', distDir);
+    maybeMkdir(distDir);
     shx.cp('-ru', '../bin/.', distDir);
     if(arch.startsWith('linux')) {
         shx.find(distDir)
