@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.6.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.5.0...v6.6.0) (2022-11-08)
+
+
+### Features
+
+* Add syntax highlighting for debug, map, and label files ([f64a939](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/f64a93975509f56ad9ad3fe588fe604c56079786))
+
 ## [6.5.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.4.0...v6.5.0) (2022-11-08)
 
 
