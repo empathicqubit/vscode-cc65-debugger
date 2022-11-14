@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@entan.gl/vice-rainbow-monitor': ^1.0.6
   '@entan.gl/vsce': ^1.79.6
+  '@jest/test-result': ^29.3.1
   '@types/classnames': ^2.2.11
   '@types/jest': ^29.2.3
   '@types/lodash': ^4.14.149
@@ -28,6 +29,7 @@ specifiers:
   hasbin: ^1.2.3
   jest: ^29.3.1
   jest-junit: ^14.0.1
+  jest-runner: ^29.3.1
   lodash: ^4.17.15
   marked: ^4.0.10
   mathjs: ^9.5.0
@@ -94,6 +96,7 @@ dependencies:
 
 devDependencies:
   '@entan.gl/vsce': 1.79.6
+  '@jest/test-result': 29.3.1
   '@types/classnames': 2.2.11
   '@types/lodash': 4.14.161
   '@types/node': 14.6.4
@@ -111,6 +114,7 @@ devDependencies:
   glob: 7.1.6
   jest: 29.3.1_wh4ascdrl7qhpj5rgcn3xto2i4
   jest-junit: 14.0.1
+  jest-runner: 29.3.1
   node-fetch: 3.0.0
   npm-run-all: 4.1.5
   shebang-loader: 0.0.1
