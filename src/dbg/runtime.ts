@@ -476,8 +476,7 @@ export class Runtime extends EventEmitter {
 
         await this._postEmulatorStart();
 
-        await this.continue();
-        await this._emulator.waitForStop(this._dbgFile.entryAddress, undefined, true);
+        await this._attachWait();
 
         await this._postFullStart(stopOnEntry);
     }

@@ -131,6 +131,27 @@
             "emulatorArgs": [
             ],
             "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
+            "request": "launch",
+            "name": "CC65 Vice Launch (Apple 2) (Debug Extension)",
+            "program": "${workspaceFolder}/program.apple2.dsk",
+            "debugFile": "${workspaceFolder}/program.apple2.dbg",
+            "mapFile": "${workspaceFolder}/program.apple2.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile",
+                    "dsk"
+                ]
+            },
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "emulatorArgs": [
+            ],
+            "debugServer": 4711
         }
     ]
 }
