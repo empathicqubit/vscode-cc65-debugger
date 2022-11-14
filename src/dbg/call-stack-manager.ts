@@ -423,13 +423,20 @@ export class CallStackManager {
                 startAddress: begin,
                 endAddress: end,
                 enabled: true,
-                temporary: true,
+                temporary: false,
                 stop: true,
                 operation: bin.CpuOperation.exec,
             });
 
-            // Breaking here
-            await this._emulator.waitForStop(brk.startAddress, brk.endAddress);
+            await Promise.all([
+                this._emulator.waitForStop(begin, end),
+                this._emulator.exit(),
+            ]);
+
+            await this._emulator.execBinary({
+                type: bin.CommandType.checkpointDelete,
+                id: brk.id,
+            })
         });
 
         return true;
