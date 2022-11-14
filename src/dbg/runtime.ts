@@ -288,7 +288,6 @@ export class Runtime extends EventEmitter {
         }
         clearTimeout(waitTimeout);
 
-        await this.continue();
         await this._emulator.ping();
     }
 
