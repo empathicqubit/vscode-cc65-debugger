@@ -215,7 +215,7 @@ export class Runtime extends EventEmitter {
         this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, address);
     }
 
-    private async _attachWait() : Promise<void> {
+    private async _attachWait(ignoreEvents: boolean = false) : Promise<void> {
         if(!this._dbgFile.codeSeg) {
             return;
         }
@@ -262,7 +262,7 @@ export class Runtime extends EventEmitter {
                         temporary: false,
                     });
 
-                    this._ignoreEvents = true;
+                    this._ignoreEvents = ignoreEvents;
                     do {
                         await this.continue();
                         await this._emulator.waitForStop();
@@ -493,7 +493,7 @@ export class Runtime extends EventEmitter {
             throw new Error('Could not autostart program. Do you have the correct path?');
         }
 
-        await this._attachWait();
+        await this._attachWait(false);
 
         await this._postFullStart(stopOnEntry);
     }
