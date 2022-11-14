@@ -221,7 +221,6 @@ export class Runtime extends EventEmitter {
         }
 
         const scopes = this._dbgFile.scopes.filter(x => x.codeSpan && x.name.startsWith("_") && x.size > disassembly.maxOpCodeSize);
-        const firstLastScopes = _uniq([_first(scopes)!, _last(scopes)!]);
 
         const waitTimeout = setTimeout(() => {
             this.sendMessage({
@@ -231,6 +230,7 @@ export class Runtime extends EventEmitter {
             });
         }, 3000);
         if(scopes.length) {
+            const firstLastScopes = _uniq([_first(scopes)!, _last(scopes)!]);
             if(!await this._validateLoad(firstLastScopes)) {
                 await this._emulator.withAllBreaksDisabled(async () => {
                     const storeCmds = _flow(
