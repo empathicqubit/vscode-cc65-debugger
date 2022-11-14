@@ -8,5 +8,8 @@ export function maybeMkdir(dirname) {
         return;
     }
 
-    shx.mkdir('-p', dirname);
+    try {
+        shx.mkdir('-p', dirname);
+    }
+    catch {}
 };
