@@ -1,5 +1,13 @@
 # Changelog
 
+### [6.6.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.0...v6.6.1) (2022-11-14)
+
+
+### Bug Fixes
+
+* Check the function binaries on startup, to avoid false starts. ([b32003d](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/b32003dbbdf13bd40eedb37ed92974bc5cc982e2))
+* Fix an issue with step out using a temp breakpoint ([2f926b0](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/2f926b068b9ca8eed282b99bfb29478c7298b74f))
+
 ## [6.6.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.5.0...v6.6.0) (2022-11-08)
 
 
