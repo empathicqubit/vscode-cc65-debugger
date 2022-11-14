@@ -223,12 +223,14 @@ export class Runtime extends EventEmitter {
         const scopes = this._dbgFile.scopes.filter(x => x.codeSpan && x.name.startsWith("_") && x.size > disassembly.maxOpCodeSize);
         const firstLastScopes = _uniq([_first(scopes)!, _last(scopes)!]);
 
-        if(!await this._validateLoad(firstLastScopes)) {
+        const waitTimeout = setTimeout(() => {
             this.sendMessage({
                 level: debugUtils.ExtensionMessageLevel.information,
                 content: 'Waiting for program to start...',
                 items: this._attachProgram ? ['Autostart'] : [],
             });
+        }, 3000);
+        if(!await this._validateLoad(firstLastScopes)) {
             await this._emulator.withAllBreaksDisabled(async () => {
                 const storeCmds = _flow(
                     _map((x: typeof firstLastScopes[0]) => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1]),
@@ -269,6 +271,7 @@ export class Runtime extends EventEmitter {
                 content: 'Program started.',
             })
         }
+        clearTimeout(waitTimeout);
 
         await this.continue();
         await this._emulator.ping();
