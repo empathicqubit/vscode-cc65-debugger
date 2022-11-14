@@ -473,7 +473,7 @@ export abstract class AbstractGrip extends EventEmitter {
     }
 
     once(event: string, listener: ((r: bin.Response) => void) | (() => void)): this {
-        if(event == 'end') {
+        if(event == 'end' && this._binaryConn) {
             this._binaryConn.once('error', listener);
             this._binaryConn.once('close', listener);
             this._binaryConn.once('finish', listener);
@@ -487,7 +487,7 @@ export abstract class AbstractGrip extends EventEmitter {
     }
 
     on(event: string, listener: ((r: bin.Response) => void) | (() => void)): this {
-        if(event == 'end') {
+        if(event == 'end' && this._binaryConn) {
             this._binaryConn.on('error', listener);
             this._binaryConn.on('close', listener);
             this._binaryConn.on('finish', listener);

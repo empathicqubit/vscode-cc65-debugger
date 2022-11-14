@@ -169,6 +169,9 @@ export class Runtime extends EventEmitter {
         // Try to determine if we are loaded and wait if not
         await this._attachWait();
 
+        await this.continue();
+        this._emulator.ping();
+
         console.timeEnd('emulator');
 
         await this._postFullStart(stopOnEntry);
