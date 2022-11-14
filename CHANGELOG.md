@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.6.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.1...v6.6.2) (2022-11-14)
+
+
+### Bug Fixes
+
+* Partially fix NES ([2bd296e](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/2bd296eab5c71c874ec055977742284912d240b5))
+
 ### [6.6.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.0...v6.6.1) (2022-11-14)
 
 
