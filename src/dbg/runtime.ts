@@ -230,46 +230,51 @@ export class Runtime extends EventEmitter {
                 items: this._attachProgram ? ['Autostart'] : [],
             });
         }, 3000);
-        if(!await this._validateLoad(firstLastScopes)) {
-            await this._emulator.withAllBreaksDisabled(async () => {
-                const storeCmds = _flow(
-                    _map((x: typeof firstLastScopes[0]) => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1]),
-                    _flatten,
-                    _map((x: number) => {
-                        const val : bin.CheckpointSetCommand = {
-                            type: bin.CommandType.checkpointSet,
-                            startAddress: x,
-                            endAddress: x,
-                            stop: true,
-                            enabled: true,
-                            temporary: false,
-                            operation: bin.CpuOperation.store,
-                        };
-                        return val;
-                    })
-                )(firstLastScopes);
+        if(scopes.length) {
+            if(!await this._validateLoad(firstLastScopes)) {
+                await this._emulator.withAllBreaksDisabled(async () => {
+                    const storeCmds = _flow(
+                        _map((x: typeof firstLastScopes[0]) => [ x.codeSpan!.absoluteAddress, x.codeSpan!.absoluteAddress + x.codeSpan!.size - 1]),
+                        _flatten,
+                        _map((x: number) => {
+                            const val : bin.CheckpointSetCommand = {
+                                type: bin.CommandType.checkpointSet,
+                                startAddress: x,
+                                endAddress: x,
+                                stop: true,
+                                enabled: true,
+                                temporary: false,
+                                operation: bin.CpuOperation.store,
+                            };
+                            return val;
+                        })
+                    )(firstLastScopes);
 
-                const storeReses : bin.CheckpointInfoResponse[] = await this._emulator.multiExecBinary(storeCmds);
+                    const storeReses : bin.CheckpointInfoResponse[] = await this._emulator.multiExecBinary(storeCmds);
 
-                this._ignoreEvents = true;
-                do {
-                    await this.continue();
-                    await this._emulator.waitForStop();
-                } while(!await this._validateLoad(firstLastScopes))
-                this._ignoreEvents = false;
+                    this._ignoreEvents = true;
+                    do {
+                        await this.continue();
+                        await this._emulator.waitForStop();
+                    } while(!await this._validateLoad(firstLastScopes))
+                    this._ignoreEvents = false;
 
-                const delCmds : bin.CheckpointDeleteCommand[] = storeReses
-                    .map(x => ({
-                            type: bin.CommandType.checkpointDelete,
-                            id: x.id,
-                    }));
-                await this._emulator.multiExecBinary(delCmds);
-            });
+                    const delCmds : bin.CheckpointDeleteCommand[] = storeReses
+                        .map(x => ({
+                                type: bin.CommandType.checkpointDelete,
+                                id: x.id,
+                        }));
+                    await this._emulator.multiExecBinary(delCmds);
+                });
 
-            this.sendMessage({
-                level: debugUtils.ExtensionMessageLevel.information,
-                content: 'Program started.',
-            })
+                this.sendMessage({
+                    level: debugUtils.ExtensionMessageLevel.information,
+                    content: 'Program started.',
+                })
+            }
+        }
+        else {
+            await this._emulator.waitForStop(this._dbgFile.entryAddress, undefined, true);
         }
         clearTimeout(waitTimeout);
 
