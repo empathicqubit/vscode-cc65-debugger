@@ -24,7 +24,7 @@ const ports = {
 }
 
 export async function portGetter() : Promise<number> {
-    const testName = path.basename(expect.getState().testPath);
+    const testName = path.basename(expect.getState().testPath!);
     const val = ports[testName];
     if(!val) {
         throw new Error(`You need to add a port for the test file: "${testName}"`);
