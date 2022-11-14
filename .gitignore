@@ -23,6 +23,7 @@ dist/
 !jest*.config.js
 
 *.dsk
+!prodos.dsk
 *.c64
 *.pet
 *.nes

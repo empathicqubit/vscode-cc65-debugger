@@ -49,14 +49,48 @@ describe('Compile', () => {
     test('Build script works', async () => {
         await compile.clean(BUILD_CWD, execHandler);
         if(process.platform == 'win32') {
-            const res = await util.promisify(child_process.execFile)('.\\mk.bat', { cwd: BUILD_CWD });
-            console.log(res.stdout);
-            console.error(res.stderr);
+            try {
+                const res = await util.promisify(child_process.execFile)('.\\mk.bat', { cwd: BUILD_CWD });
+                console.log(res.stdout);
+                console.error(res.stderr);
+            }
+            catch(e) {
+                console.log(e.stdout);
+                console.error(e.stderr);
+                throw e;
+            }
+            try {
+                const res = await util.promisify(child_process.execFile)('.\\mk.bat', ['dsk'], { cwd: BUILD_CWD });
+                console.log(res.stdout);
+                console.error(res.stderr);
+            }
+            catch(e) {
+                console.log(e.stdout);
+                console.error(e.stderr);
+                throw e;
+            }
         }
         else {
-            const res = await util.promisify(child_process.execFile)('sh', ['./mk.sh'], { cwd: BUILD_CWD });
-            console.log(res.stdout);
-            console.error(res.stderr);
+            try {
+                const res = await util.promisify(child_process.execFile)('sh', ['./mk.sh'], { cwd: BUILD_CWD });
+                console.log(res.stdout);
+                console.error(res.stderr);
+            }
+            catch(e) {
+                console.log(e.stdout);
+                console.error(e.stderr);
+                throw e;
+            }
+            try {
+                const res = await util.promisify(child_process.execFile)('sh', ['./mk.sh', 'TARGETS=apple2', 'dsk'], { cwd: BUILD_CWD });
+                console.log(res.stdout);
+                console.error(res.stderr);
+            }
+            catch(e) {
+                console.log(e.stdout);
+                console.error(e.stderr);
+                throw e;
+            }
         }
     });
 

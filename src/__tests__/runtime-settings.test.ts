@@ -53,7 +53,9 @@ describe('Settings', () => {
             LABEL_FILE
         );
 
-        await testShared.waitFor(rt, 'stopOnEntry', () => assert.strictEqual(rt.getRegisters().pc, testShared.getLabel(rt, '_main')));
+        await testShared.waitFor(rt, 'stopOnEntry', () => {
+            assert.strictEqual(rt.getRegisters().pc, testShared.getLabel(rt, '_main'))
+        });
         await testShared.selectCTest(rt, 'test_break_entry');
 
         await rt.continue();
@@ -86,7 +88,7 @@ describe('Settings', () => {
 
         await testShared.waitFor(rt, 'stopOnExit', (type, __, file, line, col) => {
             assert.strictEqual(file, MAIN_S);
-            assert.strictEqual(line, 43);
+            assert.strictEqual(line, 49);
         });
 
         await rt.continue();
