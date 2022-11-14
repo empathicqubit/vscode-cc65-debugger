@@ -485,14 +485,14 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('emulator');
 
+        await this._postEmulatorStart();
+
         try {
             await this._emulator.autostart(program);
         }
         catch {
             throw new Error('Could not autostart program. Do you have the correct path?');
         }
-
-        await this._postEmulatorStart();
 
         await this._attachWait();
 
