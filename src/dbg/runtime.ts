@@ -252,6 +252,16 @@ export class Runtime extends EventEmitter {
 
                     const storeReses : bin.CheckpointInfoResponse[] = await this._emulator.multiExecBinary(storeCmds);
 
+                    const entryRes = await this._emulator.execBinary({
+                        type: bin.CommandType.checkpointSet,
+                        startAddress: this._dbgFile.entryAddress,
+                        endAddress: this._dbgFile.entryAddress,
+                        stop: true,
+                        enabled: true,
+                        operation: bin.CpuOperation.exec,
+                        temporary: false,
+                    });
+
                     this._ignoreEvents = true;
                     do {
                         await this.continue();
@@ -259,7 +269,7 @@ export class Runtime extends EventEmitter {
                     } while(!await this._validateLoad(firstLastScopes))
                     this._ignoreEvents = false;
 
-                    const delCmds : bin.CheckpointDeleteCommand[] = storeReses
+                    const delCmds : bin.CheckpointDeleteCommand[] = [...storeReses, entryRes]
                         .map(x => ({
                                 type: bin.CommandType.checkpointDelete,
                                 id: x.id,
