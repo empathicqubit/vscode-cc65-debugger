@@ -487,13 +487,19 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('emulator');
 
-        await this._postEmulatorStart();
+        if(this._machineType !== debugFile.MachineType.nes) {
+            await this._postEmulatorStart();
+        }
 
         try {
             await this._emulator.autostart(program);
         }
         catch {
             throw new Error('Could not autostart program. Do you have the correct path?');
+        }
+
+        if(this._machineType === debugFile.MachineType.nes) {
+            await this._postEmulatorStart();
         }
 
         await this._attachWait(false);
@@ -908,8 +914,10 @@ or define the location manually with the launch.json->mapFile setting`
     public async pause() {
         await this._emulator.ping();
         await this._doRunAhead();
-        const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
-        this.sendEvent('stopOnStep', null, ...args);
+        if(this._currentPosition) {
+            const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
+            this.sendEvent('stopOnStep', null, ...args);
+        }
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<any> {
