@@ -215,7 +215,7 @@ export class Runtime extends EventEmitter {
         this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, address);
     }
 
-    private async _attachWait(ignoreEvents: boolean = false) : Promise<void> {
+    private async _attachWait(ignoreEvents: boolean = true) : Promise<void> {
         if(!this._dbgFile.codeSeg) {
             return;
         }
