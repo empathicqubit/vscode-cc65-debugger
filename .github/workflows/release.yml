@@ -26,15 +26,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      name: Checkout Code
       with:
           ref: ${{ matrix.tag_ref }}
-    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
     - run: npm install -g pnpm
+      name: Install pnpm
+    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
+      name: Mark repo directory as safe
     - run: pnpm install --shamefully-hoist
+      name: Install node modules
     - run: APPLEWIN_DIRECTORY= VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
+      name: Restore submodules
     - run: APPLEWIN_DIRECTORY= VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
+      name: Build Darwin compiler
 
     - uses: actions/upload-artifact@v2
+      name: Upload Darwin compiler artifact
       with:
         name: darwin-compiler
         path: dist/cc65/bin_darwin_*/*
@@ -56,29 +63,36 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      name: Checkout Code
       with:
           ref: ${{ matrix.tag_ref }}
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
 
-    - run: pnpm install --shamefully-hoist
-    - run: ln -s $PWD/system /usr/local/share/vice
-    - run: ln -s $PWD/system /usr/local/lib/vice
-    - run: ln -s $PWD/system /usr/lib/vice
-    - run: ln -s $PWD/system /usr/share/vice
-    - run: ls -l /usr/local/share
+    - run: |
+        ln -s $PWD/system /usr/local/share/vice
+        ln -s $PWD/system /usr/local/lib/vice
+        ln -s $PWD/system /usr/lib/vice
+        ln -s $PWD/system /usr/share/vice
+        ls -l /usr/local/share
+      name: Symlink VICE data folder
 
     - uses: actions/download-artifact@v2
+      name: Download Darwin compiler artifact
       with:
         name: darwin-compiler
         path: dist/cc65
 
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm package
+      name: Build VSIX package
     - run: 7z l cc65-vice*.vsix
+      name: Check vsix package
 
     - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
+      name: Set VSIX filename
       id: get_filename
 
     - uses: actions/upload-artifact@v2
+      name: Upload VSIX package
       with:
         name: cc65-vice.vsix
         path: cc65-vice*.vsix

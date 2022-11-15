@@ -23,7 +23,6 @@ jobs:
   mac-build:
 
     runs-on: macos-10.15
-    #container: empathicqubit/vscode-cc65-debugger-build
 
     strategy:
       fail-fast: false
@@ -34,25 +33,37 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      name: Checkout Code
       with:
           ref: "${{ github.events.inputs.ref }}"
           submodules: recursive
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
+      name: Mark repo directory as safe
     - run: brew install sevenzip coreutils visual-studio-code libyaml yaml-cpp minizip libslirp libpcap
+      name: Install Brew dependencies
 
     - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/${{ matrix.vice_directory }}.dmg/download"
+      name: Download VICE DMG
     - run: ls -lha "$HOME/VICE.dmg"
+      name: Check VICE DMG
     - run: 7z x "$HOME/VICE.dmg"
+      name: Extract VICE DMG
     - run: mv ${{ matrix.vice_directory }}/${{ matrix.vice_directory }} /Applications
+      name: Install VICE to Application folder
     - run: cd /Applications/${{ matrix.vice_directory }}/bin && chmod -R a+x . && chmod a+x ../VICE.app/Contents/Resources/script && chmod -R a+x ../VICE.app/Contents/Resources/bin && ./x64sc -help
+      name: Fix some script permissions
 
     - run: npm install -g pnpm
+      name: Install pnpm
     - run: pnpm install --shamefully-hoist
+      name: Install node modules
     - run: APPLEWIN_DIRECTORY= VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" pnpm build:test
+      name: Build tests
     - continue-on-error: true
       run: APPLEWIN_DIRECTORY= VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" USE_XVFB=1 pnpm test
+      name: Run tests
 
-    - name: Test Report
+    - name: Publish test report
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
@@ -74,12 +85,16 @@ jobs:
         key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
 
     - uses: actions/checkout@v3
+      name: Checkout Code
       with:
           ref: "${{ github.events.inputs.ref }}"
           submodules: recursive
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
+      name: Mark repo directory as safe
     - run: pnpm install --shamefully-hoist
+      name: Install node modules
     - run: pnpm build:test
+      name: Build tests
 
   linux-test:
     needs: linux-build
@@ -109,7 +124,7 @@ jobs:
                 machine: c64
 
     steps:
-    - name: Cache
+    - name: Load build cache
       uses: actions/cache@v3
       with:
         path: |
@@ -117,19 +132,21 @@ jobs:
           ./**/*
         key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
+      name: Mark repo directory as safe
 
-    - run: ln -s $PWD/system /usr/local/share/vice
-    - run: ln -s $PWD/system /usr/local/lib/vice
-    - run: ln -s $PWD/system /usr/lib/vice
-    - run: ln -s $PWD/system /usr/share/vice
-    - run: ls -l /usr/local/share
+    - run: |
+        ln -s $PWD/system /usr/local/share/vice
+        ln -s $PWD/system /usr/local/lib/vice
+        ln -s $PWD/system /usr/lib/vice
+        ln -s $PWD/system /usr/share/vice
+        ls -l /usr/local/share
+      name: Symlink VICE data folder
 
     - run: TEST_PROGRAM=$PWD/src/__tests__/simple-project/program.${{ matrix.machine }} VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} USE_XVFB=1 pnpm test
+      name: Run tests
       continue-on-error: true
 
-    - run: grep '.*' obj/*.testrun.xml
-
-    - name: Test Report
+    - name: Publish test report
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:

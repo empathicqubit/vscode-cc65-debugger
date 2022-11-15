@@ -12,6 +12,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      name: Checkout Code
     - name: release-please-action
       # You may pin to the exact commit or the version.
       # uses: google-github-actions/release-please-action@81fdb5157c2201f0927147dd6cb2dcb1f128e3d0
