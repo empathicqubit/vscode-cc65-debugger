@@ -15,7 +15,7 @@ jobs:
     env:
       TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: curl -sL https://github.com/empathicqubit/vscode-cc65-debugger/releases/download/$TAG_NAME/cc65-vice-$(echo "${TAG_NAME}" | sed 's/^v//g').vsix > cc65-vice.vsix
     - run: mkdir dist && CHECKSUM=$(sha256sum cc65-vice.vsix | awk '{ print $1 }') node ./vimspector-gadget.js
       env:
