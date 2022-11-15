@@ -10,6 +10,10 @@ import { MachineType } from '../lib/debug-file';
 
 console.log('PROCESS', process.pid);
 
+beforeEach(() => {
+    expect.getState().started = new Date().getTime();
+});
+
 metrics.options.disabled = true;
 
 const ports = {
@@ -166,19 +170,21 @@ export const testSkipMac : typeof test.skip = ((...args) => {
 }) as any;
 
 export async function waitFor(rt: Runtime, event: string, assertion?: ((...x: any[]) => void)) : Promise<void> {
-    const err = new Error('Timed out waiting for assertion');
+    const delay = Math.abs(35000 - (new Date().getTime() - expect.getState().started));
+    const err = new Error('Timed out waiting for assertion: ' + delay);
     await new Promise<void>((res, rej) => {
         let finished = false;
-        const delay = Math.abs(35000 - (new Date().getTime() - expect.getState().started));
-        const timeout = setTimeout(() => {
-            rej(err);
+        setTimeout(() => {
+            if(!finished) {
+                rej(err);
+            }
         }, delay);
 
         const listener = (...args) => {
             try {
                 assertion && assertion(...args);
 
-                clearTimeout(timeout);
+                finished = true;
                 rt.off(event, listener);
                 res();
             }
