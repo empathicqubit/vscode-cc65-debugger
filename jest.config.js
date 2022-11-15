@@ -6,7 +6,7 @@ if(idx > -1) {
 }
 module.exports = {
     "collectCoverage": true,
-    "testTimeout": 35000,
+    "testTimeout": 40000,
     "reporters": ["default", ["jest-junit", { outputName }]],
     "runner": "<rootDir>/jest-runner.js",
     "roots": [

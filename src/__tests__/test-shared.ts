@@ -169,7 +169,7 @@ export async function waitFor(rt: Runtime, event: string, assertion?: ((...x: an
     const err = new Error('Timed out waiting for assertion');
     await new Promise<void>((res, rej) => {
         let finished = false;
-        const delay = Math.abs(30000 - (new Date().getTime() - expect.getState().started));
+        const delay = Math.abs(35000 - (new Date().getTime() - expect.getState().started));
         const timeout = setTimeout(() => {
             rej(err);
         }, delay);
