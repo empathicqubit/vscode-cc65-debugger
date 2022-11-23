@@ -1,7 +1,7 @@
 {
   "name": "cc65-vice",
   "displayName": "VS65 Debugger",
-  "version": "6.6.2",
+  "version": "6.6.3",
   "publisher": "entan-gl",
   "description": "An extension to debug CC65 running in VICE (Commodore) or Mesen (Nintendo) emulators.",
   "author": {

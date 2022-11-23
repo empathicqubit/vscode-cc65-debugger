@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.6.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.2...v6.6.3) (2022-11-23)
+
+
+### Bug Fixes
+
+* Update contact information ([a418cac](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/a418cac2567eb2037923d97d9c651506253a4a67))
+
 ### [6.6.2](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.1...v6.6.2) (2022-11-14)
 
 
