@@ -19,7 +19,7 @@ This is an extension to let you debug CC65 C code (and ASM code to a small degre
 
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 
-If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-debugger/issues) or [messaging me on Mastodon](https://dizl.de/@empathicqubit) ( @empathicqubit@dizl.de ) .
+If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-debugger/issues) or [messaging me on Mastodon](https://dizl.de/@empathicqubit) ( @empathicqubit (at) dizl.de ) \[if copy/pasting, replace the (at) with @ \] . 
 
 Have you found this project useful, or even utter rubbish? The Flying Spaghetti Monster and I would really appreciate your rating on the Visual Studio Marketplace or OpenVSX!
 
