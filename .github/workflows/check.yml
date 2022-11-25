@@ -113,22 +113,22 @@ jobs:
       matrix:
           include:
               - vice_version: 3.6
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
                 machine: apple2
-              - vice_version: 3.6
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+              - vice_version: 3.6
                 machine: nes
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
 
               - vice_version: 3.6
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
                 machine: pet
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
 
               - vice_version: 3.6
+                machine: c64
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
-                machine: c64
               - vice_version: trunk
-                vice_directory:
                 machine: c64
+                vice_directory:
 
     steps:
     - name: Load build cache
