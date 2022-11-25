@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.7.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.4...v6.7.0) (2022-11-25)
+
+
+### Features
+
+* Use MinTTY tabs to clean up the windows a bit ([3e3bedd](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/3e3bedd0c22280b5aa2afe96f6c8d5910bd1ae16))
+
 ### [6.6.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.3...v6.6.4) (2022-11-25)
 
 
