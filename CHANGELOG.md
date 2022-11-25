@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.6.4](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.3...v6.6.4) (2022-11-25)
+
+
+### Bug Fixes
+
+* make sure the program starts in the correct place ([dbe028e](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/dbe028ed662aca632f2d357cd45eecd0a5f9a04c))
+
 ### [6.6.3](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.2...v6.6.3) (2022-11-23)
 
 
