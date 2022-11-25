@@ -1,4 +1,4 @@
-name: Docker
+name: Docker 🐋
 
 on:
   push:
@@ -8,20 +8,25 @@ on:
 
 jobs:
   build:
+    name: Docker 🐋
 
     runs-on: ubuntu-18.04
 
     steps:
-    - name: Login to DockerHub
+    - name: Login to DockerHub 🔌
       uses: docker/login-action@v2.1.0
       with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
     - uses: actions/checkout@v3
-      name: Checkout Code
+      name: 🔄 Checkout Code
       with:
           ref: master
     - run: cd docker && docker build -t empathicqubit/vscode-cc65-debugger-build .
+      name: 🛠️ Build GHA runner image
     - run: cd docker && docker build -t empathicqubit/vscode-cc65-debugger-devcontainer -f devcontainer.Dockerfile .
+      name: 🛠️ Build devcontainer image
     - run: docker push empathicqubit/vscode-cc65-debugger-build
+      name: ⬆️ Push GHA runner image
     - run: docker push empathicqubit/vscode-cc65-debugger-devcontainer
+      name: ⬆️ Push devcontainer image
