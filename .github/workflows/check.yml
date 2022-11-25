@@ -61,7 +61,7 @@ jobs:
     - run: npm install -g pnpm
       name: Install pnpm
     - run: pnpm install --shamefully-hoist
-      name: 🧱 Install node modules
+      name: 📦 Install node modules
     - run: APPLEWIN_DIRECTORY= VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" pnpm build:test
       name: 🛠️ Build tests
     - continue-on-error: true
@@ -98,7 +98,7 @@ jobs:
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
       name: 🔓 Mark repo directory as safe
     - run: pnpm install --shamefully-hoist
-      name: 🧱 Install node modules
+      name: 📦 Install node modules
     - run: pnpm build:test
       name: 🛠️ Build tests
 
