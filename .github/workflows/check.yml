@@ -70,7 +70,7 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: "Test Results: Mac: VICE ${{ matrix.vice_version }}"
+        name: "🧪🍎: VICE ${{ matrix.vice_version }}"
         path: "./obj/noncompile.testrun.xml"
         reporter: jest-junit
 
@@ -153,6 +153,6 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: "Test Results: Linux: VICE ${{ matrix.vice_version }}: ${{ matrix.machine }}"
+        name: "🧪🐧: VICE ${{ matrix.vice_version }}: ${{ matrix.machine }}"
         path: "./obj/noncompile.testrun.xml"
         reporter: jest-junit
