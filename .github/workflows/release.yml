@@ -68,6 +68,9 @@ jobs:
           ref: ${{ matrix.tag_ref }}
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
 
+    - run: pnpm install --shamefully-hoist
+      name: Install node modules
+
     - run: |
         ln -s $PWD/system /usr/local/share/vice
         ln -s $PWD/system /usr/local/lib/vice
