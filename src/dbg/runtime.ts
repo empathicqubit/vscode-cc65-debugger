@@ -520,7 +520,7 @@ export class Runtime extends EventEmitter {
             let command = process.execPath;
             let args = [__basedir + '/../dist/monitor.js', '--ms-enable-electron-run-as-node', '-remotemonitoraddress', `127.0.0.1:${this._emulator.textPort}`, `-condensedtrace`];
             if(process.platform == 'win32') {
-                args.unshift(command);
+                args.unshift('--tabbar', '-h', 'error', '--title', 'Text Monitor', command);
                 command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
             }
 

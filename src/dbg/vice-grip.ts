@@ -309,7 +309,7 @@ export class ViceGrip extends AbstractGrip {
             if(/chocolatey[\\/]+bin[\\/]+/i.test(emulatorPath)) {
                 args.unshift('--shimgen-waitforexit');
             }
-            args.unshift('-h', 'error', emulatorPath);
+            args.unshift('--tabbar', '-h', 'error', '--title', 'VICE', emulatorPath);
 
             emulatorPath = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
         }

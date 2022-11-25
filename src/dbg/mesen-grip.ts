@@ -28,6 +28,7 @@ export class MesenGrip extends AbstractGrip {
 
             let command : string;
             if(process.platform == 'win32') {
+                args.unshift('--tabbar', '-h', 'error', '--title', 'Mesen');
                 command = __basedir + '/../dist/mintty/bin_win32_' + process.arch + '/mintty';
                 command = path.normalize(command);
             }
