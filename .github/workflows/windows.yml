@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      name: Checkout Code
+      name: 🔄 Checkout Code
       with:
           ref: "${{ github.events.inputs.ref }}"
 
@@ -50,7 +50,7 @@ jobs:
           mingw-w64-x86_64-ffmpeg
           mingw-w64-x86_64-gtk3
 
-    - name: Build VICE
+    - name: 🛠️ Build VICE
       id: build
       shell: msys2 {0}
       run: |

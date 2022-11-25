@@ -1,4 +1,4 @@
-name: Publish
+name: Publish 🕊️
 
 on:
     workflow_dispatch:
@@ -10,18 +10,19 @@ on:
 
 jobs:
   publish:
+    name: Publish 🕊️
     runs-on: ubuntu-18.04
     container: empathicqubit/vscode-cc65-debugger-build
     env:
       TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
     steps:
     - uses: actions/checkout@v3
-      name: Checkout Code
+      name: 🔄 Checkout Code
     - run: curl -sL https://github.com/empathicqubit/vscode-cc65-debugger/releases/download/$TAG_NAME/cc65-vice-$(echo "${TAG_NAME}" | sed 's/^v//g').vsix > cc65-vice.vsix
     - run: mkdir dist && CHECKSUM=$(sha256sum cc65-vice.vsix | awk '{ print $1 }') node ./vimspector-gadget.js
       env:
           TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
-    - name: Upload gadget definition
+    - name: ⬆️ Upload gadget definition
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -32,9 +33,11 @@ jobs:
     - run: npx -y -p @entan.gl/vsce vsce publish --packagePath cc65-vice.vsix -p ${{ secrets.MARKETPLACE_TOKEN }}
       id: vsce
       continue-on-error: true
+      name: 🎀 Upload to VSCode Marketplace
     - run: npx -y ovsx publish ./cc65-vice.vsix -p ${{ secrets.OPENVSX_TOKEN }}
       id: ovsx
       continue-on-error: true
+      name: ✡️ Upload to OpenVSX
     - name: update release
       if: steps.vsce.outcome == 'success' && steps.ovsx.outcome == 'success'
       id: update_release_success

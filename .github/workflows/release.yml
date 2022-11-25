@@ -1,4 +1,4 @@
-name: Release
+name: Release 🐣
 
 on:
     workflow_dispatch:
@@ -13,6 +13,7 @@ on:
 
 jobs:
   darwin-compiler:
+    name: 🐵 Darwin Compiler
 
     runs-on: macos-11
     #container: empathicqubit/vscode-cc65-debugger-build
@@ -26,27 +27,28 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      name: Checkout Code
+      name: 🔄 Checkout Code
       with:
           ref: ${{ matrix.tag_ref }}
     - run: npm install -g pnpm
       name: Install pnpm
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
-      name: Mark repo directory as safe
+      name: 🔓 Mark repo directory as safe
     - run: pnpm install --shamefully-hoist
-      name: Install node modules
+      name: 📦 Install node modules
     - run: APPLEWIN_DIRECTORY= VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm submodules
-      name: Restore submodules
+      name: 🌳 Restore submodules
     - run: APPLEWIN_DIRECTORY= VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
-      name: Build Darwin compiler
+      name: 🛠️ Build Darwin compiler
 
     - uses: actions/upload-artifact@v2
-      name: Upload Darwin compiler artifact
+      name: ⬆️ Upload Darwin compiler artifact
       with:
         name: darwin-compiler
         path: dist/cc65/bin_darwin_*/*
 
   build:
+    name: 🛠️ Build
     needs: darwin-compiler
     outputs:
       filename: ${{ steps.get_filename.outputs.filename }}
@@ -63,7 +65,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      name: Checkout Code
+      name: 🔄 Checkout Code
       with:
           ref: ${{ matrix.tag_ref }}
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
@@ -80,27 +82,27 @@ jobs:
       name: Symlink VICE data folder
 
     - uses: actions/download-artifact@v2
-      name: Download Darwin compiler artifact
+      name: 🔽 Download Darwin compiler artifact
       with:
         name: darwin-compiler
         path: dist/cc65
 
     - run: VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm package
-      name: Build VSIX package
+      name: 🛠️ Build VSIX package
     - run: 7z l cc65-vice*.vsix
-      name: Check vsix package
+      name: 🔍 Check vsix package
 
     - run: echo -n "::set-output name=filename::" && echo cc65-vice-*.vsix
-      name: Set VSIX filename
+      name: 🗄️ Set VSIX filename
       id: get_filename
 
     - uses: actions/upload-artifact@v2
-      name: Upload VSIX package
+      name: ⬆️ Upload VSIX package
       with:
         name: cc65-vice.vsix
         path: cc65-vice*.vsix
 
-    - name: Upload binaries to release
+    - name: ⬆️ Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         release_name: cc65-vice ${{ matrix.tag_ref }} (Unpublished)
