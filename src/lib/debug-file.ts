@@ -15,6 +15,8 @@ export interface Scope {
     spanIds: number[];
     spans: DebugSpan[];
     codeSpan: DebugSpan | undefined;
+    mod: Mod | undefined;
+    modId: number;
 }
 
 export enum sc {
@@ -85,7 +87,7 @@ export interface DebugSpan {
 export interface Mod {
     id: number;
     name: string;
-    file: File | undefined;
+    file: SourceFile | undefined;
     fileId: number;
     libId: number;
     lib: Lib | undefined;
@@ -260,6 +262,8 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 codeSpan: undefined,
                 size: 0,
                 name: "",
+                modId: -1,
+                mod: undefined,
             };
 
             do {
@@ -274,6 +278,9 @@ export function parse(text: string, buildDir : string) : Dbgfile {
                 }
                 else if(key == 'name') {
                     scope.name = val;
+                }
+                else if(key == "mod") {
+                    scope.modId = parseInt(val);
                 }
             } while (propMatch = propsRex.exec(propVals));
 
@@ -531,19 +538,27 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     }
 
     for(const mod of dbgFile.mods) {
-        if(mod.libId == -1) {
-            continue;
+        if(mod.libId > -1) {
+            for(const lib of dbgFile.libs) {
+                if(lib.id == mod.libId) {
+                    mod.lib = lib;
+                    break;
+                }
+            }
         }
-        for(const lib of dbgFile.libs) {
-            if(lib.id == mod.libId) {
-                mod.lib = lib;
-                break;
+
+        if(mod.fileId > -1) {
+            for(const file of dbgFile.files) {
+                if(file.id == mod.fileId) {
+                    mod.file = file;
+                    break;
+                }
             }
         }
     }
 
     for(const span of dbgFile.spans) {
-        if(span.segId == -1) {
+        if(span.segId <= -1) {
             continue;
         }
 
@@ -560,7 +575,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     }
 
     for(const csym of dbgFile.csyms) {
-        if(csym.scopeId == -1) {
+        if(csym.scopeId <= -1) {
             continue;
         }
 
@@ -579,19 +594,27 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     for(const scope of dbgFile.scopes) {
         scope.csyms.sort((a, b) => a.offs - b.offs);
         scope.autos.sort((a, b) => a.offs - b.offs);
-        if(!scope.spanIds.length) {
-            continue;
+
+        if(scope.modId > -1) {
+            for(const mod of dbgFile.mods) {
+                if(scope.modId == mod.id) {
+                    scope.mod = mod;
+                    break;
+                }
+            }
         }
 
-        for(const span of dbgFile.spans) {
-            if(scope.spanIds.includes(span.id)) {
-                scope.spans.push(span);
-                if(span.seg == dbgFile.codeSeg) {
-                    scope.codeSpan = span;
-                }
+        if(scope.spanIds.length) {
+            for(const span of dbgFile.spans) {
+                if(scope.spanIds.includes(span.id)) {
+                    scope.spans.push(span);
+                    if(span.seg == dbgFile.codeSeg) {
+                        scope.codeSpan = span;
+                    }
 
-                if(scope.spans.length == scope.spanIds.length) {
-                    break;
+                    if(scope.spans.length == scope.spanIds.length) {
+                        break;
+                    }
                 }
             }
         }
@@ -599,7 +622,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
 
 
     for(const line of dbgFile.lines) {
-        if(line.fileId != -1) {
+        if(line.fileId > -1) {
             for(const file of dbgFile.files) {
                 if(line.fileId == file.id) {
                     line.file = file;
@@ -609,7 +632,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
             }
         }
 
-        if(line.spanId != -1) {
+        if(line.spanId > -1) {
             for(const span of dbgFile.spans) {
                 if (span.id == line.spanId) {
                     line.span = span
@@ -639,7 +662,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
     }
 
     for(const sym of dbgFile.syms) {
-        if(sym.segId != -1) {
+        if(sym.segId > -1) {
             for(const seg of dbgFile.segs) {
                 if(seg.id == sym.segId) {
                     sym.seg = seg;
@@ -648,7 +671,7 @@ export function parse(text: string, buildDir : string) : Dbgfile {
             }
         }
 
-        if(sym.scopeId != -1) {
+        if(sym.scopeId > -1) {
             for(const scope of dbgFile.scopes) {
                 if(scope.id == sym.scopeId) {
                     sym.scope = scope;

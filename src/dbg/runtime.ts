@@ -1381,6 +1381,10 @@ or define the location manually with the launch.json->mapFile setting`
         return await this._variableManager.getGlobalVariables();
     }
 
+    public async getFileVariables() : Promise<VariableData[]> {
+        return await this._variableManager.getFileVariables(this._currentPosition);
+    }
+
     public async getTypeFields(addr: number, typeName: string) : Promise<VariableData[]> {
         return await this._variableManager.getTypeFields(addr, typeName);
     }

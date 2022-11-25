@@ -9,6 +9,7 @@ import * as debugUtils from '../lib/debug-utils'
 import * as typeQuery from '../lib/type-query'
 import * as tableFile from '../lib/table-file'
 import { AbstractGrip } from './abstract-grip';
+import path from 'path';
 
 export interface VariableData {
     name : string;
@@ -23,6 +24,7 @@ export class VariableManager {
     private _paramStackPointer?: number;
     private _emulator: AbstractGrip;
     private _staticLabs: debugFile.Sym[] = [];
+    private _globalCLabs: debugFile.Sym[] = [];
     private _globalLabs: debugFile.Sym[] = [];
     private _tableFiles: tableFile.TableFile[];
 
@@ -36,7 +38,8 @@ export class VariableManager {
 
         if(labs && labs.length) {
             this._staticLabs = labs.filter(x => x.seg && (x.seg.name == "BSS" || x.seg.name == "DATA"));
-            this._globalLabs = labs.filter(sym => sym.name.startsWith("_") && sym.seg != codeSeg);
+            this._globalCLabs = labs.filter(sym => sym.name.startsWith("_") && sym.seg != codeSeg);
+            this._globalLabs = labs.filter(sym => sym.seg != codeSeg && sym.scope?.name === '');
         }
     }
 
@@ -368,7 +371,7 @@ export class VariableManager {
             }
         }
 
-        const currentLab = this._globalLabs.find(x => x.name == "_" + name);
+        const currentLab = this._globalCLabs.find(x => x.name == "_" + name);
         if(!currentLab) {
             return;
         }
@@ -379,7 +382,19 @@ export class VariableManager {
     }
 
     public async getGlobalVariables() : Promise<VariableData[]> {
-        return await Promise.all(this._globalLabs.map(x => this._varFromLab(x)));
+        return await Promise.all(this._globalCLabs.map(x => this._varFromLab(x)));
+    }
+
+    public async getFileVariables(currentLine: debugFile.SourceLine | undefined) : Promise<VariableData[]> {
+        if(!currentLine) {
+            return [];
+        }
+
+        return await Promise.all(
+            this._globalLabs
+                .filter(x => x.scope?.mod?.file?.name && currentLine.file?.name && !path.relative(x.scope.mod.file.name, currentLine.file.name))
+                .map(x => this._varFromLab(x))
+            );
     }
 
     public async getStaticVariables(currentScope: debugFile.Scope | undefined) : Promise<VariableData[]> {

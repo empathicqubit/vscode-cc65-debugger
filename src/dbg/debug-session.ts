@@ -30,6 +30,7 @@ enum VariablesReferenceFlag {
     //PARAM =        0x0800000,
     REGISTERS =      0x1000000,
     STATICS =        0x2000000,
+    FILE =           0x4000000,
 
     ADDR_MASK = 0x00FFFF,
 }
@@ -689,9 +690,10 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
         response.body = {
             scopes: [
                 new Scope("Registers", VariablesReferenceFlag.REGISTERS, false),
-                new Scope("Local", VariablesReferenceFlag.LOCAL, false),
+                new Scope("Locals", VariablesReferenceFlag.LOCAL, false),
                 new Scope("Statics", VariablesReferenceFlag.STATICS, false),
-                new Scope("Global", VariablesReferenceFlag.GLOBAL, true),
+                new Scope("File Globals", VariablesReferenceFlag.FILE, false),
+                new Scope("Globals", VariablesReferenceFlag.GLOBAL, true),
             ]
         };
         this.sendResponse(response);
@@ -770,6 +772,20 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             }
             else if(ref & VariablesReferenceFlag.GLOBAL) {
                 const vars = await this._runtime.getGlobalVariables();
+                for(const v of vars) {
+                    this._addAddressType(v.addr, v.type)
+
+                    variables.push({
+                        name: v.name,
+                        value: v.value,
+                        type: v.type,
+                        memoryReference: v.addr.toString(16),
+                        variablesReference: v.addr | (v.type ? VariablesReferenceFlag.HAS_TYPE : 0),
+                    });
+                }
+            }
+            else if(ref & VariablesReferenceFlag.FILE) {
+                const vars = await this._runtime.getFileVariables();
                 for(const v of vars) {
                     this._addAddressType(v.addr, v.type)
 
