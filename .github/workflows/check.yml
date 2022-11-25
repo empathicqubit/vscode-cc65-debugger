@@ -21,6 +21,7 @@ jobs:
           access_token: ${{ github.token }}
 
   mac-build:
+    name: 🍎
 
     # Note that this is newer than the release, to support the newer version
     # of Java that the apple2 build needs. The release build is as old as
@@ -70,11 +71,12 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: "🧪🍎: VICE ${{ matrix.vice_version }}"
+        name: "🧪🍎📋: VICE ${{ matrix.vice_version }}"
         path: "./obj/noncompile.testrun.xml"
         reporter: jest-junit
 
   linux-build:
+    name: 🐧
     runs-on: ubuntu-18.04
     container: empathicqubit/vscode-cc65-debugger-build
 
@@ -100,6 +102,7 @@ jobs:
       name: Build tests
 
   linux-test:
+    name: 🧪🐧
     needs: linux-build
     runs-on: ubuntu-18.04
     container: empathicqubit/vscode-cc65-debugger-build
@@ -153,6 +156,6 @@ jobs:
       uses: dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
-        name: "🧪🐧: VICE ${{ matrix.vice_version }}: ${{ matrix.machine }}"
+        name: "🧪🐧📋: VICE ${{ matrix.vice_version }}: ${{ matrix.machine }}"
         path: "./obj/noncompile.testrun.xml"
         reporter: jest-junit
