@@ -218,7 +218,7 @@ export class Runtime extends EventEmitter {
         this._currentPosition = debugUtils.getLineFromAddress(this._breakPoints, this._dbgFile, address);
     }
 
-    private async _attachWait(ignoreEvents: boolean = true) : Promise<void> {
+    private async _attachWait(startup: boolean = false) : Promise<void> {
         if(!this._dbgFile.codeSeg) {
             return;
         }
@@ -265,12 +265,18 @@ export class Runtime extends EventEmitter {
                         temporary: false,
                     });
 
-                    this._ignoreEvents = ignoreEvents;
+                    this._ignoreEvents = !startup;
                     do {
                         await this.continue();
                         await this._emulator.waitForStop();
                     } while(!await this._validateLoad(firstLastScopes))
                     this._ignoreEvents = false;
+
+                    await this._emulator.ping();
+                    if(startup && this._currentAddress !== this._dbgFile.entryAddress) {
+                        await this.continue();
+                        await this._emulator.waitForStop(this._dbgFile.entryAddress, undefined, true);
+                    }
 
                     const delCmds : bin.CheckpointDeleteCommand[] = [...storeReses, entryRes]
                         .map(x => ({
@@ -502,7 +508,7 @@ export class Runtime extends EventEmitter {
             await this._postEmulatorStart();
         }
 
-        await this._attachWait(false);
+        await this._attachWait(true);
 
         await this._postFullStart(stopOnEntry);
     }
