@@ -14,7 +14,7 @@ on:
 jobs:
   darwin-compiler:
 
-    runs-on: macos-10.15
+    runs-on: macos-11
     #container: empathicqubit/vscode-cc65-debugger-build
 
     strategy:
