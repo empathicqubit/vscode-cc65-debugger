@@ -378,18 +378,17 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('preEmulator');
 
+        this._runAhead = false;
         if(this._machineType == debugFile.MachineType.apple2) {
             this.sendMessage({
                 level: debugUtils.ExtensionMessageLevel.warning,
                 content: "Apple2 support is not finished yet!"
             });
-            this._runAhead = false;
             this._emulator = new AppleWinGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
         }
         else if(this._machineType == debugFile.MachineType.nes) {
-            this._runAhead = false;
             this._emulator = new MesenGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
@@ -400,7 +399,6 @@ export class Runtime extends EventEmitter {
             );
         }
         else {
-            this._runAhead = false;
             this._emulator = new ViceGrip(
                 <debugUtils.ExecHandler>((file, args, opts) => this._execHandler(file, args, opts)),
             );
