@@ -19,7 +19,7 @@ describe('Stack', () => {
     console.log(VICE_ARGS);
 
     const LOCALVARS_C = path.join(BUILD_CWD, "src/test_local_vars.c");
-    const LOCALVARS_LASTLINE = 54;
+    const LOCALVARS_LASTLINE = 57;
 
     afterEach(testShared.cleanup);
 
