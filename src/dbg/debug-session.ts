@@ -692,7 +692,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 new Scope("Registers", VariablesReferenceFlag.REGISTERS, false),
                 new Scope("Locals", VariablesReferenceFlag.LOCAL, false),
                 new Scope("Statics", VariablesReferenceFlag.STATICS, false),
-                new Scope("File Globals", VariablesReferenceFlag.FILE, false),
+                new Scope("File Globals", VariablesReferenceFlag.FILE, true),
                 new Scope("Globals", VariablesReferenceFlag.GLOBAL, true),
             ]
         };

@@ -249,6 +249,44 @@ describe('Stack', () => {
         await testShared.waitFor(rt, 'end');
     });
 
+    test('C variables are preferred over Assembly ones', async() => {
+        const rt = await testShared.newRuntime();
+        await rt.start(
+            await testShared.portGetter(),
+            PROGRAM,
+            BUILD_CWD,
+            true,
+            false,
+            false,
+            undefined,
+            VICE_DIRECTORY,
+            MESEN_DIRECTORY,
+            APPLEWIN_DIRECTORY,
+            VICE_ARGS,
+            false,
+            DEBUG_FILE,
+            MAP_FILE,
+            LABEL_FILE
+        );
+
+        await testShared.waitFor(rt, 'stopOnEntry');
+        await testShared.selectCTest(rt, 'test_local_vars');
+
+        await rt.setBreakPoint(LOCALVARS_C, LOCALVARS_LASTLINE);
+
+        await Promise.all([
+            rt.continue(),
+            testShared.waitFor(rt, 'output', (type, __, file, line, col) => {
+                assert.strictEqual(file, LOCALVARS_C);
+                assert.strictEqual(line, LOCALVARS_LASTLINE);
+            }),
+        ]);
+
+        await testShared.waitFor(rt, 'stopOnBreakpoint');
+
+        assert.deepStrictEqual((await rt.evaluate('globby')).value, '52');
+    });
+
     test('Contains the correct local variables', async() => {
         const rt = await testShared.newRuntime();
 

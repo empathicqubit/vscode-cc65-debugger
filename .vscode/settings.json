@@ -10,7 +10,7 @@
     "jest.testExplorer": {
         "enabled": true
     },
-    "jest.jestCommandLine": "npm run jest --",
+    "jest.jestCommandLine": "pnpm run jest",
     "files.associations": {
         "cstdio": "c",
         "stdio.h": "c",

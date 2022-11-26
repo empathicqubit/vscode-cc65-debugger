@@ -4,6 +4,8 @@ import _sum from 'lodash/fp/sum'
 import _isNaN from 'lodash/fp/isNaN';
 import _max from 'lodash/fp/max'
 import _set from 'lodash/fp/set';
+import _uniqBy from 'lodash/fp/uniqBy';
+import _flow from 'lodash/fp/flow';
 import * as debugFile from '../lib/debug-file'
 import * as debugUtils from '../lib/debug-utils'
 import * as typeQuery from '../lib/type-query'
@@ -83,7 +85,7 @@ export class VariableManager {
         this._paramStackTop = paramStackPos;
     }
 
-    private async _renderValue(scope: string, symName: string, addr: number) : Promise<VariableData> {
+    private async _renderValue(scope: string, symName: string, addr: number, size: number = 2) : Promise<VariableData> {
         let val = '';
 
         const buf = await this._emulator.getMemory(addr, 2);
@@ -95,7 +97,7 @@ export class VariableManager {
         if(this._localTypes && (fieldInfo = this._localTypes[scope])) {
             const field = fieldInfo.find(x => x.name == symName || x.assemblyName == symName);
             if(!field) {
-                val = typeQuery.renderValue(typeQuery.parseTypeExpression('unsigned int'), buf);
+                val = typeQuery.renderValue(typeQuery.parseTypeExpression(size > 1 ? 'unsigned int' : 'unsigned char'), buf);
                 typeName = 'unsigned int';
             }
             else {
@@ -139,7 +141,7 @@ export class VariableManager {
 
     private async _varFromLab(sym: debugFile.Sym) : Promise<VariableData> {
         const symName = sym.name.replace(/^_/g, '')
-        return this._renderValue('__GLOBAL__()', symName, sym.val);
+        return this._renderValue('__GLOBAL__()', symName, sym.val, sym.size);
     }
 
     private async _getTableFiles(buildCwd: string) : Promise<tableFile.TableFile[]> {
@@ -280,10 +282,14 @@ export class VariableManager {
             return v;
         };
 
-        let vars = _flatten(await Promise.all([
+        let vars = _flow(
+            _flatten,
+            _uniqBy<VariableData>(x => x.name)
+        )(await Promise.all([
             this.getScopeVariables(currentScope),
             this.getGlobalVariables(),
             this.getStaticVariables(currentScope),
+            this.getFileVariables(currentScope),
         ]));
 
         let refMatch : RegExpExecArray | null;
@@ -385,14 +391,14 @@ export class VariableManager {
         return await Promise.all(this._globalCLabs.map(x => this._varFromLab(x)));
     }
 
-    public async getFileVariables(currentLine: debugFile.SourceLine | undefined) : Promise<VariableData[]> {
-        if(!currentLine) {
+    public async getFileVariables(currentScope: debugFile.Scope | undefined) : Promise<VariableData[]> {
+        if(!currentScope) {
             return [];
         }
 
         return await Promise.all(
             this._globalLabs
-                .filter(x => x.scope?.mod?.file?.name && currentLine.file?.name && !path.relative(x.scope.mod.file.name, currentLine.file.name))
+                .filter(x => x.scope?.mod === currentScope.mod)
                 .map(x => this._varFromLab(x))
             );
     }

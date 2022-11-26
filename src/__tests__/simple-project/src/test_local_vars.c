@@ -21,7 +21,9 @@ union xy {
 
 typedef struct hello thingy;
 
-unsigned char globby;
+unsigned char globby = 0x23;
+
+extern void dummy();
 
 unsigned char test_local_vars_main(void) {
     static unsigned char weehah;
@@ -36,6 +38,7 @@ unsigned char test_local_vars_main(void) {
     struct hello wow;
     thingy *cool;
     union xy xy;
+    dummy();
     xy.xy.x = 0x01;
     xy.xy.y = 0x02;
     cool = &wow;

@@ -1380,7 +1380,7 @@ or define the location manually with the launch.json->mapFile setting`
     }
 
     public async getFileVariables() : Promise<VariableData[]> {
-        return await this._variableManager.getFileVariables(this._currentPosition);
+        return await this._variableManager.getFileVariables(this._getCurrentScope());
     }
 
     public async getTypeFields(addr: number, typeName: string) : Promise<VariableData[]> {
