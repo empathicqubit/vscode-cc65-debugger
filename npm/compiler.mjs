@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import shx from 'shelljs';
+import shx from './shelljs.js';
 
 /* Wait for finish if it's already running */
 
@@ -31,6 +31,5 @@ if (shx.test('-e', pidFile)) {
     process.exit(0);
 }
 fs.writeFileSync(pidFile, process.pid.toString());
-shx.config.fatal = true;
 shx.exec('npm-run-all "compiler:choose -- ' + (quick ? '--quick' : '') + '"');
 fs.unlinkSync(pidFile);

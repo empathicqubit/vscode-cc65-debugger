@@ -1,4 +1,4 @@
-import shx from 'shelljs';
+import shx from './shelljs.js';
 
 /**
  * @param {string} dirname

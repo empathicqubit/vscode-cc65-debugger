@@ -1,4 +1,4 @@
-import shx from 'shelljs';
+import shx from './shelljs.js';
 import * as path from 'path';
 import yargs from 'yargs';
 import { maybeMkdir } from './utils.mjs';
@@ -6,7 +6,6 @@ import { maybeMkdir } from './utils.mjs';
 const arg = yargs(process.argv.slice(2)).argv._
 console.log(arg);
 const [arch] = arg;
-shx.config.fatal = true;
 
 const rootDir = process.cwd();
 

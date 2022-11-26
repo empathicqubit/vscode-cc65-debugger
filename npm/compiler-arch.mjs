@@ -1,4 +1,4 @@
-import shx from 'shelljs';
+import shx from './shelljs.js';
 import * as os from 'os';
 import yargs from 'yargs';
 import { maybeMkdir } from './utils.mjs';
@@ -6,7 +6,6 @@ import { maybeMkdir } from './utils.mjs';
 const main = async() => {
     const threads = os.cpus().length * 4;
     console.log('THREADS', threads);
-    shx.config.fatal = true;
     const arg = yargs(process.argv.slice(2)).argv._;
     console.log(arg);
     let [arch, cross] = arg;
