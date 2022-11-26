@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.8.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.7.0...v6.8.0) (2022-11-26)
+
+
+### Features
+
+* Add a new file variable scope, which also works in assembly files ([b1fc956](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/b1fc956e5126a43aa8fafe6b7f1cd4128d697698))
+
 ## [6.7.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.6.4...v6.7.0) (2022-11-25)
 
 
