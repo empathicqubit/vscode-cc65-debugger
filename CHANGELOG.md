@@ -1,5 +1,12 @@
 # Changelog
 
+### [6.8.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.8.0...v6.8.1) (2022-12-02)
+
+
+### Bug Fixes
+
+* Add CHANGELOG to package ([b9e56c6](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/b9e56c6c33e1c1dd9f34799f3733b96d79707bc5))
+
 ## [6.8.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.7.0...v6.8.0) (2022-11-26)
 
 
