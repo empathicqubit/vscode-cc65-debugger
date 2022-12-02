@@ -41,7 +41,7 @@ jobs:
     - run: APPLEWIN_DIRECTORY= VICE_SVN_VERSION=${{ matrix.vice_version }} ${{ matrix.vice_directory }} pnpm compiler
       name: 🛠️ Build Darwin compiler
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       name: ⬆️ Upload Darwin compiler artifact
       with:
         name: darwin-compiler
@@ -96,7 +96,7 @@ jobs:
       name: 🗄️ Set VSIX filename
       id: get_filename
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       name: ⬆️ Upload VSIX package
       with:
         name: cc65-vice.vsix
