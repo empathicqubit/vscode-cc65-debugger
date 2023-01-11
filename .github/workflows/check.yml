@@ -11,16 +11,11 @@ on:
               required: true
               default: 'master'
 
-jobs:
-  kill_old_jobs:
-    name: 🛑 Cancel Previous Runs
-    runs-on: ubuntu-20.04
-    steps:
-      - name: 🛑 Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.11.0
-        with:
-          access_token: ${{ github.token }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
+jobs:
   mac-build:
     name: 🍎
 
@@ -128,7 +123,7 @@ jobs:
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
               - vice_version: trunk
                 machine: c64
-                vice_directory:
+                vice_directory: ""
 
     steps:
     - name: Load build cache

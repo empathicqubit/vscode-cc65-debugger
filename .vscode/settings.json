@@ -15,5 +15,6 @@
         "cstdio": "c",
         "stdio.h": "c",
         "*.inc": "c"
-    }
+    },
+    "cmake.configureOnOpen": false
 }
