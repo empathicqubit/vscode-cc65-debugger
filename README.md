@@ -2,9 +2,10 @@
 
 # vscode-cc65-debugger
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
-[![Installs](https://vsmarketplacebadge.apphb.com/installs-short/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
-[![Ratings](https://vsmarketplacebadge.apphb.com/rating/entan-gl.cc65-vice.svg)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
+[![Version](https://img.shields.io/visual-studio-marketplace/v/entan-gl.cc65-vice)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/entan-gl.cc65-vice)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
+[![Ratings](https://img.shields.io/visual-studio-marketplace/r/entan-gl.cc65-vice)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
+
 
 [![Version](https://img.shields.io/open-vsx/v/entan-gl/cc65-vice)](https://open-vsx.org/extension/entan-gl/cc65-vice)
 [![Installs](https://img.shields.io/open-vsx/dt/entan-gl/cc65-vice)](https://open-vsx.org/extension/entan-gl/cc65-vice)
