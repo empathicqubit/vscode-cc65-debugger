@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@entan.gl/vice-rainbow-monitor':
-    specifier: ^1.0.6
-    version: 1.0.6
+    specifier: ^1.0.7
+    version: 1.0.7
   '@types/marked':
     specifier: ^4.0.2
     version: 4.0.2
@@ -533,8 +533,8 @@ packages:
     engines: {node: '>=10.0.0'}
     dev: true
 
-  /@entan.gl/vice-rainbow-monitor@1.0.6:
-    resolution: {integrity: sha512-q1SLUnsgmwiBDdBp5qdmX3X2fYE1nGDJSDTmTHtj2gFe2kObGieh6UdrWmD/K/lav4MQtFCv0sXkISSRzP5yPg==}
+  /@entan.gl/vice-rainbow-monitor@1.0.7:
+    resolution: {integrity: sha512-17LTeBvFPzZpc+wd9wMcBBsuyPeOzL/31R3MfhtuNpwzALhOq6uUOREa5KyoV3QcdNM/3nme7F9gSa3RqkKtSQ==}
     hasBin: true
     dependencies:
       colors: 1.4.0
@@ -2132,7 +2132,7 @@ packages:
     dev: true
 
   /death@1.1.0:
-    resolution: {integrity: sha1-AaqcQB7dknUFFEcLgmY5DGbGcxg=}
+    resolution: {integrity: sha512-vsV6S4KVHvTGxbEcij7hkWRv0It+sGGWVOM67dQde/o5Xjnr+KmLjxWJii2uEObIrt1CcM9w0Yaovx+iOlIL+w==}
     dev: false
 
   /debug@2.6.9:
