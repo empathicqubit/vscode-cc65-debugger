@@ -46,9 +46,13 @@ export async function getDebugFilePath(programName?: string, buildCwd?: string) 
     }
 
     const progFile = path.basename(programName, path.extname(programName));
+    const fullProgFile = path.basename(programName);
 
     const possibles : string[] = await util.promisify(readdir)(buildCwd);
-    const filename : string | undefined = possibles
+    let filename : string | undefined; 
+    // Try to match the full program name, then without the extension.
+    filename = possibles.find(x => /\.dbg$/gi.test(x) && path.basename(x).startsWith(fullProgFile));
+    filename = filename || possibles
         .find(x => /\.dbg$/gi.test(x) && path.basename(x).startsWith(progFile));
 
     if(!filename) {
