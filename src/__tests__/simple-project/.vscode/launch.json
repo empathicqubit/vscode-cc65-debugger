@@ -79,6 +79,25 @@
         },
         {
             "type": "cc65-vice",
+            "request": "attach",
+            "name": "CC65 Vice Attach (Debug Extension)",
+            "program": "${workspaceFolder}/program.c64",
+            "debugFile": "${workspaceFolder}/program.c64.dbg",
+            "mapFile": "${workspaceFolder}/program.c64.map",
+            "build": {
+                "cwd": "${workspaceFolder}",
+                "command": "make",
+                "args": [
+                    "OPTIONS=mapfile,labelfile,debugfile"
+                ]
+            },
+            "port": 5050,
+            "stopOnEntry": true,
+            "stopOnExit": true,
+            "debugServer": 4711
+        },
+        {
+            "type": "cc65-vice",
             "request": "launch",
             "name": "CC65 Vice Launch (NES) (Debug Extension)",
             "program": "${workspaceFolder}/program.nes",

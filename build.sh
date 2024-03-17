@@ -12,11 +12,15 @@ if test "$(uname)" = "Darwin" ; then
     fi
     CODE="$APPPATH/Contents/MacOS/Electron"
 elif ! test -e "$CODE" ; then
-    CODE="$(dirname "$(dirname "$(which code)")")/share/code/code"
+    if which codium  2>&1 >/dev/null ; then
+        CODE="$(dirname "$(dirname "$(which codium)")")/share/codium/codium"
+    else
+        CODE="$(dirname "$(dirname "$(which code)")")/share/code/code"
+    fi
 fi
 
 if ! test -e "$CODE" ; then
-    echo "You must install VSCode to use this script."
+    echo "You must install VSCode or VSCodium to use this script."
     exit 1
 fi
 
