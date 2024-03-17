@@ -170,8 +170,8 @@ devDependencies:
     specifier: 5.18.0
     version: 5.18.0(typescript@4.5.5)
   tslint-etc:
-    specifier: ^1.13.9
-    version: 1.13.9(tslint@5.18.0)(typescript@4.5.5)
+    specifier: ^1.13.10
+    version: 1.13.10(tslint@5.18.0)(typescript@4.5.5)
   typescript:
     specifier: ^4.5.5
     version: 4.5.5
@@ -1897,8 +1897,8 @@ packages:
   /cliui@6.0.0:
     resolution: {integrity: sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==}
     dependencies:
-      string-width: 4.2.0
-      strip-ansi: 6.0.0
+      string-width: 4.2.3
+      strip-ansi: 6.0.1
       wrap-ansi: 6.2.0
     dev: true
 
@@ -2182,7 +2182,7 @@ packages:
     dev: true
 
   /decamelize@1.2.0:
-    resolution: {integrity: sha1-9lNNFRSCabIDUue+4m9QH5oZEpA=}
+    resolution: {integrity: sha512-z2S+W9X73hAUUki+N+9Za2lBlun89zigOyGrsax+KUQ6wKW4ZoWpEYBkGhQjwAjjDCkWxhY0VKEhk8wzY7F5cA==}
     engines: {node: '>=0.10.0'}
     dev: true
 
@@ -5073,7 +5073,7 @@ packages:
     dev: true
 
   /set-blocking@2.0.0:
-    resolution: {integrity: sha1-BF+XgtARrppoA93TgrJDkrPYkPc=}
+    resolution: {integrity: sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==}
     dev: true
 
   /setprototypeof@1.1.0:
@@ -5628,8 +5628,8 @@ packages:
     resolution: {integrity: sha512-hcVC3wYEziELGGmEEXue7D75zbwIIVUMWAVbHItGPx0ziyXxrOMQx4rQEVEV45Ut/1IotuEvwqPopzIOkDMf0A==}
     dev: true
 
-  /tslint-etc@1.13.9(tslint@5.18.0)(typescript@4.5.5):
-    resolution: {integrity: sha512-plelxI+RH0w1irVPxOX7REqnwaAM1FJcgoe12UU1Ft3zIvGx9VX4BNf9jRLAt2wd00TJPpCb0ACumaDoCXp7hA==}
+  /tslint-etc@1.13.10(tslint@5.18.0)(typescript@4.5.5):
+    resolution: {integrity: sha512-6Rt6zaE9jw4iBkrnpVTlnbnjax/4LyTRrXkm/+nLuuJ6HQzZ/+TmHDAtA6C/VOkSqeOHRXCIen3B38hmIMlxow==}
     peerDependencies:
       tslint: ^5.0.0 || ^6.0.0
       typescript: ^2.3.0 || ^3.0.0 || ^4.0.0
@@ -6143,7 +6143,7 @@ packages:
     dev: true
 
   /which-module@2.0.0:
-    resolution: {integrity: sha1-2e8H3Od7mQK4o6j6SzHD4/fm6Ho=}
+    resolution: {integrity: sha512-B+enWhmw6cjfVC7kS8Pj9pCrKSc5txArRyaYGe088shv/FGWH+0Rjx/xPgtsWfsUtS27FkP697E4DDhgrgoc0Q==}
     dev: true
 
   /which@1.3.1:
@@ -6174,8 +6174,8 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       ansi-styles: 4.3.0
-      string-width: 4.2.0
-      strip-ansi: 6.0.0
+      string-width: 4.2.3
+      strip-ansi: 6.0.1
     dev: true
 
   /wrap-ansi@7.0.0:
@@ -6278,7 +6278,7 @@ packages:
       require-directory: 2.1.1
       require-main-filename: 2.0.0
       set-blocking: 2.0.0
-      string-width: 4.2.0
+      string-width: 4.2.3
       which-module: 2.0.0
       y18n: 4.0.1
       yargs-parser: 18.1.3
