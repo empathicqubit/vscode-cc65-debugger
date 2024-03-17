@@ -1,7 +1,7 @@
 <img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/action.gif?raw=true" />
 
 # vscode-cc65-debugger
-
+ 
 [![Version](https://img.shields.io/visual-studio-marketplace/v/entan-gl.cc65-vice)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/entan-gl.cc65-vice)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 [![Ratings](https://img.shields.io/visual-studio-marketplace/r/entan-gl.cc65-vice)](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
