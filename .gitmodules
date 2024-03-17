@@ -11,3 +11,6 @@
 	url = https://github.com/audetto/AppleWin
 	branch = monitor
 	shallow = true
+[submodule "3rdparty/cc65"]
+	path = 3rdparty/cc65
+	url = https://github.com/cc65/cc65
