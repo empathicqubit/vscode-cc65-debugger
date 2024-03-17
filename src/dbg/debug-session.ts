@@ -78,7 +78,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
     private _addressTypes: {[address:string]: string} = {};
     private _tabby: boolean;
     private _keybuf: string[] = [];
-    private _controllerBuf: keyMappings.joyportBits = 0;
+    private _controllerBuf: keyMappings.joyportBits = keyMappings.joyportBits.NONE;
     private _consoleType?: string;
 
     private _bounceBuf: () => void;

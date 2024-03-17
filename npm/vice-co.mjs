@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import shx from './shelljs.js';
 
 try {

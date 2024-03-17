@@ -304,7 +304,7 @@ called by the main debug session process. Basically anything referenced by
 
 You will need to restart the Extension if you change anything in the Extension
 which is not UI code. All the UI side code is located under
-[src/webviews/stats-webview-content.ts](src/webviews/stats-webview-content.ts)
+[src/webviews/index.ts](src/webviews/index.ts)
 since there is only one screen at the moment. All the non-UI code is under
 [src/ext](src/ext).
 
