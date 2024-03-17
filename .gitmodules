@@ -2,10 +2,6 @@
 	path = 3rdparty/c64ttf
 	url = https://github.com/empathicqubit/c64ttf
 	shallow = true
-[submodule "3rdparty/cc65"]
-	path = 3rdparty/cc65
-	url = https://github.com/empathicqubit/cc65
-	shallow = true
 [submodule "3rdparty/mesen-binary-monitor"]
 	path = 3rdparty/mesen-binary-monitor
 	url = https://github.com/empathicqubit/mesen-binary-monitor

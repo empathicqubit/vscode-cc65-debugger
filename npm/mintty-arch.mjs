@@ -29,6 +29,10 @@ const downloadFile = (url, dest) => {
 const sevenzx = (src, ...files) => {
     const zip7 = shx.which('7zz') || shx.which('7z');
 
+    if(!zip7) {
+        throw new Error('7-zip is not installed!');
+    }
+
     if(files.every(x => shx.test('-e', x))) {
         return;
     }
@@ -80,6 +84,10 @@ try {
     console.timeEnd('mintty');
 }
 catch (e) {
-    shx.rm('-rf', rootDir + '/obj/mintty');
+    try {
+        shx.rm('-rf', rootDir + '/obj/mintty');
+    }
+    catch {}
+
     throw e;
 }
