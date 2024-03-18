@@ -73,7 +73,7 @@ jobs:
 
   linux-build:
     name: 🐧
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container: empathicqubit/vscode-cc65-debugger-build
 
     steps:
@@ -100,27 +100,35 @@ jobs:
   linux-test:
     name: 🧪🐧
     needs: linux-build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container: empathicqubit/vscode-cc65-debugger-build
 
     strategy:
       fail-fast: false
       matrix:
           include:
-              - vice_version: 3.6
+              - vice_version: 3.8
                 machine: apple2
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
-              - vice_version: 3.6
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
+              - vice_version: 3.8
                 machine: nes
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
 
-              - vice_version: 3.6
+              - vice_version: 3.8
                 machine: pet
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
 
               - vice_version: 3.6
                 machine: c64
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+
+              - vice_version: 3.7
+                machine: c64
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.7/src
+
+              - vice_version: 3.8
+                machine: c64
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
               - vice_version: trunk
                 machine: c64
                 vice_directory: ""
