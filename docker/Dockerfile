@@ -53,7 +53,7 @@ RUN apt-get update && \
 # Build VICE
 ADD ./build-vice.sh /build-vice.sh
 RUN chmod a+rx /build-vice.sh && \
-    for each in 3.6 3.7 3.8 ; do \
+    for each in 3.8 ; do \
         /build-vice.sh $each builds --enable-headlessui ; \
     done
 

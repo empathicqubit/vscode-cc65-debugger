@@ -28,8 +28,8 @@ jobs:
       fail-fast: false
       matrix:
           include:
-              - vice_directory: "vice-x86-64-gtk3-3.6.1"
-                vice_version: "3.6.1"
+              - vice_directory: "vice-x86-64-gtk3-3.8"
+                vice_version: "3.8"
 
     steps:
     - uses: actions/checkout@v3
@@ -108,23 +108,12 @@ jobs:
       matrix:
           include:
               - vice_version: 3.8
-                machine: apple2
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
-              - vice_version: 3.8
                 machine: nes
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
 
               - vice_version: 3.8
                 machine: pet
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
-
-              - vice_version: 3.6
-                machine: c64
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
-
-              - vice_version: 3.7
-                machine: c64
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.7/src
 
               - vice_version: 3.8
                 machine: c64
