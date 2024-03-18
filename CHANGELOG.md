@@ -1,5 +1,23 @@
 # Changelog
 
+## [7.0.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.8.1...v7.0.0) (2024-03-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* Completely remove runahead since it isn't reliable
+
+### Features
+
+* Completely remove runahead since it isn't reliable ([a519737](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/a51973761bd07661dacb5157e19f2d8dae0ae51d))
+* update devcontainer to jammy ([be1fec6](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/be1fec695f61bcd4c48c2a3d338c1f5beb8056d9))
+
+
+### Bug Fixes
+
+* Change concurrency check to GHA's builtin one ([7bac9eb](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/7bac9eb91a23b3448a53f734f453c2bafb377977))
+* cycle counter still works with multiple targets ([06f01c2](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/06f01c29cd2b2826e745c97d7c608692c401e0da))
+
 ### [6.8.1](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.8.0...v6.8.1) (2022-12-02)
 
 
