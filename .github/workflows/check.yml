@@ -115,14 +115,6 @@ jobs:
                 machine: pet
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
 
-              - vice_version: 3.6
-                machine: c64
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
-
-              - vice_version: 3.7
-                machine: c64
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.7/src
-
               - vice_version: 3.8
                 machine: c64
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
