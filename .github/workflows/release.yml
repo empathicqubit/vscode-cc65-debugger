@@ -59,8 +59,8 @@ jobs:
     strategy:
       matrix:
           include:
-              - vice_version: 3.6
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.6/src
+              - vice_version: 3.8
+                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
                 tag_ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
     steps:
