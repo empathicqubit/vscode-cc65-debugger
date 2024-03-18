@@ -1,5 +1,16 @@
 # Changelog
 
+## [8.0.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v7.0.0...v8.0.0) (2024-03-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* require VICE 3.8 or later
+
+### Bug Fixes
+
+* require VICE 3.8 or later ([a1948a6](https://www.github.com/empathicqubit/vscode-cc65-debugger/commit/a1948a6ad3427f7045b00e75f27a46a444e3ec79))
+
 ## [7.0.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v6.8.1...v7.0.0) (2024-03-18)
 
 
