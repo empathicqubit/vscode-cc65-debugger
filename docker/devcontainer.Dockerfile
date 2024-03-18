@@ -52,7 +52,7 @@ ENV audio_lite_package_list \
     mumble-server
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends sudo less psmisc libglew2.0 libglew-dev ${desktop_lite_package_list} ${audio_lite_package_list} && \
+    apt-get install -y --no-install-recommends sudo less psmisc libglew2.2 libglew-dev ${desktop_lite_package_list} ${audio_lite_package_list} && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN /build-vice.sh 3.6 default
