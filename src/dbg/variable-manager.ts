@@ -302,7 +302,7 @@ export class VariableManager {
             if(refMatch[2] && parts.length && /^[a-z_]\w*$/gi.test(parts[parts.length - 1])) {
                 lastVal = await matchParts(parts, vars);
                 let intVal = 0;
-                if(lastVal && (intVal = parseInt(lastVal.value, 16)) === NaN) {
+                if(lastVal && Number.isNaN(intVal = parseInt(lastVal.value, 16))) {
                     parts = [];
                     break;
                 }
@@ -317,7 +317,7 @@ export class VariableManager {
         if(parts.length) {
             lastVal = await matchParts(parts, vars);
             let intVal = 0;
-            if(lastVal && (intVal = parseInt(lastVal.value, 16)) === NaN) {
+            if(lastVal && Number.isNaN(intVal = parseInt(lastVal.value, 16))) {
                 parts = [];
             }
             else {

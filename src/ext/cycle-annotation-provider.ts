@@ -161,7 +161,7 @@ class CycleAnnotationProvider {
     }
 
     private _onChangeVisibleEditor = async(textEditors: vscode.TextEditor[]): Promise<void> => {
-        await this._updateDecorations(vscode.window.visibleTextEditors, true);
+        await this._updateDecorations([...vscode.window.visibleTextEditors], true);
     }
 
     private _onChangeDebugFile = _debounce(250, async (uri: vscode.Uri): Promise<void> => {
@@ -171,7 +171,7 @@ class CycleAnnotationProvider {
 
         this._dbgFile = undefined;
 
-        await this._updateDecorations(vscode.window.visibleTextEditors);
+        await this._updateDecorations([...vscode.window.visibleTextEditors]);
     });
 
     private _onChangeTextEditorSelection = _debounce(250, async(selectionEvent : vscode.TextEditorSelectionChangeEvent) : Promise<void> => {
@@ -213,7 +213,7 @@ class CycleAnnotationProvider {
 
         setImmediate(async() => {
             try {
-                await this._updateDecorations(vscode.window.visibleTextEditors);
+                await this._updateDecorations([...vscode.window.visibleTextEditors]);
             }
             catch (e) {
                 console.error(e);
