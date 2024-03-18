@@ -108,9 +108,6 @@ jobs:
       matrix:
           include:
               - vice_version: 3.8
-                machine: apple2
-                vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
-              - vice_version: 3.8
                 machine: nes
                 vice_directory: VICE_DIRECTORY=/vices/builds/vice-3.8/src
 
