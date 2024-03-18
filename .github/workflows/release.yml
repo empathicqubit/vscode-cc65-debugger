@@ -26,7 +26,7 @@ jobs:
                 tag_ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       name: 🔄 Checkout Code
       with:
           ref: ${{ matrix.tag_ref }}
@@ -64,7 +64,7 @@ jobs:
                 tag_ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       name: 🔄 Checkout Code
       with:
           ref: ${{ matrix.tag_ref }}
