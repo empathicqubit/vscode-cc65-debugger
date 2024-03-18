@@ -2,6 +2,9 @@ version: '2'
 services:
     build:
         image: empathicqubit/vscode-cc65-debugger-build
+        build:
+            dockerfile: ./Dockerfile
+            context: .
         user: "1000"
         volumes:
             - ..:/mnt

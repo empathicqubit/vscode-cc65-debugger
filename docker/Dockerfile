@@ -1,5 +1,5 @@
 # I tried to order these deps by least to most likely to change to preserve the cache.
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 ENV DEBIAN_FRONTEND noninteractive
 # Base APT configuration
 RUN grep 'ubuntu.com/ubuntu' /etc/apt/sources.list \
@@ -7,19 +7,23 @@ RUN grep 'ubuntu.com/ubuntu' /etc/apt/sources.list \
     | sed -e 's/^# //g' >> /etc/apt/sources.list
 RUN sed -i 's@http://archive.ubuntu.com/ubuntu@http://mirror.asergo.com/ubuntu/@g' /etc/apt/sources.list
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates python3-pip && \
+    apt-get install -y --no-install-recommends curl ca-certificates python3-pip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
-# APT mirror set
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
-RUN pip3 install --user apt-smart
 
-RUN PATH=$PATH:$HOME/.local/bin apt-smart -a
+# Find best mirror https://askubuntu.com/questions/39922/how-do-you-select-the-fastest-mirror-from-the-command-line
+RUN curl -s http://mirrors.ubuntu.com/mirrors.txt | \
+    xargs -n1 -I '{}' sh -c 'echo $(curl -r 0-$((10*1024*1024)) -s -w %{speed_download} -o /dev/null {}/ls-lR.gz) {}' | \
+    sort -g -r | \
+    head -1 | \
+    awk '{ print $2 }' | \
+    xargs -I '{}' sed -i 's@http://mirror.asergo.com/ubuntu/@{}/@g' /etc/apt/sources.list
 
 # Install VICE dependencies and misc.
 RUN apt-get update && \
     apt-get build-dep --no-install-recommends -y vice && \
-    apt-get install -y --no-install-recommends rsync curl libcurl4-openssl-dev dos2unix p7zip-full zip gpg subversion build-essential xa65 automake autoconf openjdk-17-jre && \
+    apt-get install -y --no-install-recommends rsync libcurl4-openssl-dev dos2unix p7zip-full zip gpg subversion build-essential xa65 automake autoconf openjdk-17-jre && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install AppleWin deps
@@ -56,7 +60,14 @@ RUN chmod a+rx /build-vice.sh && \
 # Install cross build tools for CC65
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    apt-get install -y gcc-multilib-i686-linux-gnu mingw-w64 libc6-dev-arm64-cross libc6-arm64-cross gcc-aarch64-linux-gnu gcc-multilib-arm-linux-gnueabi gcc-multilib-arm-linux-gnueabihf libc6:i386 && \
+    apt-get install -y gcc-i686-linux-gnu \
+    mingw-w64 \
+    libc6-dev-arm64-cross \
+    libc6-arm64-cross \
+    gcc-aarch64-linux-gnu \
+    gcc-arm-linux-gnueabi \
+    gcc-arm-linux-gnueabihf \
+    libc6:i386 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Git
@@ -64,8 +75,8 @@ ADD git-core.key /git-core.key
 RUN apt-get update && \
     apt-get install --no-install-recommends -y gpg-agent && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN echo 'deb http://ppa.launchpad.net/git-core/ppa/ubuntu bionic main' > /etc/apt/sources.list.d/git-core.list && \
-    echo 'deb-src http://ppa.launchpad.net/git-core/ppa/ubuntu bionic main' >> /etc/apt/sources.list.d/git-core.list && \
+RUN echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/git-core.list && \
+    echo "deb-src http://ppa.launchpad.net/git-core/ppa/ubuntu $(lsb_release -cs) main" >> /etc/apt/sources.list.d/git-core.list && \
     apt-key add /git-core.key
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git && \
@@ -79,11 +90,11 @@ RUN apt-get update && \
 RUN curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm
 
 # Install Mesen deps
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gnupg ca-certificates  && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official-stable.list
+#RUN apt-get update && \
+#    apt-get install -y --no-install-recommends gnupg ca-certificates  && \
+#    apt-get clean && rm -rf /var/lib/apt/lists/*
+#RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+#RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/mono-official-stable.list
 RUN apt-get update && \
     apt-get install -y --no-install-recommends mono-complete libsdl2-2.0 gnome-themes-standard xvfb x11-apps && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
