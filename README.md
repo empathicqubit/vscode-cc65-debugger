@@ -13,7 +13,7 @@
 
 Dependencies and date last changed:
 
-[![VICE](https://img.shields.io/badge/VICE-3.6.1%202022%2f05%2f14-blue)](https://community.chocolatey.org/packages/winvice-nightly/3.6.1)
+[![VICE](https://img.shields.io/badge/VICE-3.8.0%202024%2f03%2f18-blue)](https://community.chocolatey.org/packages/winvice-nightly/3.8.0)
 [![Mesen-X](https://img.shields.io/badge/MesenX-1.0.0%202021%2f11%2f24-blue)](https://github.com/NovaSquirrel/Mesen-X/releases/tag/1.0.0)
 
 This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms (well-tested) and NES (experimental), including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
@@ -73,12 +73,12 @@ remote machine.
 
 If you'd like to run a project entirely from your computer without Codespaces or devcontainers, you can also do that.
 This way is probably better if you want to get more serious with your development.
-To make sure all the features work, you'll want to install VICE 3.6 or later.
+To make sure all the features work, you'll want to install VICE 3.8 or later.
 A modified build of CC65 for Linux, Windows, and Mac OS is already included.
 
 ### Windows-specific instructions
 
-You will need to install VICE 3.6 or later and make. A modified build of CC65 is included.
+You will need to install VICE 3.8 or later and make. A modified build of CC65 is included.
 The easiest way to install VICE to your PATH is to use [Chocolatey](https://chocolatey.org/).
 
 ```powershell
@@ -88,7 +88,7 @@ The easiest way to install VICE to your PATH is to use [Chocolatey](https://choc
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install the packages
-choco install --version 3.6.1 winvice-nightly
+choco install --version 3.8.0 winvice-nightly
 choco install make
 
 # This isn't required, but installing it will make C development a little easier.
@@ -123,7 +123,7 @@ the viceDirectory setting to the `bin` path. So if you dropped the folder in
 Applications, that would look similar to this:
 
 ```
-/Applications/vice-arm64-gtk3.6.1/bin
+/Applications/vice-arm64-gtk3.8.0/bin
 ```
 
 You may also want to add that path to your PATH so you can use tools like c1541
@@ -131,16 +131,16 @@ in your `Makefile`.
 
 ### Linux-specific instructions (Debian \[and probably also Ubuntu\])
 
-You will need to install VICE 3.6 or later and make. A modified build of CC65 is included.
+You will need to install VICE 3.8 or later and make. A modified build of CC65 is included.
 
-To install VICE 3.6 before it is packaged for your distribution, you will need
+To install VICE 3.8 before it is packaged for your distribution, you will need
 to build VICE from source, to do that, download the source from the VICE
 website, then follow the below steps:
 
 ```sh
 sudo apt install build-essential subversion dos2unix xa65 automake autoconf zip
 sudo apt build-dep vice
-cd vice-3.6.0
+cd vice-3.8.0
 ./autogen.sh
 ./configure
 make -j$(nproc)
