@@ -21,10 +21,9 @@ const ports = {
     "runtime-assembly.test.ts": 0x8100,
     "runtime-execution.test.ts": 0x8200,
     "runtime-other-platforms.test.ts": 0x8300,
-    "runtime-runahead.test.ts": 0x8400,
-    "runtime-settings.test.ts": 0x8500,
-    "runtime-stack.test.ts": 0x8600,
-    "runtime-attach.test.ts": 0x8700,
+    "runtime-settings.test.ts": 0x8400,
+    "runtime-stack.test.ts": 0x8500,
+    "runtime-attach.test.ts": 0x8600,
 }
 
 export async function portGetter() : Promise<number> {

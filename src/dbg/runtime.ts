@@ -104,7 +104,6 @@ export class Runtime extends EventEmitter {
     public _emulator : AbstractGrip;
 
     private _colorTermPids: [number, number] = [-1, -1];
-    private _runAhead: boolean;
     /**
      * Completely prevent events from having any impact on the runtime state.
      * This is used to prevent running the machine state ahead from interfering
@@ -138,7 +137,6 @@ export class Runtime extends EventEmitter {
      * @param stopOnEntry Stop after attaching
      * @param stopOnExit Stop after hitting the end of main
      * @param program Program path
-     * @param runAhead Step ahead one frame when stopping
      * @param machineType Manually set machine type
      * @param debugFilePath Manual path to debug file
      * @param mapFilePath Manual path to map file
@@ -148,7 +146,6 @@ export class Runtime extends EventEmitter {
         buildCwd: string,
         stopOnEntry: boolean,
         stopOnExit: boolean,
-        runAhead: boolean,
         program?: string,
         machineType?: debugFile.MachineType,
         debugFilePath?: string,
@@ -158,7 +155,7 @@ export class Runtime extends EventEmitter {
 
         this._attachProgram = program;
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, program, machineType, debugFilePath, mapFilePath);
+        await this._preStart(buildCwd, stopOnExit, program, machineType, debugFilePath, mapFilePath);
 
         console.time('emulator')
 
@@ -322,7 +319,6 @@ export class Runtime extends EventEmitter {
     private async _preStart(
         buildCwd: string,
         stopOnExit: boolean,
-        runAhead: boolean,
         program?: string,
         machineType?: debugFile.MachineType,
         debugFilePath?: string,
@@ -338,7 +334,6 @@ export class Runtime extends EventEmitter {
             content: `To avoid problems, make sure you're using VICE 3.6 or later.`
         });
 
-        this._runAhead = !!runAhead;
         console.time('loadSource');
 
         if(program && !debugUtils.programFiletypes.test(program)) {
@@ -378,7 +373,6 @@ export class Runtime extends EventEmitter {
 
         console.timeEnd('preEmulator');
 
-        this._runAhead = false;
         if(this._machineType == debugFile.MachineType.apple2) {
             this.sendMessage({
                 level: debugUtils.ExtensionMessageLevel.warning,
@@ -443,7 +437,6 @@ export class Runtime extends EventEmitter {
      * @param buildCwd Build path
      * @param stopOnEntry Stop after hitting main
      * @param stopOnExit Stop after hitting the end of main
-     * @param runAhead Skip ahead one frame
      * @param viceDirectory The path with all the VICE executables
      * @param mesenDirectory The path with all the Mesen executables
      * @param appleWinDirectory The path with all the AppleWin executables
@@ -459,7 +452,6 @@ export class Runtime extends EventEmitter {
         buildCwd: string,
         stopOnEntry: boolean,
         stopOnExit: boolean,
-        runAhead: boolean,
         machineType?: debugFile.MachineType,
         viceDirectory?: string,
         mesenDirectory?: string,
@@ -472,7 +464,7 @@ export class Runtime extends EventEmitter {
     ) : Promise<void> {
         metrics.event('runtime', 'start');
 
-        await this._preStart(buildCwd, stopOnExit, runAhead, program, machineType, debugFilePath, mapFilePath)
+        await this._preStart(buildCwd, stopOnExit, program, machineType, debugFilePath, mapFilePath)
 
         console.time('emulator');
 
@@ -783,7 +775,6 @@ or define the location manually with the launch.json->mapFile setting`
                 }
             });
 
-            await this._doRunAhead();
             this.sendEvent(event);
         });
 
@@ -871,8 +862,6 @@ or define the location manually with the launch.json->mapFile setting`
                 });
             }
 
-            await this._doRunAhead();
-
             const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
             this.sendEvent('stopOnStep', null, ...args);
         });
@@ -908,8 +897,6 @@ or define the location manually with the launch.json->mapFile setting`
         await this._emulator.lock(async() => {
             await this._stepOut();
 
-            await this._doRunAhead();
-
             const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
             this.sendEvent(event, 'console', ...args);
         });
@@ -917,7 +904,6 @@ or define the location manually with the launch.json->mapFile setting`
 
     public async pause() {
         await this._emulator.ping();
-        await this._doRunAhead();
         if(this._currentPosition) {
             const args = [ null, this._currentPosition.file!.name, this._currentPosition.num, 0];
             this.sendEvent('stopOnStep', null, ...args);
@@ -1606,11 +1592,9 @@ or define the location manually with the launch.json->mapFile setting`
             sendEvents && this.sendEvent('output', 'console', ...args);
 
             if(this._exitQueued) {
-                await this._doRunAhead();
                 sendEvents && this.sendEvent('stopOnExit', null, ...args);
             }
             else if(this._userBreak) {
-                await this._doRunAhead();
                 if(this._userBreak.logMessage) {
                     await this.evaluateLogMessage(this._userBreak.logMessage);
                 }
@@ -1675,107 +1659,6 @@ or define the location manually with the launch.json->mapFile setting`
 
     private async _setupEmulatorEventHandler() {
         this._emulator.on(0xffffffff.toString(16), async e => this._eventHandler(e));
-    }
-
-    private async _doRunAhead() : Promise<void>{
-        await this._updateUI();
-
-        if(!this._runAhead) {
-            return;
-        }
-
-        console.log('runahead start');
-        console.time('runahead');
-
-        const dumpFileName : string = await util.promisify(tmp.tmpName)({ prefix: 'cc65-vice-'});
-        await this._emulator.execBinary({
-            type: bin.CommandType.dump,
-            saveDisks: false,
-            saveRoms: false,
-            filename: dumpFileName,
-        });
-
-        const oldLine = this._registers.lin;
-        this._ignoreEvents = true;
-        await this._emulator.withAllBreaksDisabled(async() => {
-            // Try not to step through the serial line
-            // to avoid a VICE bug with snapshots
-            // messing up fs access
-            const serialLineResumeAddresses = {
-                [debugFile.MachineType.c128]: 0xEDAB,
-                [debugFile.MachineType.c64]: 0xEDAB,
-                [debugFile.MachineType.plus4]: 0xE1E7,
-                [debugFile.MachineType.vic20]: 0xEEB2,
-            };
-            const serialLineResumeAddress = serialLineResumeAddresses[this._machineType];
-            let serialLineCheckpoint : bin.CheckpointInfoResponse | undefined;
-            if(serialLineResumeAddress) {
-                serialLineCheckpoint = await this._emulator.execBinary({
-                    type: bin.CommandType.checkpointSet,
-                    startAddress: serialLineResumeAddress,
-                    endAddress: serialLineResumeAddress,
-                    stop: true,
-                    enabled: true,
-                    operation: bin.CpuOperation.exec,
-                    temporary: false,
-                });
-            }
-
-            const brkRes = await this._emulator.execBinary({
-                type: bin.CommandType.checkpointSet,
-                startAddress: 0x0000,
-                endAddress: 0xffff,
-                stop: true,
-                enabled: true,
-                operation: bin.CpuOperation.exec,
-                temporary: false,
-            });
-            await this._emulator.execBinary({
-                type: bin.CommandType.conditionSet,
-                condition: 'RL != $' + oldLine.toString(16),
-                checkpointId: brkRes.id,
-            });
-
-            await this._emulator.exit();
-            let stopped = await this._emulator.waitForStop();
-
-            if(stopped.programCounter != serialLineResumeAddress) {
-                await this._emulator.execBinary({
-                    type: bin.CommandType.conditionSet,
-                    condition: 'RL == $' + oldLine.toString(16),
-                    checkpointId: brkRes.id,
-                });
-
-                await this._emulator.exit();
-                await this._emulator.waitForStop();
-            }
-
-            await this._emulator.execBinary({
-                type: bin.CommandType.checkpointDelete,
-                id: brkRes.id,
-            });
-            if(serialLineCheckpoint) {
-                await this._emulator.execBinary({
-                    type: bin.CommandType.checkpointDelete,
-                    id: serialLineCheckpoint.id,
-                });
-            }
-        });
-        this._ignoreEvents = false;
-
-        await this._graphicsManager.updateRunAhead(this);
-
-        const undumpRes = await this._emulator.execBinary({
-            type: bin.CommandType.undump,
-            filename: dumpFileName,
-        });
-        this._updateCurrentAddress(undumpRes.programCounter);
-
-        await fs.promises.unlink(dumpFileName);
-
-        this.sendEvent('output', 'console', null, this._currentPosition.file!.name, this._currentPosition.num, 0);
-
-        console.timeEnd('runahead');
     }
 
     private async _loadDebugFile(filename: string | undefined, buildDir: string) : Promise<debugFile.Dbgfile> {

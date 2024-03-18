@@ -11,7 +11,6 @@ import { AbstractGrip } from './abstract-grip';
 
 export class GraphicsManager {
     private _currentPng: any;
-    private _runAheadPng: any;
     private _metas: bin.SingleRegisterMeta[];
     private _banks: bin.SingleBankMeta[];
     private _ioBank: bin.SingleBankMeta;
@@ -115,27 +114,6 @@ export class GraphicsManager {
             this._updateSprites(ioMemory, emitter),
             this._updateText(ioMemory, emitter),
         ]);
-    }
-
-    public async updateRunAhead(emitter: events.EventEmitter) : Promise<void> {
-        const aheadRes = await this._emulator.displayGetRGBA();
-
-        if(!this._runAheadPng) {
-            this._runAheadPng = new pngjs.PNG({
-                width: aheadRes.debugWidth,
-                height: aheadRes.debugHeight
-            });
-        }
-
-        this._runAheadPng.data = aheadRes;
-
-        this._enableStats && emitter.emit('runahead', {
-            runAhead: {
-                data: Array.from(pngjs.PNG.sync.write(this._runAheadPng)),
-                width: aheadRes.debugWidth,
-                height: aheadRes.debugHeight,
-            },
-        });
     }
 
     public async updateCurrent(emitter: events.EventEmitter) : Promise<void> {

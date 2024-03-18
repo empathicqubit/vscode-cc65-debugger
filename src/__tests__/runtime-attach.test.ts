@@ -39,7 +39,7 @@ describe('Attach', () => {
     test('Can attach to a running process', async() => {
         const rt = await testShared.newRuntime();
         await Promise.all([
-            rt.attach(binaryPort, BUILD_CWD, false, false, false, PROGRAM, undefined, DEBUG_FILE, MAP_FILE),
+            rt.attach(binaryPort, BUILD_CWD, false, false, PROGRAM, undefined, DEBUG_FILE, MAP_FILE),
             (async () => {
                 await testShared.waitFor(rt, 'message', (msg: debugUtils.ExtensionMessage) => {
                     assert.strictEqual(msg.items && msg.items.includes('Autostart'), true);

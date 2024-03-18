@@ -26,7 +26,6 @@ export interface ScreenData extends ImageData {
 
 export interface RenderProps {
     currentFrameActive: boolean;
-    runAhead: SpriteData | null;
     current: SpriteData | null;
     sprites: SpriteData[];
     screenText: ScreenData | null;
@@ -140,7 +139,6 @@ export class StatsBack {
             const msgData : RenderProps = e.data;
             if((msgData as any).reset) {
                 data.current = null;
-                data.runAhead = null;
                 data.sprites = [];
                 return;
             }
@@ -185,15 +183,6 @@ export class StatsBack {
                     data.current = {
                         ...c,
                         blobUrl: URL.createObjectURL(new Blob([new Uint8Array(c.data)], {type: 'image/png' })),
-                    }
-                }
-            }
-            if(msgData.runAhead) {
-                const r = msgData.runAhead;
-                if(!data.runAhead || data.runAhead.data.length != r.data.length || !data.runAhead.data.every((x, i) => r.data[i] == x)) {
-                    data.runAhead = {
-                        ...r,
-                        blobUrl: URL.createObjectURL(new Blob([new Uint8Array(r.data)], {type: 'image/png' })),
                     }
                 }
             }
@@ -259,7 +248,6 @@ export class StatsBack {
     init() {
         this._data = {
             currentFrameActive: true,
-            runAhead: null,
             current: null,
             screenText: null,
             sprites: [],

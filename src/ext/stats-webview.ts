@@ -7,7 +7,6 @@ import * as bin from '../dbg/binary-dto';
 
 export class StatsWebview {
 	private static _state: {
-		runAhead?: ImageData,
 		current?: ImageData,
 		sprites: ImageData[],
 		screenText?: ImageData,
@@ -37,7 +36,6 @@ export class StatsWebview {
 	private _disposables: vscode.Disposable[] = [];
 
 	public static reset() {
-		StatsWebview._state.runAhead = <any>null;
 		StatsWebview._state.current = <any>null;
 		StatsWebview._state.screenText = <any>null;
 		StatsWebview._state.sprites = [];

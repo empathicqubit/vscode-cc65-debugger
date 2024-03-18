@@ -49,7 +49,7 @@ export abstract class AbstractGrip extends EventEmitter {
             if(this._responseBytes.length &&
                 this._responseBytes.readUInt8(0) != 0x02) {
                 const res : bin.Response = {
-                    type: 0,
+                    type: <any>0,
                     apiVersion: 0,
                     related: [],
                     error: 0xff,

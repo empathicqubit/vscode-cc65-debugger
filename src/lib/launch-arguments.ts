@@ -21,8 +21,6 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     request?: 'launch' | 'attach';
     /** Port of the binary monitor to connect to */
     port?: number;
-    /** When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately. */
-    runAhead?: boolean;
     /** Use X64 instead of X64SC when appropriate. */
     preferX64OverX64sc?: boolean;
     /** The directory of VICE emulator. */

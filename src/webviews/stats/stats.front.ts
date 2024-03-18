@@ -166,7 +166,6 @@ export class StatsFront extends React.PureComponent<RenderProps> {
                     r(reactTabs.Tab, {
                         className: 'react-tabs__tab current-frame__tab'
                     }, 'Display (Current)'),
-                    !this.props.runAhead ? null : r(reactTabs.Tab, null, 'Display (Next)'),
                     r(reactTabs.Tab, null, 'Sprites'),
                     r(reactTabs.Tab, null, 'Text'),
                     r(reactTabs.Tab, null, 'Memory'),
@@ -197,20 +196,6 @@ similar to VICE's default. Tab is C=.
                             : null,
                         )
                 ),
-                !this.props.runAhead
-                    ? null
-                    : r(reactTabs.TabPanel, {
-                        className: 'next-frame display-frame',
-                    },
-                        r(Hider, null,
-                            r('div', { dangerouslySetInnerHTML: { __html: marked(`
-The next frame after the current one. Your changes may not be immediately shown
-on the current screen, due to the way the raster works, so you can try looking
-here instead.
-                            `)}}),
-                        ),
-                        r('img', { src: this.props.runAhead.blobUrl }),
-                    ),
                 r(reactTabs.TabPanel, { className: 'sprites' },
                     r(Hider, null,
                         r('div', { dangerouslySetInnerHTML: { __html: marked(`

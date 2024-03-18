@@ -259,11 +259,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             //console.log(e);
             this.sendEvent(e);
         });
-        this._runtime.on('runahead', data => {
-            const e = new CC65ViceEvent('runahead', data);
-            //console.log(e);
-            this.sendEvent(e);
-        });
         this._runtime.on('screenText', data => {
             const e = new CC65ViceEvent('screenText', data);
             //console.log(e);
@@ -505,7 +500,7 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             if(!args.port) {
                 throw new Error('Attach requires a port in launch.json');
             }
-            await this._runtime.attach(args.port, args.build.cwd, !!args.stopOnEntry, !!args.stopOnExit, !!args.runAhead, args.program, args.machineType ? MachineType[args.machineType] : undefined, args.debugFile, args.mapFile);
+            await this._runtime.attach(args.port, args.build.cwd, !!args.stopOnEntry, !!args.stopOnExit, args.program, args.machineType ? MachineType[args.machineType] : undefined, args.debugFile, args.mapFile);
         }
         catch (e) {
             metrics.event('session', 'attach-error');
@@ -553,7 +548,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 args.build.cwd,
                 !!args.stopOnEntry,
                 !!args.stopOnExit,
-                !!args.runAhead,
                 args.machineType
                 ? MachineType[args.machineType]
                 : undefined,

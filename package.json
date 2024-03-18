@@ -255,11 +255,6 @@
           "type": "boolean",
           "default": false,
           "description": "Turn off extension metric tracking."
-        },
-        "cc65vice.runAhead": {
-          "type": "boolean",
-          "default": true,
-          "description": "When hitting a breakpoint, step ahead by one frame so that any screen updates that may have been made become visible immediately."
         }
       }
     },

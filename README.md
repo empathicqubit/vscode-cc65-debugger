@@ -228,8 +228,6 @@ want to use CC65 on your PATH, and *not* this.
 - **cc65vice.preferX64OverX64sc**: Set to true to use x64, which is not recommended.
 - **cc65vice.disableMetrics**: This disables metric reporting, which tracks when the
 extension is activated or a debug session is requested or fails.
-- **cc65vice.runAhead**: When hitting a breakpoint, step ahead by one frame so that
-any screen updates that may have been made become visible immediately.
 
 You may have some problems with `autostart-warp` working correctly. The way
 VICE detects this may be to blame. To turn it off, just add `+warp` and
@@ -365,7 +363,7 @@ will need to set `build.skip` to `true`.
 ## Using Mesen-X with NES
 
 To use Mesen-X with NES, download Mesen-X and set your `cc65vice.mesenDirectory`
-setting to the path where Mesen-X is. The file should be named `Mesen.exe`. Additionally, disable the `cc65vice.runAhead` setting. Then add NES to your targets in your `Makefile`:
+setting to the path where Mesen-X is. The file should be named `Mesen.exe`. Then add NES to your targets in your `Makefile`:
 
 ```
 TARGETS := nes
