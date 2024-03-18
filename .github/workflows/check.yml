@@ -28,8 +28,8 @@ jobs:
       fail-fast: false
       matrix:
           include:
-              - vice_directory: "vice-x86-64-gtk3-3.6.1"
-                vice_version: "3.6.1"
+              - vice_directory: "vice-x86-64-gtk3-3.8"
+                vice_version: "3.8"
 
     steps:
     - uses: actions/checkout@v3
