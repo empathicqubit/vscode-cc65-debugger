@@ -1,4 +1,4 @@
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugProtocol } from '@vscode/debugprotocol';
 
 export interface LaunchRequestBuildArguments {
     /** Should we skip the build completely? */

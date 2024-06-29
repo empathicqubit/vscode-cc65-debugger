@@ -1,7 +1,7 @@
 import * as ReactDOM from 'react-dom';
 import { StatsFront } from './stats.front';
 import _sortBy from 'lodash/fp/sortBy';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import React from 'react';
 import { init } from 'lodash/fp';
 
@@ -278,7 +278,7 @@ export class StatsBack {
     }
 
     keyup(evt: React.KeyboardEvent<HTMLDivElement>) : void {
-        if(!this._data.currentFrameActive) {
+        if(!this?._data?.currentFrameActive) {
             return;
         }
 
@@ -353,7 +353,7 @@ export class StatsBack {
     }
 
     keydown(evt: React.KeyboardEvent<HTMLDivElement>) : void {
-        if(!this._data.currentFrameActive) {
+        if(!this?._data?.currentFrameActive) {
             return;
         }
 

@@ -6,8 +6,8 @@ import { basename } from 'path';
 import {
     Breakpoint, BreakpointEvent, ContinuedEvent, Event, InitializedEvent, Logger, logger,
     LoggingDebugSession, OutputEvent, Scope, Source, StackFrame, StoppedEvent, TerminatedEvent, Thread
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import * as debugUtils from '../lib/debug-utils';
 import * as keyMappings from '../lib/key-mappings';
 import { LaunchRequestArguments } from '../lib/launch-arguments';

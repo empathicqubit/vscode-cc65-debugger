@@ -1,4 +1,4 @@
-import { DebugSession } from "vscode-debugadapter";
+import { DebugSession } from "@vscode/debugadapter";
 import { CC65ViceDebugSession } from "../dbg/debug-session";
 import * as vscode from 'vscode';
 import { LaunchRequestArguments } from "../lib/launch-arguments";

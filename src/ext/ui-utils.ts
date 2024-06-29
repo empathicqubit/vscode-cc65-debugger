@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import * as customRequests from '../lib/custom-requests';
 
 export const extId = 'cc65-vice';
