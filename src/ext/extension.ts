@@ -23,7 +23,6 @@
 
 import * as vscode from 'vscode';
 import * as debugUtils from '../lib/debug-utils';
-import * as metrics from '../lib/metrics';
 import * as descriptor from './descriptor';
 import { StatsWebview } from './stats-webview';
 import cycleAnnotationProvider from './cycle-annotation-provider';
@@ -39,11 +38,6 @@ const runMode: 'external' | 'server' | 'inline' = 'external';
 let commands : vscode.Disposable[] = [];
 
 const updateConfiguration = () => {
-    // THIS MUST BE FIRST
-    const disableMetrics : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('disableMetrics');
-    metrics.options.disabled = disableMetrics;
-    // THIS MUST BE FIRST
-
     const enableCycleCounters : boolean = !!vscode.workspace.getConfiguration('cc65vice').get('enableCycleCounters');
     if(enableCycleCounters) {
         setImmediate(() => cycleAnnotationProvider.activate());
@@ -54,10 +48,6 @@ const updateConfiguration = () => {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    // THIS MUST BE FIRST
-    updateConfiguration();
-    // THIS MUST BE FIRST
-
     vscode.workspace.onDidChangeConfiguration(async e => {
         if(!e.affectsConfiguration('cc65vice')) {
             return;
@@ -65,8 +55,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         updateConfiguration();
     }) ;
-
-    metrics.event('extension', 'activated');
 
     [
         'offset',

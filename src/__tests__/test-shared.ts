@@ -3,7 +3,6 @@ import * as debugUtils from '../lib/debug-utils';
 import * as compile from '../lib/compile';
 import * as path from 'path';
 import { Runtime } from '../dbg/runtime';
-import * as metrics from '../lib/metrics';
 import getPort from 'get-port';
 import { __basedir } from '../basedir';
 import { MachineType } from '../lib/debug-file';
@@ -14,7 +13,6 @@ beforeEach(() => {
     expect.getState().started = new Date().getTime();
 });
 
-metrics.options.disabled = true;
 
 const ports = {
     "runtime.test.ts": 0x8000,

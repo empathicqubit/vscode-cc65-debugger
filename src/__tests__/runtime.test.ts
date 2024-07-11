@@ -2,10 +2,7 @@ import * as testShared from './test-shared';
 import * as compile from '../lib/compile';
 import * as debugUtils from '../lib/debug-utils';
 import { LaunchRequestBuildArguments } from '../lib/launch-arguments';
-import * as metrics from '../lib/metrics';
 import { MachineType } from '../lib/debug-file';
-
-metrics.options.disabled = true;
 
 // Line numbers are from zero, you moron.
 

@@ -11,7 +11,6 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import * as debugUtils from '../lib/debug-utils';
 import * as keyMappings from '../lib/key-mappings';
 import { LaunchRequestArguments } from '../lib/launch-arguments';
-import * as metrics from '../lib/metrics';
 import { CC65ViceBreakpoint, Runtime } from './runtime';
 import * as path from 'path';
 import { __basedir } from '../basedir';
@@ -503,8 +502,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             await this._runtime.attach(args.port, args.build.cwd, !!args.stopOnEntry, !!args.stopOnExit, args.program, args.machineType ? MachineType[args.machineType] : undefined, args.debugFile, args.mapFile);
         }
         catch (e) {
-            metrics.event('session', 'attach-error');
-
             console.error(e);
             response.success = false;
             response.message = (<any>e).stack.toString();
@@ -533,7 +530,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
                 }
             }
             catch {
-                metrics.event('session', 'build-error');
                 throw new Error("Couldn't finish the build successfully. Check the console for details.");
             }
 
@@ -561,8 +557,6 @@ export class CC65ViceDebugSession extends LoggingDebugSession {
             );
         }
         catch (e) {
-            metrics.event('session', 'launch-error');
-
             console.error(e);
             response.success = false;
             response.message = (<any>e).stack.toString();

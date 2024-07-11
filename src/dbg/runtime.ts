@@ -21,7 +21,6 @@ import * as debugUtils from '../lib/debug-utils';
 import * as disassembly from '../lib/disassembly';
 import { GraphicsManager } from './graphics-manager';
 import * as mapFile from '../lib/map-file';
-import * as metrics from '../lib/metrics';
 import { VariableData, VariableManager } from './variable-manager';
 import { ViceGrip } from './vice-grip';
 import { MesenGrip } from './mesen-grip';
@@ -151,8 +150,6 @@ export class Runtime extends EventEmitter {
         debugFilePath?: string,
         mapFilePath?: string
     ) {
-        metrics.event('runtime', 'attach');
-
         this._attachProgram = program;
 
         await this._preStart(buildCwd, stopOnExit, program, machineType, debugFilePath, mapFilePath);
@@ -462,8 +459,6 @@ export class Runtime extends EventEmitter {
         mapFilePath?: string,
         labelFilePath?: string,
     ) : Promise<void> {
-        metrics.event('runtime', 'start');
-
         await this._preStart(buildCwd, stopOnExit, program, machineType, debugFilePath, mapFilePath)
 
         console.time('emulator');
