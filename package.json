@@ -142,7 +142,7 @@
     "colors": "1.4.0",
     "get-port": "^5.1.1",
     "hasbin": "^1.2.3",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "marked": "^4.0.10",
     "mathjs": "^9.5.0",
     "node-watch": "^0.7.1",

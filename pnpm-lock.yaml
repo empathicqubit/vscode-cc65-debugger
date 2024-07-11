@@ -33,7 +33,7 @@ dependencies:
     specifier: ^1.2.3
     version: 1.2.3
   lodash:
-    specifier: ^4.17.15
+    specifier: ^4.17.21
     version: 4.17.21
   marked:
     specifier: ^4.0.10
