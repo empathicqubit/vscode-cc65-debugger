@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.2.0](https://github.com/empathicqubit/vscode-cc65-debugger/compare/v8.1.0...v8.2.0) (2024-07-11)
+
+
+### Features
+
+* update lodash ([d0e71fd](https://github.com/empathicqubit/vscode-cc65-debugger/commit/d0e71fdfbbae03e6e134f33368dc5f29792288eb))
+* update React to v18 ([8433d89](https://github.com/empathicqubit/vscode-cc65-debugger/commit/8433d89fd74bfe793283963f6c938ec2c5373197))
+
 ## [8.1.0](https://github.com/empathicqubit/vscode-cc65-debugger/compare/v8.0.0...v8.1.0) (2024-07-11)
 
 
