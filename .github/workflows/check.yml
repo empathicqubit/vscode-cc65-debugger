@@ -22,7 +22,7 @@ jobs:
     # Note that this is newer than the release, to support the newer version
     # of Java that the apple2 build needs. The release build is as old as
     # possible, to support a wider range of systems.
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       fail-fast: false
