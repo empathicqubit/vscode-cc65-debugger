@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.1.0](https://github.com/empathicqubit/vscode-cc65-debugger/compare/v8.0.0...v8.1.0) (2024-07-11)
+
+
+### Features
+
+* Remove Universal Analytics due to GDPR ([0a4b217](https://github.com/empathicqubit/vscode-cc65-debugger/commit/0a4b21761986eac0eeaf7ce73d7049cc7a1cde6d))
+
 ## [8.0.0](https://www.github.com/empathicqubit/vscode-cc65-debugger/compare/v7.0.0...v8.0.0) (2024-03-18)
 
 
