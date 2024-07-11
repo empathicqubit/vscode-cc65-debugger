@@ -1,5 +1,4 @@
 import React from 'react';
-import * as ReactDOM from 'react-dom';
 import { PreferredTextType, RenderProps, renderSprite, ScreenData, SpriteData } from './stats.back';
 import * as reactTabs from 'react-tabs';
 import { marked } from 'marked';
