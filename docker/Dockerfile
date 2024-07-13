@@ -5,7 +5,6 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN grep 'ubuntu.com/ubuntu' /etc/apt/sources.list \
     | grep '# deb-src' \
     | sed -e 's/^# //g' >> /etc/apt/sources.list
-RUN sed -i 's@http://archive.ubuntu.com/ubuntu@http://mirror.asergo.com/ubuntu/@g' /etc/apt/sources.list
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl ca-certificates python3-pip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -18,7 +17,7 @@ RUN curl -s http://mirrors.ubuntu.com/mirrors.txt | \
     sort -g -r | \
     head -1 | \
     awk '{ print $2 }' | \
-    xargs -I '{}' sed -i 's@http://mirror.asergo.com/ubuntu/@{}/@g' /etc/apt/sources.list
+    xargs -I '{}' sed -i 's@http://archive.ubuntu.com/ubuntu@{}/@g' /etc/apt/sources.list
 
 # Install VICE dependencies and misc.
 RUN apt-get update && \
