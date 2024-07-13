@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.2.1](https://github.com/empathicqubit/vscode-cc65-debugger/compare/v8.2.0...v8.2.1) (2024-07-13)
+
+
+### Bug Fixes
+
+* Update Node version to v22 ([7c44ccb](https://github.com/empathicqubit/vscode-cc65-debugger/commit/7c44ccb13c61dfca49d64d7103f65fab2f690329))
+
 ## [8.2.0](https://github.com/empathicqubit/vscode-cc65-debugger/compare/v8.1.0...v8.2.0) (2024-07-11)
 
 
