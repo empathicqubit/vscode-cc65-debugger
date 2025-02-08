@@ -1,10 +1,10 @@
 [submodule "3rdparty/c64ttf"]
 	path = 3rdparty/c64ttf
-	url = https://github.com/empathicqubit/c64ttf
+	url = https://git.entan.gl/empathicqubit/c64ttf
 	shallow = true
 [submodule "3rdparty/mesen-binary-monitor"]
 	path = 3rdparty/mesen-binary-monitor
-	url = https://github.com/empathicqubit/mesen-binary-monitor
+	url = https://git.entan.gl/empathicqubit/mesen-binary-monitor
 	shallow = true
 [submodule "3rdparty/applewin"]
 	path = 3rdparty/applewin
