@@ -1,4 +1,4 @@
-<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/action.gif?raw=true" />
+<img src="https://git.entan.gl/empathicqubit/vscode-cc65-debugger/blob/master/images/action.gif?raw=true" />
 
 # vscode-cc65-debugger
  
@@ -14,13 +14,13 @@
 Dependencies and date last changed:
 
 [![VICE](https://img.shields.io/badge/VICE-3.8.0%202024%2f03%2f18-blue)](https://community.chocolatey.org/packages/winvice-nightly/3.8.0)
-[![Mesen-X](https://img.shields.io/badge/MesenX-1.0.0%202021%2f11%2f24-blue)](https://github.com/NovaSquirrel/Mesen-X/releases/tag/1.0.0)
+[![Mesen-X](https://git.entan.gl/NovaSquirrel/Mesen-X/releases/tag/1.0.0)
 
 This is an extension to let you debug CC65 C code (and ASM code to a small degree) made for the Commodore platforms (well-tested) and NES (experimental), including the Commodore 64, using [VICE emulator](https://vice-emu.sourceforge.io/) and [Visual Studio Code](https://code.visualstudio.com/).
 
 [Install it here](https://marketplace.visualstudio.com/items?itemName=entan-gl.cc65-vice)
 
-If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://github.com/empathicqubit/vscode-cc65-debugger/issues) or [messaging me on Mastodon](https://mastodon.de/@empathicqubit) ( @empathicqubit (at) dizl.de ) \[if copy/pasting, replace the (at) with @ \] . 
+If you're having trouble understanding how this extension is supposed to be used, any other issues setting it up, or any features to suggest, please let me know by [creating an issue](https://git.entan.gl/empathicqubit/vscode-cc65-debugger/issues) or [messaging me on Mastodon](https://mastodon.de/@empathicqubit) ( @empathicqubit (at) dizl.de ) \[if copy/pasting, replace the (at) with @ \] . 
 
 Have you found this project useful, or even utter rubbish? The Flying Spaghetti Monster and I would really appreciate your rating on the Visual Studio Marketplace or OpenVSX!
 
@@ -35,8 +35,8 @@ basic debugging. If you connect VSCode to Codespaces, all the features will
 work correctly, it just might be slow since the debugger has to run on the
 remote machine.
 
-[![C Template](https://img.shields.io/badge/-C%20Template-blue)](https://github.com/empathicqubit/vs65-c-project-template)
-[![Assembly Template](https://img.shields.io/badge/-Assembly%20Template-blue)](https://github.com/empathicqubit/vs65-assembly-project-template)
+[![C Template](https://git.entan.gl/empathicqubit/vs65-c-project-template)
+[![Assembly Template](https://git.entan.gl/empathicqubit/vs65-assembly-project-template)
 
 ### Opening the template in Codespaces
 
@@ -51,7 +51,7 @@ remote machine.
 
 ### Viewing the Codespaces desktop for debugging
 
-<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-inbrowser.PNG?raw=true" />
+<img src="https://git.entan.gl/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-inbrowser.PNG?raw=true" />
 
 1. In the browser or local VSCode, go to the "PORTS" tab on the bottom of the screen and select port 6080,
     then click the globe button which appears. This will launch novnc in your browser.
@@ -61,7 +61,7 @@ remote machine.
 
 ### Remotely connecting to Codespaces with VSCode app on your computer
 
-<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-local.png?raw=true" />
+<img src="https://git.entan.gl/empathicqubit/vscode-cc65-debugger/blob/master/images/devcontainer-local.png?raw=true" />
 
 1. Go to [Codespaces](https://github.com/codespaces). You will see your container there.
 2. Click the three dots button on your container, and select open in VSCode. Your browser will ask to open VSCode URI.
@@ -155,7 +155,7 @@ After installing go to your launch.json and create a new section using the
 snippet. If you don't have a launch.json, the "create a launch.json file" link
 in the debug section should create a simple one.
 
-<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/config.png?raw=true" />
+<img src="https://git.entan.gl/empathicqubit/vscode-cc65-debugger/blob/master/images/config.png?raw=true" />
 
 Obsolete settings:
 
@@ -209,7 +209,7 @@ as your program named PROGRAMNAME.dbg
 
 There are also some user settings to note:
 
-<img src="https://github.com/empathicqubit/vscode-cc65-debugger/blob/master/images/user_config.png?raw=true" />
+<img src="https://git.entan.gl/empathicqubit/vscode-cc65-debugger/blob/master/images/user_config.png?raw=true" />
 
 - **cc65vice.enableCycleCounters**: Enable cycle counters next to each code line.
 - **cc65vice.viceDirectory**: Set this to specify the directory that contains the
@@ -265,8 +265,8 @@ name (minus the extension, of course) as your main program!
 If you have included any optimizations (`-Osir`) you should probably turn those
 off, however, effort has been made to trace some of them.
 
-Please also note the [mk.sh](https://github.com/empathicqubit/vs65-c-project-template/blob/main/mk.sh)
-and [mk.bat](https://github.com/empathicqubit/vs65-c-project-template/blob/main/mk.bat).
+Please also note the [mk.sh](https://git.entan.gl/empathicqubit/vs65-c-project-template/blob/main/mk.sh)
+and [mk.bat](https://git.entan.gl/empathicqubit/vs65-c-project-template/blob/main/mk.bat).
 These will help you run make (or anything else with minor modifications) from
 the proper context outside of vscode, so that you use the builtin cc65 compiler
 when possible, instead of the one installed on your machine.

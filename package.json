@@ -31,10 +31,10 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/empathicqubit/vscode-cc65-debugger"
+    "url": "https://git.entan.gl/empathicqubit/vscode-cc65-debugger"
   },
   "bugs": {
-    "url": "https://github.com/empathicqubit/vscode-cc65-debugger/issues"
+    "url": "https://git.entan.gl/empathicqubit/vscode-cc65-debugger/issues"
   },
   "scripts": {
     "distclean": "npm-run-all clean && shx rm -rf node_modules .pnpm_store 3rdparty/cc65 3rdparty/c64tff 3rdparty/applewin",
@@ -79,7 +79,7 @@
     "mintty": "npm-run-all mintty:win32_x32 mintty:win32_x64",
     "mintty:quick": "node -e \"process.exit(process.platform == 'win32' ? 0 : 1)\" && npm-run-all mintty || echo \"MinTTY not built\"",
     "mesen:monitor": "shx test -e dist/mesen || shx mkdir -p dist/mesen && shx cp -ru 3rdparty/mesen-binary-monitor/. dist/mesen && shx cp -ru mesen-settings.xml dist/mesen/settings.xml",
-    "mesen:test": "shx test -e src/__tests__/mesendir || shx mkdir -p src/__tests__/mesendir && curl -s -L \"https://github.com/empathicqubit/Mesen-X/releases/download/trash/Mesen-Linux.2.zip\" > src/__tests__/mesendir/mesen.zip && npm-run-all \"sevenzip -- x -y src/__tests__/mesendir/mesen.zip -osrc/__tests__/mesendir\"",
+    "mesen:test": "shx test -e src/__tests__/mesendir || shx mkdir -p src/__tests__/mesendir && curl -s -L \"https://git.entan.gl/empathicqubit/Mesen-X/releases/download/trash/Mesen-Linux.2.zip\" > src/__tests__/mesendir/mesen.zip && npm-run-all \"sevenzip -- x -y src/__tests__/mesendir/mesen.zip -osrc/__tests__/mesendir\"",
     "applewin:configure:force": "cd 3rdparty/applewin && shx mkdir -p build && cd build && cmake -DBUILD_SA2=ON ..",
     "applewin:configure": "shx test -e ./3rdparty/applewin/build/Makefile || npm-run-all applewin:configure:force",
     "applewin:make": "cd ./3rdparty/applewin/build && node -e \"const shx = require('../../../npm/shelljs'); const threads = require('os').cpus().length * 4; console.log('THREADS', threads); shx.exec('make -j' + threads)\"",
