@@ -92,7 +92,7 @@ jobs:
       continue-on-error: true
 
     - name: Publish test report
-      uses: dorny/test-reporter@v1
+      uses: https://github.com/dorny/test-reporter@v1
       if: success() || failure()    # run this step even if previous step failed
       with:
         name: "🧪🐧📋: VICE ${{ matrix.vice_version }}: ${{ matrix.machine }}"
