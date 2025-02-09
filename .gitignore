@@ -41,6 +41,7 @@ dist/
 *.sf-*
 *.testrun.*
 .nyc_output/
+test-report.html
 coverage/
 vicedir/
 mesendir/

@@ -91,10 +91,20 @@ jobs:
       name: 🏃 Run tests
       continue-on-error: true
 
-    - name: Publish test report
-      uses: https://github.com/dorny/test-reporter@v1
-      if: success() || failure()    # run this step even if previous step failed
+    - name: Publish test results
+      uses: actions/upload-artifact@v3
       with:
-        name: "🧪🐧📋: VICE ${{ matrix.vice_version }}: ${{ matrix.machine }}"
-        path: "./obj/noncompile.testrun.xml"
-        reporter: jest-junit
+          name: test-report.html
+          path: test-report.html
+
+    - name: Publish test results
+      uses: actions/upload-artifact@v3
+      with:
+          name: test-report.json
+          path: obj/noncompile.testrun.json
+
+    - name: Publish test results
+      uses: actions/upload-artifact@v3
+      with:
+          name: test-report.xml
+          path: obj/noncompile.testrun.xml
