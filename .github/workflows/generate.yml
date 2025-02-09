@@ -19,6 +19,7 @@ jobs:
       uses: https://github.com/googleapis/release-please-action@v4.1.3
       with:
         # GitHub token for creating and grooming release PRs, e.g., secrets.GITHUB_TOKEN
+        github-api-url: https://git.entan.gl/api/v1
         token: ${{secrets.REPO_GITHUB_TOKEN}}
         # what type of release is this, one of (ruby, python, node, terraform-module)
         release-type: node
