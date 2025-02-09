@@ -16,60 +16,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  mac-build:
-    name: 🍎
-
-    # Note that this is newer than the release, to support the newer version
-    # of Java that the apple2 build needs. The release build is as old as
-    # possible, to support a wider range of systems.
-    runs-on: macos-12
-
-    strategy:
-      fail-fast: false
-      matrix:
-          include:
-              - vice_directory: "vice-x86-64-gtk3-3.8"
-                vice_version: "3.8"
-
-    steps:
-    - uses: actions/checkout@v4
-      name: 🔄 Checkout Code
-      with:
-          ref: "${{ github.events.inputs.ref }}"
-          submodules: recursive
-    - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
-      name: 🔓 Mark repo directory as safe
-    - run: brew install sevenzip coreutils visual-studio-code libyaml yaml-cpp minizip libslirp libpcap
-      name: 🍺 Install Brew dependencies
-
-    - run: curl -sL -o "$HOME/VICE.dmg" "https://sourceforge.net/projects/vice-emu/files/releases/binaries/macosx/${{ matrix.vice_directory }}.dmg/download"
-      name: 🔽 Download VICE DMG
-    - run: ls -lha "$HOME/VICE.dmg"
-      name: 🔍 Check VICE DMG
-    - run: 7z x "$HOME/VICE.dmg"
-      name: 🗜️ Extract VICE DMG
-    - run: mv ${{ matrix.vice_directory }}/${{ matrix.vice_directory }} /Applications
-      name: Install VICE to Application folder
-    - run: cd /Applications/${{ matrix.vice_directory }}/bin && chmod -R a+x . && chmod a+x ../VICE.app/Contents/Resources/script && chmod -R a+x ../VICE.app/Contents/Resources/bin && ./x64sc -help
-      name: Fix some script permissions
-
-    - run: npm install -g pnpm
-      name: Install pnpm
-    - run: pnpm install --shamefully-hoist
-      name: 📦 Install node modules
-    - run: APPLEWIN_DIRECTORY= VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" pnpm build:test
-      name: 🛠️ Build tests
-    - continue-on-error: true
-      run: APPLEWIN_DIRECTORY= VICE_DIRECTORY="/Applications/${{ matrix.vice_directory }}/bin" USE_XVFB=1 pnpm test
-      name: Run tests
-
-    - name: Publish test report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()    # run this step even if previous step failed
-      with:
-        name: "🧪🍎📋: VICE ${{ matrix.vice_version }}"
-        path: "./obj/noncompile.testrun.xml"
-        reporter: jest-junit
 
   linux-build:
     name: 🐧
