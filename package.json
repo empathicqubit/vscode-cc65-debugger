@@ -102,7 +102,7 @@
     "tisk": "tsc -p .",
     "inspect": "npm-run-all tisk && node --inspect-brk ./out/debug-adapter.js --server=4711",
     "build:full": "npm-run-all --aggregate-output -p vice:choose tisk webpack && npm-run-all nonjs",
-    "build:test": "npm-run-all --aggregate-output -p vice:choose applewin:choose mesen:test tisk webpack && npm-run-all nonjs:quick",
+    "build:test": "npm-run-all --aggregate-output -p vice:choose applewin:choose tisk webpack && npm-run-all nonjs:quick",
     "build:debug": "npm-run-all --aggregate-output -p tisk",
     "vscode:prepublish:github": "npm-run-all build:full",
     "vscode:prepublish:local": "npm-run-all build:full test",
