@@ -23,14 +23,6 @@ jobs:
     container: empathicqubit/vscode-cc65-debugger-build
 
     steps:
-    - name: Cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.pnpm-store
-          ./**/*
-        key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
-
     - uses: actions/checkout@v4
       name: 🔄 Checkout Code
       with:
@@ -42,6 +34,14 @@ jobs:
       name: 📦 Install node modules
     - run: pnpm build:test
       name: 🛠️ Build tests
+
+    - name: Cache Save
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          ~/.pnpm-store
+          ./**/*
+        key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
 
   linux-test:
     name: 🧪🐧
