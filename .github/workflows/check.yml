@@ -95,16 +95,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
           name: test-report.html
-          path: test-report.html
-
-    - name: Publish test results
-      uses: actions/upload-artifact@v3
-      with:
-          name: test-report.json
-          path: obj/noncompile.testrun.json
-
-    - name: Publish test results
-      uses: actions/upload-artifact@v3
-      with:
-          name: test-report.xml
-          path: obj/noncompile.testrun.xml
+          path: |
+              test-report.html
+              obj/noncompile.testrun.json
+              obj/noncompile.testrun.xml
