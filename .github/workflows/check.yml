@@ -76,6 +76,7 @@ jobs:
           ~/.pnpm-store
           ./**/*
         key: check-${{ runner.os }}-${{ github.run_id }}-${{ github.run_number }}
+        fail-on-cache-miss: true
     - run: git config --global --add safe.directory /__w/vscode-cc65-debugger/vscode-cc65-debugger
       name: 🔓 Mark repo directory as safe
 
