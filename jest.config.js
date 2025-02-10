@@ -9,6 +9,7 @@ module.exports = {
     "testTimeout": 40000,
     "reporters": [
         "default",
+        "github-actions",
         ["jest-junit", { outputName }],
         ["jest-html-reporter", {
             "pageTitle": "Test Report",
